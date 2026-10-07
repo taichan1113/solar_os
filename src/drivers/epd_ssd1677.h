@@ -17,6 +17,7 @@ typedef enum {
     EPD_SSD1677_REFRESH_PARTIAL,
     EPD_SSD1677_REFRESH_FULL,
     EPD_SSD1677_REFRESH_FASTEST, /* opt-in host LUT, PaperMono only */
+    EPD_SSD1677_REFRESH_BALANCED, /* absolute endpoints, PaperMono only */
 } epd_ssd1677_refresh_mode_t;
 
 typedef esp_err_t (*epd_ssd1677_power_fn_t)(void *context, bool on);

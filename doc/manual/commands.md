@@ -1229,8 +1229,12 @@ On PaperMono (SSD1677), `refresh=auto` and `refresh=partial` retain the OTP fast
 waveform with a full baseline when required. `refresh=fastest` explicitly selects
 the shorter host LUT tested on PaperMono; it retains analog power between updates
 and can accumulate faint residuals. It still transfers both full RAM planes, not
-a rectangular RAM window. `refresh=cleanup` requests one OTP full update on the
-next present, even for an unchanged image. Switching into or out of fastest, or
+a rectangular RAM window. Experimental `refresh=balanced` uses M5GFX's longer
+absolute fast waveform, re-driving existing black/white endpoints on every
+changed frame, with a possible contrast/flicker/latency tradeoff. It keeps the
+same SPI transport controls. `refresh=cleanup` requests one OTP full update on the
+next present, even for an unchanged image. Switching between OTP, fastest and
+balanced, or
 resuming after rail-off, first establishes an OTP full baseline. Modes are runtime
 settings, not persisted across reboot. See [measured behavior and limitations](../m5paper-mono-writer-strategy.md).
 
