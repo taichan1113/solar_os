@@ -135,8 +135,28 @@ output disabled afterward.
 The USB virtual `input emit CTRL+S` command retains a letter and modifiers,
 whereas Writer saves on the translated character 0x13. It therefore does not
 prove a save from this test helper; the new document's actual ZMK Ctrl+S and
-subsequent file readback are part of manual acceptance. This input-tool limitation
+subsequent file readback were confirmed during manual acceptance. This input-tool limitation
 does not change the production HID translator.
 
-Long typing contrast and subjective latency/flicker acceptance remain subject to
-the user's panel observation. Host tests cannot establish optical quality.
+## Panel observation
+
+The user completed the new typing test on ZMK and reported:
+
+* No visible flicker during input.
+* Initial text still became slightly lighter, subjectively about 80% of its
+  initial darkness, but remained readable. This is an impression, not an optical
+  density measurement. Fading persists; its elimination or improvement over a
+  matched fastest typing trial has not been established.
+* Input-time waiting was almost unnoticeable.
+
+Readback confirms the diagnostic 40 digits, `UV` and `POST` in their original
+order in `/contrast-typing.md`, followed by the user's test text. The actual ZMK
+save therefore succeeds. Runtime readback confirms JP keyboard, mono font,
+unchanged fastest boot startup, and connected remembered keyboard 1/1. After the
+user's typing and pause, maintenance completion advanced from 1 to 2 with no
+error or pending work: one further full cleanup happened at the normal budget
+of 128. There was no need to reset or clear BLE bonds.
+
+The user separately confirmed that the initial text's darkness returned after
+the idle full cleanup. Typing remains opt-in on this experiment branch, and boot
+continues to select fastest. Host tests cannot establish optical quality.
