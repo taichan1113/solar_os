@@ -493,15 +493,12 @@ static esp_err_t ssd1677_papermono_refresh(epd_ssd1677_t *display)
                           display->shadow_valid && display->shadow != NULL;
     if (!cleanup && baseline &&
         memcmp(ssd1677_frame(display), display->shadow, display->buffer_size) == 0) return ESP_OK;
-    if (!cleanup && baseline &&
-        (display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST ||
-         display->refresh_mode == EPD_SSD1677_REFRESH_BALANCED))
+    if (!cleanup && baseline && display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST)
         return ssd1677_reference_refresh(display);
     display->transport_spi_hz = display->configured_spi_hz;
     const bool partial = baseline && !cleanup &&
                          display->refresh_mode != EPD_SSD1677_REFRESH_FULL &&
-                         display->refresh_mode != EPD_SSD1677_REFRESH_FASTEST &&
-                         display->refresh_mode != EPD_SSD1677_REFRESH_BALANCED;
+                         display->refresh_mode != EPD_SSD1677_REFRESH_FASTEST;
     display->timing = (epd_ssd1677_timing_t) {
         .start_us = esp_timer_get_time(), .partial = partial,
     };
@@ -1010,7 +1007,6 @@ static const char *ssd1677_controller_mode_unlocked(const epd_ssd1677_t *display
     if (display == NULL) return NULL;
     switch (display->refresh_mode) {
     case EPD_SSD1677_REFRESH_FASTEST: return "refresh=fastest";
-    case EPD_SSD1677_REFRESH_BALANCED: return "refresh=balanced";
     case EPD_SSD1677_REFRESH_PARTIAL: return "refresh=partial";
     case EPD_SSD1677_REFRESH_FULL: return "refresh=full";
     case EPD_SSD1677_REFRESH_AUTO:
@@ -1031,7 +1027,7 @@ const char *epd_ssd1677_controller_mode(const epd_ssd1677_t *display)
 const char *epd_ssd1677_controller_mode_values(const epd_ssd1677_t *display)
 {
     if (display != NULL && display->papermono_otp)
-        return "refresh=<auto,partial,full,cleanup,fastest,balanced> timing=<on,off> spi-mhz=<10,20,40> fastest-path=<scalar,tile>";
+        return "refresh=<auto,partial,full,cleanup,fastest> timing=<on,off> spi-mhz=<10,20,40> fastest-path=<scalar,tile>";
     return "refresh=<auto,partial,full>";
 }
 
@@ -1065,8 +1061,6 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
         (strcmp(mode, "refresh=fastest") == 0 || strcmp(mode, "refresh=reference") == 0)) {
         /* Keep the prototype spelling as an alias for recorded diagnostics. */
         display->refresh_mode = EPD_SSD1677_REFRESH_FASTEST;
-    } else if (display->papermono_otp && strcmp(mode, "refresh=balanced") == 0) {
-        display->refresh_mode = EPD_SSD1677_REFRESH_BALANCED;
     } else if (strcmp(mode, "refresh=auto") == 0) {
         display->refresh_mode = EPD_SSD1677_REFRESH_AUTO;
     } else if (strcmp(mode, "refresh=partial") == 0) {
@@ -1076,11 +1070,8 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
     } else {
         return ESP_ERR_INVALID_ARG;
     }
-    if (previous_mode != display->refresh_mode &&
-        (previous_mode == EPD_SSD1677_REFRESH_FASTEST ||
-         previous_mode == EPD_SSD1677_REFRESH_BALANCED ||
-         display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST ||
-         display->refresh_mode == EPD_SSD1677_REFRESH_BALANCED)) {
+    if ((previous_mode == EPD_SSD1677_REFRESH_FASTEST) !=
+        (display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST)) {
         display->papermono_baseline_valid = false;
         display->reference_awake = false;
     }

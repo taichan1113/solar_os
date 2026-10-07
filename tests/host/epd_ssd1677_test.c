@@ -648,90 +648,6 @@ static void test_reference_prototype(void)
     assert(ssd1677_refresh(&d)==ESP_OK && !d.timing.partial);
 }
 
-static void test_balanced_endpoints_and_lifecycle(void)
-{
-    for (unsigned tile = 0; tile < 2; ++tile) {
-        epd_ssd1677_t d = make_display();
-        assert(epd_ssd1677_set_controller_mode(&d,"refresh=balanced") == ESP_ERR_INVALID_ARG);
-        d.papermono_otp = true;
-        d.fastest_tiles = tile != 0;
-        d.band_buffer = band;
-        d.fastest_spi_hz = 40000000;
-        d.configured_spi_hz = 10000000;
-        assert(epd_ssd1677_set_controller_mode(&d,"refresh=balanced") == ESP_OK);
-        assert(!strcmp(epd_ssd1677_controller_mode(&d),"refresh=balanced"));
-        assert(ssd1677_refresh(&d) == ESP_OK && !d.timing.partial);
-        /* A black mark stays black while a distant new mark changes. Both
-         * absolute planes must contain CURRENT endpoints, never old pixels. */
-        frame[0] = 0;
-        command_count = 0;
-        assert(ssd1677_refresh(&d) == ESP_OK && d.reference_awake);
-        expect_data(0x22,(uint8_t[]){0xcc},1);
-        frame[sizeof(frame)-1] = 0;
-        command_count = 0;
-        assert(ssd1677_refresh(&d) == ESP_OK);
-        expect_data(0x22,(uint8_t[]){0x0c},1);
-        const captured_command_t *a = find_command(0x24,0), *b = find_command(0x26,0);
-        assert(a && b && a->length == sizeof(frame) && b->length == sizeof(frame));
-        assert(!memcmp(a->data,b->data,a->length));
-        assert(a->data[0] == 0x80 && a->data[sizeof(frame)-1] == 0x01);
-        assert(a->data[101] == 0); /* white selects group 0, black group 3 */
-        expect_data(0x32,ssd1677_balanced_lut,105);
-        expect_data(0x04,(uint8_t[]){0x41,0xa8,0x32},3);
-        assert(!memcmp(shadow,frame,sizeof(frame)) && d.actual_spi_hz == 40000000);
-        command_count = 0;
-        assert(ssd1677_refresh(&d) == ESP_OK && !command_count);
-        assert(epd_ssd1677_set_controller_mode(&d,"refresh=cleanup") == ESP_OK);
-        assert(ssd1677_refresh(&d) == ESP_OK && !d.timing.partial);
-        assert(!strcmp(epd_ssd1677_controller_mode(&d),"refresh=balanced"));
-        frame[1] = 0; command_count = 0;
-        assert(ssd1677_refresh(&d) == ESP_OK);
-        command_count = 0;
-        assert(ssd1677_sleep(&d) == ESP_OK);
-        assert(commands[0].command == 0x22 && commands[1].command == 0x20 &&
-               commands[2].command == 0x10);
-        assert(ssd1677_refresh(&d) == ESP_OK && !d.timing.partial);
-        assert(epd_ssd1677_set_controller_mode(&d,"refresh=fastest") == ESP_OK);
-        command_count = 0;
-        assert(!d.papermono_baseline_valid && ssd1677_refresh(&d) == ESP_OK);
-        assert(!d.timing.partial);
-        for (size_t i=0; i<command_count; ++i) assert(commands[i].command != 0x32);
-        assert(epd_ssd1677_set_controller_mode(&d,"refresh=balanced") == ESP_OK);
-        command_count = 0;
-        assert(!d.papermono_baseline_valid && ssd1677_refresh(&d) == ESP_OK);
-        assert(!d.timing.partial);
-        for (size_t i=0; i<command_count; ++i) assert(commands[i].command != 0x32);
-    }
-}
-
-static void test_balanced_snapshot_and_faults(void)
-{
-    for (unsigned failure = 0; failure < 3; ++failure) {
-        epd_ssd1677_t d = make_display(); d.papermono_otp = true;
-        d.fastest_tiles = true; d.band_buffer = band;
-        assert(epd_ssd1677_set_controller_mode(&d,"refresh=balanced") == ESP_OK);
-        assert(ssd1677_refresh(&d) == ESP_OK);
-        uint8_t latest[SSD1677_BUFFER_BYTES]; memcpy(latest,frame,sizeof(latest));
-        latest[0] = 0;
-        command_count = 0;
-        if (failure == 0) {
-            mutate_render_buffer = true;
-            assert(epd_ssd1677_present_snapshot(&d,latest,sizeof(latest)) == ESP_OK);
-            assert(!memcmp(shadow,latest,sizeof(latest)) && d.snapshot == NULL);
-            assert(!memcmp(find_command(0x24,0)->data,find_command(0x26,0)->data,sizeof(latest)));
-        } else {
-            if (failure == 1) fail_plane_data = true;
-            else busy_on_activation = true;
-            assert(epd_ssd1677_present_snapshot(&d,latest,sizeof(latest)) != ESP_OK);
-            assert(d.faulted && !d.shadow_valid && !d.papermono_baseline_valid);
-            assert(shadow[0] == 0xff && d.snapshot == NULL);
-            const size_t count = command_count;
-            assert(ssd1677_refresh(&d) == ESP_ERR_INVALID_STATE && command_count == count);
-        }
-    }
-    stuck_busy = false;
-}
-
 int main(void)
 {
     test_initial_full();
@@ -748,8 +664,6 @@ int main(void)
     test_reference_power_off_failure();
     test_fastest_conversion_equivalence();
     test_fastest_snapshot_ownership();
-    test_balanced_endpoints_and_lifecycle();
-    test_balanced_snapshot_and_faults();
     puts("epd_ssd1677_test: PASS");
     return 0;
 }
