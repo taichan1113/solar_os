@@ -12,18 +12,49 @@ MANUAL_GENERATED_HEADER := $(MANUAL_GENERATED_DIR)/solar_os_manual_data.h
 .PHONY: all test clean
 
 TARGETS += ble_service_test ble_multi_peer_test ble_nimble_test ble_hid_test ble_lua_bindings_test ble_server_test
+TARGETS += ble_keyboard_reconnect_test
+
+ble_keyboard_reconnect_test: ble_keyboard_reconnect_test.c $(ROOT)/src/services/solar_os_ble_keyboard_reconnect.inc
+	$(CC) $(CFLAGS) -I. -o $@ $<
 TARGETS += input_action_match_test gesture_completion_test
 TARGETS += epd_ssd1677_test epd_uc8179_test uc8179_expansion_test epd_uc8279_test uc8279_expansion_test
 TARGETS += frontlight_pwm_test epd_xteink_identify_test x4pro_expansion_test
 TARGETS += gt911_test
 TARGETS += sdmmc_expansion_test
 TARGETS += axp2101_service_test
+TARGETS += m5papermono_power_test
+TARGETS += ft6336_test
+TARGETS += rtc_rx8130ce_test
+TARGETS += ft6336_lifecycle_test
+TARGETS += status_led_provider_test
+
+status_led_provider_test: status_led_provider_test.c $(ROOT)/src/services/solar_os_status_led.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -Iexpansion_stubs -Igpio_controller_stubs -I. -I$(ROOT)/src/services -I$(ROOT)/src/drivers -o $@ $^
+
+ft6336_lifecycle_test: ft6336_lifecycle_test.c $(ROOT)/src/services/solar_os_ft6336.c $(ROOT)/src/drivers/ft6336.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -include compat.h -Itouch_stubs -Iasync_stubs -Irtc_stubs -Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/src/drivers -o $@ $< $(ROOT)/src/drivers/ft6336.c
+
+rtc_rx8130ce_test: rtc_rx8130ce_test.c $(ROOT)/src/drivers/rtc_rx8130ce.c $(ROOT)/src/services/solar_os_rx8130ce.c $(ROOT)/src/services/solar_os_rtc.c $(ROOT)/src/services/solar_os_time.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -ffunction-sections -fdata-sections -include compat.h -Irtc_stubs -I. -I$(ROOT)/src/services -I$(ROOT)/src/drivers -Wl,--gc-sections -o $@ $^
+
+ft6336_test: ft6336_test.c $(ROOT)/src/drivers/ft6336.c $(ROOT)/src/drivers/ft6336.h
+	$(CC) $(CFLAGS) -include compat.h -Irtc_stubs -Iepd_stubs -I. -o $@ $<
+
+m5papermono_power_test: m5papermono_power_test.c $(ROOT)/src/services/solar_os_m5papermono_power.c
+	$(CC) $(CFLAGS) -include compat.h -Irtc_stubs -Iexpansion_stubs -I. \
+		-I$(ROOT)/src/services -I$(ROOT)/src/drivers -o $@ $<
 TARGETS += camera_service_test camera_expansion_test media_test mjpeg_test
 TARGETS += http_server_test
 TARGETS += rtspd_job_test rtspd_audio_only_test
 TARGETS += rtsp_receiver_test
 TARGETS += rtsp_client_test
 TARGETS += gfx_mono_raster_test
+TARGETS += display_async_test
+TARGETS += writer_checkpoint_test
+TARGETS += terminal_render_normal_test terminal_render_readable_test terminal_render_large_test
+
+display_async_test: display_async_test.c $(ROOT)/src/services/solar_os_display_async.c $(ROOT)/src/services/solar_os_display_async.h $(ROOT)/src/services/solar_os_display_submission.h $(wildcard async_stubs/*.h async_stubs/freertos/*.h)
+	$(CC) $(CFLAGS) -pthread -Iasync_stubs -I. -I$(ROOT)/src/services -o $@ $<
 TARGETS += rgb565_raster_test
 TARGETS += rtspd_completion_test
 TARGETS += script_media_test script_media_rtsp_test
@@ -132,7 +163,7 @@ epd_uc8179_test: epd_uc8179_test.c $(ROOT)/src/drivers/epd_ultrachip.c $(ROOT)/s
 		-Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib \
 		epd_uc8179_test.c -Wl,--gc-sections -o $@
 
-epd_ssd1677_test: epd_ssd1677_test.c $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677.h \
+epd_ssd1677_test: epd_ssd1677_test.c $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677.h $(ROOT)/src/drivers/epd_ssd1677_reference.inc \
 	$(wildcard epd_stubs/*.h epd_stubs/driver/*.h epd_stubs/freertos/*.h)
 	$(CC) $(CFLAGS) -ffunction-sections -fdata-sections \
 		-Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib \
@@ -364,9 +395,9 @@ doc_layout_test: doc_layout_test.c doc_test_support.c $(ROOT)/src/services/solar
 		doc_layout_test.c doc_test_support.c $(ROOT)/src/services/solar_os_doc.c \
 		-Wl,--gc-sections -o $@
 
-writer_files_test: writer_files_test.c $(WRITER_DIR)/solar_os_writer_files.c $(WRITER_DIR)/solar_os_writer_files.h esp_err.h
+writer_files_test: writer_files_test.c $(WRITER_DIR)/solar_os_writer_files.c $(WRITER_DIR)/solar_os_writer_files.h $(WRITER_DIR)/solar_os_writer_recovery.h esp_err.h
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -I. -I$(ROOT)/src/services -I$(WRITER_DIR) \
-		writer_files_test.c $(WRITER_DIR)/solar_os_writer_files.c -o $@
+		writer_files_test.c $(WRITER_DIR)/solar_os_writer_files.c -Wl,--wrap=rename -o $@
 
 file_shortcuts_test: file_shortcuts_test.c $(WRITER_DIR)/solar_os_file_shortcuts.h
 	$(CC) $(CFLAGS) -I. -I$(ROOT)/src/services -I$(WRITER_DIR) \
@@ -765,9 +796,19 @@ app_exit_result_test: app_exit_result_test.c $(ROOT)/src/solar_os.c $(ROOT)/src/
 		$(ROOT)/src/solar_os.c $(ROOT)/src/shell/solar_os_shell_io.c \
 		-Wl,--gc-sections -o $@
 
-terminal_preferences_test: terminal_preferences_test.c $(ROOT)/src/services/solar_os_terminal_preferences.c $(ROOT)/src/services/solar_os_terminal_preferences.h
+terminal_preferences_test: terminal_preferences_test.c $(ROOT)/src/services/solar_os_terminal_preferences.c $(ROOT)/src/services/solar_os_terminal_preferences.h $(ROOT)/src/services/solar_os_ui_font.h
 	$(CC) $(CFLAGS) -I. -I$(ROOT)/src -I$(ROOT)/src/services \
 		terminal_preferences_test.c $(ROOT)/src/services/solar_os_terminal_preferences.c -o $@
+
+TERMINAL_RENDER_U8G2 := $(addprefix $(ROOT)/components/u8g2/src/clib/,u8g2_font.c u8g2_buffer.c u8g2_hvline.c u8g2_ll_hvline.c u8g2_box.c u8g2_setup.c u8g2_intersection.c u8x8_setup.c u8x8_display.c u8x8_cad.c u8x8_byte.c u8x8_gpio.c u8x8_8x8.c)
+TERMINAL_RENDER_SOURCES := terminal_render_test.c $(ROOT)/src/services/solar_os_terminal.c $(ROOT)/src/services/solar_os_terminal_preferences.c $(ROOT)/src/services/solar_os_terminal_geometry.c $(TERMINAL_RENDER_U8G2) $(wildcard $(ROOT)/fonts/build/u8g2/*.c)
+terminal_render_normal_test terminal_render_readable_test terminal_render_large_test: $(TERMINAL_RENDER_SOURCES) $(ROOT)/src/services/solar_os_ui_font.h
+	$(CC) $(CFLAGS) -Wno-unused-function -Wno-unused-variable -Wno-unused-parameter -Wno-format-truncation \
+		-D_GNU_SOURCE -ffunction-sections -fdata-sections -include compat.h \
+		-DSOLAR_OS_BOARD_UI_FONT_PRESET=$(if $(findstring large,$@),2,$(if $(findstring readable,$@),1,0)) \
+		-DSOLAR_OS_BOARD_TERMINAL_STATUS_REFRESH_ON_CHANGE=$(if $(findstring normal,$@),1,0) \
+		-I. -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/components/u8g2/src/clib \
+		$(TERMINAL_RENDER_SOURCES) -Wl,--gc-sections -o $@
 
 tui_widgets_test: tui_widgets_test.c $(ROOT)/src/services/solar_os_tui_widgets.c $(ROOT)/src/services/solar_os_tui_widgets.h
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -ffunction-sections -fdata-sections -I. \
@@ -846,6 +887,7 @@ rtc_pcf85063_test: rtc_pcf85063_test.c \
 		rtc_pcf85063_test.c $(ROOT)/src/drivers/rtc_pcf85063.c -o $@
 
 test: $(TARGETS)
+	./writer_checkpoint_test
 	./cw2017_test
 	./rtc_pcf8563_test
 	./axp2101_service_test
@@ -933,6 +975,9 @@ test: $(TARGETS)
 	./terminal_geometry_test
 	./app_exit_result_test
 	./terminal_preferences_test
+	./terminal_render_normal_test
+	./terminal_render_readable_test
+	./terminal_render_large_test
 	./tui_widgets_test
 	./wireguard_crypto_test
 	./meshcore_channel_key_test
@@ -952,6 +997,11 @@ test: $(TARGETS)
 	./bq25896_test
 	./axp2101_test
 	./epd_ssd1677_test
+	./m5papermono_power_test
+	./ft6336_test
+	./rtc_rx8130ce_test
+	./ft6336_lifecycle_test
+	./status_led_provider_test
 	./frontlight_pwm_test
 	./epd_xteink_identify_test
 	./x4pro_expansion_test
@@ -970,3 +1020,6 @@ test: $(TARGETS)
 clean:
 	$(RM) $(TARGETS) model_bundle_test inference_lua_json_test zoo_test
 	$(RM) -r generated
+
+writer_checkpoint_test: writer_checkpoint_test.c $(WRITER_DIR)/solar_os_writer_checkpoint.c $(WRITER_DIR)/solar_os_writer_checkpoint.h $(WRITER_DIR)/solar_os_writer_files.c $(WRITER_DIR)/solar_os_writer_buffer.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -DSOLAR_OS_WRITER_HOST_TEST -pthread -Iasync_stubs -I. -I$(WRITER_DIR) -I$(ROOT)/src/services -o $@ $< $(WRITER_DIR)/solar_os_writer_buffer.c -Wl,--wrap=rename

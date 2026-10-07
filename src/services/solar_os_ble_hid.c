@@ -2,9 +2,11 @@
 #include "solar_os_ble_hid_report_map.h"
 #include "solar_os_ble_nimble.h"
 #include "solar_os_task.h"
+#include "solar_os_log.h"
 
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 #include "esp_attr.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
@@ -39,6 +41,9 @@ static struct {
     uint32_t epoch;
     atomic_bool active;
     bool closing, open_sent, connecting, discovery_started;
+    bool encryption_pending;
+    int encryption_status;
+    const char *stage;
     bool caller_waiting, release_requested, close_requested;
     bool keepalive_requested, keepalive_in_progress, keepalive_attempted;
     uint32_t keepalive_attempts;
@@ -75,6 +80,16 @@ static QueueHandle_t events;
 static SemaphoreHandle_t open_done;
 static TaskHandle_t event_task;
 static solar_os_ble_hid_callback_t policy_callback;
+
+#define HID_TRACE(fmt, ...) SOLAR_OS_LOGD("ble_hid", \
+    "hid=%" PRIu32 " conn=%d stage=%s " fmt, hid.epoch, device.conn_id, \
+    hid.stage ? hid.stage : "idle", ##__VA_ARGS__)
+
+static void begin_stage(const char *stage)
+{
+    hid.stage = stage;
+    HID_TRACE("start");
+}
 
 static void command(struct ble_npl_event *event);
 static void fail(int status);
@@ -166,6 +181,7 @@ static void post_battery(uint8_t level)
 
 static void disconnected(int status)
 {
+    HID_TRACE("disconnected status=%d open_sent=%u", status, hid.open_sent);
     stop_deadline();
     portENTER_CRITICAL(&command_lock);
     hid.keepalive_requested = false;
@@ -186,6 +202,7 @@ static void disconnected(int status)
 static void fail(int status)
 {
     if (hid.closing) return;
+    HID_TRACE("fail status=%d connecting=%u", status, hid.connecting);
     device.status = status;
     hid.closing = true;
     stop_deadline();
@@ -218,6 +235,8 @@ static void ready(void)
     device.connected = true;
     device.status = 0;
     hid.open_sent = true;
+    begin_stage("ready");
+    HID_TRACE("reports=%u", (unsigned)hid.report_count);
     post_control(SOLAR_OS_BLE_HID_OPEN, 0);
     if (hid.initial_battery_known) {
         post_battery(hid.initial_battery_level);
@@ -237,6 +256,7 @@ static void subscribe(uint8_t id)
     r->battery = ble_uuid_u16(&hid_data.services[hid.service_index].uuid.u) == 0x180f;
     uint8_t value[2] = {(chr->properties & BLE_GATT_CHR_PROP_NOTIFY) ? 1 : 2, 0};
     hid.phase = WRITE_CCC;
+    begin_stage("ccc");
     int rc = ble_gattc_write_flat(device.conn_id, r->ccc, value, sizeof(value), value_callback, token());
     if (rc) fail(rc);
 }
@@ -246,6 +266,7 @@ static void read_battery_or_advance(void)
     struct ble_gatt_chr *chr = &hid_data.chars[hid.char_index];
     if (chr->properties & BLE_GATT_CHR_PROP_READ) {
         hid.phase = READ_BATTERY;
+        begin_stage("battery");
         if (!arm(HID_SETUP_TIMEOUT_MS)) return;
         const int rc = ble_gattc_read(device.conn_id, chr->val_handle,
                                       value_callback, token());
@@ -259,6 +280,7 @@ static int descriptors_callback(uint16_t conn, const struct ble_gatt_error *erro
     uint16_t handle, const struct ble_gatt_dsc *dsc, void *arg)
 {
     if (!live(conn, arg)) return 0;
+    HID_TRACE("descriptors result=%d", error->status);
     if (!error->status) {
         uint16_t uuid = ble_uuid_u16(&dsc->uuid.u);
         if (uuid == 0x2902) hid.ccc = dsc->handle;
@@ -272,6 +294,7 @@ static int descriptors_callback(uint16_t conn, const struct ble_gatt_error *erro
     }
     else if (hid.reference) {
         hid.phase = READ_REFERENCE;
+        begin_stage("reference");
         int rc = ble_gattc_read(conn, hid.reference, value_callback, token());
         if (rc) fail(rc);
     } else {
@@ -301,6 +324,7 @@ static void next_characteristic(void)
             uint16_t end = hid.char_index + 1 < hid.char_count ?
                 hid_data.chars[hid.char_index + 1].def_handle - 1 : hid_data.services[hid.service_index].end_handle;
             hid.reference = hid.ccc = 0;
+            begin_stage("descriptors");
             if (!arm(HID_SETUP_TIMEOUT_MS)) return;
             int rc = ble_gattc_disc_all_dscs(device.conn_id, chr->val_handle, end,
                                             descriptors_callback, token());
@@ -328,6 +352,7 @@ static int value_callback(uint16_t conn, const struct ble_gatt_error *error,
                           struct ble_gatt_attr *attr, void *arg)
 {
     if (!live(conn, arg)) return 0;
+    HID_TRACE("value result=%d", error->status);
     int rc = error->status;
     if (hid.phase == READ_MAP) {
         if (!rc) {
@@ -427,6 +452,7 @@ static int characteristics_callback(uint16_t conn, const struct ble_gatt_error *
         if (rc) { fail(rc); return 0; }
     }
     hid.phase = READ_MAP;
+    begin_stage("map");
     if (!arm(HID_SETUP_TIMEOUT_MS)) return 0;
     int rc = ble_gattc_read_long(conn, hid.map_handle, 0, value_callback, token());
     if (rc) fail(rc);
@@ -439,6 +465,7 @@ static void next_service(void)
     hid.char_count = hid.char_index = hid.map_len = 0;
     hid.map_handle = hid.protocol_handle = 0;
     struct ble_gatt_svc *s = &hid_data.services[hid.service_index];
+    begin_stage("characteristics");
     if (!arm(HID_SETUP_TIMEOUT_MS)) return;
     int rc = ble_gattc_disc_all_chrs(device.conn_id, s->start_handle, s->end_handle,
                                     characteristics_callback, token());
@@ -449,6 +476,7 @@ static int services_callback(uint16_t conn, const struct ble_gatt_error *error,
                              const struct ble_gatt_svc *svc, void *arg)
 {
     if (!live(conn, arg)) return 0;
+    HID_TRACE("services result=%d", error->status);
     if (!error->status) {
         uint16_t uuid = ble_uuid_u16(&svc->uuid.u);
         if (uuid == 0x1812 || uuid == 0x180f) {
@@ -464,26 +492,35 @@ static int mtu_callback(uint16_t conn, const struct ble_gatt_error *error,
                         uint16_t mtu, void *arg)
 {
     if (!live(conn, arg)) return 0;
+    HID_TRACE("mtu result=%d mtu=%u", error->status, mtu);
+    begin_stage("services");
     if (!arm(HID_SETUP_TIMEOUT_MS)) return 0;
     int rc = ble_gattc_disc_all_svcs(conn, services_callback, token());
     if (rc) fail(rc);
     return 0;
 }
 
-static int replace_repeat_pairing_bond(struct ble_gap_event *event)
+static void encrypted_link_ready(int status)
 {
-    struct ble_gap_conn_desc desc = {0};
-    int rc = ble_gap_conn_find(event->repeat_pairing.conn_handle, &desc);
-    if (rc) {
-        return BLE_GAP_REPEAT_PAIRING_IGNORE;
-    }
-
-    rc = ble_store_util_delete_peer(&desc.peer_id_addr);
-    if (rc) {
-        return BLE_GAP_REPEAT_PAIRING_IGNORE;
-    }
-
-    return BLE_GAP_REPEAT_PAIRING_RETRY;
+    HID_TRACE("encryption result=%d", status);
+    if (status) { fail(status); return; }
+    struct ble_gap_conn_desc desc;
+    int rc = ble_gap_conn_find(device.conn_id, &desc);
+    if (rc) { fail(rc); return; }
+    HID_TRACE("encrypted=%u bonded=%u identity_type=%u", desc.sec_state.encrypted,
+              desc.sec_state.bonded, desc.peer_id_addr.type);
+    /* Persist the bonded identity, not a temporary private address.
+     * Forget must address the same peer that NimBLE stores in NVS. */
+    solar_os_ble_nimble_display_address(device.bda, &desc.peer_id_addr);
+    device.addr_type = desc.peer_id_addr.type & 1;
+    hid.discovery_started = true;
+    begin_stage("mtu");
+    if (!arm(HID_SETUP_TIMEOUT_MS)) return;
+    rc = ble_gattc_exchange_mtu(device.conn_id, mtu_callback, token());
+    if (rc == BLE_HS_EALREADY) {
+        struct ble_gatt_error complete = {.status = 0};
+        (void)mtu_callback(device.conn_id, &complete, ble_att_mtu(device.conn_id), token());
+    } else if (rc) fail(rc);
 }
 
 static int gap_callback(struct ble_gap_event *event, void *arg)
@@ -491,6 +528,8 @@ static int gap_callback(struct ble_gap_event *event, void *arg)
     if (!hid.active || hid.epoch != (uint32_t)(uintptr_t)arg) return 0;
     switch (event->type) {
     case BLE_GAP_EVENT_CONNECT:
+        HID_TRACE("GAP connect status=%d handle=%u early_enc=%u", event->connect.status,
+                  event->connect.conn_handle, hid.encryption_pending);
         if (!hid.connecting) break;
         hid.connecting = false;
         if (event->connect.status) { disconnected(event->connect.status); break; }
@@ -499,40 +538,49 @@ static int gap_callback(struct ble_gap_event *event, void *arg)
             (void)ble_gap_terminate(device.conn_id, BLE_ERR_REM_USER_CONN_TERM);
             break;
         }
+        if (hid.encryption_pending) {
+            hid.encryption_pending = false;
+            encrypted_link_ready(hid.encryption_status);
+            break;
+        }
         if (!arm(60000)) break; /* Allow the user to type the pairing passkey. */
         {
+            begin_stage("security");
             int rc = ble_gap_security_initiate(device.conn_id);
+            struct ble_gap_conn_desc desc = {0};
+            int found = ble_gap_conn_find(device.conn_id, &desc);
+            HID_TRACE("security request rc=%d desc_rc=%d encrypted=%u bonded=%u", rc,
+                      found, desc.sec_state.encrypted, desc.sec_state.bonded);
             if (rc && rc != BLE_HS_EALREADY) fail(rc);
         }
         break;
     case BLE_GAP_EVENT_ENC_CHANGE:
+        HID_TRACE("GAP enc_change status=%d handle=%u connecting=%u",
+                  event->enc_change.status, event->enc_change.conn_handle, hid.connecting);
         if (hid.closing || hid.discovery_started) break;
-        if (event->enc_change.status) { fail(event->enc_change.status); break; }
-        {
-            struct ble_gap_conn_desc desc;
-            int rc = ble_gap_conn_find(device.conn_id, &desc);
-            if (rc) { fail(rc); break; }
-            /* Persist the bonded identity, not a temporary private address.
-             * Forget must address the same peer that NimBLE stores in NVS. */
-            solar_os_ble_nimble_display_address(device.bda, &desc.peer_id_addr);
-            device.addr_type = desc.peer_id_addr.type & 1;
+        if (device.conn_id >= 0 && device.conn_id != event->enc_change.conn_handle) break;
+        if (hid.connecting) {
+            /* ESP-IDF can finish bonded-link encryption before reporting
+             * CONNECT (which waits for remote features). Keep the real handle
+             * for disconnect/cancel, but defer GATT until CONNECT arrives. */
+            device.conn_id = event->enc_change.conn_handle;
+            hid.encryption_status = event->enc_change.status;
+            hid.encryption_pending = true;
+            break;
         }
-        hid.discovery_started = true;
-        if (!arm(HID_SETUP_TIMEOUT_MS)) break;
-        {
-            int rc = ble_gattc_exchange_mtu(device.conn_id, mtu_callback, token());
-            if (rc == BLE_HS_EALREADY) {
-                struct ble_gatt_error complete = {.status = 0};
-                (void)mtu_callback(device.conn_id, &complete, ble_att_mtu(device.conn_id), token());
-            } else if (rc) fail(rc);
-        }
+        encrypted_link_ready(event->enc_change.status);
         break;
     case BLE_GAP_EVENT_DISCONNECT:
+        HID_TRACE("GAP disconnect reason=%d handle=%u", event->disconnect.reason,
+                  event->disconnect.conn.conn_handle);
         if (device.conn_id != event->disconnect.conn.conn_handle) break;
         disconnected(event->disconnect.reason);
         break;
     case BLE_GAP_EVENT_REPEAT_PAIRING:
-        return replace_repeat_pairing_bond(event);
+        /* Reconnect must preserve stored keys. Only the explicit forget/pair
+         * policy may replace them; a peer request is not authorization. */
+        HID_TRACE("repeat_pairing ignored; bond preserved");
+        return solar_os_ble_nimble_security(event);
     case BLE_GAP_EVENT_NOTIFY_RX:
         if (!device.connected || hid.closing || device.conn_id != event->notify_rx.conn_handle) break;
         for (size_t i = 0; i < hid.report_count; ++i) {
@@ -583,6 +631,8 @@ static void command(struct ble_npl_event *event)
         hid.release_requested = false;
     }
     portEXIT_CRITICAL(&command_lock);
+    /* Logging can take a mutex; never call it inside the command spinlock. */
+    if (releasing) HID_TRACE("slot release");
     if (releasing || !hid.active) return;
     if (closing) { fail(BLE_HS_EAPP); return; }
     if (keepalive && device.connected && !hid.closing &&
@@ -622,8 +672,10 @@ static void command(struct ble_npl_event *event)
     if (device.conn_id >= 0 || hid.closing || hid.connecting) return;
     ble_addr_t addr;
     solar_os_ble_nimble_address(&addr, device.bda, device.addr_type);
+    begin_stage("connect");
     if (!arm(4000)) return;
     int rc = ble_gap_connect(BLE_OWN_ADDR_PUBLIC, &addr, 3000, NULL, gap_callback, token());
+    HID_TRACE("connect request rc=%d type=%u", rc, device.addr_type);
     hid.connecting = rc == 0;
     if (rc) disconnected(rc);
 }
@@ -675,6 +727,8 @@ solar_os_ble_hid_device_t *solar_os_ble_hid_open(const uint8_t bda[6], uint8_t t
     hid.epoch = ++next_epoch;
     hid.active = hid.caller_waiting = true;
     portEXIT_CRITICAL(&command_lock);
+    HID_TRACE("open bda=%02x:%02x:%02x:%02x:%02x:%02x type=%u",
+              bda[0], bda[1], bda[2], bda[3], bda[4], bda[5], type);
     while (xSemaphoreTake(open_done, 0) == pdTRUE) {}
     submit_command();
     /* The host's per-phase deadlines and cancellation run independently. A
@@ -687,6 +741,8 @@ solar_os_ble_hid_device_t *solar_os_ble_hid_open(const uint8_t bda[6], uint8_t t
     bool pending_release = hid.release_requested;
     portEXIT_CRITICAL(&command_lock);
     if (pending_release) submit_command();
+    HID_TRACE("open result done=%u connected=%u status=%d", done,
+              result != NULL, device.status);
     return result;
 }
 

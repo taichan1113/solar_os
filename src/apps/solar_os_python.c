@@ -1227,7 +1227,12 @@ static mp_obj_t solaros_battery(void)
 
     mp_obj_t dict = mp_obj_new_dict(7);
     python_dict_store_int(dict, "voltage_mv", status.voltage_mv);
-    python_dict_store_int(dict, "percent", status.percent);
+    if (status.percent_valid) python_dict_store_int(dict, "percent", status.percent);
+    else mp_obj_dict_store(dict, mp_obj_new_str("percent", 7), mp_const_none);
+    python_dict_store_bool(dict, "percent_valid", status.percent_valid);
+    python_dict_store_bool(dict, "external_power_known", status.external_power_known);
+    python_dict_store_bool(dict, "charge_complete", status.charge_complete);
+    python_dict_store_bool(dict, "charge_complete_known", status.charge_complete_known);
     python_dict_store_bool(dict, "percent_estimated", status.percent_estimated);
     python_dict_store_bool(dict, "adc_calibrated", status.adc_calibrated);
     python_dict_store_bool(dict, "external_power", status.external_power);
@@ -6381,7 +6386,7 @@ static mp_obj_t solaros_ble_layout(size_t n_args, const mp_obj_t *args)
 
     solar_os_ble_keyboard_layout_t layout;
     if (!solar_os_ble_keyboard_parse_layout(mp_obj_str_get_str(args[0]), &layout)) {
-        mp_raise_ValueError(MP_ERROR_TEXT("expected us or de"));
+        mp_raise_ValueError(MP_ERROR_TEXT("expected us, de or jp"));
     }
     python_check_esp(solar_os_ble_keyboard_set_layout(layout));
     return mp_const_none;

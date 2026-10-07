@@ -245,7 +245,7 @@ job for periodic polling.
 | `identity` | `identity user <name>` | Save the SolarOS user and default SSH/SCP username in NVS. |
 | `identity` | `identity hostname <name>` | Save the device hostname in NVS; reboot to update Wi-Fi. |
 | `engine` | `engine [status|reset]` | Print or reset generic engine utilization counters for CPU/SIMD-style backends and vector bulk operations. |
-| `display` | `display [list]`; `display layouts`; `display test <target>`; `display mode <target> [mode]` | List targets and layouts, draw a test pattern, or change driver-specific display settings. |
+| `display` | `display [list]`; `display layouts`; `display test <target> [pattern]`; `display mode <target> [mode]` | List targets and layouts, draw a test pattern, or change driver-specific display settings. Optional static e-paper patterns: `white`, `black`, `half`, `box-left`, `box-right`, `corners`, `fine`. |
 | `display` | `display join <name> --horizontal\|--vertical <target> <target> [target ...]`; `display unjoin <name>` | Join two to four physical targets into one logical display, or remove the join. |
 | `display` | `display split <target> --horizontal\|--vertical <first> <second>`; `display unsplit <target>` | Split one physical target into two equal logical viewports, or remove the split. |
 | `input` | `input [status|keyboard|touch|mouse|joystick|dpad|buttons|gesture]` | List all input sources or filter them by semantic class. |
@@ -296,7 +296,7 @@ job for periodic polling.
 | `setterm` | `setterm statusbar [show\|hide]` | Show or hide the graphical shell status bar. |
 | `setterm` | `setterm brightness [0..100]`; `setterm backlight [0..100]` | Show or set display brightness or backlight level. |
 | `setterm` | `setterm profile [vt100\|ansi\|dumb]`; `setterm charset [utf8\|ascii]` | Configure escape sequences and TUI glyph output for the current port shell. |
-| `setterm` | `setterm keyboard [us\|de]`; `setterm powerkey [sleep\|suspend]` | Show or set the keyboard layout and dedicated KEY action. |
+| `setterm` | `setterm keyboard [us\|de\|jp]`; `setterm powerkey [sleep\|suspend]` | Show or set the keyboard layout and dedicated KEY action. |
 | `setterm` | `setterm keyrate [off\|1..60 [delay-ms]]` | Show or set the shared keyboard and button repeat policy. |
 | `setterm` | `setterm ble [default\|on\|off]` | Show or set the BLE preference for the next boot. |
 | `setterm` | `setterm timezone [UTC\|UTC+/-offset\|Europe/Berlin\|POSIX-TZ]` | Show or set the timezone used for local time. |
@@ -490,7 +490,7 @@ setterm brightness [0..100]
 setterm backlight [0..100]
 setterm profile [vt100|ansi|dumb]
 setterm charset [utf8|ascii]
-setterm keyboard [us|de]
+setterm keyboard [us|de|jp]
 setterm powerkey [sleep|suspend]
 setterm keyrate [off|1..60 [delay-ms]]
 setterm ble [default|on|off]
@@ -498,6 +498,12 @@ setterm timezone [UTC|UTC+/-offset|Europe/Berlin|POSIX-TZ]
 setterm startup [auto|flash|sd]
 setterm otaurl [url]
 ```
+
+`setterm keyboard jp` selects the Windows Japanese 106/109 alphanumeric symbol
+layout for HID keyboard input. The selection is stored in NVS and shared with
+the BLE settings and `solaros.ble.layout("jp")`. Japanese IME conversion is not
+provided. In this layout Writer zooms with `Ctrl+;` (also `Ctrl+Shift+;`) and
+`Ctrl+-`; the Yen key inserts ASCII backslash (`U+005C`).
 
 `setterm keyrate` configures the shared repeat policy for BLE, PS/2, CardKB,
 and the CL-32 keyboard, fixed board buttons, `gpio-keys`, and ADC D-pads.
@@ -1219,6 +1225,15 @@ field, and `hpm-hz=<16|25.5|32|51>` changes the controller's HPM frame-rate
 field. These driver values are stored in NVS when changed. The ST7305
 `inverted=` setting controls panel polarity and remains independent of the
 terminal palette selected with `setterm palette`.
+On PaperMono (SSD1677), `refresh=auto` and `refresh=partial` retain the OTP fast
+waveform with a full baseline when required. `refresh=fastest` explicitly selects
+the shorter host LUT tested on PaperMono; it retains analog power between updates
+and can accumulate faint residuals. It still transfers both full RAM planes, not
+a rectangular RAM window. `refresh=cleanup` requests one OTP full update on the
+next present, even for an unchanged image. Switching into or out of fastest, or
+resuming after rail-off, first establishes an OTP full baseline. Modes are runtime
+settings, not persisted across reboot. See [measured behavior and limitations](../m5paper-mono-writer-strategy.md).
+
 On SSD1683 board and expansion targets, `refresh=auto` starts with a full
 waveform and skips unchanged frames. Waveshare V2 expansion targets use the
 changed framebuffer rectangle and the controller's partial-window waveform,

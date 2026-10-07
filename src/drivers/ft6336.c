@@ -16,14 +16,12 @@ static bool ft6336_ready;
 static char ft6336_i2c_bus[SOLAR_OS_BUS_NAME_MAX];
 static uint8_t ft6336_address;
 
-esp_err_t ft6336_init(const char *i2c_bus,
-                      uint8_t address,
-                      int reset_pin,
-                      int irq_pin)
+esp_err_t ft6336_init_with_reset(const char *i2c_bus, uint8_t address,
+                                int irq_pin, ft6336_reset_fn_t reset, void *context)
 {
     if (i2c_bus == NULL || i2c_bus[0] == '\0' ||
         address != FT6336_ADDRESS ||
-        reset_pin < 0 || reset_pin >= 64 || irq_pin < 0 || irq_pin >= 64) {
+        reset == NULL || irq_pin < 0 || irq_pin >= GPIO_NUM_MAX) {
         return ESP_ERR_INVALID_ARG;
     }
     if (ft6336_ready) {
@@ -33,19 +31,11 @@ esp_err_t ft6336_init(const char *i2c_bus,
             : ESP_ERR_INVALID_STATE;
     }
 
-    const gpio_config_t output = {
-        .pin_bit_mask = 1ULL << (uint32_t)reset_pin,
-        .mode = GPIO_MODE_OUTPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE,
-    };
-    ESP_RETURN_ON_ERROR(gpio_config(&output), TAG, "reset pin config failed");
-    ESP_RETURN_ON_ERROR(gpio_set_level(reset_pin, 0),
+    ESP_RETURN_ON_ERROR(reset(context, false),
                         TAG,
                         "reset low failed");
     vTaskDelay(pdMS_TO_TICKS(10));
-    ESP_RETURN_ON_ERROR(gpio_set_level(reset_pin, 1),
+    ESP_RETURN_ON_ERROR(reset(context, true),
                         TAG,
                         "reset high failed");
     vTaskDelay(pdMS_TO_TICKS(500));
@@ -71,6 +61,23 @@ esp_err_t ft6336_init(const char *i2c_bus,
     ft6336_address = address;
     ft6336_ready = true;
     return ESP_OK;
+}
+
+static esp_err_t native_reset(void *context, bool high)
+{
+    return gpio_set_level(*(int *)context, high);
+}
+
+esp_err_t ft6336_init(const char *i2c_bus, uint8_t address, int reset_pin, int irq_pin)
+{
+    if (reset_pin < 0 || reset_pin >= GPIO_NUM_MAX) return ESP_ERR_INVALID_ARG;
+    const gpio_config_t output = {
+        .pin_bit_mask = 1ULL << (uint32_t)reset_pin, .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE, .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE,
+    };
+    ESP_RETURN_ON_ERROR(gpio_config(&output), TAG, "reset pin config failed");
+    return ft6336_init_with_reset(i2c_bus, address, irq_pin, native_reset, &reset_pin);
 }
 
 esp_err_t ft6336_read(ft6336_sample_t *sample)
@@ -108,4 +115,15 @@ void ft6336_deinit(void)
     ft6336_ready = false;
     ft6336_i2c_bus[0] = '\0';
     ft6336_address = 0;
+}
+
+esp_err_t ft6336_disable_irq(int irq_pin)
+{
+    if (irq_pin < 0 || irq_pin >= GPIO_NUM_MAX) return ESP_ERR_INVALID_ARG;
+    const gpio_config_t off = {
+        .pin_bit_mask = 1ULL << (uint32_t)irq_pin, .mode = GPIO_MODE_DISABLE,
+        .pull_up_en = GPIO_PULLUP_DISABLE, .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE,
+    };
+    return gpio_config(&off);
 }

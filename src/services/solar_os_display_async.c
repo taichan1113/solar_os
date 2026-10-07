@@ -1,0 +1,222 @@
+#include "solar_os_display_async.h"
+#include <inttypes.h>
+#include <string.h>
+#include "esp_heap_caps.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+#include "freertos/task.h"
+#include "solar_os_task.h"
+#include "solar_os_perf.h"
+
+struct solar_os_display_async {
+    SemaphoreHandle_t state, control;
+    TaskHandle_t task;
+    uint8_t *buffers[2];
+    int pending_slot, active_slot;
+    uint64_t pending_id;
+    bool controlled, reject_submits, stopping, done;
+    size_t size;
+    void *context;
+    solar_os_display_async_execute_t execute;
+    solar_os_display_submission_status_t status;
+};
+
+static void lock(solar_os_display_async_t *a) { xSemaphoreTake(a->state, portMAX_DELAY); }
+static void unlock(solar_os_display_async_t *a) { xSemaphoreGive(a->state); }
+
+static void discard_pending(solar_os_display_async_t *a)
+{
+    if (a->pending_slot < 0) return;
+    a->status.cancelled++;
+    a->status.cancelled_id = a->pending_id;
+    a->pending_slot = -1;
+    a->status.pending = false;
+}
+
+static void worker(void *arg)
+{
+    solar_os_display_async_t *a = arg;
+    for (;;) {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        for (;;) {
+            lock(a);
+            if (a->stopping) {
+                a->done = true;
+                unlock(a);
+                solar_os_task_delete_internal(NULL);
+                return;
+            }
+            if (a->controlled || a->status.suspended || a->status.error != ESP_OK ||
+                a->pending_slot < 0) { unlock(a); break; }
+            a->active_slot = a->pending_slot;
+            a->pending_slot = -1;
+            const uint64_t id = a->pending_id;
+            const uint8_t *frame = a->buffers[a->active_slot];
+            a->status.pending = false;
+            a->status.busy = true;
+            a->status.started++;
+            unlock(a);
+            const bool perf = solar_os_perf_enabled();
+            if (perf) SOLAR_OS_LOGD("display_async", "gen=%" PRIu64 " WORKER_START t=%" PRId64, id, esp_timer_get_time());
+            bool physical = false;
+            const esp_err_t err = a->execute(a->context, frame, a->size, &physical);
+            const int64_t end = perf ? esp_timer_get_time() : 0;
+            lock(a);
+            a->active_slot = -1;
+            a->status.busy = false;
+            if (err == ESP_OK) {
+                a->status.completed_id = id;
+                a->status.completed++;
+                if (physical) a->status.physical++;
+            } else {
+                a->status.error = err;
+                discard_pending(a);
+            }
+            unlock(a);
+            if (perf) SOLAR_OS_LOGD("display_async", "gen=%" PRIu64 " WORKER_END t=%" PRId64 " err=%d physical=%u", id, end, err, physical);
+            if (err != ESP_OK) SOLAR_OS_LOGE("display_async", "refresh failed: %d; pending discarded, submissions latched", err);
+        }
+    }
+}
+
+esp_err_t solar_os_display_async_create(size_t size, solar_os_display_async_execute_t execute,
+                                      void *context, solar_os_display_async_t **out)
+{
+    if (!out || !execute || !size) return ESP_ERR_INVALID_ARG;
+    *out = NULL;
+    solar_os_display_async_t *a = heap_caps_calloc(1, sizeof(*a), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    if (!a) return ESP_ERR_NO_MEM;
+    a->size = size;
+    a->context = context;
+    a->execute = execute;
+    a->active_slot = a->pending_slot = -1;
+    a->state = xSemaphoreCreateMutex();
+    a->control = xSemaphoreCreateMutex();
+    a->buffers[0] = heap_caps_malloc(size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    a->buffers[1] = heap_caps_malloc(size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    if (!a->state || !a->control || !a->buffers[0] || !a->buffers[1]) goto fail;
+    a->status.enabled = true;
+    a->status.snapshot_bytes = size * 2;
+    if (solar_os_task_create_pinned_internal(worker, "display_async", 6144, a, 1,
+            &a->task, tskNO_AFFINITY, SOLAR_OS_TASK_ROLE_SYSTEM) != pdPASS) goto fail;
+    *out = a;
+    return ESP_OK;
+fail:
+    if (a->state) vSemaphoreDelete(a->state);
+    if (a->control) vSemaphoreDelete(a->control);
+    heap_caps_free(a->buffers[0]);
+    heap_caps_free(a->buffers[1]);
+    heap_caps_free(a);
+    return ESP_ERR_NO_MEM;
+}
+
+esp_err_t solar_os_display_async_submit(solar_os_display_async_t *a, const uint8_t *src,
+                                       size_t size, uint64_t *id)
+{
+    if (!a || !src || size != a->size) return ESP_ERR_INVALID_ARG;
+    const bool perf = solar_os_perf_enabled();
+    const int64_t start = perf ? esp_timer_get_time() : 0;
+    lock(a);
+    if (a->stopping || a->reject_submits || a->status.suspended || a->status.error != ESP_OK) {
+        const esp_err_t err = a->status.error != ESP_OK ? a->status.error : ESP_ERR_INVALID_STATE;
+        a->status.rejected++;
+        unlock(a);
+        return err;
+    }
+    const uint64_t replaced = a->pending_slot >= 0 ? a->pending_id : 0;
+    const int slot = a->pending_slot >= 0 ? a->pending_slot : (a->active_slot == 0 ? 1 : 0);
+    memcpy(a->buffers[slot], src, size);
+    a->pending_slot = slot;
+    a->pending_id = ++a->status.submitted_id;
+    const uint64_t generation = a->pending_id;
+    a->status.submitted++;
+    if (replaced) a->status.replaced++;
+    a->status.pending = true;
+    const unsigned outstanding = a->status.busy ? 2 : 1;
+    if (outstanding > a->status.peak_outstanding) a->status.peak_outstanding = outstanding;
+    unlock(a);
+    if (id) *id = generation;
+    if (perf) SOLAR_OS_LOGD("display_async", "gen=%" PRIu64 " SNAPSHOT_SUBMIT t=%" PRId64 " copied_us=%" PRId64 " replaced=%" PRIu64,
+                          generation, start, esp_timer_get_time() - start, replaced);
+    xTaskNotifyGive(a->task);
+    return ESP_OK;
+}
+
+void solar_os_display_async_status(solar_os_display_async_t *a, solar_os_display_submission_status_t *s)
+{
+    if (!a || !s) return;
+    lock(a);
+    *s = a->status;
+    unlock(a);
+}
+
+esp_err_t solar_os_display_async_wait(solar_os_display_async_t *a, uint32_t timeout_ms)
+{
+    if (!a) return ESP_ERR_INVALID_ARG;
+    solar_os_display_submission_status_t s;
+    solar_os_display_async_status(a, &s);
+    const uint64_t target = s.submitted_id;
+    const int64_t start = esp_timer_get_time();
+    for (;;) {
+        solar_os_display_async_status(a, &s);
+        if (s.error != ESP_OK) return s.error;
+        if (s.completed_id >= target) return ESP_OK;
+        if (s.cancelled_id >= target && !s.busy) return ESP_ERR_INVALID_STATE;
+        if (esp_timer_get_time() - start >= (int64_t)timeout_ms * 1000) return ESP_ERR_TIMEOUT;
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
+}
+
+void solar_os_display_async_control_begin(solar_os_display_async_t *a, bool discard)
+{
+    if (!a) return;
+    xSemaphoreTake(a->control, portMAX_DELAY);
+    lock(a);
+    a->controlled = true;
+    a->reject_submits = discard;
+    if (discard) discard_pending(a);
+    unlock(a);
+    for (;;) {
+        lock(a);
+        const bool busy = a->status.busy;
+        unlock(a);
+        if (!busy) return;
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
+}
+
+void solar_os_display_async_control_end(solar_os_display_async_t *a, int suspended, esp_err_t fault)
+{
+    if (!a) return;
+    lock(a);
+    if (suspended >= 0) a->status.suspended = suspended != 0;
+    if (fault != ESP_OK) { a->status.error = fault; discard_pending(a); }
+    a->controlled = false;
+    a->reject_submits = false;
+    unlock(a);
+    xTaskNotifyGive(a->task);
+    xSemaphoreGive(a->control);
+}
+
+void solar_os_display_async_destroy(solar_os_display_async_t *a)
+{
+    if (!a) return;
+    solar_os_display_async_control_begin(a, true);
+    lock(a);
+    a->stopping = true;
+    unlock(a);
+    xTaskNotifyGive(a->task);
+    for (;;) {
+        lock(a);
+        const bool done = a->done;
+        unlock(a);
+        if (done) break;
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
+    xSemaphoreGive(a->control);
+    vSemaphoreDelete(a->control);
+    vSemaphoreDelete(a->state);
+    heap_caps_free(a->buffers[0]);
+    heap_caps_free(a->buffers[1]);
+    heap_caps_free(a);
+}

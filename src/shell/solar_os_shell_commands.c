@@ -2,7 +2,7 @@
 #include "solar_os_shell_common.h"
 
 static const char * const display_commands[] = {
-    "list", "layouts", "test", "mode", "join", "unjoin", "split", "unsplit",
+    "list", "layouts", "test", "mode", "async", "join", "unjoin", "split", "unsplit",
 };
 #if SOLAR_OS_PACKAGE_SERVICE_OTA
 static const char * const ota_commands[] = {"status", "check", "upgrade", "url", "flavor", "boot"};
@@ -276,7 +276,7 @@ static void display_print_usage(solar_os_shell_io_t *term)
     solar_os_shell_io_writeln(term, "usage:");
     solar_os_shell_io_writeln(term, "  display [list]");
     solar_os_shell_io_writeln(term, "  display layouts");
-    solar_os_shell_io_writeln(term, "  display test <target>");
+    solar_os_shell_io_writeln(term, "  display test <target> [white|black|half|box-left|box-right|corners|fine]");
     solar_os_shell_io_writeln(term, "  display mode <target> [mode]");
     solar_os_shell_io_writeln(term,
                               "  display join <name> --horizontal|--vertical <target> <target> [target ...]");
@@ -571,6 +571,43 @@ static void display_cmd_destroy_layout(solar_os_context_t *ctx,
                              split ? "unsplit" : "unjoin", argv[2]);
 }
 
+/* Static patterns for e-paper differential/ghosting acceptance. One present per
+ * command lets the operator inspect each transition and stop on artifacts. */
+static void display_draw_epaper_pattern(u8g2_t *u8g2, const char *pattern)
+{
+    const u8g2_uint_t w = u8g2_GetDisplayWidth(u8g2);
+    const u8g2_uint_t h = u8g2_GetDisplayHeight(u8g2);
+    u8g2_ClearBuffer(u8g2);
+    u8g2_SetDrawColor(u8g2, 1); /* SolarOS normal polarity: white */
+    u8g2_DrawBox(u8g2, 0, 0, w, h);
+    u8g2_SetDrawColor(u8g2, 0);
+    if (strcmp(pattern, "black") == 0) {
+        u8g2_DrawBox(u8g2, 0, 0, w, h);
+    } else if (strcmp(pattern, "half") == 0) {
+        u8g2_DrawBox(u8g2, 0, 0, w / 2, h);
+    } else if (strcmp(pattern, "box-left") == 0 || strcmp(pattern, "box-right") == 0) {
+        u8g2_DrawBox(u8g2, strcmp(pattern, "box-left") == 0 ? w / 4 : w * 3 / 4,
+                    h / 2, w / 16, h / 16);
+    } else if (strcmp(pattern, "corners") == 0) {
+        const u8g2_uint_t bw = w / 16, bh = h / 16;
+        u8g2_DrawBox(u8g2, 1, 1, bw, bh);
+        u8g2_DrawFrame(u8g2, w - bw - 1, 1, bw, bh);
+        u8g2_DrawFrame(u8g2, 1, h - bh - 1, bw, bh);
+        u8g2_DrawBox(u8g2, w - bw - 1, h - bh - 1, bw, bh);
+        u8g2_DrawBox(u8g2, w / 2, h / 2, bw, bh);
+    } else if (strcmp(pattern, "fine") == 0) {
+        u8g2_DrawFrame(u8g2, 1, 1, w - 2, h - 2);
+        u8g2_DrawHLine(u8g2, 3, h / 2, w - 6);
+        u8g2_DrawVLine(u8g2, w / 2, 3, h - 6);
+        u8g2_SetFont(u8g2, u8g2_font_solar_os_default_r_12_tf);
+        u8g2_SetFontMode(u8g2, 1);
+        u8g2_SetFontPosBaseline(u8g2);
+        u8g2_DrawStr(u8g2, 8, 24, "SolarOS OTP 0123456789 AaBb thin text");
+    }
+    u8g2_SetDrawColor(u8g2, 1);
+    solar_os_display_present(u8g2, SOLAR_OS_DISPLAY_PRESENT_TEXT);
+}
+
 static void display_draw_test_pattern(u8g2_t *u8g2, const char *name)
 {
     const u8g2_uint_t width = u8g2_GetDisplayWidth(u8g2);
@@ -602,14 +639,23 @@ static void display_cmd_test(solar_os_shell_io_t *term, int argc, char **argv)
 {
     static const char owner[] = "shell:display-test";
 
-    if (argc != 3) {
+    if (argc != 3 && argc != 4) {
         if (argc < 3) {
             solar_os_shell_diag_missing(term, "display test", "<target>",
-                                        "display test <target>");
+                                        "display test <target> [pattern]");
         } else {
-            solar_os_shell_diag_unexpected(term, "display test", argv[3],
-                                           "display test <target>");
+            solar_os_shell_diag_unexpected(term, "display test", argv[4],
+                                           "display test <target> [pattern]");
         }
+        return;
+    }
+
+    if (argc == 4 && strcmp(argv[3], "white") != 0 && strcmp(argv[3], "black") != 0 &&
+        strcmp(argv[3], "half") != 0 && strcmp(argv[3], "box-left") != 0 &&
+        strcmp(argv[3], "box-right") != 0 && strcmp(argv[3], "corners") != 0 &&
+        strcmp(argv[3], "fine") != 0) {
+        solar_os_shell_io_writeln(term,
+            "display test: patterns: white black half box-left box-right corners fine");
         return;
     }
 
@@ -641,7 +687,8 @@ static void display_cmd_test(solar_os_shell_io_t *term, int argc, char **argv)
         return;
     }
 
-    display_draw_test_pattern(target.u8g2, target.name);
+    if (argc == 4) display_draw_epaper_pattern(target.u8g2, argv[3]);
+    else display_draw_test_pattern(target.u8g2, target.name);
     (void)solar_os_display_release(target.name, owner);
     solar_os_shell_io_printf(term, "display test: drew %s\n", target.name);
 }
@@ -701,10 +748,48 @@ static void display_cmd_mode(solar_os_shell_io_t *term, int argc, char **argv)
     solar_os_shell_io_printf(term, "display mode: %s -> %s\n", argv[2], argv[3]);
 }
 
+static void display_cmd_async(solar_os_shell_io_t *io, int argc, char **argv)
+{
+    if ((argc != 3 && argc != 4) || (argc == 4 && strcmp(argv[3], "wait") != 0)) {
+        solar_os_shell_io_writeln(io, "usage: display async <target> [wait]");
+        return;
+    }
+    solar_os_display_target_t target;
+    if (!solar_os_display_find_target(argv[2], &target)) {
+        solar_os_shell_io_writeln(io, "display async: target not found");
+        return;
+    }
+    if (argc == 4) {
+        const esp_err_t err = solar_os_display_wait(target.u8g2, 70000);
+        solar_os_shell_io_printf(io, "display wait: %s\n", solar_os_shell_error_text(err));
+    }
+    solar_os_display_submission_status_t s;
+    const esp_err_t err = solar_os_display_submission_status(target.u8g2, &s);
+    if (err != ESP_OK) {
+        solar_os_shell_io_printf(io, "display async: %s (synchronous backend/fallback)\n", solar_os_shell_error_text(err));
+        return;
+    }
+    solar_os_shell_io_printf(io,
+        "async enabled=%u busy=%u pending=%u suspended=%u error=%d\n",
+        s.enabled, s.busy, s.pending, s.suspended, s.error);
+    solar_os_shell_io_printf(io,
+        "submitted=%u replaced=%u cancelled=%u rejected=%u started=%u completed=%u physical=%u\n",
+        (unsigned)s.submitted, (unsigned)s.replaced, (unsigned)s.cancelled, (unsigned)s.rejected,
+        (unsigned)s.started, (unsigned)s.completed, (unsigned)s.physical);
+    solar_os_shell_io_printf(io,
+        "generation=%llu completed_generation=%llu cancelled_generation=%llu snapshots=%u peak=%u\n",
+        (unsigned long long)s.submitted_id, (unsigned long long)s.completed_id,
+        (unsigned long long)s.cancelled_id, (unsigned)s.snapshot_bytes, s.peak_outstanding);
+}
+
 void solar_os_shell_cmd_display(solar_os_context_t *ctx, int argc, char **argv)
 {
     solar_os_shell_io_t *term = terminal(ctx);
 
+    if (argc >= 2 && strcmp(argv[1], "async") == 0) {
+        display_cmd_async(term, argc, argv);
+        return;
+    }
     if (argc == 1 || (argc == 2 && strcmp(argv[1], "list") == 0)) {
         display_print_targets(term);
         return;
@@ -1898,7 +1983,7 @@ static void setterm_print_usage(solar_os_shell_io_t *term)
     solar_os_shell_io_writeln(term, "  setterm profile [vt100|ansi|dumb]");
     solar_os_shell_io_writeln(term, "  setterm charset [utf8|ascii]");
 #if SOLAR_OS_PACKAGE_SERVICE_BLE
-    solar_os_shell_io_writeln(term, "  setterm keyboard [us|de]");
+    solar_os_shell_io_writeln(term, "  setterm keyboard [us|de|jp]");
     solar_os_shell_io_writeln(term, "  setterm ble [default|on|off]");
 #endif
     solar_os_shell_io_writeln(term, "  setterm powerkey [sleep|suspend]");
@@ -2435,19 +2520,19 @@ void solar_os_shell_cmd_setterm(solar_os_context_t *ctx, int argc, char **argv)
                                      "keyboard: %s\n",
                                      solar_os_input_keyboard_layout_name(
                                          solar_os_input_keyboard_layout()));
-            solar_os_shell_io_writeln(term, "values: us de");
+            solar_os_shell_io_writeln(term, "values: us de jp");
             return;
         }
         if (argc != 3) {
             solar_os_shell_diag_unexpected(term, "setterm keyboard", argv[3],
-                                           "setterm keyboard [us|de]");
+                                           "setterm keyboard [us|de|jp]");
             return;
         }
 
         solar_os_input_keyboard_layout_t layout;
         if (!solar_os_input_parse_keyboard_layout(argv[2], &layout)) {
             solar_os_shell_diag_invalid(term, "setterm keyboard", "layout", argv[2],
-                                        "us or de", "setterm keyboard [us|de]", false);
+                                        "us, de or jp", "setterm keyboard [us|de|jp]", false);
             return;
         }
 

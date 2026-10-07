@@ -3184,19 +3184,26 @@ static esp_err_t agent_tool_sensors_read(const char *arguments,
     solar_os_battery_status_t battery;
     const esp_err_t battery_err = solar_os_battery_get_status(&battery);
     if (err == ESP_OK && battery_err == ESP_OK) {
+        char percent[8] = "null";
+        if (battery.percent_valid) snprintf(percent, sizeof(percent), "%u", (unsigned)battery.percent);
         err = agent_tool_output_append(
             &output,
-            "{\"ok\":true,\"voltage_mv\":%u,\"percent\":%u,"
+            "{\"ok\":true,\"voltage_mv\":%u,\"percent\":%s,"
             "\"percent_estimated\":%s,\"adc_calibrated\":%s,"
             "\"external_power\":%s,\"charging\":%s,"
-            "\"charging_known\":%s}",
+            "\"charging_known\":%s,\"percent_valid\":%s,\"external_power_known\":%s,"
+            "\"charge_complete\":%s,\"charge_complete_known\":%s}",
             (unsigned)battery.voltage_mv,
-            (unsigned)battery.percent,
+            percent,
             battery.percent_estimated ? "true" : "false",
             battery.adc_calibrated ? "true" : "false",
             battery.external_power ? "true" : "false",
             battery.charging ? "true" : "false",
-            battery.charging_known ? "true" : "false");
+            battery.charging_known ? "true" : "false",
+            battery.percent_valid ? "true" : "false",
+            battery.external_power_known ? "true" : "false",
+            battery.charge_complete ? "true" : "false",
+            battery.charge_complete_known ? "true" : "false");
     } else if (err == ESP_OK) {
         err = agent_tool_output_append(
             &output,

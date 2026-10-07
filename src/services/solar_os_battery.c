@@ -208,6 +208,7 @@ static void battery_monitor_reset_estimate(uint32_t interval_ms)
     monitor_status.last_sample_ms = 0;
     monitor_status.last_voltage_mv = 0;
     monitor_status.last_percent = 0;
+    monitor_status.last_percent_valid = false;
     monitor_status.adc_calibrated = false;
     monitor_status.trend = SOLAR_OS_BATTERY_TREND_UNKNOWN;
     monitor_status.external_power = false;
@@ -352,11 +353,13 @@ esp_err_t solar_os_battery_get_status(solar_os_battery_status_t *status)
     }
 
     const uint16_t averaged_mv = battery_push_voltage_average(sample.battery_mv);
+    memset(status, 0, sizeof(*status));
     status->voltage_mv = averaged_mv;
-    status->percent = sample.percent_valid
+    status->percent_valid = !sample.percent_unavailable;
+    status->percent = sample.percent_unavailable ? 0 : sample.percent_valid
         ? (sample.percent > 100U ? 100U : sample.percent)
         : battery_percent_from_voltage(averaged_mv);
-    status->percent_estimated = !sample.percent_valid;
+    status->percent_estimated = status->percent_valid && !sample.percent_valid;
     status->adc_calibrated = sample.calibrated;
     const bool inferred_charging = battery_monitor_indicates_external_power();
     status->external_power = sample.external_power_valid
@@ -366,6 +369,9 @@ esp_err_t solar_os_battery_get_status(solar_os_battery_status_t *status)
         ? sample.charging
         : inferred_charging;
     status->charging_known = sample.charging_valid;
+    status->external_power_known = sample.external_power_valid;
+    status->charge_complete_known = sample.charge_complete_valid;
+    status->charge_complete = sample.charge_complete_valid && sample.charge_complete;
     return ESP_OK;
 }
 
@@ -446,9 +452,11 @@ esp_err_t solar_os_battery_monitor_sample(uint32_t now_ms)
     monitor_status.last_sample_ms = now_ms;
     monitor_status.last_voltage_mv = status.voltage_mv;
     monitor_status.last_percent = status.percent;
+    monitor_status.last_percent_valid = status.percent_valid;
     monitor_status.adc_calibrated = status.adc_calibrated;
     solar_os_battery_trend_push(&monitor_trend, now_ms, status.voltage_mv);
     battery_monitor_update_estimate();
+    if (!status.percent_valid) monitor_status.time_left_valid = false;
     return ESP_OK;
 }
 

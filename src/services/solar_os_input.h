@@ -78,6 +78,7 @@ typedef struct {
 typedef enum {
     SOLAR_OS_INPUT_KEYBOARD_LAYOUT_US,
     SOLAR_OS_INPUT_KEYBOARD_LAYOUT_DE,
+    SOLAR_OS_INPUT_KEYBOARD_LAYOUT_JP,
 } solar_os_input_keyboard_layout_t;
 
 typedef enum {
@@ -239,6 +240,9 @@ esp_err_t solar_os_input_keyboard_source_open(const char *name,
                                               solar_os_input_source_t *source);
 esp_err_t solar_os_input_source_set_ready(solar_os_input_source_t source,
                                           bool ready);
+/* Reject subsequent writes, discard queued pointer samples from this source,
+ * and enqueue a release if its last accepted sample held any buttons. */
+esp_err_t solar_os_input_pointer_source_quiesce(solar_os_input_source_t source);
 esp_err_t solar_os_input_keyboard_source_set_ready(solar_os_input_source_t source,
                                                    bool ready);
 size_t solar_os_input_keyboard_count(void);

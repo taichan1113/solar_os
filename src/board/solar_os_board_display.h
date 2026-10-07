@@ -6,6 +6,7 @@
 
 #include "esp_err.h"
 #include "solar_os_display_surface.h"
+#include "solar_os_display_submission.h"
 #include "u8g2.h"
 
 typedef struct solar_os_board_display {
@@ -21,6 +22,7 @@ typedef struct solar_os_board_display {
     uint16_t preferred_stream_fps;
     uint32_t max_stream_pixels_per_second;
     bool ready;
+    solar_os_display_submission_t submission;
 } solar_os_board_display_t;
 
 typedef struct solar_os_board_display_ops {

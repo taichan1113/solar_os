@@ -32,7 +32,7 @@
 #endif
 
 static const char * const expansion_subcommands[] = {
-    "status", "layout", "scan", "drivers", "devices", "bus", "attach", "detach", "export",
+    "status", "layout", "scan", "drivers", "devices", "bus", "attach", "detach", "enable", "disable", "export",
 };
 static const char * const expansion_bus_subcommands[] = {"create", "attach", "detach", "remove"};
 
@@ -61,6 +61,7 @@ static void expansion_print_usage(solar_os_shell_io_t *term)
     solar_os_shell_io_writeln(term, "  expansion bus remove <name>");
     solar_os_shell_io_writeln(term, "  expansion attach <driver> <name> <resource...>");
     solar_os_shell_io_writeln(term, "  expansion detach <name>");
+    solar_os_shell_io_writeln(term, "  expansion enable|disable <name>");
     solar_os_shell_io_writeln(term, "  expansion export <path>");
 }
 
@@ -2340,6 +2341,17 @@ void solar_os_shell_cmd_expansion(solar_os_context_t *ctx, int argc, char **argv
         expansion_cmd_bus(term, argc, argv);
         return;
     }
+    if (strcmp(argv[1], "enable") == 0 || strcmp(argv[1], "disable") == 0) {
+        if (argc != 3) {
+            solar_os_shell_io_writeln(term, "usage: expansion enable|disable <name>");
+            return;
+        }
+        const bool enabled = strcmp(argv[1], "enable") == 0;
+        const esp_err_t err = solar_os_expansion_device_set_enabled(argv[2], enabled);
+        if (err == ESP_OK) solar_os_shell_io_printf(term, "%s requested %s\n", argv[2], enabled ? "ON" : "OFF");
+        else solar_os_shell_io_printf(term, "expansion %s failed: %s\n", argv[1], solar_os_shell_error_text(err));
+        return;
+    }
     if (strcmp(argv[1], "attach") == 0) {
         expansion_cmd_attach(term, argc, argv);
         return;
@@ -2354,7 +2366,7 @@ void solar_os_shell_cmd_expansion(solar_os_context_t *ctx, int argc, char **argv
     }
 
     solar_os_shell_diag_subcommand(term, "expansion", argc, argv,
-                                   "expansion [status|layout|scan|drivers|devices|bus|attach|detach|export] ...",
+                                   "expansion [status|layout|scan|drivers|devices|bus|attach|detach|enable|disable|export] ...",
                                    expansion_subcommands,
                                    sizeof(expansion_subcommands) / sizeof(expansion_subcommands[0]));
 }

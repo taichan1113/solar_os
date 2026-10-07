@@ -1721,6 +1721,52 @@ esp_err_t solar_os_bus_i2c_transmit_receive(const char *name,
     return ret;
 }
 
+static esp_err_t transaction_read(void *ctx, uint8_t addr, uint8_t reg,
+                                  uint8_t *data, size_t len)
+{
+    if (addr > 0x7f || data == NULL || len == 0) return ESP_ERR_INVALID_ARG;
+#if SOLAR_OS_PACKAGE_SERVICE_I2C && SOLAR_OS_BOARD_HAS_I2C
+    solar_os_bus_ref_t *pin = ctx;
+    return i2c_bus_read_reg_handle(pin->i2c_handle, pin->info.config.i2c.speed_hz,
+                                   addr, reg, data, len);
+#else
+    (void)ctx; (void)reg;
+    return ESP_ERR_NOT_SUPPORTED;
+#endif
+}
+
+static esp_err_t transaction_write(void *ctx, uint8_t addr, uint8_t reg,
+                                   const uint8_t *data, size_t len)
+{
+    if (addr > 0x7f || data == NULL || len == 0) return ESP_ERR_INVALID_ARG;
+#if SOLAR_OS_PACKAGE_SERVICE_I2C && SOLAR_OS_BOARD_HAS_I2C
+    solar_os_bus_ref_t *pin = ctx;
+    return i2c_bus_write_reg_handle(pin->i2c_handle, pin->info.config.i2c.speed_hz,
+                                    addr, reg, data, len);
+#else
+    (void)ctx; (void)reg;
+    return ESP_ERR_NOT_SUPPORTED;
+#endif
+}
+
+esp_err_t solar_os_bus_i2c_transaction(const char *name,
+    esp_err_t (*callback)(const solar_os_i2c_transaction_t *, void *), void *user)
+{
+    if (!name_valid(name) || callback == NULL) return ESP_ERR_INVALID_ARG;
+    esp_err_t err = solar_os_buses_init();
+    if (err != ESP_OK) return err;
+    solar_os_bus_ref_t pin;
+    err = pin_ready_bus(name, SOLAR_OS_BUS_PROTOCOL_I2C, &pin);
+    if (err == ESP_OK) {
+        const solar_os_i2c_transaction_t session = {
+            .context = &pin, .read_reg = transaction_read, .write_reg = transaction_write,
+        };
+        err = callback(&session, user);
+    }
+    if (pin.mutex != NULL) unpin_bus(&pin);
+    return err;
+}
+
 esp_err_t solar_os_bus_i2c_read_reg(const char *name,
                                     uint8_t address,
                                     uint8_t reg,

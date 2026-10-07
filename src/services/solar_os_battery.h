@@ -21,6 +21,10 @@ typedef struct {
     bool external_power;
     bool charging;
     bool charging_known;
+    bool percent_valid;
+    bool external_power_known;
+    bool charge_complete;
+    bool charge_complete_known;
 } solar_os_battery_status_t;
 
 typedef struct {
@@ -36,6 +40,7 @@ typedef struct {
     uint32_t last_sample_ms;
     uint16_t last_voltage_mv;
     uint8_t last_percent;
+    bool last_percent_valid;
     bool adc_calibrated;
     solar_os_battery_trend_t trend;
     bool external_power;
@@ -54,6 +59,10 @@ typedef struct {
     bool external_power;
     bool charging_valid;
     bool charging;
+    /* Default false preserves voltage-based estimates on existing boards. */
+    bool percent_unavailable;
+    bool charge_complete_valid;
+    bool charge_complete;
 } solar_os_battery_sample_t;
 
 typedef esp_err_t (*solar_os_battery_provider_read_fn_t)(

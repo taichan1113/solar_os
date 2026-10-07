@@ -53,6 +53,13 @@ esp_err_t solar_os_writer_safe_replace(const char *path,
                                        size_t len,
                                        solar_os_writer_file_fault_t fault)
 {
+    return solar_os_writer_safe_replace_observed(path,data,len,fault,NULL,NULL);
+}
+
+esp_err_t solar_os_writer_safe_replace_observed(const char *path, const char *data,
+    size_t len, solar_os_writer_file_fault_t fault,
+    solar_os_writer_file_observer_t observer, void *context)
+{
     if (path == NULL || path[0] == '\0' || (data == NULL && len > 0)) {
         return ESP_ERR_INVALID_ARG;
     }
@@ -67,12 +74,16 @@ esp_err_t solar_os_writer_safe_replace(const char *path,
     if (fault == SOLAR_OS_WRITER_FILE_FAULT_OPEN) {
         return ESP_FAIL;
     }
+    if (observer) observer(context,"CHECKPOINT_WRITE_START");
     FILE *file = fopen(staged, "wb");
     if (file == NULL) {
         return ESP_FAIL;
     }
     esp_err_t ret = ESP_OK;
-    if (fault == SOLAR_OS_WRITER_FILE_FAULT_WRITE ||
+    if (fault == SOLAR_OS_WRITER_FILE_FAULT_SHORT_WRITE) {
+        if (len) (void)fwrite(data,1,len-1,file);
+        ret=ESP_FAIL;
+    } else if (fault == SOLAR_OS_WRITER_FILE_FAULT_WRITE ||
         (len > 0 && fwrite(data, 1, len, file) != len)) {
         ret = ESP_FAIL;
     }
@@ -84,11 +95,13 @@ esp_err_t solar_os_writer_safe_replace(const char *path,
     if (fclose(file) != 0 && ret == ESP_OK) {
         ret = ESP_FAIL;
     }
+    if (observer) observer(context,"CHECKPOINT_WRITE_END");
     if (ret != ESP_OK) {
         (void)remove(staged);
         return ret;
     }
 
+    if (observer) observer(context,"CHECKPOINT_REPLACE_START");
     struct stat st;
     const bool had_original = stat(path, &st) == 0;
     (void)remove(backup);
@@ -122,6 +135,7 @@ esp_err_t solar_os_writer_safe_replace(const char *path,
     if (had_original) {
         (void)remove(backup);
     }
+    if (observer) observer(context,"CHECKPOINT_REPLACE_END");
     return ESP_OK;
 }
 

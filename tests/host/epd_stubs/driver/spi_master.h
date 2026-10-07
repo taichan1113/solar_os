@@ -30,9 +30,12 @@ typedef struct {
     uint8_t tx_data[4];
     const void *tx_buffer;
     void *rx_buffer;
+    uint32_t override_freq_hz;
 } spi_transaction_t;
 
 esp_err_t spi_device_polling_transmit(spi_device_handle_t device, spi_transaction_t *transaction);
+esp_err_t spi_device_get_actual_freq(spi_device_handle_t device, int *khz);
+esp_err_t spi_bus_get_max_transaction_len(spi_host_device_t host, size_t *max_bytes);
 esp_err_t spi_bus_initialize(spi_host_device_t host, const spi_bus_config_t *config, int dma);
 esp_err_t spi_bus_add_device(spi_host_device_t host, const spi_device_interface_config_t *config, spi_device_handle_t *device);
 esp_err_t spi_bus_remove_device(spi_device_handle_t device);

@@ -38,6 +38,8 @@ esp_err_t solar_os_time_register_provider(const char *owner,
                                           const solar_os_time_provider_t *provider);
 esp_err_t solar_os_time_unregister_provider(const char *owner);
 bool solar_os_time_has_provider(void);
+/* Explicitly restore a valid provider's UTC into the system wall clock. */
+esp_err_t solar_os_time_sync_system_from_provider(void);
 uint64_t solar_os_time_uptime_ms(void);
 void solar_os_time_format_uptime(uint64_t uptime_ms, char *buffer, size_t len);
 esp_err_t solar_os_time_get_utc_epoch_ms(uint64_t *epoch_ms);

@@ -24,6 +24,9 @@ static uint8_t nvs_blob[64];
 static size_t nvs_blob_length;
 static unsigned pointer_filter_calls;
 static unsigned gesture_observer_calls[2];
+static uint16_t saved_layout;
+static bool has_saved_layout;
+static bool has_legacy_layout;
 
 static bool consume_pointer(const solar_os_input_pointer_event_t *event,
                             void *context)
@@ -110,6 +113,14 @@ size_t strlcpy(char *dst, const char *src, size_t size)
 esp_err_t nvs_open(const char *name, nvs_open_mode_t mode, nvs_handle_t *handle)
 {
     (void)name;
+    if (strcmp(name, "input") == 0 && has_saved_layout) {
+        *handle = 1;
+        return ESP_OK;
+    }
+    if (strcmp(name, "blekbd") == 0 && has_legacy_layout) {
+        *handle = 2;
+        return ESP_OK;
+    }
     if (mode == NVS_READONLY && nvs_blob_length == 0) {
         return ESP_ERR_NVS_NOT_FOUND;
     }
@@ -165,17 +176,26 @@ esp_err_t nvs_erase_key(nvs_handle_t handle, const char *key)
 
 esp_err_t nvs_get_u16(nvs_handle_t handle, const char *key, uint16_t *value)
 {
-    (void)handle;
-    (void)key;
-    (void)value;
+    if (strcmp(key, "layout") == 0) {
+        if (handle == 1 && has_saved_layout) {
+            *value = saved_layout;
+            return ESP_OK;
+        }
+        if (handle == 2 && has_legacy_layout) {
+            *value = SOLAR_OS_INPUT_KEYBOARD_LAYOUT_DE;
+            return ESP_OK;
+        }
+    }
     return ESP_ERR_NVS_NOT_FOUND;
 }
 
 esp_err_t nvs_set_u16(nvs_handle_t handle, const char *key, uint16_t value)
 {
     (void)handle;
-    (void)key;
-    (void)value;
+    if (strcmp(key, "layout") == 0) {
+        saved_layout = value;
+        has_saved_layout = true;
+    }
     return ESP_OK;
 }
 
@@ -188,6 +208,89 @@ esp_err_t nvs_commit(nvs_handle_t handle)
 void nvs_close(nvs_handle_t handle)
 {
     (void)handle;
+}
+
+static void test_japanese_layout(void)
+{
+    solar_os_input_keyboard_layout_t layout;
+    assert(solar_os_input_parse_keyboard_layout("jp", &layout));
+    assert(layout == SOLAR_OS_INPUT_KEYBOARD_LAYOUT_JP);
+    assert(strcmp(solar_os_input_keyboard_layout_name(layout), "jp") == 0);
+    assert(!solar_os_input_parse_keyboard_layout("invalid", &layout));
+    assert(!solar_os_input_parse_keyboard_layout(NULL, &layout));
+    assert(!solar_os_input_parse_keyboard_layout("jp", NULL));
+
+    /* Legacy DE is loaded only if the canonical input preference is absent. */
+    has_legacy_layout = true;
+    has_saved_layout = false;
+    assert(solar_os_input_init() == ESP_OK);
+    assert(solar_os_input_keyboard_layout() == SOLAR_OS_INPUT_KEYBOARD_LAYOUT_DE);
+    assert(solar_os_input_set_keyboard_layout(layout) == ESP_OK);
+    assert(saved_layout == SOLAR_OS_INPUT_KEYBOARD_LAYOUT_JP);
+    assert(solar_os_input_init() == ESP_OK);
+    assert(solar_os_input_keyboard_layout() == SOLAR_OS_INPUT_KEYBOARD_LAYOUT_JP);
+    assert(solar_os_input_set_keyboard_layout((solar_os_input_keyboard_layout_t)99) ==
+           ESP_ERR_INVALID_ARG);
+    assert(solar_os_input_keyboard_layout() == SOLAR_OS_INPUT_KEYBOARD_LAYOUT_JP);
+
+    /* Independent Windows 106 expected values, including no Shift+0 character. */
+    static const struct { uint16_t usage; uint8_t plain; uint8_t shifted; } cases[] = {
+        {0x1e, '1', '!'}, {0x1f, '2', '"'}, {0x20, '3', '#'},
+        {0x21, '4', '$'}, {0x22, '5', '%'}, {0x23, '6', '&'},
+        {0x24, '7', '\''}, {0x25, '8', '('}, {0x26, '9', ')'}, {0x27, '0', 0},
+        {0x28, '\n', '\n'}, {0x29, SOLAR_OS_KEY_ESCAPE, SOLAR_OS_KEY_ESCAPE},
+        {0x2a, '\b', '\b'}, {0x2b, '\t', '\t'}, {0x2c, ' ', ' '},
+        {0x2d, '-', '='}, {0x2e, '^', '~'}, {0x2f, '@', '`'},
+        {0x30, '[', '{'}, {0x31, ']', '}'}, {0x32, ']', '}'},
+        {0x33, ';', '+'}, {0x34, ':', '*'}, {0x35, 0, 0},
+        {0x36, ',', '<'}, {0x37, '.', '>'}, {0x38, '/', '?'},
+        {0x87, '\\', '_'}, {0x89, '\\', '|'},
+        {0x88, 0, 0}, {0x8a, 0, 0}, {0x8b, 0, 0},
+    };
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+        for (unsigned caps = 0; caps < 2; caps++) {
+            assert(solar_os_input_translate_hid_usage(cases[i].usage, 0, caps) ==
+                   cases[i].plain);
+            assert(solar_os_input_translate_hid_usage(cases[i].usage,
+                       SOLAR_OS_INPUT_MOD_LEFT_SHIFT, caps) == cases[i].shifted);
+            assert(solar_os_input_translate_hid_usage(cases[i].usage,
+                       SOLAR_OS_INPUT_MOD_RIGHT_SHIFT, caps) == cases[i].shifted);
+        }
+    }
+    for (uint16_t usage = 0x04; usage <= 0x1d; usage++) {
+        assert(solar_os_input_translate_hid_usage(usage, 0, false) == 'a' + usage - 4);
+        assert(solar_os_input_translate_hid_usage(usage, 0, true) == 'A' + usage - 4);
+        assert(solar_os_input_translate_hid_usage(usage,
+                   SOLAR_OS_INPUT_MOD_LEFT_SHIFT, true) == 'a' + usage - 4);
+        assert(solar_os_input_translate_hid_usage(usage,
+                   SOLAR_OS_INPUT_MOD_LEFT_CTRL, false) == usage - 3);
+    }
+    const uint8_t ctrl = SOLAR_OS_INPUT_MOD_LEFT_CTRL;
+    const uint8_t shift = SOLAR_OS_INPUT_MOD_RIGHT_SHIFT;
+    assert(solar_os_input_translate_hid_usage(0x33, ctrl, false) == SOLAR_OS_KEY_CTRL_PLUS);
+    assert(solar_os_input_translate_hid_usage(0x33, ctrl | shift, false) == SOLAR_OS_KEY_CTRL_PLUS);
+    assert(solar_os_input_translate_hid_usage(0x2d, ctrl, false) == SOLAR_OS_KEY_CTRL_MINUS);
+    assert(solar_os_input_translate_hid_usage(0x2e, ctrl, false) != SOLAR_OS_KEY_CTRL_PLUS);
+    assert(solar_os_input_translate_hid_usage(0x30, ctrl, false) == SOLAR_OS_KEY_ESCAPE);
+    assert(solar_os_input_translate_hid_usage(0x31, ctrl, false) == SOLAR_OS_KEY_APP_EXIT);
+    assert(solar_os_input_translate_hid_usage(0x32, ctrl, false) == SOLAR_OS_KEY_APP_EXIT);
+    assert(solar_os_input_translate_hid_usage(0x87, ctrl, false) == 0x1c);
+    assert(solar_os_input_translate_hid_usage(0x89, ctrl, false) == 0x1c);
+    assert(solar_os_input_translate_hid_usage(0x4f, ctrl | shift, false) ==
+           SOLAR_OS_KEY_CTRL_SHIFT_RIGHT);
+    assert(solar_os_input_translate_hid_usage(0x4c, ctrl | SOLAR_OS_INPUT_MOD_LEFT_ALT,
+                                             false) == SOLAR_OS_KEY_APP_EXIT);
+
+    /* Switching back preserves existing US and German symbol/shortcut semantics. */
+    assert(solar_os_input_set_keyboard_layout(SOLAR_OS_INPUT_KEYBOARD_LAYOUT_DE) == ESP_OK);
+    assert(solar_os_input_translate_hid_usage(0x30, ctrl, false) == SOLAR_OS_KEY_CTRL_PLUS);
+    assert(solar_os_input_translate_hid_usage(0x38, ctrl, false) == SOLAR_OS_KEY_CTRL_MINUS);
+    assert(solar_os_input_translate_hid_usage(0x14, SOLAR_OS_INPUT_MOD_RIGHT_ALT, false) == '@');
+    assert(solar_os_input_set_keyboard_layout(SOLAR_OS_INPUT_KEYBOARD_LAYOUT_US) == ESP_OK);
+    assert(solar_os_input_translate_hid_usage(0x1f, shift, false) == '@');
+    assert(solar_os_input_translate_hid_usage(0x2e, ctrl, false) == SOLAR_OS_KEY_CTRL_PLUS);
+    assert(solar_os_input_translate_hid_usage(0x33, shift, false) == ':');
+    has_legacy_layout = false;
 }
 
 static solar_os_input_key_event_t read_one_event(void)
@@ -266,6 +369,8 @@ int main(void)
                                               SOLAR_OS_INPUT_MOD_RIGHT_ALT,
                                               false) == SOLAR_OS_KEY_ENTER);
     assert(solar_os_input_set_keyboard_layout(SOLAR_OS_INPUT_KEYBOARD_LAYOUT_US) == ESP_OK);
+
+    test_japanese_layout();
 
     solar_os_input_source_t keyboard = SOLAR_OS_INPUT_SOURCE_INVALID;
     solar_os_input_source_t buttons = SOLAR_OS_INPUT_SOURCE_INVALID;
@@ -595,6 +700,34 @@ int main(void)
     assert(pointer_read.source == pointer_source_2);
     pointer.mode = SOLAR_OS_INPUT_POINTER_ABSOLUTE;
     assert(solar_os_input_write_pointer(pointer_source, &pointer) == ESP_OK);
+    pointer.buttons = SOLAR_OS_INPUT_POINTER_BUTTON_PRIMARY;
+    pointer.action = SOLAR_OS_INPUT_POINTER_PRESS;
+    assert(solar_os_input_write_pointer(pointer_source, &pointer) == ESP_OK);
+    assert(solar_os_input_pointer_source_quiesce(pointer_source) == ESP_OK);
+    assert(solar_os_input_write_pointer(pointer_source, &pointer) == ESP_ERR_INVALID_STATE);
+    assert(solar_os_input_read_pointer_events(&pointer_read, 1) == 1);
+    assert(pointer_read.source == pointer_source && !pointer_read.buttons &&
+           pointer_read.action == SOLAR_OS_INPUT_POINTER_RELEASE);
+    assert(solar_os_input_read_pointer_events(&pointer_read, 1) == 0);
+    assert(solar_os_input_pointer_source_quiesce(pointer_source) == ESP_OK);
+    assert(solar_os_input_read_pointer_events(&pointer_read, 1) == 0);
+    assert(solar_os_input_source_set_ready(pointer_source, true) == ESP_OK);
+    assert(solar_os_input_write_pointer(pointer_source, &pointer) == ESP_OK);
+    assert(solar_os_input_read_pointer_events(&pointer_read, 1) == 1);
+    solar_os_input_pointer_event_t mouse_event = pointer;
+    mouse_event.mode = SOLAR_OS_INPUT_POINTER_RELATIVE;
+    for (size_t i = 0; i < 32; i++) {
+        mouse_event.x = (int16_t)i;
+        assert(solar_os_input_write_pointer(pointer_source_2, &mouse_event) == ESP_OK);
+    }
+    assert(solar_os_input_pointer_source_quiesce(pointer_source) == ESP_OK);
+    assert(solar_os_input_read_pointer_events(&pointer_read, 1) == 1 &&
+           pointer_read.source == pointer_source && !pointer_read.buttons);
+    for (size_t i = 0; i < 32; i++) {
+        assert(solar_os_input_read_pointer_events(&pointer_read, 1) == 1 &&
+               pointer_read.source == pointer_source_2 && pointer_read.x == (int16_t)i);
+    }
+    assert(solar_os_input_read_pointer_events(&pointer_read, 1) == 0);
     solar_os_input_source_close(pointer_source);
     assert(solar_os_input_read_pointer_events(&pointer_read, 1) == 0);
     assert(pointer_queue_frees == 0);

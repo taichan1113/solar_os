@@ -564,12 +564,15 @@ static void battery_print_monitor_status(solar_os_shell_io_t *term)
 
     const uint32_t age_s =
         (uint32_t)((solar_os_time_uptime_ms() - monitor.last_sample_ms) / 1000ULL);
-    solar_os_shell_io_printf(term,
+    if (monitor.last_percent_valid) solar_os_shell_io_printf(term,
                              "Last sample: %u.%03u V, %u%%, %" PRIu32 " s ago\n",
                              (unsigned)(monitor.last_voltage_mv / 1000U),
                              (unsigned)(monitor.last_voltage_mv % 1000U),
                              (unsigned)monitor.last_percent,
                              age_s);
+    else solar_os_shell_io_printf(term, "Last sample: %u.%03u V, SOC unsupported, %" PRIu32 " s ago\n",
+                                  (unsigned)(monitor.last_voltage_mv / 1000U),
+                                  (unsigned)(monitor.last_voltage_mv % 1000U), age_s);
     solar_os_shell_io_printf(term,
                              "Trend: %s, power %s, %" PRId32 " mV/hour\n",
                              solar_os_battery_trend_name(monitor.trend),
@@ -603,13 +606,15 @@ static void battery_print_status(solar_os_shell_io_t *term)
                              "Battery: %u.%03u V\n",
                              (unsigned)(status.voltage_mv / 1000U),
                              (unsigned)(status.voltage_mv % 1000U));
-    solar_os_shell_io_printf(term,
+    if (status.percent_valid) solar_os_shell_io_printf(term,
                              "Charge: %u%%%s%s\n",
                              (unsigned)status.percent,
                              status.percent_estimated ? " estimated" : "",
                              status.adc_calibrated ? "" : " (uncalibrated ADC)");
+    else solar_os_shell_io_writeln(term, "Charge: unsupported (no fuel gauge)");
     const char *power = status.external_power ? "external" : "unknown";
-    if (!status.external_power && status.charging_known && !status.charging) {
+    if (!status.external_power && (status.external_power_known ||
+        (status.charging_known && !status.charging))) {
         power = "battery";
     } else if (!status.external_power && !status.charging_known) {
         solar_os_battery_monitor_status_t monitor;
@@ -629,6 +634,8 @@ static void battery_print_status(solar_os_shell_io_t *term)
                                       "Charging: yes (estimated)" :
                                       "Charging: unknown");
     }
+    solar_os_shell_io_printf(term, "Charge complete: %s\n",
+        status.charge_complete_known ? (status.charge_complete ? "yes" : "no") : "unsupported/unknown");
     battery_print_config(term);
     battery_print_monitor_status(term);
 }

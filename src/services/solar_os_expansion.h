@@ -104,6 +104,11 @@ typedef struct {
     esp_err_t (*validate_bindings)(const solar_os_expansion_binding_t *bindings,
                                    size_t binding_count,
                                    solar_os_expansion_binding_validation_t *validation);
+    /* Optional peripheral controls. requested enable survives suspend; ready
+     * reports effective state. Drivers without callbacks keep old behavior. */
+    esp_err_t (*set_enabled)(const char *name, bool enabled);
+    bool (*is_ready)(const char *name);
+    esp_err_t (*set_suspended)(const char *name, bool suspended);
 } solar_os_expansion_driver_t;
 
 typedef enum {
@@ -178,6 +183,8 @@ esp_err_t solar_os_expansion_attach(const char *driver,
                                     size_t binding_count);
 esp_err_t solar_os_expansion_detach(const char *name);
 esp_err_t solar_os_expansion_device_set_ready(const char *name, bool ready);
+esp_err_t solar_os_expansion_device_set_enabled(const char *name, bool enabled);
+esp_err_t solar_os_expansion_set_suspended(bool suspended);
 size_t solar_os_expansion_device_count(void);
 /* Returns a caller-owned snapshot; no registry pointer is borrowed. */
 bool solar_os_expansion_get_device(size_t index, solar_os_expansion_device_t *device);

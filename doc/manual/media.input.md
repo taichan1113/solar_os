@@ -26,7 +26,9 @@ events.
 
 Keyboard transports can additionally supply a canonical USB HID usage and
 modifier mask. This keeps physical controls independent of the selected text
-layout and lets BLE and PS/2 share the same US or German keymap.
+layout and lets BLE and PS/2 share the same US, German, or Japanese keymap.
+Select it with `setterm keyboard us|de|jp`; `jp` follows the Windows Japanese
+106/109 alphanumeric symbol layout, without Japanese IME conversion.
 
 On a board with absolute touch and PSRAM, `job start graffiti` turns the whole
 display into a Palm Graffiti handwriting keyboard without drawing an overlay.

@@ -6,6 +6,7 @@
 
 #include "esp_err.h"
 #include "solar_os_display_surface.h"
+#include "solar_os_display_submission.h"
 #include "solar_os_gfx_icons.h"
 
 typedef uint32_t solar_os_gfx_color_t;
@@ -162,6 +163,9 @@ bool solar_os_gfx_supports_frame_format(const solar_os_gfx_t *gfx,
                                       solar_os_display_format_t format);
 bool solar_os_gfx_needs_present(const solar_os_gfx_t *gfx);
 void solar_os_gfx_present(solar_os_gfx_t *gfx);
+/* Opt-in submission; generation 0 means the synchronous fallback was used. */
+esp_err_t solar_os_gfx_submit(solar_os_gfx_t *gfx, uint64_t *generation);
+esp_err_t solar_os_gfx_submission_status(solar_os_gfx_t *, solar_os_display_submission_status_t *);
 
 #ifdef __cplusplus
 }

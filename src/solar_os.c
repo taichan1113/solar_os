@@ -12,6 +12,11 @@
 #include "solar_os_memory.h"
 #include "solar_os_splash.h"
 #include "solar_os_shell_io.h"
+#include "solar_os_config.h"
+#include "solar_os_sessions.h"
+#if SOLAR_OS_PACKAGE_APP_WRITER
+#include "apps/solar_os_writer_checkpoint.h"
+#endif
 
 static const char *TAG = "solar_os";
 
@@ -604,10 +609,18 @@ bool solar_os_context_take_session_request(solar_os_context_t *ctx,
 
 void solar_os_context_reboot(solar_os_context_t *ctx, const char *status)
 {
+    if (!solar_os_sessions_is_application_task()) {
+        const esp_err_t err = solar_os_sessions_reboot(ctx, status);
+        SOLAR_OS_LOGE(TAG, "reboot request failed: %d", (int)err);
+        return;
+    }
     if (ctx != NULL && ctx->gfx != NULL) {
         solar_os_splash_draw_reboot(ctx->gfx, status);
         vTaskDelay(pdMS_TO_TICKS(150));
     }
+#if SOLAR_OS_PACKAGE_APP_WRITER
+    (void)solar_os_writer_checkpoint_drain_all(true);
+#endif
     esp_restart();
 }
 

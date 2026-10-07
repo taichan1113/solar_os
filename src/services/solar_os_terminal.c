@@ -12,19 +12,20 @@
 #include "solar_os_memory.h"
 #include "solar_os_terminal_geometry.h"
 #include "solar_os_terminal_preferences.h"
+#include "solar_os_ui_font.h"
 
 #define TERM_MARGIN_X 4
-#define TERM_STATUS_BAR_HEIGHT 16
+#define TERM_STATUS_BAR_HEIGHT (solar_os_ui_font_profile()->status_height)
 #define TERM_STATUS_BAR_COMPACT_MAX_WIDTH 160
 #define TERM_STATUS_BAR_ICON_GAP 4
-#define TERM_DEFAULT_FONT SOLAR_OS_TERMINAL_FONT_COMPACT
+#define TERM_DEFAULT_FONT (solar_os_ui_font_profile()->terminal_font)
 /* A board may pick a different factory default text size for its panel via
  * SOLAR_OS_BOARD_TERMINAL_DEFAULT_TEXT_SIZE (a solar_os_terminal_text_size_t
  * value); it only applies until the user saves their own preference. */
 #ifdef SOLAR_OS_BOARD_TERMINAL_DEFAULT_TEXT_SIZE
 #define TERM_DEFAULT_TEXT_SIZE SOLAR_OS_BOARD_TERMINAL_DEFAULT_TEXT_SIZE
 #else
-#define TERM_DEFAULT_TEXT_SIZE SOLAR_OS_TERMINAL_TEXT_SIZE_16
+#define TERM_DEFAULT_TEXT_SIZE (solar_os_ui_font_profile()->terminal_size)
 #endif
 
 #ifndef SOLAR_OS_BOARD_DISPLAY_DEFAULT_ORIENTATION
@@ -1382,7 +1383,9 @@ void solar_os_terminal_set_status_bar(solar_os_terminal_t *terminal,
     }
 
     terminal->status_bar = *status;
+#if SOLAR_OS_BOARD_TERMINAL_STATUS_REFRESH_ON_CHANGE
     solar_os_terminal_mark_dirty(terminal);
+#endif
 }
 
 void solar_os_terminal_get_status_bar(const solar_os_terminal_t *terminal,
@@ -2649,9 +2652,15 @@ static void terminal_draw_status_bar(solar_os_terminal_t *terminal, u8g2_t *u8g2
     u8g2_DrawBox(u8g2, 0, 0, (u8g2_uint_t)width, (u8g2_uint_t)height);
 
     terminal_set_draw_color(terminal, u8g2, 1);
-    const int icon_y = height >= 16 ? 3 : 1;
+    const int icon_y = height >= 16 ? (height - 10) / 2 : 1;
 
-    u8g2_SetFont(u8g2, u8g2_font_solar_os_default_r_12_tf);
+    const uint8_t *status_font = u8g2_font_solar_os_default_r_12_tf;
+    if (solar_os_ui_font_profile()->small_px == 14) {
+        status_font = u8g2_font_solar_os_default_r_14_tf;
+    } else if (solar_os_ui_font_profile()->small_px == 16) {
+        status_font = u8g2_font_solar_os_default_r_16_tf;
+    }
+    u8g2_SetFont(u8g2, status_font);
     u8g2_SetFontMode(u8g2, 1);
     u8g2_SetFontPosBaseline(u8g2);
 

@@ -11,6 +11,25 @@ The ESP-IDF 5.5.5 dynamic registration path requires additional failure handling
 The installed SDK is never edited. Unsupported source revisions fail configuration
 with a review-required error; do not bypass the hashes on an SDK update.
 
+## Security procedure ownership
+
+`scripts/patch_nimble_security.py` generates a separate, SHA-256 guarded
+ESP-IDF 5.5.5 `ble_sm.c` overlay. Duplicate encryption initiation returns
+`BLE_HS_EALREADY` after unlocking, without passing that status into the result
+processor. The latter otherwise re-finds and deletes the peer-initiated active
+procedure, so a later successful HCI encryption event loses its ENC_CHANGE
+callback and bond-restored metadata. This fix keeps that procedure until its
+normal completion; it does not treat EALREADY as encryption success.
+
+For bounded diagnostics set `SOLAR_OS_BLE_SECURITY_TRACE=1` when configuring
+the build. `scripts/trace_nimble_security.py` adds SM lifecycle, metadata-only
+bond lookup, SMP opcode and HCI encryption hooks in build-local copies.
+The SDK hooks use a nonblocking host-producer ring; application-side polling
+drains it to the debug log. No key bytes or SMP payloads are logged. Normal
+builds omit the recorder and hooks. Reconfigure when changing this environment
+flag. See [the PaperMono investigation](../../doc/m5paper-mono-ble-security.md)
+for evidence, the actual-SDK native regression runner, and acceptance status.
+
 ## Stale build configuration
 
 Bluetooth-enabled builds require `CONFIG_BT_NIMBLE_ENABLED=y`. Configuration

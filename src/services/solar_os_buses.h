@@ -45,6 +45,16 @@ esp_err_t solar_os_bus_release(const char *name,
 size_t solar_os_bus_release_owner(const char *owner);
 
 esp_err_t solar_os_bus_i2c_set_speed(const char *name, uint32_t speed_hz);
+/* A short, serialized session pins the leased bus and prevents interleaved
+ * traffic (e.g. while a peripheral mux is enabled). Callback must use these
+ * operations only, never re-enter the normal bus APIs or retain the session. */
+typedef struct {
+    void *context;
+    esp_err_t (*read_reg)(void *, uint8_t, uint8_t, uint8_t *, size_t);
+    esp_err_t (*write_reg)(void *, uint8_t, uint8_t, const uint8_t *, size_t);
+} solar_os_i2c_transaction_t;
+esp_err_t solar_os_bus_i2c_transaction(const char *name,
+    esp_err_t (*callback)(const solar_os_i2c_transaction_t *, void *), void *user);
 esp_err_t solar_os_bus_i2c_probe(const char *name, uint8_t address);
 esp_err_t solar_os_bus_i2c_receive(const char *name,
                                    uint8_t address,

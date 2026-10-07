@@ -366,6 +366,21 @@ esp_err_t solar_os_time_get_utc_datetime(solar_os_datetime_t *datetime)
     return datetime_from_utc_epoch((time_t)tv.tv_sec, true, datetime);
 }
 
+esp_err_t solar_os_time_sync_system_from_provider(void)
+{
+    solar_os_time_provider_t provider;
+    if (!time_provider_snapshot(&provider)) return ESP_ERR_NOT_SUPPORTED;
+    solar_os_datetime_t datetime;
+    esp_err_t err = provider.get_utc_datetime(provider.user, &datetime);
+    if (err != ESP_OK) return err;
+    if (!datetime.clock_integrity) return ESP_ERR_INVALID_STATE;
+    time_t epoch;
+    err = epoch_from_utc_datetime(&datetime, &epoch);
+    if (err != ESP_OK) return err;
+    const struct timeval tv = {.tv_sec = epoch, .tv_usec = 0};
+    return settimeofday(&tv, NULL) == 0 ? ESP_OK : ESP_FAIL;
+}
+
 esp_err_t solar_os_time_set_utc_datetime(const solar_os_datetime_t *datetime)
 {
     if (datetime == NULL) {

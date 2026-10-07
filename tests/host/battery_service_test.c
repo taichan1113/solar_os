@@ -166,6 +166,20 @@ int main(void)
     assert(!status.charging);
     assert(!status.charging_known);
 
+    /* A voltage-only provider must not turn unsupported SOC into fake 100%. */
+    provider_sample.percent_unavailable = true;
+    provider_sample.external_power_valid = true;
+    provider_sample.external_power = true;
+    provider_sample.charge_complete_valid = true;
+    provider_sample.charge_complete = true;
+    status = read_status();
+    assert(!status.percent_valid && !status.percent_estimated && status.percent == 0);
+    assert(status.external_power_known && status.external_power);
+    assert(status.charge_complete_known && status.charge_complete);
+    provider_sample.percent_unavailable = false;
+    status = read_status();
+    assert(status.percent_valid && status.percent_estimated);
+
     assert(solar_os_battery_unregister_provider("test-battery") == ESP_OK);
     assert(stream_unregister_count == 1U);
     assert(!solar_os_battery_has_provider());

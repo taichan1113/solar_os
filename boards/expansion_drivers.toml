@@ -487,8 +487,8 @@ required = true
 
 [[drivers.ssd1677.bindings]]
 key = "reset"
-kind = "gpio"
-hint = "gpio"
+kind = "gpio_line"
+hint = "gpio|controller:line"
 role = "reset"
 required = true
 
@@ -501,8 +501,8 @@ required = true
 
 [[drivers.ssd1677.bindings]]
 key = "power"
-kind = "gpio"
-hint = "gpio"
+kind = "gpio_line"
+hint = "gpio|controller:line"
 role = "power"
 
 [[drivers.ssd1677.bindings]]
@@ -947,8 +947,8 @@ required = true
 allowed = [0x38]
 [[drivers.ft6336.bindings]]
 key = "reset"
-kind = "gpio"
-hint = "gpio"
+kind = "gpio_line"
+hint = "gpio|controller:line"
 required = true
 [[drivers.ft6336.bindings]]
 key = "irq"
@@ -1031,6 +1031,25 @@ capabilities = ["i2c"]
 board_capabilities = ["rtc"]
 board_driver = "rtc_pcf85063"
 default_name = "rtc0"
+
+[drivers.rx8130ce]
+summary = "RX8130CE UTC calendar"
+package = "driver_rx8130ce"
+targets = ["esp32", "esp32s3"]
+capabilities = ["i2c"]
+board_capabilities = ["rtc"]
+default_name = "rtc0"
+[[drivers.rx8130ce.bindings]]
+key = "i2c"
+kind = "i2c_bus"
+hint = "bus"
+required = true
+[[drivers.rx8130ce.bindings]]
+key = "addr"
+kind = "i2c_address"
+hint = "0x32"
+required = true
+allowed = [0x32]
 [[drivers.pcf85063.bindings]]
 key = "i2c"
 kind = "i2c_bus"
@@ -1975,3 +1994,59 @@ hint = "1: X4 Pro, 2: X4 Classic (800x480)"
 role = "panel"
 required = true
 allowed = [1, 2]
+
+[[drivers.ssd1677.bindings]]
+key = "panel"
+kind = "parameter"
+hint = "0=default, 1=PaperMono OTP full monochrome"
+role = "panel"
+min = 0
+max = 1
+
+[[drivers.ft6336.bindings]]
+key = "power"
+kind = "gpio_line"
+hint = "gpio|controller:line"
+role = "power"
+
+[[drivers.ft6336.bindings]]
+key = "enabled"
+kind = "parameter"
+role = "enabled"
+hint = "0|1"
+min = 0
+max = 1
+[[drivers.ft6336.bindings]]
+key = "managed_power"
+kind = "parameter"
+role = "managed_power"
+hint = "0|1"
+min = 0
+max = 1
+
+[drivers.m5papermono-power]
+summary = "PaperMono M5PM1 and M5IOE1 power/GPIO (zero-based lines)"
+package = "m5papermono_power"
+targets = ["esp32s3"]
+capabilities = ["expansion_i2c"]
+board_capabilities = ["battery", "status_led"]
+early = true
+default_name = "ioe0"
+[[drivers.m5papermono-power.bindings]]
+key = "i2c"
+kind = "i2c_bus"
+hint = "bus"
+required = true
+[[drivers.m5papermono-power.bindings]]
+key = "addr"
+kind = "i2c_address"
+hint = "0x4f"
+allowed = [0x4f]
+required = true
+[[drivers.m5papermono-power.bindings]]
+key = "pm_addr"
+kind = "i2c_address"
+hint = "0x6e"
+role = "pm"
+allowed = [0x6e]
+required = true

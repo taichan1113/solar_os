@@ -29,8 +29,37 @@ static void reference(uint8_t *dst, size_t stride,
     }
 }
 
+static void test_clear(void)
+{
+    static uint8_t source[800 * 480], expected[48000 + 14], actual[48000 + 14];
+    for (unsigned rotation = 0; rotation < 4; rotation++)
+    for (unsigned invert = 0; invert < 2; invert++)
+    for (unsigned white = 0; white < 2; white++) {
+        solar_os_display_surface_t surface = {
+            .native_width = 800, .native_height = 480, .rotation = rotation,
+        };
+        const int width = rotation & 1U ? 480 : 800;
+        const int height = rotation & 1U ? 800 : 480;
+        memset(source, white ? 255 : 0, sizeof(source));
+        memset(expected, 0x69, sizeof(expected));
+        memcpy(actual, expected, sizeof(actual));
+        reference(expected + 7, 800, &surface, source, width, 1,
+                  0, 0, 0, 0, width, height, invert);
+        assert(solar_os_gfx_mono_clear_full(actual + 7, 48000, width, height,
+                                           white != invert));
+        assert(memcmp(actual, expected, sizeof(actual)) == 0);
+    }
+    memset(actual, 0x69, sizeof(actual));
+    /* Reject padding and page buffers without touching any bytes. */
+    assert(!solar_os_gfx_mono_clear_full(actual, 80, 19, 27, true));
+    assert(!solar_os_gfx_mono_clear_full(actual, 100, 800, 480, true));
+    assert(!solar_os_gfx_mono_clear_full(actual, 0, 0, 480, true));
+    for (size_t i = 0; i < sizeof(actual); i++) assert(actual[i] == 0x69);
+}
+
 int main(void)
 {
+    test_clear();
     uint8_t src[40 * 40 * 3 + 40 * 5], expected[160], actual[160];
     unsigned cases = 0;
     for (unsigned rotation = 0; rotation < 4; rotation++) {

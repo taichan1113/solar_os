@@ -949,6 +949,18 @@ void solar_os_gfx_clear(solar_os_gfx_t *gfx, solar_os_gfx_color_t color)
         gfx_mark_dirty(gfx);
         return;
     }
+    const uint8_t threshold = gfx_dither_threshold(color);
+    const uint8_t bit = gfx_apply_polarity(gfx, threshold >= 16 ? 1 : 0);
+    if ((threshold == 0 || threshold >= 16) &&
+        solar_os_gfx_mono_clear_full(u8g2_GetBufferPtr(gfx->u8g2),
+                                    gfx_u8g2_buffer_size(gfx),
+                                    u8g2_GetDisplayWidth(gfx->u8g2),
+                                    u8g2_GetDisplayHeight(gfx->u8g2), bit != 0)) {
+        u8g2_SetDrawColor(gfx->u8g2, bit);
+        gfx->color = previous_color;
+        gfx_mark_dirty(gfx);
+        return;
+    }
     for (int y = 0; y < (int)u8g2_GetDisplayHeight(gfx->u8g2); y++) {
         gfx_draw_hline_shade_clipped(gfx, 0, y, (int)u8g2_GetDisplayWidth(gfx->u8g2));
     }
@@ -1644,6 +1656,25 @@ esp_err_t solar_os_gfx_present_frame(
 bool solar_os_gfx_needs_present(const solar_os_gfx_t *gfx)
 {
     return gfx != NULL && gfx->dirty;
+}
+
+esp_err_t solar_os_gfx_submit(solar_os_gfx_t *gfx, uint64_t *generation)
+{
+    if (!gfx_ready(gfx)) return ESP_ERR_INVALID_ARG;
+    if (generation) *generation = 0;
+    if (gfx_uses_index8(gfx)) {
+        solar_os_gfx_present(gfx);
+        return gfx->dirty ? ESP_FAIL : ESP_OK;
+    }
+    const esp_err_t err = solar_os_display_submit(gfx->u8g2,
+        SOLAR_OS_DISPLAY_PRESENT_GRAPHICS, generation);
+    if (err == ESP_OK) gfx->dirty = false;
+    return err;
+}
+
+esp_err_t solar_os_gfx_submission_status(solar_os_gfx_t *gfx, solar_os_display_submission_status_t *status)
+{
+    return gfx_ready(gfx) ? solar_os_display_submission_status(gfx->u8g2, status) : ESP_ERR_INVALID_ARG;
 }
 
 void solar_os_gfx_present(solar_os_gfx_t *gfx)

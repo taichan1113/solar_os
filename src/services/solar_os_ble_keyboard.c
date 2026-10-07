@@ -2,6 +2,7 @@
 #include "solar_os_ble_backend.h"
 #include "solar_os_ble_nimble.h"
 #include "solar_os_ble_hid.h"
+#include "solar_os_ble_security_trace.h"
 #include "nimble/nimble_port.h"
 #include "host/ble_store.h"
 #include "store/config/ble_store_config.h"
@@ -29,6 +30,7 @@ void ble_store_config_init(void);
 #include "solar_os_ble_keyboard_scan_policy.h"
 #include "solar_os_board.h"
 #include "solar_os_log.h"
+#include "solar_os_perf.h"
 #include "solar_os_input.h"
 #include "solar_os_power.h"
 #include "solar_os_task.h"
@@ -107,6 +109,10 @@ static portMUX_TYPE bond_remove_lock = portMUX_INITIALIZER_UNLOCKED;
 static portMUX_TYPE client_lease_lock = portMUX_INITIALIZER_UNLOCKED;
 static bool reconnect_stop_requested;
 static bool reconnect_open_in_progress;
+static bool reconnect_task_starting;
+static uint32_t reconnect_attempt;
+static uint32_t reconnect_advertisements;
+static uint32_t reconnect_matches;
 static uint32_t client_leases;
 static ble_address_t deferred_forget_bda;
 static bool deferred_forget_valid;
@@ -417,6 +423,7 @@ static TaskHandle_t host_task_handle;
 static esp_err_t stop_scanning(void)
 {
     int rc = ble_gap_disc_cancel();
+    SOLAR_OS_LOGD(TAG, "attempt=%" PRIu32 " scan stop rc=%d", reconnect_attempt, rc);
     bool ok = rc == 0 || rc == BLE_HS_EALREADY;
     if (reconnect_scan_stop_requested) {
         reconnect_scan_stop_succeeded = ok;
@@ -428,6 +435,7 @@ static esp_err_t stop_scanning(void)
 static const char *keyboard_layout_names[] = {
     [SOLAR_OS_BLE_KEYBOARD_LAYOUT_US] = "us",
     [SOLAR_OS_BLE_KEYBOARD_LAYOUT_DE] = "de",
+    [SOLAR_OS_BLE_KEYBOARD_LAYOUT_JP] = "jp",
 };
 
 static const char *addr_type_name(uint8_t addr_type);
@@ -501,6 +509,8 @@ static void set_status(ble_keyboard_state_t next_state, const char *fmt, ...)
     }
 
     state = next_state;
+    SOLAR_OS_LOGD(TAG, "attempt=%" PRIu32 " state=%u text=%s",
+                  reconnect_attempt, (unsigned)next_state, buffer);
     strlcpy(status_text, buffer, sizeof(status_text));
 
     if (status_mutex != NULL) {
@@ -516,13 +526,16 @@ static bool stop_reconnect_task(const char *reason, uint32_t timeout_ms)
      * delete a worker while its open call still pins the HID connection. */
     portENTER_CRITICAL(&reconnect_task_lock);
     task = reconnect_task_handle;
-    if (task != NULL) {
+    const bool starting = reconnect_task_starting;
+    if (task != NULL || starting) {
         reconnect_stop_requested = true;
     }
+    /* The worker cannot retire its handle while this lock is held. */
+    if (task != NULL) xTaskNotifyGive(task);
     portEXIT_CRITICAL(&reconnect_task_lock);
 
     solar_os_ble_hid_cancel_open();
-    if (task == NULL) {
+    if (task == NULL && !starting) {
         return true;
     }
 
@@ -541,11 +554,9 @@ static bool stop_reconnect_task(const char *reason, uint32_t timeout_ms)
     SOLAR_OS_LOGI(TAG,
                   "%s: requesting reconnect task stop",
                   reason != NULL ? reason : "ble");
-    xTaskNotifyGive(task);
-
     if (timeout_ms == 0U) {
         portENTER_CRITICAL(&reconnect_task_lock);
-        const bool stopped = reconnect_task_handle == NULL;
+        const bool stopped = reconnect_task_handle == NULL && !reconnect_task_starting;
         portEXIT_CRITICAL(&reconnect_task_lock);
         return stopped;
     }
@@ -554,7 +565,7 @@ static bool stop_reconnect_task(const char *reason, uint32_t timeout_ms)
         xTaskGetTickCount() + pdMS_TO_TICKS(timeout_ms);
     while ((int32_t)(deadline - xTaskGetTickCount()) > 0) {
         portENTER_CRITICAL(&reconnect_task_lock);
-        const bool stopped = reconnect_task_handle == NULL;
+        const bool stopped = reconnect_task_handle == NULL && !reconnect_task_starting;
         portEXIT_CRITICAL(&reconnect_task_lock);
         if (stopped) {
             return true;
@@ -750,35 +761,6 @@ static bool bda_matches_remembered_peer(const uint8_t *bda)
 static bool name_matches_remembered_peer(const char *name)
 {
     return remembered_peer_index_by_name(name) >= 0;
-}
-
-static esp_err_t load_keyboard_layout(void)
-{
-    nvs_handle_t nvs;
-    esp_err_t ret = nvs_open(BLE_KEYBOARD_NVS_NAMESPACE, NVS_READONLY, &nvs);
-    if (ret == ESP_ERR_NVS_NOT_FOUND) {
-        return ESP_OK;
-    }
-    if (ret != ESP_OK) {
-        return ret;
-    }
-
-    uint16_t value = 0;
-    ret = nvs_get_u16(nvs, BLE_KEYBOARD_NVS_LAYOUT_KEY, &value);
-    nvs_close(nvs);
-
-    if (ret == ESP_ERR_NVS_NOT_FOUND) {
-        return ESP_OK;
-    }
-    if (ret != ESP_OK) {
-        return ret;
-    }
-    if (value >= sizeof(keyboard_layout_names) / sizeof(keyboard_layout_names[0])) {
-        return ESP_ERR_INVALID_ARG;
-    }
-
-    return solar_os_input_set_keyboard_layout(
-        (solar_os_input_keyboard_layout_t)value);
 }
 
 static esp_err_t save_keyboard_layout(solar_os_ble_keyboard_layout_t layout)
@@ -1001,6 +983,9 @@ static esp_err_t open_keyboard(const uint8_t *bda,
 
     pending_open_started_tick = xTaskGetTickCount();
     solar_os_ble_hid_device_t *opened_dev = solar_os_ble_hid_open(pending_bda, pending_addr_type);
+    SOLAR_OS_LOGD(TAG, "attempt=%" PRIu32 " open result=%s hid_idle=%u",
+                  reconnect_attempt, opened_dev ? "success" : "failed",
+                  solar_os_ble_hid_idle());
     if (opened_dev == NULL) {
         pending_open_started_tick = 0;
         SOLAR_OS_LOGE(TAG, "solar_os_ble_hid_open failed");
@@ -1163,6 +1148,7 @@ const char *solar_os_ble_keyboard_keepalive_method_name(
 
 void solar_os_ble_keyboard_poll(uint32_t now_ms)
 {
+    solar_os_ble_security_trace_drain();
     if (!solar_os_ble_keyboard_keepalive_enabled() || !initialized || !connected ||
         connected_dev == NULL || reconnect_is_suppressed()) {
         keepalive_connection_armed = false;
@@ -1458,10 +1444,24 @@ static void consider_candidate(const struct ble_gap_disc_desc *param)
     const bool keyboard_like = appearance == ESP_HID_APPEARANCE_KEYBOARD ||
         solar_os_ble_keyboard_scan_name_is_keyboard_like(name);
     if (active_scan_mode == BLE_KEYBOARD_SCAN_RECONNECT) {
+        const bool bda_match = bda_matches_remembered_peer(bda);
+        const bool name_match = name_matches_remembered_peer(name);
+        ++reconnect_advertisements;
+        if (bda_match) ++reconnect_matches;
+        /* Bound unrelated-advertisement logs; always retain a peer match. */
+        if (reconnect_advertisements <= 16U || bda_match || name_match) {
+            SOLAR_OS_LOGD(TAG, "attempt=%" PRIu32 " adv=" SOLAR_OS_BLE_ADDRESS_FMT
+                          " type=%u evt=%u bda=%u name_match=%u rssi=%d",
+                          reconnect_attempt, SOLAR_OS_BLE_ADDRESS_ARGS(bda),
+                          param->addr.type, param->event_type, bda_match,
+                          name_match, param->rssi);
+            SOLAR_OS_LOGD(TAG, "attempt=%" PRIu32 " adv name=%s frozen=%u",
+                          reconnect_attempt, name[0] ? name : "(none)", candidate_frozen);
+        }
         if (candidate_frozen) {
             return;
         }
-        if (!bda_matches_remembered_peer(bda)) {
+        if (!bda_match) {
             return;
         }
         if (!solar_os_ble_keyboard_scan_reconnect_event_is_connectable(
@@ -1656,6 +1656,10 @@ static void handle_keyboard_report(uint8_t map_index,
         const uint8_t ch = solar_os_input_translate_hid_usage(key,
                                                               modifiers,
                                                               caps_lock);
+        if (solar_os_perf_enabled()) {
+            SOLAR_OS_LOGD("pipeline", "KEY_REPORT t=%" PRId64 " key=%u usage=%u",
+                          esp_timer_get_time(), (unsigned)ch, (unsigned)key);
+        }
         (void)solar_os_input_write_key(input_source,
                                        key,
                                        key,
@@ -1672,7 +1676,12 @@ static void handle_keyboard_report(uint8_t map_index,
 static int scan_callback(struct ble_gap_event *event, void *arg)
 {
     if (event->type == BLE_GAP_EVENT_DISC) consider_candidate(&event->disc);
-    else if (event->type == BLE_GAP_EVENT_DISC_COMPLETE) xSemaphoreGive(scan_done_sem);
+    else if (event->type == BLE_GAP_EVENT_DISC_COMPLETE) {
+        SOLAR_OS_LOGD(TAG, "attempt=%" PRIu32 " scan complete adv=%" PRIu32
+                      " matches=%" PRIu32 " candidate=%u", reconnect_attempt,
+                      reconnect_advertisements, reconnect_matches, candidate.valid);
+        xSemaphoreGive(scan_done_sem);
+    }
     return 0;
 }
 
@@ -1732,6 +1741,8 @@ static void hidh_callback(solar_os_ble_hid_event_type_t id, solar_os_ble_hid_eve
             connected_dev = param->open.dev;
             set_keyboard_battery(false, 0);
             keyboard_report_state_reset(true);
+            SOLAR_OS_LOGD(TAG, "attempt=%" PRIu32 " input source=%u ready=yes",
+                          reconnect_attempt, (unsigned)input_source);
             note_wake_activity();
             const char *name = pending_name;
             const char *display_name = name != NULL && name[0] ? name : pending_name;
@@ -1873,11 +1884,10 @@ static esp_err_t init_nvs(void)
         return ESP_OK;
     }
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-        if (ret == ESP_ERR_INVALID_STATE) {
-            return ESP_OK;
-        }
+        /* BLE reconnect is never allowed to erase documents' preferences,
+         * remembered peers or bonds to recover an NVS initialization error. */
+        SOLAR_OS_LOGE(TAG, "NVS init failed; preserving stored data: %s",
+                      esp_err_to_name(ret));
     }
     return ret;
 }
@@ -1921,10 +1931,8 @@ esp_err_t solar_os_ble_backend_init(void)
     }
 
     ESP_RETURN_ON_ERROR(init_nvs(), TAG, "nvs init failed");
-    esp_err_t layout_ret = load_keyboard_layout();
-    if (layout_ret != ESP_OK) {
-        SOLAR_OS_LOGW(TAG, "load keyboard layout failed: %s", esp_err_to_name(layout_ret));
-    }
+    /* input_init restores the shared layout, falling back to legacy blekbd.
+     * Starting/restarting BLE must not overwrite a newer setterm preference. */
     esp_err_t peer_ret = load_remembered_peers();
     if (peer_ret != ESP_OK) {
         SOLAR_OS_LOGW(TAG, "load remembered keyboard failed: %s", esp_err_to_name(peer_ret));
@@ -1935,6 +1943,7 @@ esp_err_t solar_os_ble_backend_init(void)
     if (!host_synced || !host_stopped) return ESP_ERR_NO_MEM;
     while (xSemaphoreTake(host_synced, 0) == pdTRUE) {}
     while (xSemaphoreTake(host_stopped, 0) == pdTRUE) {}
+    solar_os_ble_security_trace_init();
     ESP_RETURN_ON_ERROR(nimble_port_init(), TAG, "NimBLE init failed");
     esp_err_t hid_ret = solar_os_ble_hid_init(hidh_callback);
     if (hid_ret != ESP_OK) {
@@ -2086,6 +2095,8 @@ static esp_err_t run_keyboard_scan(ble_keyboard_scan_mode_t mode,
     reconnect_scan_stop_requested = false;
     reconnect_scan_stop_succeeded = false;
     active_scan_mode = mode;
+    reconnect_advertisements = 0;
+    reconnect_matches = 0;
     set_status(BLE_KEYBOARD_SCANNING, "%s", scan_mode_status(mode));
     SOLAR_OS_LOGI(TAG, "%s scan start", scan_mode_log_name(mode));
 
@@ -2484,126 +2495,7 @@ static esp_err_t complete_deferred_bond_forget(void)
     return remove_deferred_bonds();
 }
 
-static void reconnect_task(void *arg)
-{
-    const uint32_t delay_ms = (uint32_t)(uintptr_t)arg;
-    uint32_t backoff_ms = BLE_KEYBOARD_RECONNECT_BACKOFF_INITIAL_MS;
-
-    if (delay_ms > 0) {
-        (void)ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(delay_ms));
-    }
-
-    while (initialized && remembered_peer_count() > 0 && !connected) {
-        portENTER_CRITICAL(&reconnect_task_lock);
-        const bool stop_requested = reconnect_stop_requested;
-        portEXIT_CRITICAL(&reconnect_task_lock);
-        if (stop_requested) {
-            break;
-        }
-
-        if (scan_task_handle == NULL &&
-            state != BLE_KEYBOARD_SCANNING &&
-            state != BLE_KEYBOARD_CONNECTING &&
-            state != BLE_KEYBOARD_PASSKEY) {
-            const ble_keyboard_peer_t *peer = primary_remembered_peer();
-            if (peer == NULL) {
-                break;
-            }
-            portENTER_CRITICAL(&reconnect_task_lock);
-            if (reconnect_stop_requested) {
-                portEXIT_CRITICAL(&reconnect_task_lock);
-                break;
-            }
-            reconnect_open_in_progress = true;
-            portEXIT_CRITICAL(&reconnect_task_lock);
-
-            SOLAR_OS_LOGI(TAG,
-                          "reconnecting remembered keyboard " SOLAR_OS_BLE_ADDRESS_FMT,
-                          SOLAR_OS_BLE_ADDRESS_ARGS(peer->bda));
-            const esp_err_t ret = scan_and_open_keyboard(BLE_KEYBOARD_SCAN_RECONNECT);
-
-            portENTER_CRITICAL(&reconnect_task_lock);
-            reconnect_open_in_progress = false;
-            const bool stop_after_open = reconnect_stop_requested;
-            portEXIT_CRITICAL(&reconnect_task_lock);
-            if (ret == ESP_OK) {
-                backoff_ms = BLE_KEYBOARD_RECONNECT_BACKOFF_INITIAL_MS;
-            } else if (ret != ESP_ERR_NOT_FOUND) {
-                SOLAR_OS_LOGI(TAG,
-                              "reconnect open failed; returning to scan: %s",
-                              esp_err_to_name(ret));
-            }
-            if (stop_after_open) {
-                break;
-            }
-            if (connected) {
-                break;
-            }
-
-            if (backoff_ms < BLE_KEYBOARD_RECONNECT_BACKOFF_MAX_MS) {
-                backoff_ms *= 2U;
-                if (backoff_ms > BLE_KEYBOARD_RECONNECT_BACKOFF_MAX_MS) {
-                    backoff_ms = BLE_KEYBOARD_RECONNECT_BACKOFF_MAX_MS;
-                }
-            }
-
-            (void)ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(backoff_ms));
-            continue;
-        }
-
-        (void)ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(100));
-    }
-
-    portENTER_CRITICAL(&reconnect_task_lock);
-    reconnect_task_handle = NULL;
-    reconnect_stop_requested = false;
-    reconnect_open_in_progress = false;
-    portEXIT_CRITICAL(&reconnect_task_lock);
-
-    (void)complete_deferred_bond_forget();
-    if (pairing_retry_pending && !forget_operation_pending()) {
-        const esp_err_t pair_ret = start_pairing_scan_now();
-        if (pair_ret != ESP_OK) {
-            SOLAR_OS_LOGW(TAG,
-                          "deferred pairing start after reconnect stop failed: %s",
-                          esp_err_to_name(pair_ret));
-        }
-    }
-    solar_os_task_delete_internal(NULL);
-}
-
-static void schedule_reconnect(uint32_t delay_ms)
-{
-    if (!initialized || connected || remembered_peer_count() == 0 || reconnect_is_suppressed()) {
-        return;
-    }
-    portENTER_CRITICAL(&reconnect_task_lock);
-    TaskHandle_t active_reconnect_task = reconnect_task_handle;
-    const bool reconnect_stopping = reconnect_stop_requested;
-    portEXIT_CRITICAL(&reconnect_task_lock);
-    if (active_reconnect_task != NULL) {
-        if (!reconnect_stopping) {
-            xTaskNotifyGive(active_reconnect_task);
-        }
-        return;
-    }
-
-    portENTER_CRITICAL(&reconnect_task_lock);
-    reconnect_stop_requested = false;
-    reconnect_open_in_progress = false;
-    portEXIT_CRITICAL(&reconnect_task_lock);
-    if (solar_os_task_create_pinned_internal(reconnect_task,
-                                             "ble_kbd_reconn",
-                                             4096,
-                                             (void *)(uintptr_t)delay_ms,
-                                             3,
-                                             &reconnect_task_handle,
-                                             tskNO_AFFINITY,
-                                             SOLAR_OS_TASK_ROLE_SYSTEM) != pdPASS) {
-        reconnect_task_handle = NULL;
-        SOLAR_OS_LOGW(TAG, "reconnect task failed");
-    }
-}
+#include "solar_os_ble_keyboard_reconnect.inc"
 
 esp_err_t solar_os_ble_keyboard_start_pairing(void)
 {
@@ -2696,7 +2588,7 @@ bool solar_os_ble_backend_sleep_prepare_ready(void)
     }
 
     portENTER_CRITICAL(&reconnect_task_lock);
-    const bool reconnect_stopped = reconnect_task_handle == NULL;
+    const bool reconnect_stopped = reconnect_task_handle == NULL && !reconnect_task_starting;
     portEXIT_CRITICAL(&reconnect_task_lock);
     return reconnect_stopped && !scan_task_handle && !forget_operation_pending() &&
         solar_os_ble_hid_idle() && solar_os_ble_nimble_client_idle();

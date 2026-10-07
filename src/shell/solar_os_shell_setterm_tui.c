@@ -362,7 +362,7 @@ static bool setterm_tui_cycle_selected(int direction)
     static const char * const powerkey_values[] = {"sleep", "suspend"};
     static const char * const startup_values[] = {"auto", "flash", "sd"};
 #if SOLAR_OS_PACKAGE_SERVICE_BLE
-    static const char * const keyboard_values[] = {"us", "de"};
+    static const char * const keyboard_values[] = {"us", "de", "jp"};
     static const char * const ble_values[] = {"default", "on", "off"};
 #endif
 

@@ -9,6 +9,8 @@
 #include "solar_os_board_caps.h"
 #include "solar_os_gfx_internal.h"
 #include "solar_os_memory.h"
+#include "solar_os_perf.h"
+#include <inttypes.h>
 #include "solar_os_terminal_preferences.h"
 
 #if SOLAR_OS_BOARD_HAS_DISPLAY
@@ -469,6 +471,7 @@ static esp_err_t display_register_board_target(solar_os_board_display_t *display
     target.max_stream_pixels_per_second =
         solar_os_board_display_max_stream_pixels_per_second(display);
     target.u8g2 = solar_os_board_display_u8g2(display);
+    target.submission = display->submission;
     if (target.surface_formats != 0U) {
         target.surface_context = display;
         target.present_surface = display_board_present_surface;
@@ -534,6 +537,8 @@ esp_err_t solar_os_display_register_target(const solar_os_display_target_t *targ
     const bool has_any_frame_callback = target != NULL &&
         (target->frame_formats != 0U || target->frame_context != NULL ||
          target->present_frame != NULL);
+    const bool has_submission = target != NULL && (target->submission.context ||
+        target->submission.submit || target->submission.wait || target->submission.status);
     if (target == NULL ||
         !display_target_name_valid(target->name, sizeof(target->name)) ||
         !display_target_name_valid(target->source, sizeof(target->source)) ||
@@ -544,6 +549,8 @@ esp_err_t solar_os_display_register_target(const solar_os_display_target_t *targ
         target->width != u8g2_GetDisplayWidth(target->u8g2) ||
         target->height != u8g2_GetDisplayHeight(target->u8g2) ||
         u8g2_GetBufferPtr(target->u8g2) == NULL ||
+        (has_submission && (!target->submission.context || !target->submission.submit ||
+                            !target->submission.wait || !target->submission.status)) ||
         (has_any_surface_callback &&
          (target->surface_formats == 0U || target->surface_context == NULL ||
           target->present_surface == NULL)) ||
@@ -1774,11 +1781,104 @@ static void display_publish_surface(u8g2_t *u8g2,
     solar_os_memory_free(free_buffer);
 }
 
+static esp_err_t display_submission_ref(u8g2_t *u8g2, solar_os_display_submission_t *submission,
+                                       size_t *index, uint32_t *generation)
+{
+    portENTER_CRITICAL(&display_targets_lock);
+    const int found = display_find_slot_by_u8g2_locked(u8g2);
+    if (found < 0) { portEXIT_CRITICAL(&display_targets_lock); return ESP_ERR_NOT_FOUND; }
+    display_target_slot_t *slot = &display_targets[found];
+    if (!slot->target.submission.submit) {
+        portEXIT_CRITICAL(&display_targets_lock);
+        return ESP_ERR_NOT_SUPPORTED;
+    }
+    *submission = slot->target.submission;
+    *index = (size_t)found;
+    *generation = slot->generation;
+    slot->refs++;
+    portEXIT_CRITICAL(&display_targets_lock);
+    return ESP_OK;
+}
+
+esp_err_t solar_os_display_submission_status(u8g2_t *u8g2, solar_os_display_submission_status_t *status)
+{
+    if (!u8g2 || !status) return ESP_ERR_INVALID_ARG;
+    memset(status, 0, sizeof(*status));
+    solar_os_display_submission_t submission;
+    size_t index;
+    uint32_t generation;
+    esp_err_t err = display_submission_ref(u8g2, &submission, &index, &generation);
+    if (err != ESP_OK) return err;
+    err = submission.status(submission.context, status);
+    display_release_slot_ref(index, generation);
+    return err;
+}
+
+esp_err_t solar_os_display_wait(u8g2_t *u8g2, uint32_t timeout_ms)
+{
+    if (!u8g2) return ESP_ERR_INVALID_ARG;
+    solar_os_display_submission_t submission;
+    size_t index;
+    uint32_t generation;
+    esp_err_t err = display_submission_ref(u8g2, &submission, &index, &generation);
+    if (err == ESP_ERR_NOT_SUPPORTED) return ESP_OK;
+    if (err != ESP_OK) return err;
+    err = submission.wait(submission.context, timeout_ms);
+    display_release_slot_ref(index, generation);
+    return err;
+}
+
+esp_err_t solar_os_display_submit(u8g2_t *u8g2, solar_os_display_present_mode_t mode, uint64_t *id)
+{
+    if (!u8g2) return ESP_ERR_INVALID_ARG;
+    if (id) *id = 0;
+    esp_err_t err = solar_os_display_request_present_mode(u8g2, mode);
+    if (err != ESP_OK) return err;
+    solar_os_display_submission_t submission;
+    size_t index;
+    uint32_t generation;
+    err = display_submission_ref(u8g2, &submission, &index, &generation);
+    if (err == ESP_ERR_NOT_SUPPORTED) {
+        solar_os_display_present(u8g2, mode);
+        return ESP_OK;
+    }
+    if (err != ESP_OK) return err;
+    display_target_slot_t *slot = &display_targets[index];
+    xSemaphoreTake(slot->present_mutex, portMAX_DELAY);
+    portENTER_CRITICAL(&display_targets_lock);
+    const bool blocked = slot->overlay_active
+#if SOLAR_OS_BOARD_HAS_DISPLAY
+        || (slot->board_display == display_handle && display_primary_suspended)
+#endif
+        ;
+    const bool synchronous_overlay = slot->overlay_pending;
+    portEXIT_CRITICAL(&display_targets_lock);
+    if (synchronous_overlay) {
+        xSemaphoreGive(slot->present_mutex);
+        display_release_slot_ref(index, generation);
+        solar_os_display_present(u8g2, mode);
+        return ESP_OK;
+    }
+    if (blocked) err = ESP_ERR_INVALID_STATE;
+    else {
+        const size_t size = (size_t)u8g2->pixel_buf_width * u8g2_GetBufferTileHeight(u8g2);
+        err = submission.submit(submission.context, u8g2_GetBufferPtr(u8g2), size, id);
+        if (err == ESP_OK) {
+            display_publish_frame(u8g2); /* rendered/accepted frame, not optical completion */
+        }
+    }
+    xSemaphoreGive(slot->present_mutex);
+    display_release_slot_ref(index, generation);
+    return err;
+}
+
 void solar_os_display_present(u8g2_t *u8g2, solar_os_display_present_mode_t mode)
 {
     if (u8g2 == NULL) {
         return;
     }
+    const bool perf = solar_os_perf_enabled();
+    const int64_t request = perf ? esp_timer_get_time() : 0;
     (void)solar_os_display_request_present_mode(u8g2, mode);
     display_publish_frame(u8g2);
 
@@ -1822,11 +1922,18 @@ void solar_os_display_present(u8g2_t *u8g2, solar_os_display_present_mode_t mode
         display_release_slot_ref(slot_index, generation);
         return;
     }
+    const int64_t start = perf ? esp_timer_get_time() : 0;
     u8g2_SendBuffer(u8g2);
+    const int64_t end = perf ? esp_timer_get_time() : 0;
     if (present_mutex != NULL) {
         display_activate_pending_overlay_locked(&display_targets[slot_index]);
         xSemaphoreGive(present_mutex);
         display_release_slot_ref(slot_index, generation);
+    }
+    if (perf) {
+        SOLAR_OS_LOGD("pipeline", "display=%p PRESENT_REQUEST t=%" PRId64, (void *)u8g2, request);
+        SOLAR_OS_LOGD("pipeline", "display=%p PRESENT_START t=%" PRId64, (void *)u8g2, start);
+        SOLAR_OS_LOGD("pipeline", "display=%p PRESENT_END t=%" PRId64, (void *)u8g2, end);
     }
 }
 

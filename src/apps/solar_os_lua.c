@@ -875,7 +875,11 @@ static void solua_push_battery_status(lua_State *L, const solar_os_battery_statu
 {
     lua_newtable(L);
     solua_set_int(L, -1, "voltage_mv", status->voltage_mv);
-    solua_set_int(L, -1, "percent", status->percent);
+    if (status->percent_valid) solua_set_int(L, -1, "percent", status->percent);
+    solua_set_bool(L, -1, "percent_valid", status->percent_valid);
+    solua_set_bool(L, -1, "external_power_known", status->external_power_known);
+    solua_set_bool(L, -1, "charge_complete", status->charge_complete);
+    solua_set_bool(L, -1, "charge_complete_known", status->charge_complete_known);
     solua_set_bool(L, -1, "percent_estimated", status->percent_estimated);
     solua_set_bool(L, -1, "adc_calibrated", status->adc_calibrated);
     solua_set_bool(L, -1, "external_power", status->external_power);
@@ -5941,7 +5945,7 @@ static int solua_ble_layout(lua_State *L)
 
     solar_os_ble_keyboard_layout_t layout;
     if (!solar_os_ble_keyboard_parse_layout(luaL_checkstring(L, 1), &layout)) {
-        return luaL_error(L, "expected us or de");
+        return luaL_error(L, "expected us, de or jp");
     }
     return solua_check_esp(L, solar_os_ble_keyboard_set_layout(layout));
 }

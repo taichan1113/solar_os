@@ -66,6 +66,10 @@ uint32_t solar_os_sessions_requested_tick_interval_ms(void);
 void solar_os_sessions_dispatch_tick(uint32_t now_ms);
 void solar_os_sessions_dispatch_resume(uint32_t now_ms);
 void solar_os_sessions_process_requests(void);
+/* Reboot must run on the application task to join application-owned workers.
+ * A foreign caller waits while the scheduler executes the reboot. */
+bool solar_os_sessions_is_application_task(void);
+esp_err_t solar_os_sessions_reboot(solar_os_context_t *ctx, const char *status);
 void solar_os_sessions_prompt_if_shell_active(void);
 
 esp_err_t solar_os_sessions_create_display_shell(const char *target_name,

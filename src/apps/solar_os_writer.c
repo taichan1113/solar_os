@@ -11,22 +11,32 @@
 #include <unistd.h>
 
 #include "esp_attr.h"
+#include "esp_heap_caps.h"
+#include "solar_os_board.h"
 #include "solar_os_clipboard.h"
 #include "solar_os_doc.h"
 #include "solar_os_gfx.h"
+#include "solar_os_ui_font.h"
 #include "solar_os_keys.h"
 #include "solar_os_memory.h"
+#include "solar_os_perf.h"
 #include "solar_os_storage.h"
 #include "solar_os_text_search.h"
 #include "solar_os_writer_buffer.h"
 #include "solar_os_writer_files.h"
+#include "solar_os_writer_recovery.h"
+#include "solar_os_writer_checkpoint.h"
 
-#define WRITER_HEADER_H 16
+#define WRITER_HEADER_H (solar_os_ui_font_profile()->writer_header_height)
 #define WRITER_MARGIN_X 4
 #define WRITER_MARGIN_Y 3
 #define WRITER_MAX_ZOOM 4
 #define WRITER_IDLE_RECOVERY_MS 2000U
 #define WRITER_CURSOR_BLINK_MS 500U
+/* Full-refresh panels can opt out of idle cursor animation. */
+#ifndef SOLAR_OS_BOARD_WRITER_CURSOR_BLINK
+#define SOLAR_OS_BOARD_WRITER_CURSOR_BLINK 1
+#endif
 #define WRITER_MESSAGE_MAX 96
 #define WRITER_DIALOG_INPUT_MAX SOLAR_OS_STORAGE_PATH_MAX
 #define WRITER_STATE_DIR ".writer"
@@ -45,6 +55,10 @@ typedef enum {
 } writer_dialog_t;
 
 typedef struct {
+    solar_os_writer_checkpoint_t *checkpoint;
+    uint64_t document_version;
+    uint32_t checkpoint_errors;
+    uint64_t checkpoint_reported;
     solar_os_writer_buffer_t buffer;
     solar_os_doc_t doc;
     solar_os_doc_layout_t layout;
@@ -67,13 +81,17 @@ typedef struct {
     bool layout_pending;
     bool render_pending;
     bool recovery_written;
+    bool recovery_retry;
     bool recovery_available;
     bool discard_on_stop;
     bool exit_after_save;
     bool cursor_visible;
     uint32_t last_tick_ms;
     uint32_t last_edit_ms;
+    uint32_t last_recovery_attempt_ms;
     uint32_t cursor_blink_ms;
+    uint32_t perf_frame;
+    esp_err_t display_error;
     writer_dialog_t dialog;
     char dialog_input[WRITER_DIALOG_INPUT_MAX];
     size_t dialog_len;
@@ -100,17 +118,11 @@ static uint32_t writer_path_hash(const char *path)
     return writer_hash_bytes(2166136261U, key, strlen(key));
 }
 
-static bool writer_path_with_suffix(const char *path,
-                                    const char *suffix,
-                                    char *out,
-                                    size_t out_len)
-{
-    const int written = snprintf(out, out_len, "%s%s", path, suffix);
-    return written >= 0 && (size_t)written < out_len;
-}
-
 static void writer_set_message(const char *message)
 {
+    if (strcmp(writer.message, message != NULL ? message : "") == 0) {
+        return;
+    }
     strlcpy(writer.message, message != NULL ? message : "", sizeof(writer.message));
     writer.render_pending = true;
 }
@@ -209,23 +221,6 @@ static esp_err_t writer_read_file(const char *path, char **out, size_t *out_len)
     return ESP_OK;
 }
 
-static esp_err_t writer_write_synced_file(const char *path, const char *data, size_t len)
-{
-    FILE *file = fopen(path, "wb");
-    if (file == NULL) {
-        return ESP_FAIL;
-    }
-    esp_err_t ret = ESP_OK;
-    if ((len > 0 && fwrite(data, 1, len, file) != len) ||
-        fflush(file) != 0 || fsync(fileno(file)) != 0) {
-        ret = ESP_FAIL;
-    }
-    if (fclose(file) != 0 && ret == ESP_OK) {
-        ret = ESP_FAIL;
-    }
-    return ret;
-}
-
 static size_t writer_scroll_anchor(void)
 {
     size_t anchor = writer.cursor;
@@ -235,31 +230,30 @@ static size_t writer_scroll_anchor(void)
     return anchor;
 }
 
-static void writer_save_metadata(void)
+static solar_os_writer_checkpoint_meta_t writer_checkpoint_meta(bool saved)
 {
-    if (writer.metadata_path[0] == '\0') {
-        return;
+    return (solar_os_writer_checkpoint_meta_t){
+        .cursor=writer.cursor, .anchor=writer_scroll_anchor(), .zoom=writer.zoom,
+        .version=writer.document_version, .saved=saved,
+    };
+}
+
+/* Lifecycle boundaries may wait for I/O. Ordinary ticks only copy and submit. */
+static esp_err_t writer_sync_checkpoint(bool discard)
+{
+    if (!writer.checkpoint) return ESP_ERR_INVALID_STATE;
+    solar_os_writer_checkpoint_fence(writer.checkpoint);
+    /* An unanswered/cancelled recovery dialog is not permission to discard it. */
+    if (!discard && !writer.dirty && writer.recovery_available) return ESP_OK;
+    solar_os_writer_checkpoint_meta_t m=writer_checkpoint_meta(discard || !writer.dirty);
+    esp_err_t err=solar_os_writer_checkpoint_commit(writer.checkpoint,writer.recovery_path,
+        writer.path,&writer.buffer,&m);
+    writer.recovery_written=err==ESP_OK && writer.dirty && !discard;
+    if (err!=ESP_OK) {
+        writer_set_message("recovery write failed");
+        SOLAR_OS_LOGE("writer","boundary checkpoint failed: %d",err);
     }
-    char text[512];
-    const int written = snprintf(text,
-                                 sizeof(text),
-                                 "%u %u %d\n%s\n",
-                                 (unsigned)writer.cursor,
-                                 (unsigned)writer_scroll_anchor(),
-                                 writer.zoom,
-                                 writer.path);
-    if (written <= 0 || (size_t)written >= sizeof(text)) {
-        return;
-    }
-    char temp[SOLAR_OS_STORAGE_PATH_MAX];
-    if (!writer_path_with_suffix(writer.metadata_path, ".tmp", temp, sizeof(temp))) {
-        return;
-    }
-    if (writer_write_synced_file(temp, text, (size_t)written) == ESP_OK) {
-        (void)rename(temp, writer.metadata_path);
-    } else {
-        (void)remove(temp);
-    }
+    return err;
 }
 
 static void writer_load_metadata(void)
@@ -288,69 +282,76 @@ static void writer_load_metadata(void)
     writer.zoom = zoom;
 }
 
-static esp_err_t writer_write_recovery(void)
+static esp_err_t writer_read_recovery(char **out, size_t *len, bool apply)
 {
-    if (!writer.dirty || writer.recovery_path[0] == '\0') {
-        return ESP_OK;
+    solar_os_writer_checkpoint_meta_t m;
+    bool legacy;
+    esp_err_t err=solar_os_writer_checkpoint_read(writer.recovery_path,writer.path,out,len,&m,&legacy);
+    if (err!=ESP_OK || legacy) return err;
+    if (apply || m.saved) {
+        size_t limit=m.saved ? solar_os_writer_buffer_length(&writer.buffer) : *len;
+        writer.cursor=m.cursor<=limit ? m.cursor : limit;
+        writer.saved_scroll_anchor=m.anchor<=limit ? m.anchor : writer.cursor;
+        writer.zoom=m.zoom;
     }
-    char *flat = NULL;
-    size_t len = 0;
-    esp_err_t ret = solar_os_writer_buffer_flatten(&writer.buffer, &flat, &len);
-    if (ret == ESP_OK) {
-        char temp[SOLAR_OS_STORAGE_PATH_MAX];
-        if (!writer_path_with_suffix(writer.recovery_path, ".tmp", temp, sizeof(temp))) {
-            ret = ESP_ERR_INVALID_SIZE;
-        } else {
-            ret = writer_write_synced_file(temp, flat, len);
-            if (ret == ESP_OK && rename(temp, writer.recovery_path) != 0) {
-                ret = ESP_FAIL;
-            }
-            if (ret != ESP_OK) {
-                (void)remove(temp);
-            }
-        }
-    }
-    solar_os_memory_free(flat);
-    if (ret == ESP_OK) {
-        writer.recovery_written = true;
-        writer_save_metadata();
-    }
-    return ret;
+    if (m.saved) { heap_caps_free(*out); *out=NULL; *len=0; return ESP_ERR_NOT_FOUND; }
+    return ESP_OK;
 }
 
 static bool writer_recovery_differs(void)
 {
-    struct stat recovery_stat;
-    if (stat(writer.recovery_path, &recovery_stat) != 0 ||
-        recovery_stat.st_size < 0 ||
-        (uint64_t)recovery_stat.st_size > SOLAR_OS_WRITER_BUFFER_MAX_BYTES) {
-        return false;
-    }
-    if (writer.path[0] != '\0') {
-        struct stat saved_stat;
-        if (stat(writer.path, &saved_stat) == 0 && recovery_stat.st_mtime > saved_stat.st_mtime) {
-            return true;
+    char *snapshot=NULL, *current=NULL;
+    size_t len=0, current_len=0;
+    esp_err_t err=writer_read_recovery(&snapshot,&len,false);
+    if (err!=ESP_OK) {
+        if (err!=ESP_ERR_NOT_FOUND) {
+            writer_set_message("recovery invalid; file preserved");
+            return true; /* keep it through close/suspend until an explicit choice */
         }
-    }
-    char *snapshot = NULL;
-    size_t snapshot_len = 0;
-    if (writer_read_file(writer.recovery_path, &snapshot, &snapshot_len) != ESP_OK) {
         return false;
     }
-    char *current = NULL;
-    size_t current_len = 0;
-    const bool flat_ok = solar_os_writer_buffer_flatten(&writer.buffer,
-                                                        &current,
-                                                        &current_len) == ESP_OK;
-    const bool differs = !flat_ok || snapshot_len != current_len ||
-        (snapshot_len > 0 && memcmp(snapshot, current, snapshot_len) != 0);
-    solar_os_memory_free(snapshot);
-    solar_os_memory_free(current);
+    const bool flat_ok=solar_os_writer_buffer_flatten(&writer.buffer,&current,&current_len)==ESP_OK;
+    const bool differs=!flat_ok || len!=current_len || (len && memcmp(snapshot,current,len));
+    heap_caps_free(snapshot); solar_os_memory_free(current);
     return differs;
+}
+
+static void writer_poll_checkpoint(void)
+{
+    solar_os_writer_checkpoint_status_t s;
+    solar_os_writer_checkpoint_status(writer.checkpoint,&s);
+    writer.recovery_written=s.completed==writer.document_version;
+    if (s.errors!=writer.checkpoint_errors) {
+        writer.checkpoint_errors=s.errors;
+        writer.recovery_retry=true;
+        writer.last_recovery_attempt_ms=writer.last_tick_ms;
+        writer_set_message("recovery write failed");
+    }
+    if (s.completed!=writer.checkpoint_reported) {
+        writer.checkpoint_reported=s.completed;
+        if (solar_os_perf_enabled()) SOLAR_OS_LOGD("checkpoint",
+            "gen=%" PRIu32 " STATE t=%" PRId64 " current=%" PRIu64 " requested=%" PRIu64
+            " inflight=%" PRIu64 " pending=%" PRIu64 " completed=%" PRIu64
+            " writes=%u replaced=%u errors=%u bytes=%u peak=%u stack_free=%u",
+            s.generation,esp_timer_get_time(),writer.document_version,s.requested,s.inflight,s.pending,s.completed,
+            (unsigned)s.writes,(unsigned)s.replaced,(unsigned)s.errors,
+            (unsigned)s.snapshot_bytes,(unsigned)s.peak_snapshot_bytes,s.stack_free);
+    }
+}
+
+static esp_err_t writer_write_recovery(void)
+{
+    solar_os_writer_checkpoint_status_t s;
+    solar_os_writer_checkpoint_status(writer.checkpoint,&s);
+    if (s.pending==writer.document_version || s.inflight==writer.document_version ||
+        s.completed==writer.document_version) return ESP_OK;
+    solar_os_writer_checkpoint_meta_t m=writer_checkpoint_meta(false);
+    return solar_os_writer_checkpoint_submit(writer.checkpoint,&writer.buffer,&m);
 }
 
 static void writer_mark_changed(void)
 {
+    writer.document_version++;
     writer.dirty = true;
     writer.parse_pending = true;
     writer.layout_pending = true;
@@ -815,39 +816,45 @@ static void writer_submit_find(const char *query)
 
 static esp_err_t writer_save_to(const char *target)
 {
-    char resolved[SOLAR_OS_STORAGE_PATH_MAX];
-    esp_err_t ret = solar_os_storage_resolve_path(target, resolved, sizeof(resolved));
-    if (ret != ESP_OK) {
-        writer_set_message(ret == ESP_ERR_INVALID_SIZE ? "path too long" : "invalid path");
-        return ret;
-    }
-    char *flat = NULL;
-    size_t len = 0;
-    ret = solar_os_writer_buffer_flatten(&writer.buffer, &flat, &len);
-    if (ret == ESP_OK) {
-        ret = solar_os_writer_safe_replace(resolved,
-                                           flat,
-                                           len,
-                                           SOLAR_OS_WRITER_FILE_FAULT_NONE);
-    }
+    char resolved[SOLAR_OS_STORAGE_PATH_MAX], recovery[SOLAR_OS_STORAGE_PATH_MAX];
+    char name[SOLAR_OS_STORAGE_PATH_MAX];
+    strlcpy(name,target,sizeof(name)); /* target can alias writer.path */
+    esp_err_t ret=solar_os_storage_resolve_path(target,resolved,sizeof(resolved));
+    if (ret!=ESP_OK) { writer_set_message("invalid save path"); return ret; }
+    int n=snprintf(recovery,sizeof(recovery),"%s/%08" PRIx32 WRITER_RECOVERY_SUFFIX,
+        writer.state_dir,writer_path_hash(resolved));
+    if (n<0 || (size_t)n>=sizeof(recovery)) return ESP_ERR_INVALID_SIZE;
+    ret=solar_os_writer_checkpoint_available(writer.checkpoint,recovery,resolved);
+    if (ret!=ESP_OK) { writer_set_message("document open in another Writer"); return ret; }
+    solar_os_writer_checkpoint_fence(writer.checkpoint);
+    char *flat=NULL; size_t len=0;
+    ret=solar_os_writer_buffer_flatten(&writer.buffer,&flat,&len);
+    if (ret==ESP_OK) ret=solar_os_writer_safe_replace(resolved,flat,len,SOLAR_OS_WRITER_FILE_FAULT_NONE);
     solar_os_memory_free(flat);
-    if (ret != ESP_OK) {
-        writer_set_message("save failed; original restored");
-        return ret;
+    if (ret!=ESP_OK) {
+        solar_os_writer_checkpoint_resume(writer.checkpoint);
+        writer_set_message("save failed; original restored"); return ret;
     }
-
-    char old_recovery[SOLAR_OS_STORAGE_PATH_MAX];
-    strlcpy(old_recovery, writer.recovery_path, sizeof(old_recovery));
-    strlcpy(writer.path, resolved, sizeof(writer.path));
-    strlcpy(writer.display_name, target, sizeof(writer.display_name));
-    writer.dirty = false;
-    writer.recovery_written = false;
-    (void)writer_prepare_state_paths();
-    (void)remove(old_recovery);
-    (void)remove(writer.recovery_path);
-    writer_save_metadata();
-    writer_set_message("saved");
-    return ESP_OK;
+    solar_os_writer_checkpoint_meta_t m=writer_checkpoint_meta(true);
+    /* No old worker can recreate recovery after either of these tombstones. */
+    ret=solar_os_writer_checkpoint_commit(writer.checkpoint,writer.recovery_path,writer.path,NULL,&m);
+    if (ret==ESP_OK && strcmp(resolved,writer.path))
+        ret=solar_os_writer_checkpoint_commit(writer.checkpoint,recovery,resolved,NULL,&m);
+    if (ret!=ESP_OK) {
+        writer.dirty=true; writer.document_version++; writer.recovery_written=false;
+        writer.recovery_retry=true; writer.last_recovery_attempt_ms=writer.last_tick_ms;
+        solar_os_writer_checkpoint_resume(writer.checkpoint);
+        writer_set_message("file saved; recovery cleanup failed, retry save"); return ret;
+    }
+    (void)solar_os_writer_checkpoint_rebind(writer.checkpoint,recovery,resolved);
+    strlcpy(writer.path,resolved,sizeof(writer.path));
+    strlcpy(writer.display_name,name,sizeof(writer.display_name));
+    strlcpy(writer.recovery_path,recovery,sizeof(writer.recovery_path));
+    writer.dirty=false; writer.recovery_written=false; writer.recovery_retry=false;
+    writer.recovery_available=false;
+    writer.document_version++;
+    solar_os_writer_checkpoint_resume(writer.checkpoint);
+    writer_set_message("saved"); return ESP_OK;
 }
 
 static void writer_request_save(void)
@@ -885,9 +892,11 @@ static bool writer_handle_dialog(solar_os_context_t *ctx, uint8_t ch)
         if (ch == SOLAR_OS_KEY_ESCAPE || ch == 'c' || ch == 'C') {
             writer.dialog = WRITER_DIALOG_NONE;
         } else if (ch == 'd' || ch == 'D') {
-            writer.discard_on_stop = true;
-            (void)remove(writer.recovery_path);
-            solar_os_context_finish(ctx, 0, NULL);
+            if (writer_sync_checkpoint(true)==ESP_OK) {
+                writer.discard_on_stop = true;
+                solar_os_context_finish(ctx, 0, NULL);
+            }
+            solar_os_writer_checkpoint_resume(writer.checkpoint);
         } else if (ch == 's' || ch == 'S') {
             if (writer.path[0] == '\0') {
                 writer.exit_after_save = true;
@@ -903,24 +912,27 @@ static bool writer_handle_dialog(solar_os_context_t *ctx, uint8_t ch)
         if (ch == 'r' || ch == 'R' || ch == 'y' || ch == 'Y') {
             char *snapshot = NULL;
             size_t len = 0;
-            if (writer_read_file(writer.recovery_path, &snapshot, &len) == ESP_OK &&
+            if (writer_read_recovery(&snapshot, &len, true) == ESP_OK &&
                 solar_os_writer_buffer_set(&writer.buffer, snapshot, len) == ESP_OK) {
                 writer.cursor = writer.cursor <= len ? writer.cursor : len;
                 writer.dirty = true;
-                writer.recovery_written = true;
+                writer.document_version++;
+                writer.recovery_written = false;
                 writer.parse_pending = true;
                 writer.layout_pending = true;
                 writer_set_message("recovered");
             } else {
                 writer_set_message("recovery failed");
             }
-            solar_os_memory_free(snapshot);
+            heap_caps_free(snapshot);
             writer.dialog = WRITER_DIALOG_NONE;
         } else if (ch == 'n' || ch == 'N' || ch == 'd' || ch == 'D') {
-            (void)remove(writer.recovery_path);
-            writer.recovery_available = false;
-            writer.dialog = WRITER_DIALOG_NONE;
-            writer_set_message("recovery discarded");
+            if (writer_sync_checkpoint(true)==ESP_OK) {
+                writer.recovery_available = false;
+                writer.dialog = WRITER_DIALOG_NONE;
+                writer_set_message("recovery discarded");
+            }
+            solar_os_writer_checkpoint_resume(writer.checkpoint);
         } else if (ch == SOLAR_OS_KEY_ESCAPE || ch == 'c' || ch == 'C') {
             writer.dialog = WRITER_DIALOG_NONE;
         }
@@ -1249,9 +1261,18 @@ static void writer_draw_header(solar_os_gfx_t *gfx)
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
     solar_os_gfx_fill_rect(gfx, 0, 0, width, WRITER_HEADER_H);
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_WHITE);
-    solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_SMALL);
-    title[(width / 6) < (int)sizeof(title) ? (size_t)(width / 6) : sizeof(title) - 1U] = '\0';
-    solar_os_gfx_text(gfx, 3, 11, title);
+    const solar_os_ui_font_profile_t *ui = solar_os_ui_font_profile();
+    solar_os_gfx_set_font(gfx, ui->title);
+    if (ui->title_px == 12) {
+        title[(width / 6) < (int)sizeof(title) ? (size_t)(width / 6) : sizeof(title) - 1U] = '\0';
+    } else {
+        size_t length = strlen(title);
+        while (length > 0 && solar_os_gfx_text_width(gfx, title) > (size_t)(width > 6 ? width - 6 : 0)) {
+            do { length--; } while (length > 0 && ((unsigned char)title[length] & 0xc0U) == 0x80U);
+            title[length] = '\0';
+        }
+    }
+    solar_os_gfx_text(gfx, 3, ui->writer_title_baseline, title);
 }
 
 static void writer_draw_dialog_action(solar_os_gfx_t *gfx,
@@ -1261,10 +1282,10 @@ static void writer_draw_dialog_action(solar_os_gfx_t *gfx,
                                       const char *label)
 {
     char key_symbol[] = {'[', key, ']', '\0'};
-    solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_BOLD_14);
+    solar_os_gfx_set_font(gfx, solar_os_ui_font_profile()->bold);
     solar_os_gfx_text(gfx, x, baseline_y, key_symbol);
     const int label_x = x + (int)solar_os_gfx_text_width(gfx, key_symbol);
-    solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_MONO_14);
+    solar_os_gfx_set_font(gfx, solar_os_ui_font_profile()->body);
     solar_os_gfx_text(gfx, label_x, baseline_y, label);
 }
 
@@ -1273,9 +1294,9 @@ static size_t writer_dialog_action_width(solar_os_gfx_t *gfx,
                                          const char *label)
 {
     char key_symbol[] = {'[', key, ']', '\0'};
-    solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_BOLD_14);
+    solar_os_gfx_set_font(gfx, solar_os_ui_font_profile()->bold);
     const size_t key_width = solar_os_gfx_text_width(gfx, key_symbol);
-    solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_MONO_14);
+    solar_os_gfx_set_font(gfx, solar_os_ui_font_profile()->body);
     return key_width + solar_os_gfx_text_width(gfx, label);
 }
 
@@ -1289,13 +1310,18 @@ static void writer_draw_dialog(solar_os_gfx_t *gfx)
     const bool choice_menu = writer.dialog == WRITER_DIALOG_EXIT ||
         writer.dialog == WRITER_DIALOG_RECOVERY;
     const bool recovery = writer.dialog == WRITER_DIALOG_RECOVERY;
+    const solar_os_ui_font_profile_t *ui = solar_os_ui_font_profile();
+    const int small_extra = ui->small_px - 12;
+    const int body_extra = ui->body_px - 14;
+    const int choice_stride = 16 + body_extra;
+    const int choice_first = 42 + 2 * body_extra;
     int x = 12;
     int y = screen_h / 3;
     int w = screen_w - 24;
-    int h = writer.dialog == WRITER_DIALOG_FORMAT ? 78 : 48;
+    int h = writer.dialog == WRITER_DIALOG_FORMAT ? 78 + 4 * small_extra : 48 + 2 * small_extra;
     const char *choice_title = recovery ? "Recovery found" : "Unsaved changes";
     if (choice_menu) {
-        solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_MONO_14);
+        solar_os_gfx_set_font(gfx, ui->dialog_title);
         size_t content_width = solar_os_gfx_text_width(gfx, choice_title);
         const size_t first_width = writer_dialog_action_width(gfx,
                                                                recovery ? 'R' : 'S',
@@ -1312,7 +1338,7 @@ static void writer_draw_dialog(solar_os_gfx_t *gfx)
             content_width = cancel_width;
         }
         w = (int)content_width + 16;
-        h = 84;
+        h = 84 + 4 * body_extra;
         x = (screen_w - w) / 2;
         y = (screen_h - h) / 2;
     }
@@ -1321,21 +1347,21 @@ static void writer_draw_dialog(solar_os_gfx_t *gfx)
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_DARK);
     solar_os_gfx_rect(gfx, x, y, w, h);
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
-    solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_MONO_12);
+    solar_os_gfx_set_font(gfx, ui->small);
 
     if (choice_menu) {
-        solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_MONO_14);
+        solar_os_gfx_set_font(gfx, ui->dialog_title);
         solar_os_gfx_text(gfx,
                           x + 8,
-                          y + 18,
+                          y + 18 + body_extra,
                           choice_title);
         writer_draw_dialog_action(gfx,
                                   x + 8,
-                                  y + 42,
+                                  y + choice_first,
                                   recovery ? 'R' : 'S',
                                   recovery ? " Recover" : " Save");
-        writer_draw_dialog_action(gfx, x + 8, y + 58, 'D', " Discard");
-        writer_draw_dialog_action(gfx, x + 8, y + 74, 'C', " Cancel");
+        writer_draw_dialog_action(gfx, x + 8, y + choice_first + choice_stride, 'D', " Discard");
+        writer_draw_dialog_action(gfx, x + 8, y + choice_first + 2 * choice_stride, 'C', " Cancel");
         return;
     }
 
@@ -1344,10 +1370,10 @@ static void writer_draw_dialog(solar_os_gfx_t *gfx)
     case WRITER_DIALOG_SAVE_AS: prompt = "Save as:"; break;
     case WRITER_DIALOG_EXIT: break;
     case WRITER_DIALOG_FORMAT:
-        solar_os_gfx_text(gfx, x + 5, y + 14, "1 code  2-5 heading 1-4");
-        solar_os_gfx_text(gfx, x + 5, y + 30, "6 bullet  7 numbered  8 quote");
-        solar_os_gfx_text(gfx, x + 5, y + 46, "9 fenced code  0 rule");
-        solar_os_gfx_text(gfx, x + 5, y + 64, "Esc closes");
+        solar_os_gfx_text(gfx, x + 5, y + 14 + small_extra, "1 code  2-5 heading 1-4");
+        solar_os_gfx_text(gfx, x + 5, y + 30 + 2 * small_extra, "6 bullet  7 numbered  8 quote");
+        solar_os_gfx_text(gfx, x + 5, y + 46 + 3 * small_extra, "9 fenced code  0 rule");
+        solar_os_gfx_text(gfx, x + 5, y + 64 + 4 * small_extra, "Esc closes");
         return;
     case WRITER_DIALOG_FIND: prompt = "Find:"; break;
     case WRITER_DIALOG_REPLACE_FIND: prompt = "Replace find:"; break;
@@ -1355,13 +1381,13 @@ static void writer_draw_dialog(solar_os_gfx_t *gfx)
     case WRITER_DIALOG_RECOVERY: break;
     default: break;
     }
-    solar_os_gfx_text(gfx, x + 5, y + 15, prompt);
+    solar_os_gfx_text(gfx, x + 5, y + 15 + small_extra, prompt);
     if (writer.dialog != WRITER_DIALOG_EXIT && writer.dialog != WRITER_DIALOG_RECOVERY) {
         char input[WRITER_DIALOG_INPUT_MAX + 2U];
         snprintf(input, sizeof(input), "%s_", writer.dialog_input);
-        const size_t max_chars = w > 14 ? (size_t)((w - 14) / 7) : 1U;
+        const size_t max_chars = w > 14 ? (size_t)((w - 14) / (7 + small_extra / 2)) : 1U;
         const char *visible = strlen(input) > max_chars ? &input[strlen(input) - max_chars] : input;
-        solar_os_gfx_text(gfx, x + 5, y + 34, visible);
+        solar_os_gfx_text(gfx, x + 5, y + 34 + 2 * small_extra, visible);
     }
 }
 
@@ -1371,7 +1397,11 @@ static void writer_render(solar_os_context_t *ctx)
     if (gfx == NULL || writer.suspended) {
         return;
     }
+    const bool perf = solar_os_perf_enabled();
+    const uint32_t frame = ++writer.perf_frame;
+    const int64_t start = perf ? esp_timer_get_time() : 0;
     solar_os_gfx_clear(gfx, SOLAR_OS_GFX_COLOR_WHITE);
+    const int64_t clear_end = perf ? esp_timer_get_time() : 0;
     writer_draw_header(gfx);
     {
         solar_os_doc_view_t view = {
@@ -1400,7 +1430,22 @@ static void writer_render(solar_os_context_t *ctx)
         }
         writer_draw_dialog(gfx);
     }
-    solar_os_gfx_present(gfx);
+    const int64_t render_end = perf ? esp_timer_get_time() : 0;
+    uint64_t generation = 0;
+    const esp_err_t submit_error = solar_os_gfx_submit(gfx, &generation);
+    if (submit_error != ESP_OK && submit_error != writer.display_error) {
+        writer.display_error = submit_error;
+        SOLAR_OS_LOGE("writer", "display submission failed: %d; inspect display async status", submit_error);
+        writer_set_message("display unavailable; see USB display status");
+    }
+    const int64_t present_end = perf ? esp_timer_get_time() : 0;
+    if (perf) {
+        SOLAR_OS_LOGD("pipeline", "frame=%" PRIu32 " WRITER_RENDER_START t=%" PRId64, frame, start);
+        SOLAR_OS_LOGD("pipeline", "frame=%" PRIu32 " WRITER_RENDER_END t=%" PRId64 " clear_us=%" PRId64,
+                      frame, render_end, clear_end - start);
+        SOLAR_OS_LOGD("pipeline", "frame=%" PRIu32 " SUBMIT_RETURN t=%" PRId64 " gen=%" PRIu64 " err=%d",
+                      frame, present_end, generation, submit_error);
+    }
     writer.render_pending = false;
 }
 
@@ -1412,7 +1457,8 @@ static esp_err_t writer_start(solar_os_context_t *ctx)
     solar_os_doc_layout_init(&writer.layout);
     writer.selection_anchor = SIZE_MAX;
     writer.saved_scroll_anchor = SIZE_MAX;
-    writer.zoom = 1;
+    writer.zoom = SOLAR_OS_BOARD_WRITER_DEFAULT_ZOOM;
+    writer.document_version = 1;
     writer.cursor_visible = true;
 
     if (solar_os_context_gfx(ctx) == NULL) {
@@ -1469,7 +1515,13 @@ static esp_err_t writer_start(solar_os_context_t *ctx)
     if (ret != ESP_OK) {
         return ret;
     }
+    ret=solar_os_writer_checkpoint_open(writer.recovery_path,writer.path,&writer.checkpoint);
+    if (ret!=ESP_OK) {
+        solar_os_context_finish(ctx,1,"writer: checkpoint unavailable or document already open");
+        return ESP_OK;
+    }
     writer_load_metadata();
+    writer.recovery_available = writer_recovery_differs();
     writer.loaded = true;
     writer.parse_pending = true;
     writer.layout_pending = true;
@@ -1478,7 +1530,6 @@ static esp_err_t writer_start(solar_os_context_t *ctx)
     if (ret != ESP_OK) {
         return ret;
     }
-    writer.recovery_available = writer_recovery_differs();
     if (writer.recovery_available) {
         writer.dialog = WRITER_DIALOG_RECOVERY;
     }
@@ -1488,8 +1539,7 @@ static esp_err_t writer_start(solar_os_context_t *ctx)
 
 static void writer_suspend(solar_os_context_t *ctx)
 {
-    (void)writer_write_recovery();
-    writer_save_metadata();
+    if (writer.loaded) (void)writer_sync_checkpoint(false);
     writer.suspended = true;
     solar_os_context_set_graphics_active(ctx, false);
 }
@@ -1497,6 +1547,7 @@ static void writer_suspend(solar_os_context_t *ctx)
 static void writer_resume(solar_os_context_t *ctx)
 {
     writer.suspended = false;
+    solar_os_writer_checkpoint_resume(writer.checkpoint);
     writer_wake_cursor();
     solar_os_context_set_graphics_active(ctx, true);
     writer.layout_pending = true;
@@ -1508,10 +1559,8 @@ static void writer_resume(solar_os_context_t *ctx)
 
 static void writer_stop(solar_os_context_t *ctx)
 {
-    if (writer.dirty && !writer.discard_on_stop) {
-        (void)writer_write_recovery();
-    }
-    writer_save_metadata();
+    if (writer.loaded && !writer.discard_on_stop) (void)writer_sync_checkpoint(false);
+    solar_os_writer_checkpoint_close(writer.checkpoint);
     solar_os_writer_buffer_free(&writer.buffer);
     solar_os_doc_free(&writer.doc);
     solar_os_doc_layout_free(&writer.layout);
@@ -1529,23 +1578,55 @@ static bool writer_event(solar_os_context_t *ctx, const solar_os_event_t *event)
         return true;
     }
     if (event->type == SOLAR_OS_EVENT_CHAR) {
-        return writer_handle_char(ctx, (uint8_t)event->data.ch);
+        const bool perf = solar_os_perf_enabled();
+        const int64_t start = perf ? esp_timer_get_time() : 0;
+        const bool handled = writer_handle_char(ctx, (uint8_t)event->data.ch);
+        const int64_t mutation_end = perf ? esp_timer_get_time() : 0;
+        if (perf) {
+            SOLAR_OS_LOGD("pipeline", "frame=%" PRIu32 " WRITER_INPUT t=%" PRId64 " key=%u",
+                          writer.perf_frame + 1U, start, (unsigned)(uint8_t)event->data.ch);
+            SOLAR_OS_LOGD("pipeline", "frame=%" PRIu32 " MUTATION_END t=%" PRId64 " pending=%u/%u/%u",
+                          writer.perf_frame + 1U, mutation_end,
+                          writer.parse_pending, writer.layout_pending, writer.render_pending);
+        }
+        return handled;
     }
     if (event->type == SOLAR_OS_EVENT_TICK) {
+        solar_os_gfx_t *gfx = solar_os_context_gfx(ctx);
+        solar_os_display_submission_status_t display_status;
+        if (gfx && solar_os_gfx_submission_status(gfx, &display_status) == ESP_OK &&
+            display_status.error != ESP_OK && display_status.error != writer.display_error) {
+            writer.display_error = display_status.error;
+            writer_set_message("display failed; see USB display status");
+            SOLAR_OS_LOGE("writer", "display completion failed: %d", display_status.error);
+        }
+        const bool perf = solar_os_perf_enabled();
+        const int64_t start = perf ? esp_timer_get_time() : 0;
+        int64_t recovery_us = 0, document_us = 0;
+        esp_err_t recovery_err = ESP_OK;
         writer.last_tick_ms = event->data.tick_ms;
-        if (writer.dirty && !writer.recovery_written &&
-            event->data.tick_ms - writer.last_edit_ms >= WRITER_IDLE_RECOVERY_MS) {
-            if (writer_write_recovery() != ESP_OK) {
+        writer_poll_checkpoint();
+        if (!writer.suspended && writer.dirty && solar_os_writer_recovery_due(writer.recovery_written,
+                writer.recovery_retry, event->data.tick_ms, writer.last_edit_ms,
+                writer.last_recovery_attempt_ms, WRITER_IDLE_RECOVERY_MS)) {
+            const int64_t recovery_start = perf ? esp_timer_get_time() : 0;
+            writer.last_recovery_attempt_ms = event->data.tick_ms;
+            recovery_err = writer_write_recovery();
+            writer.recovery_retry = recovery_err != ESP_OK;
+            if (recovery_err != ESP_OK) {
                 writer_set_message("recovery write failed");
             }
+            if (perf) recovery_us = esp_timer_get_time() - recovery_start;
         }
         if (writer.parse_pending || writer.layout_pending) {
+            const int64_t document_start = perf ? esp_timer_get_time() : 0;
             esp_err_t ret = writer_update_document(ctx);
+            if (perf) document_us = esp_timer_get_time() - document_start;
             if (ret != ESP_OK) {
                 writer_set_message("layout failed");
             }
         }
-        if (!writer.suspended &&
+        if (SOLAR_OS_BOARD_WRITER_CURSOR_BLINK && !writer.suspended &&
             writer.dialog == WRITER_DIALOG_NONE) {
             if (writer.cursor_blink_ms == 0) {
                 writer.cursor_blink_ms = event->data.tick_ms;
@@ -1558,6 +1639,12 @@ static bool writer_event(solar_os_context_t *ctx, const solar_os_event_t *event)
         }
         if (writer.render_pending) {
             writer_render(ctx);
+        }
+        if (perf && esp_timer_get_time() - start >= 10000) {
+            SOLAR_OS_LOGD("pipeline", "frame=%" PRIu32 " TICK start=%" PRId64 " end=%" PRId64
+                          " doc_us=%" PRId64 " recovery_us=%" PRId64 " recovery_err=%d",
+                          writer.perf_frame, start, esp_timer_get_time(), document_us,
+                          recovery_us, (int)recovery_err);
         }
         return true;
     }

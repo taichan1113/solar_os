@@ -3,7 +3,24 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #include "solar_os_display_surface.h"
+
+/* A uniform full framebuffer is independent of rotation. Restrict this path
+ * to complete byte-aligned buffers; paged/padded displays keep the draw path
+ * so bits outside the visible area retain their existing contract. */
+static inline bool solar_os_gfx_mono_clear_full(uint8_t *buffer, size_t size,
+                                               uint16_t width, uint16_t height,
+                                               bool set)
+{
+    if (buffer == NULL || width == 0 || height == 0 ||
+        width % 8U != 0 || height % 8U != 0 ||
+        size != (size_t)width * height / 8U) {
+        return false;
+    }
+    memset(buffer, set ? 0xff : 0, size);
+    return true;
+}
 
 /* Internal, unscaled GRAY8/RGB888 blit into u8g2's vertical-eight-bit tiles.
  * The caller validates buffers and clips the logical rectangle. Preserve bits

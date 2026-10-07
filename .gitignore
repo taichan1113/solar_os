@@ -1,4 +1,11 @@
 .pio/
+.pio-core/
+.research/
+/tests/host/*_test
+/tests/host/epd_ssd1677_test
+/tests/host/m5papermono_power_test
+/tests/host/ft6336_test
+/tests/host/gpio_controller_test
 build/
 !fonts/build/
 fonts/build/*

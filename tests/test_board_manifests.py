@@ -58,6 +58,62 @@ class BoardManifestTest(unittest.TestCase):
             with self.subTest(path=path.name):
                 self.assertLessEqual(required, set(board["defines"]))
 
+    def test_papermono_profiles_share_system_key_without_duplicate_button(self) -> None:
+        for name in ("m5paper_mono", "m5paper_mono_bringup"):
+            with self.subTest(profile=name):
+                board = load_board_manifest(self.manifest_dir / f"{name}.toml",
+                                            self.manifest_dir)
+                defines = board["defines"]
+                self.assertIn("key", board["build"]["capabilities"])
+                self.assertEqual(defines["SOLAR_OS_BOARD_PIN_KEY"], "GPIO_NUM_2")
+                self.assertEqual(defines["SOLAR_OS_BOARD_KEY_ACTIVE_LEVEL"], "0")
+                self.assertEqual(defines["SOLAR_OS_BOARD_KEY_PULL_UP"], "1")
+                self.assertEqual(defines["SOLAR_OS_BOARD_KEY_PULL_DOWN"], "0")
+                self.assertNotIn("SOLAR_OS_BOARD_KEY_SHORT_INPUT_KEY", defines)
+                buttons = defines["SOLAR_OS_BOARD_BUTTONS"]
+                self.assertNotIn("GPIO_NUM_2", buttons)
+                self.assertEqual(buttons.count(".pin ="), 1)
+                self.assertIn("GPIO_NUM_3", buttons)
+                self.assertIn("SOLAR_OS_KEY_ENTER", buttons)
+                self.assertIn(".emit_on_release = true", buttons)
+                cmake = generate_cmake(board, self.drivers)
+                self.assertIn("set(SOLAR_OS_BOARD_HAS_KEY ON)", cmake)
+
+    def test_papermono_platform_services_and_touch_default_off(self) -> None:
+        board = load_board_manifest(self.manifest_dir / "m5paper_mono.toml", self.manifest_dir)
+        validate_board(board, self.drivers)
+        devices = {d["name"]: d for d in board["devices"]}
+        self.assertEqual(devices["touch0"]["bindings"]["enabled"], 0)
+        self.assertEqual(devices["touch0"]["bindings"]["managed_power"], 1)
+        self.assertEqual(devices["rtc0"]["driver"], "rx8130ce")
+        self.assertEqual(devices["rtc0"]["bindings"]["addr"], 0x32)
+        self.assertIn("driver_rx8130ce", required_packages(board, self.drivers))
+        self.assertIn("battery_expansion", board["build"]["drivers"])
+        self.assertEqual(board["defines"]["SOLAR_OS_BOARD_TERMINAL_STATUS_REFRESH_ON_CHANGE"], "0")
+        # Optional bindings must not silently disable FT6336 on another board.
+        for path in self.manifest_dir.glob("*.toml"):
+            if path.stem in ("m5paper_mono", "m5paper_mono_bringup"):
+                continue
+            other = load_board_manifest(path, self.manifest_dir)
+            for d in other.get("devices", []):
+                if d["driver"] == "ft6336":
+                    self.assertNotIn("enabled", d["bindings"])
+                    self.assertNotIn("managed_power", d["bindings"])
+
+    def test_only_papermono_selects_large_terminal_ui(self) -> None:
+        for path in self.manifest_dir.glob("*.toml"):
+            board = load_board_manifest(path, self.manifest_dir)
+            defines = board["defines"]
+            if path.stem in ("m5paper_mono", "m5paper_mono_bringup"):
+                self.assertEqual(defines["SOLAR_OS_BOARD_UI_FONT_PRESET"],
+                                 "SOLAR_OS_UI_FONT_PRESET_LARGE")
+                self.assertEqual(defines["SOLAR_OS_BOARD_TERMINAL_STATUS_REFRESH_ON_CHANGE"], "0")
+                self.assertEqual(defines["SOLAR_OS_BOARD_WRITER_DEFAULT_ZOOM"], "4")
+                self.assertEqual(defines["SOLAR_OS_BOARD_WRITER_CURSOR_BLINK"], "0")
+            else:
+                self.assertNotIn("SOLAR_OS_BOARD_UI_FONT_PRESET", defines)
+                self.assertNotIn("SOLAR_OS_BOARD_TERMINAL_STATUS_REFRESH_ON_CHANGE", defines)
+
     def test_goouuu_esp32_s3cam_pin_contract(self) -> None:
         board = load_board_manifest(
             self.manifest_dir / "goouuu_esp32_s3cam.toml",

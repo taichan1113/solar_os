@@ -68,7 +68,7 @@ static void test_raw_ranges_and_reader_wrapper(void)
     solar_os_doc_free(&doc);
 }
 
-static void test_reveal_round_trip(void)
+static void test_reveal_round_trip(int zoom)
 {
     static const char markdown[] =
         "# H **bold**\n"
@@ -93,7 +93,7 @@ static void test_reveal_round_trip(void)
         .start = 0,
         .end = sizeof(markdown) - 1U,
     };
-    assert(solar_os_doc_layout_build_ex(&layout, &doc, 56, 1, &reveal, 1) == ESP_OK);
+    assert(solar_os_doc_layout_build_ex(&layout, &doc, 56, zoom, &reveal, 1) == ESP_OK);
 
     bool saw_heading_marker = false;
     bool saw_list_marker = false;
@@ -234,7 +234,7 @@ static void test_adjacent_heading_navigation(void)
 int main(void)
 {
     test_raw_ranges_and_reader_wrapper();
-    test_reveal_round_trip();
+    for (int zoom=0; zoom<=4; ++zoom) test_reveal_round_trip(zoom);
     test_adjacent_heading_navigation();
     puts("document reveal layout tests: ok");
     return 0;

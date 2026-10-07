@@ -9,7 +9,8 @@ void solar_os_ble_nimble_address(ble_addr_t *out,const uint8_t bda[6],uint8_t ty
 { out->type=type; for(size_t i=0;i<6;++i)out->val[i]=bda[5-i]; }
 void solar_os_ble_nimble_display_address(uint8_t out[6], const ble_addr_t *addr)
 { for(size_t i=0;i<6;++i)out[i]=addr->val[5-i]; }
-int solar_os_ble_nimble_security(struct ble_gap_event *e) { (void)e; return 0; }
+int solar_os_ble_nimble_security(struct ble_gap_event *e)
+{ return e->type == BLE_GAP_EVENT_REPEAT_PAIRING ? BLE_GAP_REPEAT_PAIRING_IGNORE : 0; }
 int solar_os_ble_nimble_security_passkey(struct ble_gap_event *e, uint32_t *passkey)
 { (void)e; *passkey = 12345; return 0; }
 static struct ble_gatt_error ok, done={.status=BLE_HS_EDONE};
@@ -26,7 +27,8 @@ static void start(void)
 static void discover(void)
 {
     start(); nimble_test_connect(0);
-    struct ble_gap_event encrypted={.type=BLE_GAP_EVENT_ENC_CHANGE};
+    struct ble_gap_event encrypted={.type=BLE_GAP_EVENT_ENC_CHANGE,
+        .enc_change={.conn_handle=7}};
     fake.gap(&encrypted,fake.gap_arg);
     fake.mtu_fn(7,&ok,517,fake.arg);
 }
@@ -45,7 +47,35 @@ static void close_peer(void)
 int main(void)
 {
     assert(solar_os_ble_hid_init(NULL)==ESP_OK);
+    /* A bonded peer may encrypt before ESP-IDF delivers CONNECT. Do not use
+     * the invalid initial handle, start GATT early, or request security twice. */
+    start();
+    struct ble_gap_event early_encryption={.type=BLE_GAP_EVENT_ENC_CHANGE,
+        .enc_change={.conn_handle=7}};
+    fake.gap(&early_encryption,fake.gap_arg);
+    assert(device.conn_id==7 && hid.encryption_pending && !hid.discovery_started);
+    assert(!fake.mtu_fn && !fake.security_calls && !hid.closing);
+    nimble_test_connect(0);
+    assert(!hid.encryption_pending && hid.discovery_started && fake.mtu_fn);
+    assert(!fake.security_calls && !hid.closing);
+    close_peer();
+    /* Early encryption failure still closes the real link after CONNECT. */
+    start(); early_encryption.enc_change.status=BLE_HS_EAPP;
+    fake.gap(&early_encryption,fake.gap_arg);
+    nimble_test_connect(0);
+    assert(hid.closing && fake.terminate_calls==1 && !fake.mtu_fn);
+    nimble_test_disconnect(); drain_policy();
+    assert(solar_os_ble_hid_idle());
+    /* Cancel while waiting for CONNECT must terminate, not lose the handle. */
+    start(); early_encryption.enc_change.status=0;
+    fake.gap(&early_encryption,fake.gap_arg);
+    solar_os_ble_hid_cancel_open(); nimble_test_drain();
+    assert(fake.terminate_calls==1 && !fake.cancel_calls && !fake.mtu_fn);
+    nimble_test_disconnect(); drain_policy();
+    assert(solar_os_ble_hid_idle());
     /* Cancelling before submission does not touch a generic client's attempt. */
+    nimble_test_reset();
+    memset(&hid,0,sizeof(hid));
     hid.active=true; hid.epoch=++epoch; device.conn_id=-1;
     solar_os_ble_hid_cancel_open(); nimble_test_drain();
     assert(!fake.connect_calls && !fake.cancel_calls && solar_os_ble_hid_idle());
@@ -59,11 +89,11 @@ int main(void)
     start(); nimble_test_connect(0);
     struct ble_gap_event repeat_pairing={.type=BLE_GAP_EVENT_REPEAT_PAIRING,
         .repeat_pairing={.conn_handle=7}};
-    assert(fake.gap(&repeat_pairing,fake.gap_arg)==BLE_GAP_REPEAT_PAIRING_RETRY);
-    assert(fake.store_delete_calls==1);
+    assert(fake.gap(&repeat_pairing,fake.gap_arg)==BLE_GAP_REPEAT_PAIRING_IGNORE);
+    assert(fake.store_delete_calls==0);
     fake.store_delete_error=BLE_HS_EAPP;
     assert(fake.gap(&repeat_pairing,fake.gap_arg)==BLE_GAP_REPEAT_PAIRING_IGNORE);
-    assert(fake.store_delete_calls==2);
+    assert(fake.store_delete_calls==0);
     solar_os_ble_hid_cancel_open(); nimble_test_drain();
     nimble_test_disconnect(); drain_policy();
     assert(solar_os_ble_hid_idle());

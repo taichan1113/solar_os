@@ -1,0 +1,9 @@
+schema = 1
+extends = "m5paper_mono"
+# Inherit the same system KEY1 and Enter KEY2 semantics; only touch is omitted.
+[board]
+id = "m5paper_mono_bringup"
+name = "M5Stack PaperMono (display bring-up)"
+[[devices]]
+name = "touch0"
+remove = true

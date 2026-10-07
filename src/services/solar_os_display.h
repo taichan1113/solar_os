@@ -6,6 +6,7 @@
 
 #include "esp_err.h"
 #include "solar_os_display_surface.h"
+#include "solar_os_display_submission.h"
 #include "solar_os_gfx.h"
 #include "solar_os_terminal.h"
 #include "u8g2.h"
@@ -61,6 +62,7 @@ typedef struct {
     solar_os_display_surface_presenter_t present_surface;
     void *frame_context;
     solar_os_display_frame_presenter_t present_frame;
+    solar_os_display_submission_t submission;
 } solar_os_display_target_t;
 
 typedef enum {
@@ -135,6 +137,11 @@ esp_err_t solar_os_display_request_present_mode(u8g2_t *u8g2,
                                                 solar_os_display_present_mode_t mode);
 esp_err_t solar_os_display_set_overlay_active(u8g2_t *u8g2, bool active);
 void solar_os_display_present(u8g2_t *u8g2, solar_os_display_present_mode_t mode);
+/* Explicit submission. Supported backends copy before returning; other targets
+ * keep synchronous present. Legacy present() always retains its old boundary. */
+esp_err_t solar_os_display_submit(u8g2_t *, solar_os_display_present_mode_t, uint64_t *generation);
+esp_err_t solar_os_display_wait(u8g2_t *, uint32_t timeout_ms);
+esp_err_t solar_os_display_submission_status(u8g2_t *, solar_os_display_submission_status_t *);
 void solar_os_display_present_overlay(u8g2_t *u8g2,
                                       uint16_t x,
                                       uint16_t y,

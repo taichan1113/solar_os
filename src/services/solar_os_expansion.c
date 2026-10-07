@@ -45,6 +45,7 @@ typedef enum {
     EXPANSION_SLOT_ATTACHING,
     EXPANSION_SLOT_ACTIVE,
     EXPANSION_SLOT_DETACHING,
+    EXPANSION_SLOT_UPDATING,
 } expansion_slot_state_t;
 
 typedef struct expansion_device_node {
@@ -56,6 +57,8 @@ typedef struct expansion_device_node {
 static expansion_device_node_t *devices;
 static SemaphoreHandle_t devices_mutex;
 static StaticSemaphore_t devices_mutex_storage;
+static bool devices_power_transition;
+static bool devices_suspended;
 
 #define EXPANSION_DEFAULT_RETRY_INITIAL_MS 500U
 #define EXPANSION_DEFAULT_RETRY_MAX_MS 4000U
@@ -1340,7 +1343,7 @@ static esp_err_t expansion_attach(const char *driver,
         solar_os_memory_free(node);
         return ESP_ERR_NO_MEM;
     }
-    if (find_device_locked(name) != NULL) {
+    if (find_device_locked(name) != NULL || devices_power_transition || devices_suspended) {
         devices_lock_give();
         solar_os_memory_free(node);
         return ESP_ERR_INVALID_STATE;
@@ -1422,7 +1425,7 @@ static esp_err_t expansion_attach(const char *driver,
         return ESP_ERR_INVALID_STATE;
     }
     node->device.active = true;
-    node->device.ready = true;
+    node->device.ready = driver_def->is_ready ? driver_def->is_ready(name) : true;
     node->state = EXPANSION_SLOT_ACTIVE;
     devices_lock_give();
     return ESP_OK;
@@ -1497,6 +1500,73 @@ esp_err_t solar_os_expansion_detach(const char *name)
         solar_os_memory_free(node);
     }
     return removed ? ESP_OK : ESP_ERR_INVALID_STATE;
+}
+
+esp_err_t solar_os_expansion_device_set_enabled(const char *name, bool enabled)
+{
+    if (!device_name_valid(name)) return ESP_ERR_INVALID_ARG;
+    if (!devices_lock_take()) return ESP_ERR_NO_MEM;
+    expansion_device_node_t *node = find_device_locked(name);
+    if (!node || node->state != EXPANSION_SLOT_ACTIVE || devices_power_transition) {
+        devices_lock_give();
+        return node ? ESP_ERR_INVALID_STATE : ESP_ERR_NOT_FOUND;
+    }
+    const solar_os_expansion_driver_t *driver = find_driver(node->device.driver);
+    if (!driver || !driver->set_enabled || !driver->is_ready) {
+        devices_lock_give();
+        return ESP_ERR_NOT_SUPPORTED;
+    }
+    node->state = EXPANSION_SLOT_UPDATING;
+    devices_lock_give();
+    const esp_err_t err = driver->set_enabled(name, enabled);
+    const bool ready = driver->is_ready(name);
+    if (!devices_lock_take()) return ESP_ERR_NO_MEM;
+    node->device.ready = ready;
+    node->state = EXPANSION_SLOT_ACTIVE;
+    devices_lock_give();
+    return err;
+}
+
+esp_err_t solar_os_expansion_set_suspended(bool suspended)
+{
+    if (!devices_lock_take()) return ESP_ERR_NO_MEM;
+    if (devices_power_transition) { devices_lock_give(); return ESP_ERR_INVALID_STATE; }
+    if (suspended == devices_suspended) { devices_lock_give(); return ESP_OK; }
+    for (expansion_device_node_t *n = devices; n; n = n->next) {
+        if (n->state != EXPANSION_SLOT_ACTIVE) {
+            devices_lock_give(); return ESP_ERR_INVALID_STATE;
+        }
+    }
+    devices_power_transition = true;
+    /* Reserve all nodes; attach/detach/enable cannot invalidate callbacks. */
+    for (expansion_device_node_t *n = devices; n; n = n->next) n->state = EXPANSION_SLOT_UPDATING;
+    devices_lock_give();
+    esp_err_t err = ESP_OK;
+    expansion_device_node_t *failed = NULL;
+    for (expansion_device_node_t *n = devices; n; n = n->next) {
+        const solar_os_expansion_driver_t *d = find_driver(n->device.driver);
+        if (d && d->set_suspended) err = d->set_suspended(n->device.name, suspended);
+        if (err != ESP_OK) { failed = n; break; }
+    }
+    if (failed) {
+        /* Restore prior policy for all attempted peripherals, including a
+         * partially failed callback. Effective readiness is queried below. */
+        for (expansion_device_node_t *n = devices; n; n = n->next) {
+            const solar_os_expansion_driver_t *d = find_driver(n->device.driver);
+            if (d && d->set_suspended) (void)d->set_suspended(n->device.name, devices_suspended);
+            if (n == failed) break;
+        }
+    }
+    if (!devices_lock_take()) return ESP_ERR_NO_MEM;
+    for (expansion_device_node_t *n = devices; n; n = n->next) {
+        const solar_os_expansion_driver_t *d = find_driver(n->device.driver);
+        if (d && d->is_ready) n->device.ready = d->is_ready(n->device.name);
+        n->state = EXPANSION_SLOT_ACTIVE;
+    }
+    if (err == ESP_OK) devices_suspended = suspended;
+    devices_power_transition = false;
+    devices_lock_give();
+    return err;
 }
 
 esp_err_t solar_os_expansion_device_set_ready(const char *name, bool ready)

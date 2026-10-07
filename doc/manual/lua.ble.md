@@ -19,6 +19,10 @@ agent_reference_sections = true
   peripheral functions under `solaros.ble.server`, and typed peripheral HID
   under `solaros.ble.hid` when BLE support is compiled
 
+`solaros.ble.layout([name])` gets or sets the shared keyboard layout: `us`,
+`de`, or `jp` (Windows Japanese 106/109 alphanumeric symbols; no IME).
+The selection is stored in NVS and is also available through `setterm keyboard`.
+
 `solaros.ble.pair()` forgets the remembered keyboard and its bond before it
 starts pairing a replacement. Pairing replaces a conflicting stale keyboard
 bond from an older SolarOS release.

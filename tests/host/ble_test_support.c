@@ -5,6 +5,14 @@
 #include <stdlib.h>
 #include <freertos/semphr.h>
 #include "esp_err.h"
+#include "solar_os_log.h"
+
+esp_err_t solar_os_log_write(solar_os_log_level_t level, const char *tag,
+                              const char *fmt, ...)
+{
+    (void)level; (void)tag; (void)fmt;
+    return ESP_OK;
+}
 
 void vSemaphoreDelete(SemaphoreHandle_t sem)
 {

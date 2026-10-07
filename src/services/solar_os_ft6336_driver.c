@@ -4,9 +4,12 @@ static const int addresses[] = {0x38};
 static const solar_os_expansion_binding_spec_t binding_specs[] = {
     {.key = "i2c", .value_hint = "bus", .kind = SOLAR_OS_EXPANSION_BINDING_I2C_BUS, .required = true},
     {.key = "addr", .value_hint = "0x38", .kind = SOLAR_OS_EXPANSION_BINDING_I2C_ADDRESS, .required = true, .allowed_values = addresses, .allowed_value_count = sizeof(addresses) / sizeof(addresses[0])},
-    {.key = "reset", .value_hint = "gpio", .kind = SOLAR_OS_EXPANSION_BINDING_GPIO, .role = "reset", .required = true},
+    {.key = "reset", .value_hint = "gpio|controller:line", .kind = SOLAR_OS_EXPANSION_BINDING_GPIO_LINE, .role = "reset", .required = true},
+    {.key = "power", .value_hint = "gpio|controller:line", .kind = SOLAR_OS_EXPANSION_BINDING_GPIO_LINE, .role = "power"},
     {.key = "irq", .value_hint = "gpio", .kind = SOLAR_OS_EXPANSION_BINDING_GPIO, .role = "irq", .required = true},
     {.key = "rotation", .value_hint = "0..3", .kind = SOLAR_OS_EXPANSION_BINDING_PARAMETER, .role = "rotation", .required = true, .has_value_range = true, .min_value = 0, .max_value = 3},
+    {.key = "enabled", .value_hint = "0|1", .kind = SOLAR_OS_EXPANSION_BINDING_PARAMETER, .role = "enabled", .has_value_range = true, .min_value = 0, .max_value = 1},
+    {.key = "managed_power", .value_hint = "0|1", .kind = SOLAR_OS_EXPANSION_BINDING_PARAMETER, .role = "managed_power", .has_value_range = true, .min_value = 0, .max_value = 1},
 };
 
 const solar_os_expansion_driver_t solar_os_ft6336_expansion_driver = {
@@ -19,4 +22,7 @@ const solar_os_expansion_driver_t solar_os_ft6336_expansion_driver = {
     .binding_spec_count = sizeof(binding_specs) / sizeof(binding_specs[0]),
     .attach = solar_os_ft6336_attach,
     .detach = solar_os_ft6336_detach,
+    .set_enabled = solar_os_ft6336_set_enabled,
+    .set_suspended = solar_os_ft6336_set_suspended,
+    .is_ready = solar_os_ft6336_is_ready,
 };

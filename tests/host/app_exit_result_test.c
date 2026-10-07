@@ -4,6 +4,32 @@
 
 #include "solar_os.h"
 #include "solar_os_shell_io.h"
+#include "freertos/task.h"
+#include "solar_os_log.h"
+
+esp_err_t solar_os_log_write(solar_os_log_level_t level, const char *tag,
+                            const char *fmt, ...)
+{
+    (void)level; (void)tag; (void)fmt;
+    return ESP_OK;
+}
+
+static bool on_application_task;
+static unsigned queued_reboots, direct_reboots;
+bool solar_os_sessions_is_application_task(void) { return on_application_task; }
+esp_err_t solar_os_sessions_reboot(solar_os_context_t *ctx, const char *status)
+{
+    (void)ctx;
+    assert(strcmp(status, "test reboot") == 0);
+    queued_reboots++;
+    return ESP_FAIL; /* Admission failure must never bypass the main-task join. */
+}
+void esp_restart(void) { direct_reboots++; }
+void vTaskDelay(TickType_t ticks) { (void)ticks; }
+void solar_os_splash_draw_reboot(solar_os_gfx_t *gfx, const char *status)
+{
+    (void)gfx; (void)status;
+}
 
 typedef struct {
     char text[32];
@@ -110,5 +136,10 @@ int main(void)
     assert(exit_code == 0);
 
     puts("app exit result tests passed");
+    solar_os_context_reboot(NULL, "test reboot");
+    assert(queued_reboots == 1 && direct_reboots == 0);
+    on_application_task = true;
+    solar_os_context_reboot(NULL, "test reboot");
+    assert(queued_reboots == 1 && direct_reboots == 1);
     return 0;
 }

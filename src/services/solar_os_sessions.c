@@ -105,6 +105,7 @@ typedef enum {
     SOLAR_OS_SESSION_OPERATION_CREATE_DISPLAY_APP = 0,
     SOLAR_OS_SESSION_OPERATION_CLOSE_SESSION,
     SOLAR_OS_SESSION_OPERATION_SEND_COMMAND,
+    SOLAR_OS_SESSION_OPERATION_REBOOT,
 } solar_os_session_operation_type_t;
 
 typedef struct {
@@ -117,6 +118,8 @@ typedef struct {
     uint8_t command_session_id;
     const char *command;
     solar_os_shell_io_t *caller_io;
+    solar_os_context_t *reboot_ctx;
+    const char *reboot_status;
     SemaphoreHandle_t complete;
     esp_err_t result;
     uint8_t session_id;
@@ -3043,6 +3046,39 @@ static esp_err_t session_send_command_internal(uint8_t session_id,
     return result;
 }
 
+bool solar_os_sessions_is_application_task(void)
+{
+    /* Before session initialization no application workers can exist. */
+    return session_scheduler_task == NULL ||
+           xTaskGetCurrentTaskHandle() == session_scheduler_task;
+}
+
+esp_err_t solar_os_sessions_reboot(solar_os_context_t *ctx, const char *status)
+{
+    if (solar_os_sessions_is_application_task()) {
+        solar_os_context_reboot(ctx, status);
+        return ESP_FAIL;
+    }
+    if (session_operation_queue == NULL) return ESP_ERR_INVALID_STATE;
+    /* The caller stays alive and blocked, owning ctx, status and this request. */
+    solar_os_session_operation_request_t request = {
+        .type = SOLAR_OS_SESSION_OPERATION_REBOOT,
+        .reboot_ctx = ctx,
+        .reboot_status = status,
+        .complete = xSemaphoreCreateBinary(),
+    };
+    if (request.complete == NULL) return ESP_ERR_NO_MEM;
+    solar_os_session_operation_request_t *queued = &request;
+    if (xQueueSend(session_operation_queue, &queued, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        vSemaphoreDelete(request.complete);
+        return ESP_ERR_TIMEOUT;
+    }
+    (void)xSemaphoreTake(request.complete, portMAX_DELAY);
+    const esp_err_t result = request.result;
+    vSemaphoreDelete(request.complete);
+    return result;
+}
+
 static void session_process_operation_requests(void)
 {
     if (session_operation_queue == NULL) {
@@ -3074,6 +3110,10 @@ static void session_process_operation_requests(void)
                 session_send_command_internal(request->command_session_id,
                                               request->command,
                                               request->caller_io);
+            break;
+        case SOLAR_OS_SESSION_OPERATION_REBOOT:
+            solar_os_context_reboot(request->reboot_ctx, request->reboot_status);
+            request->result = ESP_FAIL; /* esp_restart normally never returns. */
             break;
         default:
             request->result = ESP_ERR_INVALID_ARG;

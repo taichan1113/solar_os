@@ -10,6 +10,7 @@
 
 #include "solar_os_app_registry.h"
 #include "solar_os_gfx.h"
+#include "solar_os_ui_font.h"
 #include "solar_os_json.h"
 #include "solar_os_keys.h"
 #include "solar_os_launcher_layout.h"
@@ -215,7 +216,8 @@ static void launcher_render(solar_os_context_t *ctx)
 
         const bool show_title = cell_width >= 24 && cell_height >= 24;
         const bool large_title = selected && cell_height >= 56;
-        const int title_height = show_title ? (large_title ? 14 : 12) : 0;
+        const solar_os_ui_font_profile_t *ui = solar_os_ui_font_profile();
+        const int title_height = show_title ? (large_title ? ui->heading_px : ui->small_px) : 0;
         const int title_gap = show_title ? 3 : 0;
         int available = cell_width - 10;
         if (cell_height - title_height - title_gap - 6 < available) {
@@ -235,13 +237,13 @@ static void launcher_render(solar_os_context_t *ctx)
 
         if (show_title) {
             solar_os_gfx_set_font(gfx, large_title ?
-                SOLAR_OS_GFX_FONT_BOLD_14 : SOLAR_OS_GFX_FONT_SMALL);
+                ui->heading : ui->small);
             char title[LAUNCHER_NAME_MAX];
             launcher_fit_title(gfx, launcher.config.items[i].name,
                                cell_width - 6, title, sizeof(title));
             const int title_width = (int)solar_os_gfx_text_width(gfx, title);
             const int title_x = x0 + (cell_width - title_width) / 2;
-            const int title_descent = large_title ? 3 : 2;
+            const int title_descent = (large_title ? 3 : 2) + (title_height > 14 ? 1 : 0);
             const int title_y = icon_y + icon_pixels + title_gap +
                 title_height - title_descent;
             solar_os_gfx_text(gfx, title_x, title_y, title);

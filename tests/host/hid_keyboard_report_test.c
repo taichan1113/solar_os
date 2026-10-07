@@ -107,6 +107,20 @@ int main(void)
     assert(memcmp(&state, &previous, sizeof(state)) == 0);
 
     solar_os_hid_keyboard_report_reset(&tracker);
+    /* Ro/Yen usages exceed the ASCII section and must survive both formats. */
+    const uint8_t boot_jis[8] = {0x02, 0, 0x87, 0x89};
+    assert(solar_os_hid_keyboard_report_update(&tracker, 0, 1,
+                                               boot_jis, sizeof(boot_jis), &state));
+    assert(state.modifiers == 0x02);
+    assert(state_has_key(&state, 0x87));
+    assert(state_has_key(&state, 0x89));
+    solar_os_hid_keyboard_report_reset(&tracker);
+    const uint8_t report_jis[7] = {0, 0x89, 0x87};
+    assert(solar_os_hid_keyboard_report_update(&tracker, 0, 1,
+                                               report_jis, sizeof(report_jis), &state));
+    assert(state_has_key(&state, 0x87));
+    assert(state_has_key(&state, 0x89));
+    assert(solar_os_hid_keyboard_report_has_new_press(0, no_keys, &state));
     puts("HID keyboard report tests: ok");
     return 0;
 }

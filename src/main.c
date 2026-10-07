@@ -30,6 +30,9 @@
 #include "solar_os_buttons.h"
 #include "solar_os_cdc.h"
 #include "solar_os_config.h"
+#if SOLAR_OS_PACKAGE_APP_WRITER
+#include "apps/solar_os_writer_checkpoint.h"
+#endif
 #include "solar_os_display.h"
 #if SOLAR_OS_PACKAGE_SERVICE_EXPANSION
 #include "solar_os_expansion.h"
@@ -498,6 +501,16 @@ static void resume_display_after_sleep(uint32_t now_ms)
 #endif
 }
 
+static esp_err_t set_peripherals_suspended(bool suspended)
+{
+#if SOLAR_OS_PACKAGE_SERVICE_EXPANSION
+    return solar_os_expansion_set_suspended(suspended);
+#else
+    (void)suspended;
+    return ESP_OK;
+#endif
+}
+
 static void enter_suspend(const char *reason)
 {
     if (!board_has(SOLAR_OS_BOARD_CAP_KEY)) {
@@ -522,10 +535,19 @@ static void enter_suspend(const char *reason)
     }
 #endif
 
-    esp_err_t err = solar_os_power_begin_suspend();
+#if SOLAR_OS_PACKAGE_APP_WRITER
+    (void)solar_os_writer_checkpoint_drain_all(false);
+#endif
+    esp_err_t err = set_peripherals_suspended(true);
+    if (err != ESP_OK) {
+        SOLAR_OS_LOGW(TAG, "%s: peripheral suspend failed: %s", reason, esp_err_to_name(err));
+        return;
+    }
+    err = solar_os_power_begin_suspend();
     if (err != ESP_OK) {
         SOLAR_OS_LOGW(TAG, "%s: suspend power policy failed: %s",
                       reason, esp_err_to_name(err));
+        (void)set_peripherals_suspended(false);
         return;
     }
 
@@ -534,6 +556,7 @@ static void enter_suspend(const char *reason)
         SOLAR_OS_LOGW(TAG, "%s: display suspend failed: %s",
                       reason, esp_err_to_name(err));
         (void)solar_os_power_end_suspend();
+        (void)set_peripherals_suspended(false);
         return;
     }
 
@@ -596,6 +619,9 @@ static void exit_suspend(const char *reason)
         SOLAR_OS_LOGW(TAG, "%s: display resume failed: %s",
                       reason, esp_err_to_name(display_err));
     }
+
+    const esp_err_t peripheral_err = set_peripherals_suspended(false);
+    if (peripheral_err != ESP_OK) SOLAR_OS_LOGW(TAG, "peripheral resume failed: %s", esp_err_to_name(peripheral_err));
 
     const uint32_t now_ms = millis_u32();
     solar_os_power_note_activity(now_ms);
@@ -734,6 +760,11 @@ static void enter_sleep(const char *reason, bool deep_sleep)
                   reason,
                   deep_sleep ? "deep sleep" : "light sleep");
 
+    esp_err_t peripheral_err = set_peripherals_suspended(true);
+    if (peripheral_err != ESP_OK) {
+        SOLAR_OS_LOGW(TAG, "peripheral sleep prepare failed: %s", esp_err_to_name(peripheral_err));
+        return;
+    }
     esp_err_t err = solar_os_power_begin_explicit_sleep();
     if (err != ESP_OK) {
         SOLAR_OS_LOGW(TAG,
@@ -749,6 +780,7 @@ static void enter_sleep(const char *reason, bool deep_sleep)
         SOLAR_OS_LOGW(TAG, "KEY RTC wake GPIO setup failed: %s", esp_err_to_name(err));
         key_restore_gpio_after_rtc();
         (void)solar_os_power_end_explicit_sleep();
+        (void)set_peripherals_suspended(false);
         return;
     }
 
@@ -756,6 +788,7 @@ static void enter_sleep(const char *reason, bool deep_sleep)
         SOLAR_OS_LOGW(TAG, "%s: sleep cancelled, RTC key release was not stable", reason);
         key_restore_gpio_after_rtc();
         (void)solar_os_power_end_explicit_sleep();
+        (void)set_peripherals_suspended(false);
         key_pressed = key_button_is_pressed();
         key_long_press_fired = false;
         key_pressed_ms = millis_u32();
@@ -768,6 +801,7 @@ static void enter_sleep(const char *reason, bool deep_sleep)
         SOLAR_OS_LOGW(TAG, "KEY sleep RTC power setup failed: %s", esp_err_to_name(err));
         key_restore_gpio_after_rtc();
         (void)solar_os_power_end_explicit_sleep();
+        (void)set_peripherals_suspended(false);
         return;
     }
 
@@ -812,6 +846,7 @@ static void enter_sleep(const char *reason, bool deep_sleep)
         (void)esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_AUTO);
         key_restore_gpio_after_rtc();
         (void)solar_os_power_end_explicit_sleep();
+        (void)set_peripherals_suspended(false);
         return;
     }
 
@@ -849,6 +884,7 @@ static void enter_sleep(const char *reason, bool deep_sleep)
             (void)esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_AUTO);
             key_restore_gpio_after_rtc();
             (void)solar_os_power_end_explicit_sleep();
+            (void)set_peripherals_suspended(false);
             return;
         }
     }
@@ -883,6 +919,9 @@ static void enter_sleep(const char *reason, bool deep_sleep)
     }
 #endif
 
+#if SOLAR_OS_PACKAGE_APP_WRITER
+    (void)solar_os_writer_checkpoint_drain_all(deep_sleep);
+#endif
     solar_os_power_note_sleep_enter(millis_u32());
     if (deep_sleep) {
         const esp_err_t display_err = solar_os_display_suspend_primary();
@@ -964,6 +1003,7 @@ static void enter_sleep(const char *reason, bool deep_sleep)
         (void)solar_os_power_hold_automatic_light_sleep(RADIO_RESUME_PM_HOLDOFF_MS);
     }
     (void)solar_os_power_end_explicit_sleep();
+    (void)set_peripherals_suspended(false);
 
     update_status();
     resume_display_after_sleep(now_ms);
@@ -1627,7 +1667,7 @@ static void update_status(void)
     solar_os_battery_status_t battery;
     if (board_has(SOLAR_OS_BOARD_CAP_BATTERY) &&
         solar_os_battery_get_status(&battery) == ESP_OK) {
-        status.battery_valid = true;
+        status.battery_valid = battery.percent_valid;
         status.battery_percent = battery.percent;
         status.battery_external_power = battery.external_power;
     }

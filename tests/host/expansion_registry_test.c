@@ -347,6 +347,32 @@ static void assert_device(size_t index,
     assert(device.ready);
 }
 
+static bool lifecycle_requested, lifecycle_suspended, lifecycle_ready, lifecycle_fail;
+static esp_err_t lifecycle_attach(const char *name, const solar_os_expansion_binding_t *b, size_t n)
+{ (void)name; (void)b; (void)n; lifecycle_requested=lifecycle_ready=lifecycle_suspended=false; return ESP_OK; }
+static esp_err_t lifecycle_detach(const char *name) { (void)name; return ESP_OK; }
+static bool lifecycle_is_ready(const char *name) { assert(!strcmp(name,"peripheral")); return lifecycle_ready; }
+static esp_err_t lifecycle_enable(const char *name, bool on)
+{
+    assert(solar_os_expansion_detach(name)==ESP_ERR_INVALID_STATE);
+    lifecycle_requested=on; lifecycle_ready=on && !lifecycle_suspended;
+    return ESP_OK;
+}
+static esp_err_t lifecycle_suspend(const char *name, bool suspended)
+{
+    assert(solar_os_expansion_device_set_enabled(name,true)==ESP_ERR_INVALID_STATE);
+    lifecycle_suspended=suspended;
+    lifecycle_ready=lifecycle_requested && !suspended;
+    return suspended && lifecycle_fail ? ESP_ERR_TIMEOUT : ESP_OK;
+}
+static const solar_os_expansion_driver_t lifecycle_driver = {
+    .name="lifecycle", .summary="managed peripheral fixture",
+    .category=SOLAR_OS_EXPANSION_CATEGORY_UTILITY,
+    .attach=lifecycle_attach, .detach=lifecycle_detach,
+    .set_enabled=lifecycle_enable, .is_ready=lifecycle_is_ready,
+    .set_suspended=lifecycle_suspend,
+};
+
 int main(void)
 {
     assert(solar_os_expansion_binding_pin_supported(
@@ -417,7 +443,7 @@ int main(void)
         {.kind = SOLAR_OS_EXPANSION_BINDING_SPI_BUS, .target = "spi0"},
         {.kind = SOLAR_OS_EXPANSION_BINDING_SPI_CS, .target = "spi0", .value = 10},
         {.kind = SOLAR_OS_EXPANSION_BINDING_GPIO, .role = "dc", .value = 9},
-        {.kind = SOLAR_OS_EXPANSION_BINDING_GPIO, .role = "reset", .value = 46},
+        {.kind = SOLAR_OS_EXPANSION_BINDING_GPIO_LINE, .role = "reset", .value = 46},
         {.kind = SOLAR_OS_EXPANSION_BINDING_GPIO, .role = "busy", .value = 3},
         {.kind = SOLAR_OS_EXPANSION_BINDING_I2C_BUS, .role = "power", .target = "i2c0"},
         {.kind = SOLAR_OS_EXPANSION_BINDING_PARAMETER, .role = "power_addr", .value = 0x34},
@@ -520,6 +546,25 @@ int main(void)
     assert(live_allocations == 11);
     assert(allocation_requests >= 16);
 
+    assert(solar_os_expansion_register_driver(&lifecycle_driver)==ESP_OK);
+    assert(solar_os_expansion_attach("lifecycle","peripheral",NULL,0)==ESP_OK);
+    solar_os_expansion_device_t peripheral;
+    assert(solar_os_expansion_get_device(11,&peripheral) && !peripheral.ready);
+    assert(solar_os_expansion_device_set_enabled("peripheral",true)==ESP_OK);
+    assert(lifecycle_ready && lifecycle_requested);
+    assert(solar_os_expansion_set_suspended(true)==ESP_OK && !lifecycle_ready);
+    assert(solar_os_expansion_set_suspended(false)==ESP_OK && lifecycle_ready);
+    assert(solar_os_expansion_device_set_enabled("peripheral",false)==ESP_OK);
+    assert(solar_os_expansion_set_suspended(true)==ESP_OK);
+    assert(solar_os_expansion_set_suspended(false)==ESP_OK && !lifecycle_ready);
+    assert(solar_os_expansion_device_set_enabled("peripheral",true)==ESP_OK);
+    lifecycle_fail=true;
+    assert(solar_os_expansion_set_suspended(true)==ESP_ERR_TIMEOUT);
+    assert(lifecycle_ready && !lifecycle_suspended);
+    lifecycle_fail=false;
+    assert(solar_os_expansion_detach("peripheral")==ESP_OK);
+    assert(solar_os_expansion_unregister_driver(&lifecycle_driver)==ESP_OK);
+    assert(solar_os_expansion_device_set_enabled("runtime2",false)==ESP_ERR_NOT_SUPPORTED);
     puts("expansion registry tests passed");
     return 0;
 }

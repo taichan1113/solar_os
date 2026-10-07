@@ -677,6 +677,11 @@ label = "PCF85063 real-time clock"
 category = "Expansion hardware"
 members = ["driver_pcf85063"]
 
+[groups.rx8130ce]
+label = "RX8130CE RTC"
+category = "Expansion hardware"
+members = ["driver_rx8130ce"]
+
 [groups.pcf8563]
 label = "PCF8563 / BM8563 real-time clock"
 category = "Expansion hardware"
@@ -1539,6 +1544,7 @@ sources = [
   "board/solar_os_board_display_expansion.c",
   "drivers/epd_ssd1677.c",
   "services/solar_os_ssd1677.c",
+  "services/solar_os_display_async.c",
   "services/solar_os_ssd1677_driver.c",
 ]
 requires = ["esp_driver_gpio", "esp_driver_spi", "esp_timer", "u8g2"]
@@ -2095,6 +2101,14 @@ sources = [
 ]
 capabilities = ["i2c"]
 
+[packages.driver_rx8130ce]
+label = "driver.rx8130ce"
+targets = ["esp32", "esp32s3"]
+expansion_drivers = ["solar_os_rx8130ce_expansion_driver"]
+depends = ["service_expansion", "service_i2c", "service_rtc"]
+sources = ["drivers/rtc_rx8130ce.c", "services/solar_os_rx8130ce.c"]
+capabilities = ["i2c"]
+
 [packages.driver_pcf8563]
 label = "driver.pcf8563"
 targets = ["esp32", "esp32s3"]
@@ -2488,6 +2502,7 @@ sources = [
   "apps/solar_os_writer.c",
   "apps/solar_os_writer_buffer.c",
   "apps/solar_os_writer_files.c",
+  "apps/solar_os_writer_checkpoint.c",
 ]
 capabilities = ["psram", "gfx"]
 
@@ -2833,3 +2848,17 @@ sources = [
 ]
 requires = ["esp_driver_gpio", "esp_driver_spi", "esp_driver_ledc", "esp_timer", "nvs_flash", "u8g2"]
 capabilities = ["gfx", "expansion_gpio"]
+
+[packages.m5papermono_power]
+label = "expansion.m5papermono-power"
+targets = ["esp32s3"]
+depends = ["service_expansion", "service_i2c", "service_battery", "service_gpio"]
+expansion_drivers = ["solar_os_m5papermono_power_expansion_driver"]
+sources = ["services/solar_os_m5papermono_power.c"]
+requires = ["esp_driver_i2c", "esp_timer"]
+capabilities = ["i2c"]
+
+[groups.m5papermono_power]
+label = "PaperMono power and GPIO"
+category = "Expansion hardware"
+members = ["m5papermono_power"]

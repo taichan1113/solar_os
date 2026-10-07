@@ -953,9 +953,11 @@ static void ble_tui_change_setting(int direction, bool activate)
             !solar_os_ble_keyboard_keepalive_enabled());
         break;
     case BLE_TUI_SETTING_LAYOUT: {
+        const int step = direction < 0 ? -1 : 1;
+        const int count = SOLAR_OS_BLE_KEYBOARD_LAYOUT_JP + 1;
         const solar_os_ble_keyboard_layout_t layout =
-            solar_os_ble_keyboard_layout() == SOLAR_OS_BLE_KEYBOARD_LAYOUT_US ?
-                SOLAR_OS_BLE_KEYBOARD_LAYOUT_DE : SOLAR_OS_BLE_KEYBOARD_LAYOUT_US;
+            (solar_os_ble_keyboard_layout_t)
+                (((int)solar_os_ble_keyboard_layout() + step + count) % count);
         err = solar_os_ble_keyboard_set_layout(layout);
         break;
     }

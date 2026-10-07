@@ -11,6 +11,7 @@ typedef int gpio_pulldown_t;
 typedef int gpio_int_type_t;
 
 #define GPIO_MODE_INPUT 1
+#define GPIO_MODE_DISABLE 0
 #define GPIO_MODE_OUTPUT 2
 #define GPIO_PULLUP_DISABLE 0
 #define GPIO_PULLUP_ENABLE 1

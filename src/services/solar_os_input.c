@@ -101,6 +101,11 @@ static solar_os_input_key_event_t input_queue[INPUT_QUEUE_MAX];
 static size_t input_queue_head;
 static size_t input_queue_count;
 static solar_os_input_pointer_event_t *input_pointer_queue;
+/* A saturated queue must not lose the release of a disabled source or evict
+ * another source's button transition. These rare control events have priority. */
+static EXT_RAM_BSS_ATTR solar_os_input_pointer_event_t
+    input_pending_releases[INPUT_SOURCE_MAX];
+static bool input_pending_release_valid[INPUT_SOURCE_MAX];
 static size_t input_pointer_queue_head;
 static size_t input_pointer_queue_count;
 static solar_os_input_axis_event_t *input_axis_queue;
@@ -123,6 +128,7 @@ static portMUX_TYPE input_lock = portMUX_INITIALIZER_UNLOCKED;
 static const char *const input_keyboard_layout_names[] = {
     [SOLAR_OS_INPUT_KEYBOARD_LAYOUT_US] = "us",
     [SOLAR_OS_INPUT_KEYBOARD_LAYOUT_DE] = "de",
+    [SOLAR_OS_INPUT_KEYBOARD_LAYOUT_JP] = "jp",
 };
 
 static const char *const input_source_class_names[] = {
@@ -869,6 +875,39 @@ esp_err_t solar_os_input_keyboard_source_set_ready(solar_os_input_source_t sourc
     return result;
 }
 
+esp_err_t solar_os_input_pointer_source_quiesce(solar_os_input_source_t source)
+{
+    portENTER_CRITICAL(&input_lock);
+    if (!input_source_valid_locked(source) || input_pointer_queue == NULL ||
+        !(input_sources[source - 1U].capabilities & INPUT_POINTER_CAPABILITIES)) {
+        portEXIT_CRITICAL(&input_lock);
+        return ESP_ERR_INVALID_STATE;
+    }
+    input_sources[source - 1U].ready = false;
+    const size_t count = input_pointer_queue_count;
+    for (size_t i = 0; i < count; i++) {
+        solar_os_input_pointer_event_t event = input_pointer_queue[input_pointer_queue_head];
+        input_pointer_queue_head = (input_pointer_queue_head + 1U) % INPUT_POINTER_QUEUE_MAX;
+        input_pointer_queue_count--;
+        if (event.source != source) (void)input_pointer_queue_push_locked(&event);
+    }
+    input_source_diagnostics_state_t *diag = &input_diagnostics[source - 1U];
+    if (diag->has_pointer && diag->last_pointer.event.buttons != 0) {
+        solar_os_input_pointer_event_t release = diag->last_pointer.event;
+        release.buttons = 0;
+        release.action = SOLAR_OS_INPUT_POINTER_RELEASE;
+        release.delta_x = release.delta_y = 0;
+        if (!input_pending_release_valid[source - 1U]) {
+            input_pending_releases[source - 1U] = release;
+            input_pending_release_valid[source - 1U] = true;
+        }
+        diag->last_pointer.event = release;
+        input_increment_counter(&diag->pointer_events);
+    }
+    portEXIT_CRITICAL(&input_lock);
+    return ESP_OK;
+}
+
 size_t solar_os_input_keyboard_count(void)
 {
     size_t count = 0;
@@ -1122,6 +1161,8 @@ void solar_os_input_source_close(solar_os_input_source_t source)
         portEXIT_CRITICAL(&input_lock);
         return;
     }
+
+    input_pending_release_valid[source - 1U] = false;
 
     solar_os_input_key_event_t retained[INPUT_QUEUE_MAX];
     size_t kept = 0;
@@ -1414,7 +1455,7 @@ esp_err_t solar_os_input_write_pointer(solar_os_input_source_t source,
         (event->mode == SOLAR_OS_INPUT_POINTER_RELATIVE &&
          (input_sources[source - 1U].capabilities &
           SOLAR_OS_INPUT_CAP_POINTER_RELATIVE) == 0) ||
-        input_pointer_queue == NULL) {
+        input_pointer_queue == NULL || !input_sources[source - 1U].ready) {
         result = ESP_ERR_INVALID_STATE;
     } else {
         input_source_diagnostics_state_t *diagnostics =
@@ -1790,6 +1831,12 @@ size_t solar_os_input_read_pointer_events(solar_os_input_pointer_event_t *events
 
     portENTER_CRITICAL(&input_lock);
     size_t count = 0;
+    for (size_t i = 0; i < INPUT_SOURCE_MAX && count < event_count; i++) {
+        if (input_pending_release_valid[i]) {
+            events[count++] = input_pending_releases[i];
+            input_pending_release_valid[i] = false;
+        }
+    }
     while (input_pointer_queue != NULL && count < event_count &&
            input_pointer_queue_count > 0) {
         events[count++] = input_pointer_queue[input_pointer_queue_head];
@@ -2130,6 +2177,29 @@ static uint8_t input_usage_to_us(uint16_t usage, bool shift, bool caps_lock)
     }
 }
 
+/* Windows Japanese 106/109 alphanumeric layout (no IME conversion). */
+static uint8_t input_usage_to_jp(uint16_t usage, bool shift, bool caps_lock)
+{
+    if (usage >= 0x1eU && usage <= 0x27U) {
+        static const uint8_t shifted[] = {'!', '"', '#', '$', '%', '&', '\'', '(', ')', 0};
+        return shift ? shifted[usage - 0x1eU] : input_unshifted_digit(usage);
+    }
+    switch (usage) {
+    case 0x2d: return shift ? '=' : '-';
+    case 0x2e: return shift ? '~' : '^';
+    case 0x2f: return shift ? '`' : '@';
+    case 0x30: return shift ? '{' : '[';
+    case 0x31: /* Some programmable keyboards use US backslash for this position. */
+    case 0x32: return shift ? '}' : ']';
+    case 0x33: return shift ? '+' : ';';
+    case 0x34: return shift ? '*' : ':';
+    case 0x35: return 0; /* Japanese half/full-width key is not a printable grave. */
+    case 0x87: return shift ? '_' : '\\'; /* International1: Ro. */
+    case 0x89: return shift ? '|' : '\\'; /* International3: Yen, ASCII U+005C. */
+    default: return input_usage_to_us(usage, shift, caps_lock);
+    }
+}
+
 static uint8_t input_usage_to_de(uint16_t usage,
                                  uint8_t modifiers,
                                  bool caps_lock)
@@ -2239,6 +2309,19 @@ static uint8_t input_usage_to_control(uint16_t usage,
         }
         return (uint8_t)(base - 'a' + 1U);
     }
+    if (layout == SOLAR_OS_INPUT_KEYBOARD_LAYOUT_JP) {
+        switch (usage) {
+        case 0x23:
+        case 0x2e: return 0x1e;
+        case 0x2d: return 0x1f;
+        case 0x30: return SOLAR_OS_KEY_ESCAPE;
+        case 0x31:
+        case 0x32: return 0x1d;
+        case 0x87:
+        case 0x89: return 0x1c;
+        default: return 0;
+        }
+    }
     switch (usage) {
     case 0x23: return 0x1e;
     case 0x2d: return 0x1f;
@@ -2260,11 +2343,14 @@ uint8_t solar_os_input_translate_hid_usage(uint16_t usage,
         return SOLAR_OS_KEY_APP_EXIT;
     }
     if (ctrl && !alt) {
-        if (layout == SOLAR_OS_INPUT_KEYBOARD_LAYOUT_US && usage == 0x30U) {
+        if ((layout == SOLAR_OS_INPUT_KEYBOARD_LAYOUT_US && usage == 0x30U) ||
+            (layout == SOLAR_OS_INPUT_KEYBOARD_LAYOUT_JP &&
+             (usage == 0x31U || usage == 0x32U))) {
             return SOLAR_OS_KEY_APP_EXIT;
         }
-        if (usage == 0x2eU ||
-            (layout == SOLAR_OS_INPUT_KEYBOARD_LAYOUT_DE && usage == 0x30U)) {
+        if ((layout != SOLAR_OS_INPUT_KEYBOARD_LAYOUT_JP && usage == 0x2eU) ||
+            (layout == SOLAR_OS_INPUT_KEYBOARD_LAYOUT_DE && usage == 0x30U) ||
+            (layout == SOLAR_OS_INPUT_KEYBOARD_LAYOUT_JP && usage == 0x33U)) {
             return SOLAR_OS_KEY_CTRL_PLUS;
         }
         if (layout == SOLAR_OS_INPUT_KEYBOARD_LAYOUT_DE && usage == 0x38U) {
@@ -2284,6 +2370,11 @@ uint8_t solar_os_input_translate_hid_usage(uint16_t usage,
     }
     if (layout == SOLAR_OS_INPUT_KEYBOARD_LAYOUT_DE) {
         return input_usage_to_de(usage, modifiers, caps_lock);
+    }
+    if (layout == SOLAR_OS_INPUT_KEYBOARD_LAYOUT_JP) {
+        return input_usage_to_jp(usage,
+                                (modifiers & SOLAR_OS_INPUT_MOD_SHIFT) != 0,
+                                caps_lock);
     }
     return input_usage_to_us(usage,
                              (modifiers & SOLAR_OS_INPUT_MOD_SHIFT) != 0,
