@@ -16,5 +16,10 @@ void solar_os_display_async_status(solar_os_display_async_t *, solar_os_display_
  * Controls may block. Ordinary submissions never wait for panel execution. */
 void solar_os_display_async_control_begin(solar_os_display_async_t *, bool discard_pending);
 void solar_os_display_async_control_end(solar_os_display_async_t *, int suspended, esp_err_t fault);
+/* Caller holds the control barrier. Zero values retain immediate/no-maintenance
+ * behavior. Maintenance runs only after a physical-update budget and idle
+ * since the LAST submission, using the completed immutable snapshot. */
+void solar_os_display_async_policy(solar_os_display_async_t *, uint32_t frame_ms,
+    uint32_t idle_ms, uint32_t budget, solar_os_display_async_execute_t maintenance);
 /* Owner must first exclude new API callers, then destroy joins the worker. */
 void solar_os_display_async_destroy(solar_os_display_async_t *);

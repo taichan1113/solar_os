@@ -13,6 +13,10 @@ struct solar_os_display_async {
     TaskHandle_t task;
     uint8_t *buffers[2];
     int pending_slot, active_slot;
+    int completed_slot;
+    uint32_t frame_ms, idle_ms, budget, updates;
+    int64_t next_frame_us, last_submit_us;
+    solar_os_display_async_execute_t maintenance;
     uint64_t pending_id;
     bool controlled, reject_submits, stopping, done;
     size_t size;
@@ -37,45 +41,75 @@ static void worker(void *arg)
 {
     solar_os_display_async_t *a = arg;
     for (;;) {
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        for (;;) {
-            lock(a);
-            if (a->stopping) {
-                a->done = true;
-                unlock(a);
-                solar_os_task_delete_internal(NULL);
-                return;
-            }
-            if (a->controlled || a->status.suspended || a->status.error != ESP_OK ||
-                a->pending_slot < 0) { unlock(a); break; }
-            a->active_slot = a->pending_slot;
-            a->pending_slot = -1;
-            const uint64_t id = a->pending_id;
-            const uint8_t *frame = a->buffers[a->active_slot];
-            a->status.pending = false;
-            a->status.busy = true;
-            a->status.started++;
+        lock(a);
+        if (a->stopping) {
+            a->done = true;
             unlock(a);
-            const bool perf = solar_os_perf_enabled();
-            if (perf) SOLAR_OS_LOGD("display_async", "gen=%" PRIu64 " WORKER_START t=%" PRId64, id, esp_timer_get_time());
-            bool physical = false;
-            const esp_err_t err = a->execute(a->context, frame, a->size, &physical);
-            const int64_t end = perf ? esp_timer_get_time() : 0;
-            lock(a);
-            a->active_slot = -1;
-            a->status.busy = false;
-            if (err == ESP_OK) {
+            solar_os_task_delete_internal(NULL);
+            return;
+        }
+        const int64_t now = esp_timer_get_time();
+        int64_t deadline = 0;
+        bool maintenance = false, runnable = false;
+        if (!a->controlled && !a->status.suspended && a->status.error == ESP_OK) {
+            if (a->pending_slot >= 0) {
+                deadline = a->next_frame_us;
+                runnable = now >= deadline;
+            } else if (a->maintenance && a->budget && a->idle_ms &&
+                       a->updates >= a->budget && a->completed_slot >= 0) {
+                deadline = a->last_submit_us + (int64_t)a->idle_ms * 1000;
+                runnable = now >= deadline;
+                maintenance = true;
+            }
+        }
+        if (!runnable) {
+            TickType_t timeout = portMAX_DELAY;
+            if (deadline > now) {
+                const uint32_t ms = (uint32_t)((deadline-now+999)/1000);
+                timeout = pdMS_TO_TICKS(ms);
+                if (!timeout) timeout = 1;
+            }
+            unlock(a);
+            ulTaskNotifyTake(pdTRUE, timeout);
+            continue;
+        }
+        a->active_slot = maintenance ? a->completed_slot : a->pending_slot;
+        const uint64_t id = maintenance ? a->status.completed_id : a->pending_id;
+        if (!maintenance) a->pending_slot = -1;
+        const uint8_t *frame = a->buffers[a->active_slot];
+        if (!maintenance) a->status.pending = false;
+        a->status.busy = true;
+        if (maintenance) a->status.maintenance_started++; else a->status.started++;
+        const solar_os_display_async_execute_t execute = maintenance ? a->maintenance : a->execute;
+        unlock(a);
+        const bool perf = solar_os_perf_enabled();
+        if (perf && !maintenance) SOLAR_OS_LOGD("display_async", "gen=%" PRIu64 " WORKER_START t=%" PRId64, id, esp_timer_get_time());
+        bool physical = false;
+        const esp_err_t err = execute(a->context, frame, a->size, &physical);
+        const int64_t end = perf ? esp_timer_get_time() : 0;
+        lock(a);
+        a->status.busy = false;
+        if (err == ESP_OK) {
+            a->completed_slot = a->active_slot;
+            if (maintenance) {
+                a->status.maintenance_completed++;
+                a->updates = 0;
+            } else {
                 a->status.completed_id = id;
                 a->status.completed++;
-                if (physical) a->status.physical++;
-            } else {
-                a->status.error = err;
-                discard_pending(a);
+                if (physical && a->updates != UINT32_MAX) a->updates++;
             }
-            unlock(a);
-            if (perf) SOLAR_OS_LOGD("display_async", "gen=%" PRIu64 " WORKER_END t=%" PRId64 " err=%d physical=%u", id, end, err, physical);
-            if (err != ESP_OK) SOLAR_OS_LOGE("display_async", "refresh failed: %d; pending discarded, submissions latched", err);
+            if (physical) a->status.physical++;
+            if (physical) a->next_frame_us = now + (int64_t)a->frame_ms * 1000;
+        } else {
+            a->status.error = err;
+            a->completed_slot = -1;
+            discard_pending(a);
         }
+        a->active_slot = -1;
+        unlock(a);
+        if (perf && !maintenance) SOLAR_OS_LOGD("display_async", "gen=%" PRIu64 " WORKER_END t=%" PRId64 " err=%d physical=%u", id, end, err, physical);
+        if (err != ESP_OK) SOLAR_OS_LOGE("display_async", "refresh failed: %d; pending discarded, submissions latched", err);
     }
 }
 
@@ -89,7 +123,7 @@ esp_err_t solar_os_display_async_create(size_t size, solar_os_display_async_exec
     a->size = size;
     a->context = context;
     a->execute = execute;
-    a->active_slot = a->pending_slot = -1;
+    a->active_slot = a->pending_slot = a->completed_slot = -1;
     a->state = xSemaphoreCreateMutex();
     a->control = xSemaphoreCreateMutex();
     a->buffers[0] = heap_caps_malloc(size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
@@ -132,6 +166,7 @@ esp_err_t solar_os_display_async_submit(solar_os_display_async_t *a, const uint8
     a->status.submitted++;
     if (replaced) a->status.replaced++;
     a->status.pending = true;
+    a->last_submit_us = esp_timer_get_time();
     const unsigned outstanding = a->status.busy ? 2 : 1;
     if (outstanding > a->status.peak_outstanding) a->status.peak_outstanding = outstanding;
     unlock(a);
@@ -174,11 +209,16 @@ void solar_os_display_async_control_begin(solar_os_display_async_t *a, bool disc
     lock(a);
     a->controlled = true;
     a->reject_submits = discard;
-    if (discard) discard_pending(a);
+    if (discard) {
+        discard_pending(a);
+        a->completed_slot = -1;
+        a->updates = 0;
+    }
     unlock(a);
     for (;;) {
         lock(a);
         const bool busy = a->status.busy;
+        if (!busy && discard) { a->completed_slot = -1; a->updates = 0; }
         unlock(a);
         if (!busy) return;
         vTaskDelay(pdMS_TO_TICKS(1));
@@ -189,13 +229,30 @@ void solar_os_display_async_control_end(solar_os_display_async_t *a, int suspend
 {
     if (!a) return;
     lock(a);
-    if (suspended >= 0) a->status.suspended = suspended != 0;
+    if (suspended >= 0) {
+        a->status.suspended = suspended != 0;
+        if (suspended) { a->completed_slot = -1; a->updates = 0; }
+    }
     if (fault != ESP_OK) { a->status.error = fault; discard_pending(a); }
     a->controlled = false;
     a->reject_submits = false;
     unlock(a);
     xTaskNotifyGive(a->task);
     xSemaphoreGive(a->control);
+}
+
+void solar_os_display_async_policy(solar_os_display_async_t *a, uint32_t frame_ms,
+    uint32_t idle_ms, uint32_t budget, solar_os_display_async_execute_t maintenance)
+{
+    if (!a) return;
+    lock(a);
+    a->frame_ms = frame_ms;
+    a->idle_ms = idle_ms;
+    a->budget = budget;
+    a->maintenance = maintenance;
+    a->updates = 0;
+    a->next_frame_us = 0;
+    unlock(a);
 }
 
 void solar_os_display_async_destroy(solar_os_display_async_t *a)

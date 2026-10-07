@@ -17,6 +17,7 @@ typedef enum {
     EPD_SSD1677_REFRESH_PARTIAL,
     EPD_SSD1677_REFRESH_FULL,
     EPD_SSD1677_REFRESH_FASTEST, /* opt-in host LUT, PaperMono only */
+    EPD_SSD1677_REFRESH_TYPING, /* same LUT; paced executor + idle cleanup */
 } epd_ssd1677_refresh_mode_t;
 
 typedef esp_err_t (*epd_ssd1677_power_fn_t)(void *context, bool on);
@@ -99,6 +100,7 @@ typedef struct {
     bool fastest_tiles;
     int configured_spi_hz, transport_spi_hz, applied_spi_hz, actual_spi_hz;
     int fastest_spi_hz;
+    uint32_t typing_frame_ms, typing_cleanup_budget, typing_idle_ms;
     epd_ssd1677_timing_t timing;
     spi_host_device_t spi_host;
     bool bus_initialized;

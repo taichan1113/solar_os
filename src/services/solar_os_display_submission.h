@@ -8,6 +8,7 @@
 typedef struct {
     uint64_t submitted_id, completed_id, cancelled_id;
     uint32_t submitted, replaced, cancelled, started, completed, physical, rejected;
+    uint32_t maintenance_started, maintenance_completed;
     size_t snapshot_bytes;
     unsigned peak_outstanding;
     bool enabled, busy, pending, suspended;

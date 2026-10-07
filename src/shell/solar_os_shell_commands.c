@@ -776,6 +776,8 @@ static void display_cmd_async(solar_os_shell_io_t *io, int argc, char **argv)
         "submitted=%u replaced=%u cancelled=%u rejected=%u started=%u completed=%u physical=%u\n",
         (unsigned)s.submitted, (unsigned)s.replaced, (unsigned)s.cancelled, (unsigned)s.rejected,
         (unsigned)s.started, (unsigned)s.completed, (unsigned)s.physical);
+    solar_os_shell_io_printf(io, "maintenance_started=%u maintenance_completed=%u\n",
+        (unsigned)s.maintenance_started, (unsigned)s.maintenance_completed);
     solar_os_shell_io_printf(io,
         "generation=%llu completed_generation=%llu cancelled_generation=%llu snapshots=%u peak=%u\n",
         (unsigned long long)s.submitted_id, (unsigned long long)s.completed_id,

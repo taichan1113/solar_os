@@ -71,6 +71,14 @@ static esp_err_t execute_frame(void *context, const uint8_t *frame, size_t size,
     return err;
 }
 
+static esp_err_t execute_idle_cleanup(void *context, const uint8_t *frame, size_t size, bool *physical)
+{
+    solar_os_ssd1677_device_t *device = context;
+    device->driver.cleanup_pending = true;
+    ESP_LOGI(TAG, "typing idle cleanup: completed snapshot only");
+    return execute_frame(context, frame, size, physical);
+}
+
 static void begin_operation(void *context, epd_ssd1677_operation_t op)
 {
     solar_os_ssd1677_device_t *device = context;
@@ -81,6 +89,14 @@ static void begin_operation(void *context, epd_ssd1677_operation_t op)
 static void end_operation(void *context, epd_ssd1677_operation_t op, esp_err_t err)
 {
     solar_os_ssd1677_device_t *device = context;
+    if (op == EPD_SSD1677_OP_MODE && err == ESP_OK) {
+        const bool typing = device->driver.refresh_mode == EPD_SSD1677_REFRESH_TYPING;
+        solar_os_display_async_policy(device->executor,
+            typing ? device->driver.typing_frame_ms : 0,
+            typing ? device->driver.typing_idle_ms : 0,
+            typing ? device->driver.typing_cleanup_budget : 0,
+            typing ? execute_idle_cleanup : NULL);
+    }
     int suspended = -1;
     if (err == ESP_OK && op == EPD_SSD1677_OP_SLEEP) suspended = 1;
     if (err == ESP_OK && op == EPD_SSD1677_OP_RESUME) suspended = 0;
@@ -342,6 +358,8 @@ static const char *display_controller_mode_values(const solar_os_board_display_t
 static esp_err_t display_set_controller_mode(solar_os_board_display_t *display,
                                              const char *mode)
 {
+    if (display && display->driver && mode && strcmp(mode, "refresh=typing") == 0 &&
+        !((epd_ssd1677_t *)display->driver)->execution_context) return ESP_ERR_NOT_SUPPORTED;
     return display != NULL ? epd_ssd1677_set_controller_mode(display->driver, mode) :
         ESP_ERR_INVALID_STATE;
 }
@@ -369,6 +387,8 @@ static const char *target_controller_mode_values(const void *context)
 
 static esp_err_t target_set_controller_mode(void *context, const char *mode)
 {
+    if (context && mode && strcmp(mode, "refresh=typing") == 0 &&
+        !((epd_ssd1677_t *)context)->execution_context) return ESP_ERR_NOT_SUPPORTED;
     return epd_ssd1677_set_controller_mode(context, mode);
 }
 

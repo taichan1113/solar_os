@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <inttypes.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "driver/gpio.h"
 #include "esp_check.h"
@@ -493,12 +494,15 @@ static esp_err_t ssd1677_papermono_refresh(epd_ssd1677_t *display)
                           display->shadow_valid && display->shadow != NULL;
     if (!cleanup && baseline &&
         memcmp(ssd1677_frame(display), display->shadow, display->buffer_size) == 0) return ESP_OK;
-    if (!cleanup && baseline && display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST)
+    if (!cleanup && baseline &&
+        (display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST ||
+         display->refresh_mode == EPD_SSD1677_REFRESH_TYPING))
         return ssd1677_reference_refresh(display);
     display->transport_spi_hz = display->configured_spi_hz;
     const bool partial = baseline && !cleanup &&
                          display->refresh_mode != EPD_SSD1677_REFRESH_FULL &&
-                         display->refresh_mode != EPD_SSD1677_REFRESH_FASTEST;
+                         display->refresh_mode != EPD_SSD1677_REFRESH_FASTEST &&
+                         display->refresh_mode != EPD_SSD1677_REFRESH_TYPING;
     display->timing = (epd_ssd1677_timing_t) {
         .start_us = esp_timer_get_time(), .partial = partial,
     };
@@ -816,6 +820,9 @@ esp_err_t epd_ssd1677_init(epd_ssd1677_t *display,
     /* Qualified with the same waveform at 10/20/40MHz, then 110 updates and
      * Writer input at 40MHz. OTP still uses the configured board clock. */
     display->fastest_spi_hz = 40000000;
+    display->typing_frame_ms = 250;
+    display->typing_cleanup_budget = 128;
+    display->typing_idle_ms = 30000;
     /* PaperMono AUTO: full baseline, then OTP full-frame fast differential.
      * Physical acceptance and manual cleanup policy: doc/m5paper-mono-refresh.md. */
     display->spi_host = config->spi_host;
@@ -1007,6 +1014,7 @@ static const char *ssd1677_controller_mode_unlocked(const epd_ssd1677_t *display
     if (display == NULL) return NULL;
     switch (display->refresh_mode) {
     case EPD_SSD1677_REFRESH_FASTEST: return "refresh=fastest";
+    case EPD_SSD1677_REFRESH_TYPING: return "refresh=typing";
     case EPD_SSD1677_REFRESH_PARTIAL: return "refresh=partial";
     case EPD_SSD1677_REFRESH_FULL: return "refresh=full";
     case EPD_SSD1677_REFRESH_AUTO:
@@ -1027,7 +1035,7 @@ const char *epd_ssd1677_controller_mode(const epd_ssd1677_t *display)
 const char *epd_ssd1677_controller_mode_values(const epd_ssd1677_t *display)
 {
     if (display != NULL && display->papermono_otp)
-        return "refresh=<auto,partial,full,cleanup,fastest> timing=<on,off> spi-mhz=<10,20,40> fastest-path=<scalar,tile>";
+        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> spi-mhz=<10,20,40> fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
     return "refresh=<auto,partial,full>";
 }
 
@@ -1036,6 +1044,23 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
 {
     if (display == NULL || mode == NULL) return ESP_ERR_INVALID_ARG;
     if (display->papermono_otp) {
+        const struct { const char *key; uint32_t *field; unsigned min, max; } options[] = {
+            {"typing-frame-ms=", &display->typing_frame_ms, 0, 1000},
+            {"typing-cleanup-updates=", &display->typing_cleanup_budget, 0, 4096},
+            {"typing-idle-ms=", &display->typing_idle_ms, 30000, 300000},
+        };
+        for (unsigned i=0; i<sizeof(options)/sizeof(options[0]); ++i) {
+            const size_t n = strlen(options[i].key);
+            if (strncmp(mode,options[i].key,n)) continue;
+            const char *value = mode+n;
+            for (const char *p=value; *p; ++p)
+                if (*p<'0' || *p>'9') return ESP_ERR_INVALID_ARG;
+            if (!*value || strlen(value)>6) return ESP_ERR_INVALID_ARG;
+            const unsigned long v = strtoul(value,NULL,10);
+            if (v<options[i].min || v>options[i].max) return ESP_ERR_INVALID_ARG;
+            *options[i].field = (uint32_t)v;
+            return ESP_OK;
+        }
         if (strcmp(mode, "spi-mhz=10") == 0 || strcmp(mode, "spi-mhz=20") == 0 ||
             strcmp(mode, "spi-mhz=40") == 0) {
             display->fastest_spi_hz = mode[8] == '4' ? 40000000 : mode[8] == '2' ? 20000000 : 10000000;
@@ -1061,6 +1086,8 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
         (strcmp(mode, "refresh=fastest") == 0 || strcmp(mode, "refresh=reference") == 0)) {
         /* Keep the prototype spelling as an alias for recorded diagnostics. */
         display->refresh_mode = EPD_SSD1677_REFRESH_FASTEST;
+    } else if (display->papermono_otp && strcmp(mode,"refresh=typing") == 0) {
+        display->refresh_mode = EPD_SSD1677_REFRESH_TYPING;
     } else if (strcmp(mode, "refresh=auto") == 0) {
         display->refresh_mode = EPD_SSD1677_REFRESH_AUTO;
     } else if (strcmp(mode, "refresh=partial") == 0) {
@@ -1070,8 +1097,8 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
     } else {
         return ESP_ERR_INVALID_ARG;
     }
-    if ((previous_mode == EPD_SSD1677_REFRESH_FASTEST) !=
-        (display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST)) {
+    if ((previous_mode == EPD_SSD1677_REFRESH_FASTEST || previous_mode == EPD_SSD1677_REFRESH_TYPING) !=
+        (display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST || display->refresh_mode == EPD_SSD1677_REFRESH_TYPING)) {
         display->papermono_baseline_valid = false;
         display->reference_awake = false;
     }

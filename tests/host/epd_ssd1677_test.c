@@ -648,6 +648,30 @@ static void test_reference_prototype(void)
     assert(ssd1677_refresh(&d)==ESP_OK && !d.timing.partial);
 }
 
+static void test_typing_mode(void)
+{
+    epd_ssd1677_t typing = make_display();
+    assert(epd_ssd1677_set_controller_mode(&typing,"refresh=typing") == ESP_ERR_INVALID_ARG);
+    typing.papermono_otp=true;
+    assert(epd_ssd1677_set_controller_mode(&typing,"refresh=fastest") == ESP_OK);
+    assert(ssd1677_refresh(&typing) == ESP_OK);
+    frame[0]^=1;command_count=0;
+    assert(ssd1677_refresh(&typing) == ESP_OK && typing.reference_awake);
+    assert(epd_ssd1677_set_controller_mode(&typing,"refresh=typing") == ESP_OK);
+    assert(typing.papermono_baseline_valid && typing.reference_awake);
+    assert(epd_ssd1677_set_controller_mode(&typing,"typing-frame-ms=250") == ESP_OK);
+    assert(epd_ssd1677_set_controller_mode(&typing,"typing-idle-ms=30000") == ESP_OK);
+    assert(epd_ssd1677_set_controller_mode(&typing,"typing-cleanup-updates=128") == ESP_OK);
+    assert(epd_ssd1677_set_controller_mode(&typing,"typing-frame-ms=-1") == ESP_ERR_INVALID_ARG);
+    assert(epd_ssd1677_set_controller_mode(&typing,"typing-frame-ms=250x") == ESP_ERR_INVALID_ARG);
+    assert(epd_ssd1677_set_controller_mode(&typing,"typing-idle-ms=300") == ESP_ERR_INVALID_ARG);
+    frame[1]^=1;command_count=0;
+    assert(ssd1677_refresh(&typing) == ESP_OK);
+    expect_data(0x32,ssd1677_reference_lut,105);
+    assert(epd_ssd1677_set_controller_mode(&typing,"refresh=fastest") == ESP_OK);
+    assert(typing.papermono_baseline_valid && typing.reference_awake);
+}
+
 int main(void)
 {
     test_initial_full();
@@ -664,6 +688,7 @@ int main(void)
     test_reference_power_off_failure();
     test_fastest_conversion_equivalence();
     test_fastest_snapshot_ownership();
+    test_typing_mode();
     puts("epd_ssd1677_test: PASS");
     return 0;
 }
