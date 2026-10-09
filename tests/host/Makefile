@@ -27,6 +27,18 @@ TARGETS += ft6336_test
 TARGETS += rtc_rx8130ce_test
 TARGETS += ft6336_lifecycle_test
 TARGETS += status_led_provider_test
+TARGETS += sketch_lifecycle_test
+TARGETS += sketch_legacy_lifecycle_test
+
+sketch_legacy_lifecycle_test: sketch_legacy_lifecycle_test.c sketch_lifecycle_test.c $(ROOT)/src/apps/solar_os_sketch.c $(ROOT)/src/apps/solar_os_sketch_canvas.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -include compat.h -I. -I$(ROOT)/src -I$(ROOT)/src/services \
+		-I$(ROOT)/src/apps -I$(ROOT)/components/stb_image/include $< $(ROOT)/src/apps/solar_os_sketch_canvas.c -lm -o $@
+
+sketch_lifecycle_test: sketch_lifecycle_test.c $(ROOT)/src/apps/solar_os_sketch.c $(ROOT)/src/apps/solar_os_sketch_canvas.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -DSOLAR_OS_PACKAGE_SERVICE_EXPANSION=1 \
+		-DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' -DSOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT=1 \
+		-include compat.h -I. -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/src/apps \
+		-I$(ROOT)/components/stb_image/include $< $(ROOT)/src/apps/solar_os_sketch_canvas.c -lm -o $@
 
 status_led_provider_test: status_led_provider_test.c $(ROOT)/src/services/solar_os_status_led.c
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -Iexpansion_stubs -Igpio_controller_stubs -I. -I$(ROOT)/src/services -I$(ROOT)/src/drivers -o $@ $^
@@ -900,6 +912,8 @@ test: $(TARGETS)
 	./writer_buffer_test
 	./writer_files_test
 	./sketch_canvas_test
+	./sketch_lifecycle_test
+	./sketch_legacy_lifecycle_test
 	./launcher_layout_test
 	./display_layout_test
 	./gfx_icons_test

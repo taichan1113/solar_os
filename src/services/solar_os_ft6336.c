@@ -228,6 +228,10 @@ bool solar_os_ft6336_is_ready(const char *name)
 {
     return name && touch.active && !strcmp(name, touch.name) && touch.ready;
 }
+bool solar_os_ft6336_is_enabled(const char *name)
+{
+    return name && touch.active && !strcmp(name, touch.name) && touch.requested;
+}
 esp_err_t solar_os_ft6336_set_enabled(const char *name, bool enabled)
 {
     if (!touch.active || !name || strcmp(name, touch.name)) return ESP_ERR_NOT_FOUND;

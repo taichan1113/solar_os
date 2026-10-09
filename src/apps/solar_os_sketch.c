@@ -15,6 +15,12 @@
 #include "solar_os_stb_image.h"
 #include "solar_os_storage.h"
 #include "solar_os_storage_browser.h"
+#include "solar_os_board.h"
+#include "solar_os_config.h"
+#include "solar_os_log.h"
+#if defined(SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE) && SOLAR_OS_PACKAGE_SERVICE_EXPANSION
+#include "solar_os_expansion.h"
+#endif
 
 #define SKETCH_SIDE_BAR 64
 #define SKETCH_BOTTOM_BAR 30
@@ -88,6 +94,25 @@ static const solar_os_gfx_color_t sketch_colors[4] = {
 
 static bool sketch_is_shape_tool(void);
 static void sketch_draw_shape(solar_os_sketch_canvas_t *canvas, int x, int y);
+
+static void sketch_pointer_acquire(void)
+{
+#if defined(SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE) && SOLAR_OS_PACKAGE_SERVICE_EXPANSION
+    const esp_err_t err = solar_os_expansion_enable_acquire(
+        SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE, sketch_state_storage);
+    if (err != ESP_OK) SOLAR_OS_LOGW("sketch", "pointer enable failed: %s", esp_err_to_name(err));
+#endif
+}
+
+static void sketch_pointer_release(void)
+{
+#if defined(SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE) && SOLAR_OS_PACKAGE_SERVICE_EXPANSION
+    const esp_err_t err = solar_os_expansion_enable_release(
+        SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE, sketch_state_storage);
+    if (err != ESP_OK && err != ESP_ERR_NOT_FOUND)
+        SOLAR_OS_LOGE("sketch", "pointer release failed: %s", esp_err_to_name(err));
+#endif
+}
 
 static sketch_layout_t sketch_layout(solar_os_gfx_t *gfx)
 {
@@ -710,8 +735,9 @@ static void sketch_render(solar_os_context_t *ctx)
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
     if (layout.screen_width > 220) {
         char title[64];
-        snprintf(title, sizeof(title), "%s%s",
-                 sketch.dirty ? "*" : "", sketch_basename(sketch.path));
+        snprintf(title, sizeof(title), "%s%.*s", sketch.dirty ? "*" : "",
+                 (int)sizeof(title) - 1 - (sketch.dirty ? 1 : 0),
+                 sketch_basename(sketch.path));
         solar_os_gfx_text(gfx, 2 + 3 * menu_step + 4,
                           layout.canvas_y - 7, title);
     }
@@ -816,7 +842,15 @@ static void sketch_render(solar_os_context_t *ctx)
         solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
         solar_os_gfx_circle(gfx, sketch.pointer_x, sketch.pointer_y, 4);
     }
+#if defined(SOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT) && SOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT
+    /* The existing immutable latest-frame executor owns submitted snapshots.
+     * Pointer operations still modify every logical segment; ticks coalesce
+     * presentation, including the final RELEASE. Do not block on E-paper BUSY. */
+    const esp_err_t err = solar_os_gfx_submit(gfx, NULL);
+    if (err != ESP_OK) SOLAR_OS_LOGE("sketch", "display submit failed: %s", esp_err_to_name(err));
+#else
     solar_os_gfx_present(gfx);
+#endif
     sketch.render_pending = false;
 }
 
@@ -1192,6 +1226,9 @@ static esp_err_t sketch_start(solar_os_context_t *ctx)
     sketch.weight = 2U;
     sketch.pointer_x = layout.canvas_x + layout.canvas_width / 2;
     sketch.pointer_y = layout.canvas_y + layout.canvas_height / 2;
+    /* Existing FT6336 lifecycle makes the source ready synchronously. Failure
+     * does not prevent another ready USB/BLE pointer from being used. */
+    sketch_pointer_acquire();
     sketch.modal = sketch_has_pointer() ? SKETCH_MODAL_NONE :
                                            SKETCH_MODAL_NO_POINTER;
     sketch.render_pending = true;
@@ -1227,6 +1264,7 @@ static void sketch_cleanup(void)
     if (sketch_state_storage == NULL) {
         return;
     }
+    sketch_pointer_release();
     solar_os_storage_browser_destroy(sketch.browser);
     sketch.browser = NULL;
     solar_os_memory_free(sketch.canvas.pixels);
@@ -1246,12 +1284,17 @@ static void sketch_stop(solar_os_context_t *ctx)
 
 static void sketch_suspend(solar_os_context_t *ctx)
 {
+    sketch.drawing = false;
+    sketch_pointer_release();
     sketch.suspended = true;
     solar_os_context_set_graphics_active(ctx, false);
 }
 
 static void sketch_resume(solar_os_context_t *ctx)
 {
+    sketch_pointer_acquire();
+    if (sketch.modal == SKETCH_MODAL_NO_POINTER && sketch_has_pointer())
+        sketch.modal = SKETCH_MODAL_NONE;
     sketch.suspended = false;
     sketch.render_pending = true;
     solar_os_context_set_graphics_active(ctx, true);

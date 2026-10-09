@@ -13,6 +13,7 @@
 #define SOLAR_OS_EXPANSION_ROLE_MAX 16
 #define SOLAR_OS_EXPANSION_TARGET_MAX 16
 #define SOLAR_OS_EXPANSION_DEVICE_BINDING_MAX 16
+#define SOLAR_OS_EXPANSION_ENABLE_OWNER_MAX 8
 
 typedef enum {
     SOLAR_OS_EXPANSION_BINDING_GPIO,
@@ -109,6 +110,9 @@ typedef struct {
     esp_err_t (*set_enabled)(const char *name, bool enabled);
     bool (*is_ready)(const char *name);
     esp_err_t (*set_suspended)(const char *name, bool suspended);
+    /* Opt-in requested-state getter for consumer leases. Physical readiness
+     * remains separate (e.g. an enabled peripheral during device suspend). */
+    bool (*is_enabled)(const char *name);
 } solar_os_expansion_driver_t;
 
 typedef enum {
@@ -121,6 +125,9 @@ typedef struct {
     bool ready;
     bool autostart;
     bool detachable;
+    bool enable_controlled;
+    bool manual_enabled;
+    size_t enable_lease_count;
     solar_os_expansion_origin_t origin;
     char name[SOLAR_OS_EXPANSION_DEVICE_NAME_MAX];
     char driver[SOLAR_OS_EXPANSION_DRIVER_NAME_MAX];
@@ -184,6 +191,14 @@ esp_err_t solar_os_expansion_attach(const char *driver,
 esp_err_t solar_os_expansion_detach(const char *name);
 esp_err_t solar_os_expansion_device_set_ready(const char *name, bool ready);
 esp_err_t solar_os_expansion_device_set_enabled(const char *name, bool enabled);
+/* owner is a stable, non-NULL identity, never dereferenced. Acquire/release
+ * are idempotent for that owner. Effective request = manual OR any lease.
+ * Detach is refused while leased. Acquire failures do not retain ownership.
+ * Release revokes ownership even if stopping hardware fails; errors are
+ * reported. During an in-flight transition release is reconciled at its end,
+ * so cleanup may free the owner without retaining a dangling registration. */
+esp_err_t solar_os_expansion_enable_acquire(const char *name, const void *owner);
+esp_err_t solar_os_expansion_enable_release(const char *name, const void *owner);
 esp_err_t solar_os_expansion_set_suspended(bool suspended);
 size_t solar_os_expansion_device_count(void);
 /* Returns a caller-owned snapshot; no registry pointer is borrowed. */

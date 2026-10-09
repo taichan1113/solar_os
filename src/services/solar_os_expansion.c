@@ -51,6 +51,8 @@ typedef enum {
 typedef struct expansion_device_node {
     solar_os_expansion_device_t device;
     expansion_slot_state_t state;
+    const void *enable_owners[SOLAR_OS_EXPANSION_ENABLE_OWNER_MAX];
+    bool enable_reconcile_pending;
     struct expansion_device_node *next;
 } expansion_device_node_t;
 
@@ -1426,6 +1428,9 @@ static esp_err_t expansion_attach(const char *driver,
     }
     node->device.active = true;
     node->device.ready = driver_def->is_ready ? driver_def->is_ready(name) : true;
+    node->device.enable_controlled = driver_def->set_enabled &&
+        driver_def->is_ready && driver_def->is_enabled;
+    node->device.manual_enabled = driver_def->is_enabled && driver_def->is_enabled(name);
     node->state = EXPANSION_SLOT_ACTIVE;
     devices_lock_give();
     return ESP_OK;
@@ -1466,6 +1471,10 @@ esp_err_t solar_os_expansion_detach(const char *name)
         devices_lock_give();
         return ESP_ERR_NOT_SUPPORTED;
     }
+    if (node->device.enable_lease_count != 0U) {
+        devices_lock_give();
+        return ESP_ERR_INVALID_STATE;
+    }
     device = node->device;
     node->device.active = false;
     node->state = EXPANSION_SLOT_DETACHING;
@@ -1502,29 +1511,131 @@ esp_err_t solar_os_expansion_detach(const char *name)
     return removed ? ESP_OK : ESP_ERR_INVALID_STATE;
 }
 
-esp_err_t solar_os_expansion_device_set_enabled(const char *name, bool enabled)
+/* Only policy revocations queued during a callback are reconciled here.
+ * A hardware error is logged once; it is never automatically retried. */
+static void reconcile_released_owners(void)
 {
-    if (!device_name_valid(name)) return ESP_ERR_INVALID_ARG;
+    for (;;) {
+        if (!devices_lock_take()) return;
+        expansion_device_node_t *node = NULL;
+        if (!devices_power_transition) {
+            for (expansion_device_node_t *n = devices; n; n = n->next) {
+                if (n->state == EXPANSION_SLOT_ACTIVE && n->enable_reconcile_pending) {
+                    node = n;
+                    break;
+                }
+            }
+        }
+        if (!node) { devices_lock_give(); return; }
+        node->enable_reconcile_pending = false;
+        node->state = EXPANSION_SLOT_UPDATING;
+        const bool requested = node->device.manual_enabled || node->device.enable_lease_count;
+        const solar_os_expansion_driver_t *driver = find_driver(node->device.driver);
+        devices_lock_give();
+        const esp_err_t err = driver->set_enabled(node->device.name, requested);
+        const bool ready = driver->is_ready(node->device.name);
+        if (err != ESP_OK) ESP_LOGE("expansion", "%s lease release failed: %s",
+                                   node->device.name, esp_err_to_name(err));
+        if (!devices_lock_take()) return;
+        node->device.ready = ready;
+        node->state = EXPANSION_SLOT_ACTIVE;
+        devices_lock_give();
+    }
+}
+
+typedef enum { ENABLE_MANUAL, ENABLE_ACQUIRE, ENABLE_RELEASE } enable_operation_t;
+
+static esp_err_t device_enable_request(const char *name, bool enabled,
+                                       const void *owner, enable_operation_t operation)
+{
+    if (!device_name_valid(name) || (operation != ENABLE_MANUAL && !owner))
+        return ESP_ERR_INVALID_ARG;
     if (!devices_lock_take()) return ESP_ERR_NO_MEM;
     expansion_device_node_t *node = find_device_locked(name);
+    if (!node) { devices_lock_give(); return ESP_ERR_NOT_FOUND; }
+    size_t owner_slot = SOLAR_OS_EXPANSION_ENABLE_OWNER_MAX;
+    size_t empty_slot = SOLAR_OS_EXPANSION_ENABLE_OWNER_MAX;
+    if (operation != ENABLE_MANUAL) {
+        if (!node->device.enable_controlled) {
+            devices_lock_give(); return ESP_ERR_NOT_SUPPORTED;
+        }
+        for (size_t i = 0; i < SOLAR_OS_EXPANSION_ENABLE_OWNER_MAX; i++) {
+            if (node->enable_owners[i] == owner) owner_slot = i;
+            if (!node->enable_owners[i]) empty_slot = i;
+        }
+        if ((operation == ENABLE_RELEASE && owner_slot == SOLAR_OS_EXPANSION_ENABLE_OWNER_MAX) ||
+            (operation == ENABLE_ACQUIRE && owner_slot != SOLAR_OS_EXPANSION_ENABLE_OWNER_MAX)) {
+            devices_lock_give(); return ESP_OK;
+        }
+        /* Revocation is immediate even during suspend/manual callbacks. No
+         * owner pointer is retained after cleanup; hardware follows when the
+         * existing reservation ends. Detach cannot start while leased. */
+        if (operation == ENABLE_RELEASE &&
+            (node->state == EXPANSION_SLOT_UPDATING || devices_power_transition)) {
+            node->enable_owners[owner_slot] = NULL;
+            node->device.enable_lease_count--;
+            node->enable_reconcile_pending = true;
+            devices_lock_give(); return ESP_OK;
+        }
+    }
     if (!node || node->state != EXPANSION_SLOT_ACTIVE || devices_power_transition) {
         devices_lock_give();
-        return node ? ESP_ERR_INVALID_STATE : ESP_ERR_NOT_FOUND;
+        return ESP_ERR_INVALID_STATE;
     }
     const solar_os_expansion_driver_t *driver = find_driver(node->device.driver);
     if (!driver || !driver->set_enabled || !driver->is_ready) {
         devices_lock_give();
         return ESP_ERR_NOT_SUPPORTED;
     }
+    if (operation == ENABLE_ACQUIRE && empty_slot == SOLAR_OS_EXPANSION_ENABLE_OWNER_MAX) {
+        devices_lock_give(); return ESP_ERR_NO_MEM;
+    }
+    const bool previous = node->device.manual_enabled || node->device.enable_lease_count;
+    const bool manual = operation == ENABLE_MANUAL ? enabled : node->device.manual_enabled;
+    /* Remove before the callback, including its failure path. */
+    if (operation == ENABLE_RELEASE) {
+        node->enable_owners[owner_slot] = NULL;
+        node->device.enable_lease_count--;
+    }
+    const bool requested = manual || node->device.enable_lease_count || operation == ENABLE_ACQUIRE;
+    const bool controlled = node->device.enable_controlled;
     node->state = EXPANSION_SLOT_UPDATING;
     devices_lock_give();
-    const esp_err_t err = driver->set_enabled(name, enabled);
+    const esp_err_t err = driver->set_enabled(name, controlled ? requested : enabled);
+    if (err != ESP_OK && operation != ENABLE_RELEASE && controlled) {
+        const esp_err_t rollback = driver->set_enabled(name, previous);
+        if (rollback != ESP_OK) ESP_LOGE("expansion", "%s enable rollback failed: %s",
+                                        name, esp_err_to_name(rollback));
+    }
     const bool ready = driver->is_ready(name);
     if (!devices_lock_take()) return ESP_ERR_NO_MEM;
+    if (err == ESP_OK) {
+        if (operation == ENABLE_MANUAL) node->device.manual_enabled = enabled;
+        if (operation == ENABLE_ACQUIRE) {
+            node->enable_owners[empty_slot] = owner;
+            node->device.enable_lease_count++;
+        }
+    }
     node->device.ready = ready;
     node->state = EXPANSION_SLOT_ACTIVE;
     devices_lock_give();
+    reconcile_released_owners();
     return err;
+}
+
+esp_err_t solar_os_expansion_device_set_enabled(const char *name, bool enabled)
+{
+    return device_enable_request(name, enabled, NULL, ENABLE_MANUAL);
+}
+
+esp_err_t solar_os_expansion_enable_acquire(const char *name, const void *owner)
+{
+    return device_enable_request(name, true, owner, ENABLE_ACQUIRE);
+}
+
+esp_err_t solar_os_expansion_enable_release(const char *name, const void *owner)
+{
+    return device_enable_request(name, false, owner, ENABLE_RELEASE);
 }
 
 esp_err_t solar_os_expansion_set_suspended(bool suspended)
@@ -1566,6 +1677,7 @@ esp_err_t solar_os_expansion_set_suspended(bool suspended)
     if (err == ESP_OK) devices_suspended = suspended;
     devices_power_transition = false;
     devices_lock_give();
+    reconcile_released_owners();
     return err;
 }
 

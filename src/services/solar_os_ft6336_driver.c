@@ -25,4 +25,5 @@ const solar_os_expansion_driver_t solar_os_ft6336_expansion_driver = {
     .set_enabled = solar_os_ft6336_set_enabled,
     .set_suspended = solar_os_ft6336_set_suspended,
     .is_ready = solar_os_ft6336_is_ready,
+    .is_enabled = solar_os_ft6336_is_enabled,
 };

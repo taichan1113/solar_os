@@ -664,6 +664,13 @@ static void expansion_print_devices(solar_os_shell_io_t *term)
             expansion_print_binding(term, &device.bindings[b]);
         }
         solar_os_shell_io_put_char(term, '\n');
+        if (device.enable_controlled) {
+            solar_os_shell_io_printf(term,
+                "  manual enabled: %s\n  enable leases: %u\n  requested enabled: %s\n",
+                device.manual_enabled ? "yes" : "no",
+                (unsigned)device.enable_lease_count,
+                device.manual_enabled || device.enable_lease_count ? "yes" : "no");
+        }
         printed = true;
     }
 }

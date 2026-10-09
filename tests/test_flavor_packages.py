@@ -167,6 +167,14 @@ class FlavorPackagesTest(unittest.TestCase):
         self.assertTrue(pruned_packages["app_sketch"])
         self.assertFalse(pruned_packages["app_view"])
 
+    def test_sketch_writerdeck_addition_does_not_enable_it_in_other_flavors(self):
+        for flavor in ("core", "netrunner", "rover"):
+            _, _, groups, packages = self.resolve(flavor)
+            self.assertFalse(groups["sketch"], flavor)
+            self.assertFalse(packages["app_sketch"], flavor)
+        self.assertEqual(self.catalog.package_defs["app_sketch"].depends,
+                         ("service_image", "service_storage_browser"))
+
     def test_vplay_is_separate_from_the_image_viewer(self):
         _, _, groups, packages = self.resolve("full")
         self.assertTrue(groups["vplay"])
@@ -609,6 +617,9 @@ class FlavorPackagesTest(unittest.TestCase):
         name, _, groups, packages = self.resolve("writerdeck")
 
         self.assertEqual(name, "writerdeck")
+        self.assertTrue(groups["sketch"])
+        for package in ("app_sketch", "service_image", "service_storage_browser"):
+            self.assertTrue(packages[package], package)
         for group in (
             "editor",
             "pager",

@@ -60,6 +60,7 @@ reader = true
 writer = true
 notes = true
 image_viewer = true
+sketch = true
 python = true
 playground = true
 battery_adc = true

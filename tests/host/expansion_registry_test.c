@@ -348,14 +348,23 @@ static void assert_device(size_t index,
 }
 
 static bool lifecycle_requested, lifecycle_suspended, lifecycle_ready, lifecycle_fail;
+static bool lifecycle_enable_fail, lifecycle_stop_fail;
+static const void *release_during_enable, *release_during_suspend;
 static esp_err_t lifecycle_attach(const char *name, const solar_os_expansion_binding_t *b, size_t n)
 { (void)name; (void)b; (void)n; lifecycle_requested=lifecycle_ready=lifecycle_suspended=false; return ESP_OK; }
 static esp_err_t lifecycle_detach(const char *name) { (void)name; return ESP_OK; }
 static bool lifecycle_is_ready(const char *name) { assert(!strcmp(name,"peripheral")); return lifecycle_ready; }
+static bool lifecycle_is_enabled(const char *name) { assert(!strcmp(name,"peripheral")); return lifecycle_requested; }
 static esp_err_t lifecycle_enable(const char *name, bool on)
 {
     assert(solar_os_expansion_detach(name)==ESP_ERR_INVALID_STATE);
     lifecycle_requested=on; lifecycle_ready=on && !lifecycle_suspended;
+    if (release_during_enable) {
+        const void *owner = release_during_enable; release_during_enable = NULL;
+        assert(solar_os_expansion_enable_release(name, owner) == ESP_OK);
+    }
+    if (on && lifecycle_enable_fail) { lifecycle_ready=false; return ESP_FAIL; }
+    if (!on && lifecycle_stop_fail) return ESP_ERR_TIMEOUT;
     return ESP_OK;
 }
 static esp_err_t lifecycle_suspend(const char *name, bool suspended)
@@ -363,6 +372,10 @@ static esp_err_t lifecycle_suspend(const char *name, bool suspended)
     assert(solar_os_expansion_device_set_enabled(name,true)==ESP_ERR_INVALID_STATE);
     lifecycle_suspended=suspended;
     lifecycle_ready=lifecycle_requested && !suspended;
+    if (release_during_suspend) {
+        const void *owner = release_during_suspend; release_during_suspend = NULL;
+        assert(solar_os_expansion_enable_release(name, owner) == ESP_OK);
+    }
     return suspended && lifecycle_fail ? ESP_ERR_TIMEOUT : ESP_OK;
 }
 static const solar_os_expansion_driver_t lifecycle_driver = {
@@ -371,6 +384,7 @@ static const solar_os_expansion_driver_t lifecycle_driver = {
     .attach=lifecycle_attach, .detach=lifecycle_detach,
     .set_enabled=lifecycle_enable, .is_ready=lifecycle_is_ready,
     .set_suspended=lifecycle_suspend,
+    .is_enabled=lifecycle_is_enabled,
 };
 
 int main(void)
@@ -562,6 +576,57 @@ int main(void)
     assert(solar_os_expansion_set_suspended(true)==ESP_ERR_TIMEOUT);
     assert(lifecycle_ready && !lifecycle_suspended);
     lifecycle_fail=false;
+    assert(solar_os_expansion_device_set_enabled("peripheral",false)==ESP_OK);
+    int owners[SOLAR_OS_EXPANSION_ENABLE_OWNER_MAX + 1];
+    assert(solar_os_expansion_enable_acquire("peripheral",NULL)==ESP_ERR_INVALID_ARG);
+    assert(solar_os_expansion_enable_acquire("peripheral",&owners[0])==ESP_OK);
+    assert(solar_os_expansion_enable_acquire("peripheral",&owners[0])==ESP_OK);
+    assert(solar_os_expansion_get_device(11,&peripheral) && peripheral.enable_lease_count==1);
+    assert(lifecycle_ready && !peripheral.manual_enabled);
+    assert(solar_os_expansion_detach("peripheral")==ESP_ERR_INVALID_STATE);
+    assert(solar_os_expansion_enable_acquire("peripheral",&owners[1])==ESP_OK);
+    assert(solar_os_expansion_enable_release("peripheral",&owners[2])==ESP_OK);
+    assert(solar_os_expansion_device_set_enabled("peripheral",false)==ESP_OK && lifecycle_ready);
+    assert(solar_os_expansion_enable_release("peripheral",&owners[0])==ESP_OK && lifecycle_ready);
+    assert(solar_os_expansion_enable_release("peripheral",&owners[0])==ESP_OK && lifecycle_ready);
+    assert(solar_os_expansion_enable_release("peripheral",&owners[1])==ESP_OK && !lifecycle_ready);
+    assert(solar_os_expansion_device_set_enabled("peripheral",true)==ESP_OK);
+    assert(solar_os_expansion_enable_acquire("peripheral",&owners[0])==ESP_OK);
+    assert(solar_os_expansion_enable_release("peripheral",&owners[0])==ESP_OK && lifecycle_ready);
+    assert(solar_os_expansion_device_set_enabled("peripheral",false)==ESP_OK);
+    assert(solar_os_expansion_set_suspended(true)==ESP_OK);
+    assert(solar_os_expansion_enable_acquire("peripheral",&owners[0])==ESP_OK && !lifecycle_ready);
+    assert(solar_os_expansion_set_suspended(false)==ESP_OK && lifecycle_ready);
+    assert(solar_os_expansion_set_suspended(true)==ESP_OK);
+    assert(solar_os_expansion_enable_release("peripheral",&owners[0])==ESP_OK);
+    assert(solar_os_expansion_set_suspended(false)==ESP_OK && !lifecycle_ready);
+    lifecycle_enable_fail=true;
+    assert(solar_os_expansion_enable_acquire("peripheral",&owners[0])==ESP_FAIL);
+    assert(solar_os_expansion_get_device(11,&peripheral) && !peripheral.enable_lease_count);
+    assert(!lifecycle_requested && !lifecycle_ready);
+    lifecycle_enable_fail=false;
+    assert(solar_os_expansion_enable_acquire("peripheral",&owners[0])==ESP_OK);
+    lifecycle_stop_fail=true;
+    assert(solar_os_expansion_enable_release("peripheral",&owners[0])==ESP_ERR_TIMEOUT);
+    assert(solar_os_expansion_get_device(11,&peripheral) && !peripheral.enable_lease_count);
+    assert(!lifecycle_requested);
+    lifecycle_stop_fail=false;
+    assert(solar_os_expansion_device_set_enabled("peripheral",false)==ESP_OK);
+    assert(solar_os_expansion_enable_acquire("peripheral",&owners[0])==ESP_OK);
+    release_during_suspend=&owners[0];
+    assert(solar_os_expansion_set_suspended(true)==ESP_OK);
+    assert(solar_os_expansion_get_device(11,&peripheral) && !peripheral.enable_lease_count);
+    assert(!lifecycle_requested);
+    assert(solar_os_expansion_set_suspended(false)==ESP_OK && !lifecycle_ready);
+    assert(solar_os_expansion_enable_acquire("peripheral",&owners[0])==ESP_OK);
+    release_during_enable=&owners[0];
+    assert(solar_os_expansion_device_set_enabled("peripheral",false)==ESP_OK && !lifecycle_ready);
+    for (size_t i=0; i<SOLAR_OS_EXPANSION_ENABLE_OWNER_MAX; i++)
+        assert(solar_os_expansion_enable_acquire("peripheral",&owners[i])==ESP_OK);
+    assert(solar_os_expansion_enable_acquire("peripheral",&owners[SOLAR_OS_EXPANSION_ENABLE_OWNER_MAX])==ESP_ERR_NO_MEM);
+    for (size_t i=0; i<SOLAR_OS_EXPANSION_ENABLE_OWNER_MAX; i++)
+        assert(solar_os_expansion_enable_release("peripheral",&owners[i])==ESP_OK);
+    assert(!lifecycle_ready);
     assert(solar_os_expansion_detach("peripheral")==ESP_OK);
     assert(solar_os_expansion_unregister_driver(&lifecycle_driver)==ESP_OK);
     assert(solar_os_expansion_device_set_enabled("runtime2",false)==ESP_ERR_NOT_SUPPORTED);
