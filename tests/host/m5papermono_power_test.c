@@ -3,7 +3,7 @@
 #include <string.h>
 #include "../../src/services/solar_os_m5papermono_power.c"
 
-static uint8_t pm_regs[256], ioe_regs[256], charger_regs[256];
+static uint8_t pm_regs[256], ioe_regs[256];
 static int64_t now_us;
 static unsigned reads;
 static solar_os_battery_provider_t registered_battery;
@@ -22,11 +22,11 @@ void vTaskDelay(TickType_t ticks) { assert(ticks > 0); }
 esp_err_t solar_os_bus_i2c_read_reg(const char *bus, uint8_t addr, uint8_t reg,
                                    uint8_t *data, size_t len)
 {
-    assert(!strcmp(bus, "i2c0") && (addr == 0x6e || addr == 0x4f || addr == 0x75));
+    /* Optional charger access must not reconnect its hazardous bus branch. */
+    assert(!strcmp(bus, "i2c0") && (addr == 0x6e || addr == 0x4f));
     reads++;
-    if (addr == 0x75) assert(ioe_regs[6] & 4);
     if (addr == fail_addr && reg == fail_reg) return ESP_FAIL;
-    memcpy(data, (addr == 0x6e ? pm_regs : addr == 0x4f ? ioe_regs : charger_regs) + reg, len);
+    memcpy(data, (addr == 0x6e ? pm_regs : ioe_regs) + reg, len);
     return ESP_OK;
 }
 int64_t esp_timer_get_time(void) { return now_us; }
@@ -98,18 +98,32 @@ int main(void)
     assert(registered_led.set(NULL,true) == ESP_FAIL && pm_regs[6] == 0xa7);
     fail_addr = -1;
     pm_regs[0x22] = 0x68; pm_regs[0x23] = 0x10; /* 4200mV needs >12 bits. */
-    pm_regs[4] = 5; charger_regs[1] = 1;
+    pm_regs[4] = 5;
+    const uint8_t mux_latch = ioe_regs[6];
+    unsigned writes_before_sample = writes;
     solar_os_battery_sample_t sample;
     assert(registered_battery.read(NULL,&sample) == ESP_OK);
-    assert(sample.battery_mv == 4200 && sample.percent_unavailable && !sample.percent_valid);
-    assert(sample.external_power_valid && sample.external_power && sample.charging_valid && sample.charging);
-    assert(sample.charge_complete_valid && !sample.charge_complete && !(ioe_regs[6] & 4));
+    assert(sample.battery_mv == 4200 && !sample.percent_unavailable && !sample.percent_valid);
+    assert(registered_battery.estimate_percent != NULL);
+    const uint16_t voltage_cases[] = {0, 3270, 3300, 3301, 3749, 3750, 4199, 4200, 4300, UINT16_MAX};
+    const uint8_t expected_percent[] = {0, 0, 0, 0, 49, 50, 99, 100, 100, 100};
+    for (size_t i = 0; i < sizeof(voltage_cases) / sizeof(voltage_cases[0]); i++) {
+        assert(registered_battery.estimate_percent(NULL, voltage_cases[i]) == expected_percent[i]);
+    }
+    assert(sample.external_power_valid && sample.external_power && !sample.charging_valid);
+    assert(!sample.charge_complete_valid && !sample.charge_complete);
+    assert(writes == writes_before_sample && ioe_regs[6] == mux_latch && !(mux_latch & 4));
     unsigned before = reads;
     assert(registered_battery.read(NULL,&sample) == ESP_OK && reads == before);
-    now_us += 30000000; charger_regs[0xc7] = 0x40;
-    assert(registered_battery.read(NULL,&sample) == ESP_OK && !sample.charging && sample.charge_complete);
-    now_us += 30000000; fail_addr = 0x75; fail_reg = 0xc7;
-    assert(registered_battery.read(NULL,&sample) == ESP_OK && !sample.charging_valid && !(ioe_regs[6] & 4));
+    /* PM1 rail control is not evidence of the separate charger's state. */
+    now_us += 30000000; pm_regs[6] &= (uint8_t)~1U;
+    assert(registered_battery.read(NULL,&sample) == ESP_OK && !sample.charging_valid);
+    assert(sample.battery_mv == 4200 && sample.external_power_valid && sample.external_power);
+    assert(!sample.percent_unavailable && !sample.charge_complete_valid);
+    assert(writes == writes_before_sample && ioe_regs[6] == mux_latch);
+    /* Source-read faults still invalidate the measurement, with no fallback. */
+    now_us += 30000000; fail_addr = 0x6e; fail_reg = 0x04;
+    assert(registered_battery.read(NULL,&sample) == ESP_FAIL);
     fail_addr = -1; now_us += 30000000; pm_regs[4] = 4;
     assert(registered_battery.read(NULL,&sample) == ESP_OK && !sample.external_power && !sample.charging && sample.charging_valid);
     fail_addr = 0x6e; fail_reg = 0x22; now_us += 30000000;

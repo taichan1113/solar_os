@@ -93,6 +93,12 @@ int main(void)
     }
     assert(stops==3 && releases>=4);
     assert(solar_os_ft6336_set_suspended("touch0",true)==ESP_OK);
+    unsigned suspended_reads = i2c_reads;
+    assert(solar_os_ft6336_set_enabled("touch0",true)==ESP_OK);
+    assert(!input_ready && !power_high && !touch.worker_task && i2c_reads==suspended_reads);
+    assert(solar_os_ft6336_set_suspended("touch0",false)==ESP_OK && input_ready && power_high);
+    assert(solar_os_ft6336_set_enabled("touch0",false)==ESP_OK);
+    assert(solar_os_ft6336_set_suspended("touch0",true)==ESP_OK);
     assert(solar_os_ft6336_set_suspended("touch0",false)==ESP_OK && !input_ready);
     assert(solar_os_ft6336_set_enabled("touch0",true)==ESP_OK);
     assert(solar_os_ft6336_set_suspended("touch0",true)==ESP_OK && !input_ready);

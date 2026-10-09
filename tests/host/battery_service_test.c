@@ -11,6 +11,17 @@
 static solar_os_battery_sample_t provider_sample;
 static unsigned stream_register_count;
 static unsigned stream_unregister_count;
+static unsigned estimate_calls;
+static uint16_t estimated_voltage_mv;
+static uint8_t estimate_result = 42;
+
+static uint8_t estimate_percent(void *user, uint16_t averaged_mv)
+{
+    assert(user == &provider_sample);
+    estimate_calls++;
+    estimated_voltage_mv = averaged_mv;
+    return estimate_result;
+}
 
 size_t strlcpy(char *dst, const char *src, size_t size)
 {
@@ -183,6 +194,35 @@ int main(void)
     assert(solar_os_battery_unregister_provider("test-battery") == ESP_OK);
     assert(stream_unregister_count == 1U);
     assert(!solar_os_battery_has_provider());
+
+    const solar_os_battery_provider_t estimated_provider = {
+        .read = read_battery,
+        .user = &provider_sample,
+        .estimate_percent = estimate_percent,
+    };
+    assert(solar_os_battery_register_provider("estimate", &estimated_provider) == ESP_OK);
+    provider_sample = (solar_os_battery_sample_t){.battery_mv = 3600};
+    /* Flush the existing ring; registering a provider must not add a filter. */
+    for (unsigned i = 0; i < 8; i++) status = read_status();
+    assert(status.voltage_mv == 3600 && estimated_voltage_mv == 3600);
+    assert(status.percent_valid && status.percent_estimated && status.percent == 42);
+    provider_sample.battery_mv = 4200;
+    status = read_status();
+    assert(status.voltage_mv == 3675 && estimated_voltage_mv == 3675);
+    assert(estimate_calls == 9);
+    estimate_result = 255;
+    assert(read_status().percent == 100);
+    const unsigned before_gauge = estimate_calls;
+    provider_sample.percent_valid = true;
+    provider_sample.percent = 73;
+    status = read_status();
+    assert(status.percent == 73 && !status.percent_estimated);
+    assert(estimate_calls == before_gauge);
+    provider_sample.percent_unavailable = true;
+    status = read_status();
+    assert(!status.percent_valid && !status.percent_estimated && status.percent == 0);
+    assert(estimate_calls == before_gauge);
+    assert(solar_os_battery_unregister_provider("estimate") == ESP_OK);
 
     puts("battery service tests: ok");
     return 0;

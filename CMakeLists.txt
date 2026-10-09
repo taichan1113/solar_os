@@ -31,6 +31,8 @@ include(patches/nimble/config_guard.cmake)
 solar_os_regenerate_stale_sdkconfig()
 include(scripts/cxx_sdkconfig.cmake)
 solar_os_enable_required_cxx_exceptions()
+include(scripts/papermono_sdkconfig.cmake)
+solar_os_configure_papermono_sleep()
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 idf_build_set_property(
     COMPILE_DEFINITIONS
@@ -40,3 +42,4 @@ idf_build_set_property(
 idf_build_set_property(COMPILE_DEFINITIONS "MEMP_NUM_PPP_PCB=2" APPEND)
 project(solar_os)
 include(patches/nimble/overlay.cmake)
+include(patches/i2c/overlay.cmake)

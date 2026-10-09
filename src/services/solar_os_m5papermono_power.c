@@ -111,47 +111,37 @@ static esp_err_t led_get(void *ctx, bool *on)
     return err;
 }
 
+static uint8_t battery_estimate_percent(void *ctx, uint16_t averaged_mv)
+{
+    (void)ctx;
+    /* Official M5PaperMono UserDemo voltage estimate, not fuel-gauge SOC. */
+    if (averaged_mv <= 3300U) return 0;
+    if (averaged_mv >= 4200U) return 100;
+    return (uint8_t)(((uint32_t)averaged_mv - 3300U) * 100U / 900U);
+}
+
 static esp_err_t battery_session(const solar_os_i2c_transaction_t *s, void *user)
 {
     solar_os_battery_sample_t *sample = user;
-    uint8_t voltage[2], source, config;
+    uint8_t voltage[2], source;
     esp_err_t err = s->read_reg(s->context, 0x6e, 0x22, voltage, 2);
     if (err == ESP_OK) err = s->read_reg(s->context, 0x6e, 0x04, &source, 1);
-    if (err == ESP_OK) err = s->read_reg(s->context, 0x6e, 0x06, &config, 1);
     if (err != ESP_OK) return err;
-    /* M5PM1 datasheet specifies two 8-bit little-endian millivolt registers.
-     * Power source is a bitmap, not an enum. No SOC/battery presence inference. */
+    /* M5PM1 millivolt registers are little-endian; power source is a bitmap. */
     sample->battery_mv = voltage[0] | ((uint16_t)voltage[1] << 8);
     if (sample->battery_mv == 0) return ESP_ERR_INVALID_STATE;
-    sample->percent_unavailable = true;
     sample->external_power_valid = true;
     sample->external_power = (source & 0x03) != 0;
-    if (!sample->external_power || !(config & 1)) {
-        sample->charging_valid = true;
-        return ESP_OK;
-    }
-    /* Enable the charger bus only within this exclusive I2C session. Never
-     * write an IP2315 register. Final-byte NACK is supplied by the I2C backend. */
-    uint8_t latch, enable = 0, status = 0;
-    err = s->read_reg(s->context, 0x4f, 0x06, &latch, 1);
-    if (err != ESP_OK) return err;
-    const uint8_t selected = latch | 4, disconnected = latch & ~4;
-    err = s->write_reg(s->context, 0x4f, 0x06, &selected, 1);
-    if (err == ESP_OK) err = s->read_reg(s->context, 0x75, 0x01, &enable, 1);
-    if (err == ESP_OK) err = s->read_reg(s->context, 0x75, 0xc7, &status, 1);
-    /* Selection write may have reached hardware even when it reports failure. */
-    const esp_err_t cleanup = s->write_reg(s->context, 0x4f, 0x06, &disconnected, 1);
-    if (cleanup != ESP_OK) return cleanup;
-    if (err == ESP_OK) {
-        sample->charging_valid = true;
-        sample->charging = (enable & 1) && !(status & 0x40);
-        sample->charge_complete_valid = (enable & 1) != 0;
-        sample->charge_complete = sample->charge_complete_valid && (status & 0x40);
-    } else {
-        /* USB insertion mode can make charger I2C unavailable at low VBAT.
-         * Retain real PM1 voltage/source and explicitly unknown charge state. */
-        ESP_LOGW(TAG, "charger status unavailable: %s (mux disconnected)", esp_err_to_name(err));
-    }
+    /* Keep the IP2315 branch disconnected. On this board, automatic charger
+     * access reproduced shared-bus failures even with the reference's 2 ms
+     * readiness wait. PM1 measurements remain available without that branch.
+     * External charging/completion is unknown, not inferred from voltage or
+     * the PM1 rail configuration. Battery-only operation cannot be charging.
+     */
+    sample->charging_valid = !sample->external_power;
+    sample->charging = false;
+    sample->charge_complete_valid = false;
+    sample->charge_complete = false;
     return ESP_OK;
 }
 
@@ -242,7 +232,10 @@ static esp_err_t attach(const char *name, const solar_os_expansion_binding_t *bi
     err = solar_os_gpio_controller_register(&registration);
     if (err != ESP_OK) { power.active = false; return err; }
     const solar_os_status_led_provider_t led = {.set = led_set, .get = led_get};
-    const solar_os_battery_provider_t battery = {.read = battery_read};
+    const solar_os_battery_provider_t battery = {
+        .read = battery_read,
+        .estimate_percent = battery_estimate_percent,
+    };
     err = solar_os_status_led_register_provider(name, &led);
     if (err == ESP_OK) {
         err = solar_os_battery_register_provider(name, &battery);

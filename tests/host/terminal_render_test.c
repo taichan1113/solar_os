@@ -124,6 +124,9 @@ int main(int argc, char **argv)
         status.bluetooth_scanning = i % 2;
         status.time_valid = true;
         status.minute = i % 60;
+        status.battery_valid = true;
+        status.battery_percent = i % 101;
+        status.battery_external_power = i % 2;
         solar_os_terminal_set_status_bar(term, &status);
 #if SOLAR_OS_BOARD_TERMINAL_STATUS_REFRESH_ON_CHANGE
         assert(solar_os_terminal_needs_draw(term));
@@ -149,6 +152,27 @@ int main(int argc, char **argv)
     solar_os_terminal_invalidate_render(term);
     solar_os_terminal_draw(term);
     assert(presents == before_input + 2 && hash_frame() == input_hash);
+    /* Same text and clock: distinguish battery fill, unavailable slash, plug.
+     * An explicit redraw here tests pixels, without changing status policy. */
+    uint32_t icon_hash[5];
+    const uint8_t percents[] = {0, 50, 100, 0, 100};
+    for (unsigned i = 0; i < 5; i++) {
+        status.battery_valid = true;
+        status.battery_percent = percents[i];
+        status.battery_external_power = i >= 3;
+        solar_os_terminal_set_status_bar(term, &status);
+        solar_os_terminal_invalidate_render(term);
+        solar_os_terminal_draw(term);
+        icon_hash[i] = hash_frame();
+    }
+    assert(icon_hash[0] != icon_hash[1] && icon_hash[1] != icon_hash[2]);
+    assert(icon_hash[0] != icon_hash[3] && icon_hash[3] == icon_hash[4]);
+    status.battery_external_power = false;
+    status.battery_valid = false;
+    solar_os_terminal_set_status_bar(term, &status);
+    solar_os_terminal_invalidate_render(term);
+    solar_os_terminal_draw(term);
+    assert(hash_frame() != icon_hash[0]);
     printf("%s: cols=%zu rows=%zu cell=%ux%u ascent=%u status=%u initial=%08x input=%08x presents=%u\n",
            ui->name, term->cols, term->rows, term->char_width, term->line_height,
            term->cell_ascent, term->status_bar_height, initial_hash, input_hash, presents);

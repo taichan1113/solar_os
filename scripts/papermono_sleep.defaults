@@ -1,0 +1,8 @@
+# Supplemental PaperMono settings, appended to the complete board defaults.
+# Keep short automatic sleeps viable with the existing 10 ms input cadence.
+CONFIG_PM_SLP_IRAM_OPT=y
+CONFIG_PM_RTOS_IDLE_OPT=y
+# Avoid CPU/cache retention allocation failure with this PSRAM-heavy flavor.
+CONFIG_PM_POWER_DOWN_CPU_IN_LIGHT_SLEEP=n
+# USB Serial/JTAG is unavailable in light sleep; guard an active USB connection.
+CONFIG_USJ_NO_AUTO_LS_ON_CONNECTION=y

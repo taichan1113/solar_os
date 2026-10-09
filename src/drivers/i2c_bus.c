@@ -59,6 +59,28 @@ static esp_err_t i2c_bus_device(i2c_master_bus_handle_t handle,
     return i2c_master_bus_add_device(handle, &dev_config, dev_handle);
 }
 
+static esp_err_t i2c_bus_sleep_pins(const i2c_bus_config_t *config, bool retain)
+{
+#if defined(SOLAR_OS_BOARD_I2C_KEEP_PINS_IN_LIGHT_SLEEP) && \
+    SOLAR_OS_BOARD_I2C_KEEP_PINS_IN_LIGHT_SLEEP
+    if (config->port == SOLAR_OS_BOARD_I2C_PORT &&
+        config->sda_pin == SOLAR_OS_BOARD_PIN_I2C_SDA &&
+        config->scl_pin == SOLAR_OS_BOARD_PIN_I2C_SCL) {
+        /* GPIO sleep isolation otherwise disconnects inputs from this live bus.
+         * Keep its normal open-drain configuration through automatic sleep. */
+        const esp_err_t sda = retain ? gpio_sleep_sel_dis(config->sda_pin) :
+                                      gpio_sleep_sel_en(config->sda_pin);
+        const esp_err_t scl = retain ? gpio_sleep_sel_dis(config->scl_pin) :
+                                      gpio_sleep_sel_en(config->scl_pin);
+        return sda != ESP_OK ? sda : scl;
+    }
+#else
+    (void)config;
+    (void)retain;
+#endif
+    return ESP_OK;
+}
+
 static esp_err_t i2c_bus_start_config_locked(const i2c_bus_config_t *config,
                                              bool allow_existing,
                                              i2c_master_bus_handle_t *handle,
@@ -79,13 +101,22 @@ static esp_err_t i2c_bus_start_config_locked(const i2c_bus_config_t *config,
         if (ret == ESP_OK) {
             *initialized_here = false;
         }
-        return ret;
+    } else if (ret == ESP_OK) {
+        *initialized_here = true;
     }
     if (ret != ESP_OK) {
         return ret;
     }
-    *initialized_here = true;
-    return ESP_OK;
+    ret = i2c_bus_sleep_pins(config, true);
+    if (ret != ESP_OK) {
+        (void)i2c_bus_sleep_pins(config, false);
+        if (*initialized_here) {
+            (void)i2c_del_master_bus(*handle);
+        }
+        *handle = NULL;
+        *initialized_here = false;
+    }
+    return ret;
 }
 
 esp_err_t i2c_bus_init(void)
@@ -187,6 +218,7 @@ esp_err_t i2c_bus_stop_config(const i2c_bus_config_t *config,
     if (ret != ESP_OK) {
         return ret;
     }
+    (void)i2c_bus_sleep_pins(config, false);
     (void)gpio_reset_pin(config->sda_pin);
     (void)gpio_reset_pin(config->scl_pin);
     return ESP_OK;

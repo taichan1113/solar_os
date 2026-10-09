@@ -557,19 +557,23 @@ class RuntimeBoundaryTest(unittest.TestCase):
 
         self.assertIn("solar_os_ble_keyboard_scan_candidate_should_replace", ble)
         self.assertNotIn("hid_keycode_to_char", ble)
-        self.assertIn(
-            "return solar_os_input_set_keyboard_layout(\n"
-            "        (solar_os_input_keyboard_layout_t)value);",
+        self.assertRegex(
             ble,
+            r"solar_os_input_set_keyboard_layout\s*\(\s*"
+            r"\(solar_os_input_keyboard_layout_t\)layout\s*\)",
         )
 
     def test_ble_reconnect_is_scan_gated_to_the_remembered_peer(self):
         ble = (ROOT / "src/services/solar_os_ble_keyboard.c").read_text(
             encoding="utf-8"
         )
-        reconnect_start = ble.index("static void reconnect_task(")
-        reconnect_end = ble.index("static void schedule_reconnect(", reconnect_start)
-        reconnect = ble[reconnect_start:reconnect_end]
+        self.assertIn('#include "solar_os_ble_keyboard_reconnect.inc"', ble)
+        reconnect_source = (ROOT / "src/services/solar_os_ble_keyboard_reconnect.inc").read_text(
+            encoding="utf-8"
+        )
+        reconnect_start = reconnect_source.index("static void reconnect_task(")
+        reconnect_end = reconnect_source.index("static void schedule_reconnect(", reconnect_start)
+        reconnect = reconnect_source[reconnect_start:reconnect_end]
         candidate_start = ble.index("static void consider_candidate(")
         candidate_end = ble.index(
             "static bool key_in_report(", candidate_start
@@ -631,8 +635,15 @@ class RuntimeBoundaryTest(unittest.TestCase):
 
         self.assertLess(
             candidate.index("if (candidate_frozen)"),
-            candidate.index("bda_matches_remembered_peer"),
+            candidate.index("candidate.valid = true;"),
         )
+        # Diagnostic matching/logging may precede the guard; candidate mutation may not.
+        self.assertLess(
+            candidate.index("if (candidate_frozen)"),
+            candidate.index("memcpy(candidate.bda"),
+        )
+        frozen_guard = candidate.split("if (candidate_frozen)", 1)[1].split("}", 1)[0]
+        self.assertIn("return;", frozen_guard)
         self.assertIn("candidate_frozen = true;", candidate)
         self.assertIn("ble_keyboard_candidate_t selected_candidate = {0};", open_path)
         self.assertIn("run_keyboard_scan(mode, &selected_candidate)", open_path)
@@ -658,22 +669,27 @@ class RuntimeBoundaryTest(unittest.TestCase):
         self.assertIn("pairing_retry_pending && result == ESP_OK", finish)
         self.assertIn("pairing_retry_pending = false;", finish)
 
-    def test_ble_hid_replaces_a_conflicting_keyboard_bond(self):
+    def test_ble_hid_preserves_reconnect_bonds_and_delegates_explicit_pairing(self):
         hid = (ROOT / "src/services/solar_os_ble_hid.c").read_text(
             encoding="utf-8"
         )
-        replace_start = hid.index("static int replace_repeat_pairing_bond(")
-        replace_end = hid.index("static int gap_callback(", replace_start)
-        replace = hid[replace_start:replace_end]
+        repeat = hid.split("case BLE_GAP_EVENT_REPEAT_PAIRING:", 1)[1].split(
+            "case BLE_GAP_EVENT_NOTIFY_RX:", 1
+        )[0]
+        self.assertIn("return solar_os_ble_nimble_security(event);", repeat)
+        self.assertNotIn("ble_store_util_delete_peer", hid)
+        self.assertNotIn("BLE_GAP_REPEAT_PAIRING_RETRY", repeat)
 
-        self.assertIn("ble_gap_conn_find", replace)
-        self.assertIn("ble_store_util_delete_peer", replace)
-        self.assertIn("return BLE_GAP_REPEAT_PAIRING_RETRY;", replace)
-        self.assertIn(
-            "case BLE_GAP_EVENT_REPEAT_PAIRING:\n"
-            "        return replace_repeat_pairing_bond(event);",
-            hid,
+        nimble = (ROOT / "src/services/solar_os_ble_nimble.c").read_text(
+            encoding="utf-8"
         )
+        explicit_pairing = nimble.split("if (event->type == BLE_GAP_EVENT_REPEAT_PAIRING", 1)[1].split(
+            "if (event->type == BLE_GAP_EVENT_ENC_CHANGE", 1
+        )[0]
+        self.assertIn("client->conn == event->repeat_pairing.conn_handle", explicit_pairing)
+        self.assertIn("client->op == OP_PAIR", explicit_pairing)
+        self.assertIn("ble_store_util_delete_peer(&desc.peer_id_addr)", explicit_pairing)
+        self.assertIn("BLE_GAP_REPEAT_PAIRING_IGNORE : BLE_GAP_REPEAT_PAIRING_RETRY", explicit_pairing)
 
     def test_ble_keyboard_activity_resumes_suspend(self):
         main = (ROOT / "src/main.c").read_text(encoding="utf-8")

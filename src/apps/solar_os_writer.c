@@ -1111,6 +1111,9 @@ static bool writer_handle_char(solar_os_context_t *ctx, uint8_t ch)
             writer.render_pending = true;
         }
         break;
+    case SOLAR_OS_KEY_ALT_PREFIX:
+        /* Alt framing is a key protocol marker, never a UTF-8 text byte. */
+        break;
     default:
         if (ch >= 0x20U && ch != 0x7fU) {
             const char value = (char)ch;

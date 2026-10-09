@@ -69,9 +69,16 @@ typedef esp_err_t (*solar_os_battery_provider_read_fn_t)(
     void *user,
     solar_os_battery_sample_t *sample);
 
+/* Optional voltage estimate, applied after the service's existing averaging.
+ * A provider's valid fuel-gauge percentage or explicit unavailability wins. */
+typedef uint8_t (*solar_os_battery_provider_estimate_fn_t)(
+    void *user,
+    uint16_t averaged_voltage_mv);
+
 typedef struct {
     solar_os_battery_provider_read_fn_t read;
     void *user;
+    solar_os_battery_provider_estimate_fn_t estimate_percent;
 } solar_os_battery_provider_t;
 
 esp_err_t solar_os_battery_init(void);
