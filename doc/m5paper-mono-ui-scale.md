@@ -55,7 +55,7 @@ python3 fonts/generate_u8g2_fonts.py
 | Status bar | 高さ・clock font・全アイコン・間隔 | 各状態raster、全10種100↔140拡大と描画範囲 | 初回サイズ不揃い指摘、修正後確認待ち |
 | Writer UI | header34、title25、dialog22/25、実幅による入力切詰め | GFX native font/文書layout/保存/recovery/checkpoint回帰 | 待ち |
 | Writer本文 | native font、従来z0〜z4維持、追加依頼でz5〜z7対応 | 文書layout/実font/checkpoint | 追加Zoom問題なし、保存z6=25px・本文保持照合PASS |
-| Sketch | icon/label縦配置、browser行/Cancel/popup拡大 | 140%lease/PNG保存再読込/座標/キャンバス100%往復 | ボタン文字・Pen/指の位置・新規保存PASS。100%往復/再読込は確認中 |
+| Sketch | icon/label縦配置、browser行/Cancel/popup拡大 | 140%lease/PNG保存再読込/座標/キャンバス100%往復 | ボタン文字・Pen/指の位置・新規保存・100%往復・Open/Cancel・再読込・追描画・終了PASS |
 | Calc | 実font metricsによる行高/選択行表示/実幅cursor | GFX widthと既存calc回帰 | 待ち |
 | Launcher | 既存role profileと実幅レイアウトへ追従 | launcher layout回帰 | 待ち |
 | Reader/Web | chrome拡大/切詰め。文書zoomはnativeで保持 | 既存reader/web回帰 | 待ち |
@@ -237,3 +237,18 @@ manual OFF・lease 1・ready=yes、非同期displayはerror=0・busy=0・pending
 途中の「テストが落ちた」という問い合わせは、実機ではなくセッションの回答欄が
 返信前に閉じたことだったとユーザーが明確に説明した。実機障害として計上しない。
 以後の物理確認は通常のチャット返信で行う。
+
+続く100%→140%往復、図形保持、Openの一覧とCancel操作には「全て異常なし」と
+回答を受けた。USBでRAM scaleが140へ戻り、Sketch active、Touch lease 1、
+非同期display error=0を確認。Batteryは3.810V/56%/external、RTC読出し正常、
+BLEはtravelers-split接続・remembered 1/1を維持している。
+証跡: `.research/ui-scale/sketch-scale-roundtrip-20261011.log`。
+Sketchタイトルにdirty印があるため、再読込前にユーザーへ保存を依頼し、
+未保存の描画を自動終了や再読込で失わない。
+
+保存後のPNG再読込・指による追描画・再保存・EscでのShell復帰にも「問題なし」と
+回答を受けた。USB照合でSketch sessionが閉じ、display0はShell activeへ復帰。
+Touchはmanual OFF・lease 0・requested OFF・ready=noとなり、自動OFFを確認。
+Displayはerror=0、busy/pending=0。UI scaleは140のまま維持された。
+証跡: `.research/ui-scale/sketch-exit-acceptance-20261011.log`。
+Test DのSketch表示・描画・PNG保存再読込・Touch lifecycleは受入済み。
