@@ -1035,7 +1035,11 @@ const char *epd_ssd1677_controller_mode(const epd_ssd1677_t *display)
 const char *epd_ssd1677_controller_mode_values(const epd_ssd1677_t *display)
 {
     if (display != NULL && display->papermono_otp)
+#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> fastest-waveform=<baseline,dose,hold> (EXPERIMENTAL; DC/lifetime unverified) spi-mhz=<10,20,40> fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
+#else
         return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> spi-mhz=<10,20,40> fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
+#endif
     return "refresh=<auto,partial,full>";
 }
 
@@ -1044,6 +1048,19 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
 {
     if (display == NULL || mode == NULL) return ESP_ERR_INVALID_ARG;
     if (display->papermono_otp) {
+#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+        if (strncmp(mode, "fastest-waveform=", 17) == 0) {
+            const char *value = mode + 17;
+            if (strcmp(value, "baseline") == 0)
+                display->waveform_trial = EPD_SSD1677_WAVEFORM_BASELINE;
+            else if (strcmp(value, "dose") == 0)
+                display->waveform_trial = EPD_SSD1677_WAVEFORM_DOSE;
+            else if (strcmp(value, "hold") == 0)
+                display->waveform_trial = EPD_SSD1677_WAVEFORM_HOLD;
+            else return ESP_ERR_INVALID_ARG;
+            return ESP_OK; /* MODE boundary; reload LUT on next changed present. */
+        }
+#endif
         const struct { const char *key; uint32_t *field; unsigned min, max; } options[] = {
             {"typing-frame-ms=", &display->typing_frame_ms, 0, 1000},
             {"typing-cleanup-updates=", &display->typing_cleanup_budget, 0, 4096},

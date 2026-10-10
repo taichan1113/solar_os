@@ -8,6 +8,11 @@
 #include "esp_err.h"
 #include "u8g2.h"
 
+/* Temporary, opt-in laboratory build. Not an adopted panel waveform. */
+#ifndef SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+#define SOLAR_OS_SSD1677_WAVEFORM_TRIAL 0
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,6 +24,12 @@ typedef enum {
     EPD_SSD1677_REFRESH_FASTEST, /* opt-in host LUT, PaperMono only */
     EPD_SSD1677_REFRESH_TYPING, /* same LUT; paced executor + idle cleanup */
 } epd_ssd1677_refresh_mode_t;
+
+typedef enum {
+    EPD_SSD1677_WAVEFORM_BASELINE = 0,
+    EPD_SSD1677_WAVEFORM_DOSE,
+    EPD_SSD1677_WAVEFORM_HOLD,
+} epd_ssd1677_waveform_trial_t;
 
 typedef esp_err_t (*epd_ssd1677_power_fn_t)(void *context, bool on);
 typedef esp_err_t (*epd_ssd1677_reset_fn_t)(void *context, bool high);
@@ -98,6 +109,7 @@ typedef struct {
     bool timing_enabled;
     bool reference_awake; /* fastest Mode 2, analog power retained */
     bool fastest_tiles;
+    epd_ssd1677_waveform_trial_t waveform_trial; /* volatile; baseline at init */
     int configured_spi_hz, transport_spi_hz, applied_spi_hz, actual_spi_hz;
     int fastest_spi_hz;
     uint32_t typing_frame_ms, typing_cleanup_budget, typing_idle_ms;

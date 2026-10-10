@@ -4,6 +4,28 @@ These tests use live hardware. They do not flash or change persistent settings.
 Run with permission to use the relevant hardware resources. RTSP tests occupy
 the publisher/viewer and receiver slots.
 
+## PaperMono waveform quality trial
+
+`papermono_fastest_quality.py` runs in SolarOS MicroPython, drawing retained
+and changed text, lines and a checkerboard. It does not save a document or
+change mode/startup/bonds. Copy it to a new temporary file, choose the mode
+from Shell, perform manual cleanup, and then launch, for example:
+
+```text
+python /quality-trial.py hold 10
+```
+
+Patterns are `hold`, `cycle`, `add`, `erase`; count is trial requested presents,
+including the initial specimen, limited to 1..10. There is one extra white setup
+present: arm cleanup before launch and verify `OTP full` for that setup. Space
+continues after white setup and the first specimen; q exits after inspection.
+Verify physical completions against `REF`
+logs: requests alone do not prove completed updates. The 500ms interval only
+separates diagnostic requests. It is not firmware pacing or measured latency.
+The trials have unverified panel DC balance/lifetime and are not adopted;
+do not run them unattended. See [the Japanese experiment report](../../doc/m5paper-mono-fastest-quality.md)
+for mode selection, manufacturer guidance, measurement and rollback.
+
 ## Native image pipelines
 
 `pipeline_client.py` starts jobs and reads them from separate Python sessions;

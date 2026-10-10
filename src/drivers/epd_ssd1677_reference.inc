@@ -20,6 +20,31 @@ static const uint8_t ssd1677_reference_lut[110] = {
     0x17,0x46,0xa8,0x32,0x30,
 };
 
+#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+#include "epd_ssd1677_waveform_trial.inc"
+#endif
+
+static const uint8_t *ssd1677_selected_lut(const epd_ssd1677_t *d, const char **name)
+{
+    *name = "baseline";
+#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+    /* Typing is a separate, existing experiment; do not change its waveform. */
+    if (d->refresh_mode == EPD_SSD1677_REFRESH_FASTEST) {
+        if (d->waveform_trial == EPD_SSD1677_WAVEFORM_DOSE) {
+            *name = "dose";
+            return ssd1677_trial_dose_lut;
+        }
+        if (d->waveform_trial == EPD_SSD1677_WAVEFORM_HOLD) {
+            *name = "hold";
+            return ssd1677_trial_hold_lut;
+        }
+    }
+#else
+    (void)d;
+#endif
+    return ssd1677_reference_lut;
+}
+
 /* Byte loads are alignment- and endian-independent. Transpose column-major
  * U8g2 bits into MSB-first controller rows; no rotation beyond the old mapper. */
 static void ssd1677_transpose_tile(const uint8_t *columns, uint8_t *rows, size_t stride)
@@ -99,6 +124,8 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     d->timing = (epd_ssd1677_timing_t){.start_us=start, .partial=true, .diff_us=diff_end-start};
     d->papermono_baseline_valid = false;
     const bool cold = !d->reference_awake;
+    const char *waveform_name;
+    const uint8_t *lut = ssd1677_selected_lut(d, &waveform_name);
     esp_err_t err = ESP_OK;
     if (cold) {
         /* Reset electronic state, not the optical completed-shadow baseline. */
@@ -114,10 +141,10 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
                                 ssd1677_write_plane(d, i ? 0x26 : 0x24, source, &full, false);
         d->timing.write_end_us[i] = esp_timer_get_time();
     }
-    if (err == ESP_OK) err = ssd1677_cmd_data(d,0x32,ssd1677_reference_lut,105);
-    if (err == ESP_OK) err = ssd1677_cmd_data(d,0x03,ssd1677_reference_lut+105,1);
-    if (err == ESP_OK) err = ssd1677_cmd_data(d,0x04,ssd1677_reference_lut+106,3);
-    if (err == ESP_OK) err = ssd1677_cmd_data(d,0x2c,ssd1677_reference_lut+109,1);
+    if (err == ESP_OK) err = ssd1677_cmd_data(d,0x32,lut,105);
+    if (err == ESP_OK) err = ssd1677_cmd_data(d,0x03,lut+105,1);
+    if (err == ESP_OK) err = ssd1677_cmd_data(d,0x04,lut+106,3);
+    if (err == ESP_OK) err = ssd1677_cmd_data(d,0x2c,lut+109,1);
     const uint8_t ctrl1=0, ctrl2=cold ? 0xcc : 0x0c;
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x21,&ctrl1,1);
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x22,&ctrl2,1);
@@ -160,9 +187,9 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
                  (dirty.x_end_byte-dirty.x_start_byte+1)*8,dirty.y_end-dirty.y_start+1,
                  start,d->timing.end_us,d->timing.end_us-start,
                  d->timing.ready_us[0]-d->timing.activate_us[0]);
-        ESP_LOGI(TAG, "REF phases path=%s spi_khz=%d diff_us=%" PRId64 " promote_us=%" PRId64,
+        ESP_LOGI(TAG, "REF phases path=%s spi_khz=%d diff_us=%" PRId64 " promote_us=%" PRId64 " waveform=%s",
                  d->fastest_tiles ? "tile" : "scalar", d->actual_spi_hz/1000,
-                 d->timing.diff_us, d->timing.promote_us);
+                 d->timing.diff_us, d->timing.promote_us, waveform_name);
         for (unsigned i=0;i<d->timing.writes;i++)
             ESP_LOGI(TAG,"REF write%u us=%" PRId64 " convert_us=%" PRId64 " spi_us=%" PRId64,
                      i,d->timing.write_end_us[i]-d->timing.write_start_us[i],

@@ -517,6 +517,11 @@ if(SOLAR_OS_PACKAGE_SERVICE_BLE AND "$ENV{SOLAR_OS_BLE_SECURITY_TRACE}" STREQUAL
     target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_BLE_SECURITY_TRACE=1)
 endif()
 
+# Temporary opt-in waveform laboratory; normal builds retain the M5GFX LUT.
+if("$ENV{SOLAR_OS_SSD1677_WAVEFORM_TRIAL}" STREQUAL "1")
+    target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_SSD1677_WAVEFORM_TRIAL=1)
+endif()
+
 if(SOLAR_OS_PACKAGE_SERVICE_MESHCORE)
     target_compile_definitions(${COMPONENT_LIB} PRIVATE
         MAX_CONTACTS=32

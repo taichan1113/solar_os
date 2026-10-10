@@ -95,6 +95,9 @@ partition_file = update_layout.partition_file
 maximum_size = update_layout.app_bytes
 cvbs_mode = _selected_cvbs_mode()
 vga_mode = _selected_vga_mode()
+waveform_trial = os.environ.get("SOLAR_OS_SSD1677_WAVEFORM_TRIAL", "0")
+if waveform_trial not in ("0", "1"):
+    raise SystemExit("SOLAR_OS_SSD1677_WAVEFORM_TRIAL must be 0 or 1")
 
 # ESP-IDF runs component discovery in child CMake processes that do not always
 # inherit PlatformIO's CMake cache arguments. Export the resolved selection so
@@ -187,6 +190,7 @@ stamp = (
     f"partition={partition_file}\n"
     f"cvbs={cvbs_mode}\n"
     f"vga={vga_mode}\n"
+    f"ssd1677_waveform_trial={waveform_trial}\n"
 )
 for tracked_file in tracked_files:
     stat = tracked_file.stat()

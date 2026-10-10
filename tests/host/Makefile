@@ -18,6 +18,7 @@ ble_keyboard_reconnect_test: ble_keyboard_reconnect_test.c $(ROOT)/src/services/
 	$(CC) $(CFLAGS) -I. -o $@ $<
 TARGETS += input_action_match_test gesture_completion_test
 TARGETS += epd_ssd1677_test epd_uc8179_test uc8179_expansion_test epd_uc8279_test uc8279_expansion_test
+TARGETS += epd_ssd1677_waveform_trial_test
 TARGETS += frontlight_pwm_test epd_xteink_identify_test x4pro_expansion_test
 TARGETS += gt911_test
 TARGETS += sdmmc_expansion_test
@@ -178,6 +179,12 @@ epd_uc8179_test: epd_uc8179_test.c $(ROOT)/src/drivers/epd_ultrachip.c $(ROOT)/s
 epd_ssd1677_test: epd_ssd1677_test.c $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677.h $(ROOT)/src/drivers/epd_ssd1677_reference.inc \
 	$(wildcard epd_stubs/*.h epd_stubs/driver/*.h epd_stubs/freertos/*.h)
 	$(CC) $(CFLAGS) -ffunction-sections -fdata-sections \
+		-Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib \
+		epd_ssd1677_test.c -Wl,--gc-sections -o $@
+
+epd_ssd1677_waveform_trial_test: epd_ssd1677_test.c $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677.h $(ROOT)/src/drivers/epd_ssd1677_reference.inc $(ROOT)/src/drivers/epd_ssd1677_waveform_trial.inc \
+	$(wildcard epd_stubs/*.h epd_stubs/driver/*.h epd_stubs/freertos/*.h)
+	$(CC) $(CFLAGS) -DSOLAR_OS_SSD1677_WAVEFORM_TRIAL=1 -ffunction-sections -fdata-sections \
 		-Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib \
 		epd_ssd1677_test.c -Wl,--gc-sections -o $@
 
@@ -1011,6 +1018,7 @@ test: $(TARGETS)
 	./bq25896_test
 	./axp2101_test
 	./epd_ssd1677_test
+	./epd_ssd1677_waveform_trial_test
 	./m5papermono_power_test
 	./ft6336_test
 	./rtc_rx8130ce_test

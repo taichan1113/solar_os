@@ -672,6 +672,132 @@ static void test_typing_mode(void)
     assert(typing.papermono_baseline_valid && typing.reference_awake);
 }
 
+/* Decode the actual table, including repeat and skipped phases (SSD1677 6.6).
+ * Counts are waveform frames, not milliseconds or evidence of DC balance. */
+#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+static void waveform_frames(const uint8_t *lut, unsigned row, unsigned counts[4])
+{
+    memset(counts, 0, 4 * sizeof(*counts));
+    for (unsigned group=0; group<10; ++group) {
+        const uint8_t *tp=lut+50+group*5;
+        for (unsigned phase=0; phase<4; ++phase) {
+            const unsigned voltage=(lut[row*10+group] >> (6-phase*2)) & 3;
+            counts[voltage] += tp[phase] * (tp[4]+1);
+        }
+    }
+}
+
+static void test_waveform_trials(void)
+{
+    const char *modes[] = {"fastest-waveform=baseline", "fastest-waveform=dose",
+                           "fastest-waveform=hold"};
+    const uint8_t *luts[] = {ssd1677_reference_lut, ssd1677_trial_dose_lut,
+                            ssd1677_trial_hold_lut};
+    for (unsigned trial=0; trial<3; ++trial) {
+        for (unsigned row=0; row<5; ++row) {
+            unsigned counts[4]; waveform_frames(luts[trial],row,counts);
+            assert(counts[0]+counts[1]+counts[2]+counts[3]==10);
+            assert(counts[3]==0); /* VSH2 never newly introduced. */
+            if (row==1) { assert(counts[1]==(trial==1 ? 1U : 2U)); assert(counts[2]==(trial==1 ? 9U : 8U)); }
+            if (row==2) { assert(counts[2]==(trial==1 ? 1U : 2U)); assert(counts[1]==(trial==1 ? 9U : 8U)); }
+            if (row==0 && trial==2) assert(counts[0]==6 && counts[1]==2 && counts[2]==2);
+            if (row==3 || row==4 || (row==0 && trial!=2)) assert(counts[0]==10);
+        }
+        assert(!memcmp(luts[trial]+100,ssd1677_reference_lut+100,10));
+        for (unsigned i=0; i<110; ++i)
+            if (luts[trial][i]!=ssd1677_reference_lut[i])
+                assert((trial==1 && (i==50 || i==51)) || (trial==2 && i==0));
+        for (unsigned group=0; group<10; ++group) {
+            unsigned baseline_frames=0, candidate_frames=0;
+            for (unsigned phase=0; phase<4; ++phase) {
+                baseline_frames += ssd1677_reference_lut[50+group*5+phase];
+                candidate_frames += luts[trial][50+group*5+phase];
+            }
+            assert(candidate_frames==baseline_frames);
+        }
+
+        epd_ssd1677_t d=make_display();
+        assert(epd_ssd1677_set_controller_mode(&d,modes[trial])==ESP_ERR_INVALID_ARG);
+        d.papermono_otp=true; d.band_buffer=band; d.fastest_tiles=true;
+        d.fastest_spi_hz=40000000;
+        assert(d.waveform_trial==EPD_SSD1677_WAVEFORM_BASELINE);
+        assert(epd_ssd1677_set_controller_mode(&d,"refresh=fastest")==ESP_OK);
+        assert(ssd1677_refresh(&d)==ESP_OK);
+        frame[0]=0xaa; command_count=0;
+        assert(ssd1677_refresh(&d)==ESP_OK); /* completed old: black,white,... */
+        assert(epd_ssd1677_set_controller_mode(&d,modes[trial])==ESP_OK);
+        const epd_ssd1677_waveform_trial_t selected=d.waveform_trial;
+        assert(epd_ssd1677_set_controller_mode(&d,"fastest-waveform=unknown")==ESP_ERR_INVALID_ARG);
+        assert(d.waveform_trial==selected && d.reference_awake && d.papermono_baseline_valid);
+        command_count=0;
+        assert(ssd1677_refresh(&d)==ESP_OK && command_count==0); /* no artificial update */
+        frame[0]=0xcc; command_count=0;
+        assert(ssd1677_refresh(&d)==ESP_OK);
+        expect_data(0x32,luts[trial],105);
+        expect_data(0x03,luts[trial]+105,1);
+        expect_data(0x04,luts[trial]+106,3);
+        expect_data(0x2c,luts[trial]+109,1);
+        expect_data(0x22,(uint8_t[]){0x0c},1); /* warm; no new reset */
+        const captured_command_t *old=find_command(0x26,0), *now=find_command(0x24,0);
+        /* All four (old,new) classes from 10101010 -> 11001100. */
+        for (unsigned y=0; y<8; ++y) {
+            assert(old->data[y*100]==((0xaa & (1U<<y)) ? 0xff : 0x7f));
+            assert(now->data[y*100]==((0xcc & (1U<<y)) ? 0xff : 0x7f));
+        }
+        assert(d.actual_spi_hz==40000000 && !memcmp(frame,shadow,sizeof(frame)));
+
+        assert(epd_ssd1677_set_controller_mode(&d,"refresh=typing")==ESP_OK);
+        frame[1]^=1; command_count=0;
+        assert(ssd1677_refresh(&d)==ESP_OK);
+        expect_data(0x32,ssd1677_reference_lut,105); /* typing stays exact baseline */
+        assert(epd_ssd1677_set_controller_mode(&d,"refresh=fastest")==ESP_OK);
+        assert(epd_ssd1677_set_controller_mode(&d,"refresh=cleanup")==ESP_OK);
+        command_count=0;
+        assert(ssd1677_refresh(&d)==ESP_OK && !d.timing.partial);
+        for (size_t i=0; i<command_count; ++i) assert(commands[i].command!=0x32);
+        assert(epd_ssd1677_set_controller_mode(&d,"refresh=partial")==ESP_OK);
+        assert(ssd1677_refresh(&d)==ESP_OK); /* establish OTP after mode switch */
+        frame[2]^=1; command_count=0;
+        assert(ssd1677_refresh(&d)==ESP_OK);
+        for (size_t i=0; i<command_count; ++i) assert(commands[i].command!=0x32);
+        assert(epd_ssd1677_set_controller_mode(&d,"refresh=fastest")==ESP_OK);
+        assert(ssd1677_refresh(&d)==ESP_OK);
+        static uint8_t immutable[SSD1677_BUFFER_BYTES];
+        memcpy(immutable,shadow,sizeof(immutable)); immutable[3]^=1;
+        command_count=0; mutate_render_buffer=true;
+        assert(epd_ssd1677_present_snapshot(&d,immutable,sizeof(immutable))==ESP_OK);
+        assert(!memcmp(shadow,immutable,sizeof(immutable)) && d.snapshot==NULL);
+        expect_data(0x32,luts[trial],105);
+        /* Transport, waveform command, and BUSY errors cannot promote shadow. */
+        for (unsigned failure=0; failure<3; ++failure) {
+            d=make_display(); d.papermono_otp=true; d.band_buffer=band;
+            d.fastest_tiles=true; d.fastest_spi_hz=40000000;
+            assert(epd_ssd1677_set_controller_mode(&d,"refresh=fastest")==ESP_OK);
+            assert(epd_ssd1677_set_controller_mode(&d,modes[trial])==ESP_OK);
+            assert(ssd1677_refresh(&d)==ESP_OK);
+            frame[0]^=1; command_count=0;
+            if (failure==0) fail_plane_data=true;
+            if (failure==1) fail_command=0x32;
+            if (failure==2) busy_on_activation=true;
+            assert(ssd1677_refresh(&d)!=ESP_OK);
+            assert(d.faulted && !d.shadow_valid && !d.papermono_baseline_valid && shadow[0]==0xff);
+            const size_t sent=command_count;
+            assert(ssd1677_refresh(&d)==ESP_ERR_INVALID_STATE && command_count==sent);
+            stuck_busy=false;
+        }
+    }
+}
+#else
+static void test_waveform_trials(void)
+{
+    epd_ssd1677_t d=make_display(); d.papermono_otp=true;
+    assert(epd_ssd1677_set_controller_mode(&d,"fastest-waveform=baseline")==ESP_ERR_INVALID_ARG);
+    assert(epd_ssd1677_set_controller_mode(&d,"fastest-waveform=dose")==ESP_ERR_INVALID_ARG);
+    assert(epd_ssd1677_set_controller_mode(&d,"fastest-waveform=hold")==ESP_ERR_INVALID_ARG);
+    assert(!strstr(epd_ssd1677_controller_mode_values(&d),"fastest-waveform"));
+}
+#endif
+
 int main(void)
 {
     test_initial_full();
@@ -689,6 +815,7 @@ int main(void)
     test_fastest_conversion_equivalence();
     test_fastest_snapshot_ownership();
     test_typing_mode();
+    test_waveform_trials();
     puts("epd_ssd1677_test: PASS");
     return 0;
 }
