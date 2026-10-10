@@ -28,13 +28,17 @@ def specimen(x, y):
                 gfx.fill_rect(x + col * 6, y + 84 + row * 6, 6, 6)
 
 
-def draw_initial():
+def draw_initial(pattern):
     gfx.clear(gfx.WHITE)
     specimen(32, 40)  # Retained black: never redraw this region during steps.
-    specimen(440, 40)  # Changed region: erase/rewrite for cycle/erase patterns.
+    specimen(440, 40)  # Also fixed for hold; edited for cycle/erase patterns.
     gfx.color(gfx.BLACK)
     gfx.font(gfx.FONT_MONO_20)
-    gfx.text(32, 240, "LEFT: retained   RIGHT: changed")
+    if pattern == "hold":
+        gfx.text(32, 240, "FIXED TEXT A        FIXED TEXT B")
+        gfx.text(32, 272, "Only the small square changes")
+    else:
+        gfx.text(32, 240, "LEFT: fixed      RIGHT: edit area")
     gfx.rect(16, 16, 768, 448)
 
 
@@ -81,7 +85,7 @@ def main():
         print("QUALITY verify WHITE/full cleanup completion; Space starts, q exits")
         if wait_for((32,)) is None:
             return
-        draw_initial()
+        draw_initial(pattern)
         print("QUALITY pattern=%s ordinal=1 request_ms=%d" %
               (pattern, solaros.time.uptime_ms()))
         gfx.present()
