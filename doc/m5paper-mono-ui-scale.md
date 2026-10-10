@@ -275,12 +275,18 @@ Calc修正commit: `f13af33f`。Host全134 executable PASS、Python578 tests / 4 
 PowerShellのnative stderr転送はプロセスstatusを1にする場合があるため、suiteの終了結果も
 確認した。Pythonは `OK (skipped=4)`、SDK負例のassertは期待された子プロセス試験である。
 
-書込準備済みartifact（現時点では未書込）:
+Calc拡大版artifact:
 
 - `build/papermono-ui-scale-140-trial/firmware.bin`
 - 3,426,896 bytes
 - SHA256: `39ea09d99460d71399ac255a8521fbc610c681b9ac38b98b1d62d12bb3e6112b`
 
 前artifact一式は `.research/ui-scale/artifact-before-calc-f13af33f` に保持した。
-実機にはまだ `91e99094` のfirmwareが稼働中。現在のCalcを閉じてShellへ戻ったことを
-確認してから、保護領域の比較付きでアプリだけを書き込む。
+Calcを閉じてShellへ戻ったとの回答とUSB session listを確認し、アプリだけを書き込んだ。
+Flash証跡: `.research/ui-scale/flash-20261011-014530/summary.json`、PASS。
+MAC・partition table・artifact SHAを照合し、NVS/FAT/otadataは前後全バイト一致。
+`f13af33f`のfirmwareが実機で稼働中。起動時のfont mono・base textsize20・orientation270・
+statusbar showを保持し、ZMKは登録済み1/1から自動接続した。
+Battery3.808V/56%/external、RTC2026-10-11 01:46:36を読み取り正常。
+doseとtimingログをRAM上で再選択した。
+起動ログ: `.research/ui-scale/calc-readable-boot-20261011.log`。
