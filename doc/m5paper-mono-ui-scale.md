@@ -55,7 +55,7 @@ python3 fonts/generate_u8g2_fonts.py
 | Status bar | 高さ・clock font・全アイコン・間隔 | 各状態raster、全10種100↔140拡大と描画範囲 | 初回サイズ不揃い指摘、修正後確認待ち |
 | Writer UI | header34、title25、dialog22/25、実幅による入力切詰め | GFX native font/文書layout/保存/recovery/checkpoint回帰 | 待ち |
 | Writer本文 | native font、従来z0〜z4維持、追加依頼でz5〜z7対応 | 文書layout/実font/checkpoint | 追加Zoom問題なし、保存z6=25px・本文保持照合PASS |
-| Sketch | icon/label縦配置、browser行/Cancel/popup拡大 | 140%lease/PNG保存再読込/座標/キャンバス100%往復 | 待ち |
+| Sketch | icon/label縦配置、browser行/Cancel/popup拡大 | 140%lease/PNG保存再読込/座標/キャンバス100%往復 | ボタン文字・Pen/指の位置・新規保存PASS。100%往復/再読込は確認中 |
 | Calc | 実font metricsによる行高/選択行表示/実幅cursor | GFX widthと既存calc回帰 | 待ち |
 | Launcher | 既存role profileと実幅レイアウトへ追従 | launcher layout回帰 | 待ち |
 | Reader/Web | chrome拡大/切詰め。文書zoomはnativeで保持 | 既存reader/web回帰 | 待ち |
@@ -222,3 +222,18 @@ Writerをこの新規文書・従来default z4で起動した。既存文書に�
 証跡: `.research/ui-scale/zoom-saved-audit.json`、`zoom-checkpoint-audit.log`、
 `zoom-writer-acceptance.log`。新Zoomの追加依頼は実装・実機確認済み。
 UI140%全体ではSketchなど残りの目視を継続する。
+
+### Sketchの初回目視結果
+
+ユーザーから、ボタン文字の欠けなし、Canvas上の線と指の位置に問題なし、
+新規PNG保存済みとの回答を受けた。USB読み取りでSketchがactive、Touchは
+manual OFF・lease 1・ready=yes、非同期displayはerror=0・busy=0・pending=0を確認。
+`/Sketches/sketch003.png` と `sketch004.png` は各72,617 bytes。
+両ファイルの先頭24 bytesを読み取り、PNG signatureとIHDRの736×392を確認した。
+これはヘッダーの確認であり、画像全体の再読込・内容一致は次の確認項目である。
+証跡: `.research/ui-scale/sketch-save-status-20261011.log`、
+`sketch-png-audit-20261011.log`。
+
+途中の「テストが落ちた」という問い合わせは、実機ではなくセッションの回答欄が
+返信前に閉じたことだったとユーザーが明確に説明した。実機障害として計上しない。
+以後の物理確認は通常のチャット返信で行う。
