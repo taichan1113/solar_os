@@ -58,7 +58,7 @@ python3 fonts/generate_u8g2_fonts.py
 | Sketch | icon/label縦配置、browser行/Cancel/popup拡大 | 140%lease/PNG保存再読込/座標/キャンバス100%往復 | ボタン文字・Pen/指の位置・新規保存・100%往復・Open/Cancel・再読込・追描画・終了PASS |
 | Calc | 実font metricsによる行高/選択行表示/実幅cursor。140%で式/結果25px | GFX widthと既存calc回帰 | cursor修正・文字重なりなし・25pxのサイズOK |
 | Launcher | 既存role profileと実幅レイアウトへ追従 | launcher layout回帰 | ラベル/矢印選択の確認依頼に「異常なし」と回答 |
-| Reader/Web | chrome拡大/切詰め。文書zoomはnativeで保持 | 既存reader/web回帰 | 待ち |
+| Reader/Web | chrome拡大/切詰め。文書zoomはnative | 既存reader/web回帰 | Reader重なりなし。追加依頼でReader上限z7を準備中。Webは未目視 |
 | Plot | 文字領域の余白を確保。traceデータは物理座標 | 既存plot回帰 | 待ち |
 | WebRadio/RTSP | header/footer/row/dialog/controlsを拡大 | 共通media/RTSP layout/transport回帰 | 待ち |
 | Clock/View | Clockは画面に合わせたvector digits、Viewは画像。直接拡大不要 | 既存回帰 | 待ち |
@@ -300,3 +300,18 @@ Readerの見出し/本文/案内の重なりについてはまだ明示的回答
 ログではCalc/Launcher/Readerの起動・終了を確認し、最後はShell active、
 Touch lease 0・requested OFF、display error=0、BLE remembered1/1接続を保持。
 証跡: `.research/ui-scale/calc-launcher-reader-acceptance-20261011.log`。
+
+### 追加依頼: Readerもz7まで拡張
+
+続く回答で、Readerの見出し・本文・操作案内の重なりはなかったことを確認した。
+「z7までの実装が重くなければ」との追加依頼を受け、ReaderにもPaperMono限定で
+共通documentの上限7を適用する。新規fontやlayout実装の追加は不要。
+従来z0〜z4の本文サイズと初期z1、既存読書位置を維持し、z5=22px、z6=25px、
+z7=28pxを追加。100%へのUI切替と本文Zoomは引き続き独立している。
+他ボードは従来上限4。Webの本文Zoom上限も変更しない。
+
+Readerの読書位置ファイルは既存のテキスト形式のまま、選択Zoomとsource anchorを
+保存する。新しい保存キーや本文の書換えは追加しない。
+古いReader firmwareはz5以上を保存した読書位置からZoomを復元せず、既存処理で
+初期z1となる。本文データの互換性には影響しない。
+拡張後のZoom操作・レイアウト・閉じて再度開いたときの保存Zoomを実機で確認する。
