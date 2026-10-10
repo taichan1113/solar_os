@@ -58,7 +58,7 @@ python3 fonts/generate_u8g2_fonts.py
 | Sketch | icon/label縦配置、browser行/Cancel/popup拡大 | 140%lease/PNG保存再読込/座標/キャンバス100%往復 | ボタン文字・Pen/指の位置・新規保存・100%往復・Open/Cancel・再読込・追描画・終了PASS |
 | Calc | 実font metricsによる行高/選択行表示/実幅cursor。140%で式/結果25px | GFX widthと既存calc回帰 | cursor修正・文字重なりなし・25pxのサイズOK |
 | Launcher | 既存role profileと実幅レイアウトへ追従 | launcher layout回帰 | ラベル/矢印選択の確認依頼に「異常なし」と回答 |
-| Reader/Web | chrome拡大/切詰め。文書zoomはnative。PaperMono Reader上限z7 | 既存reader/web回帰 | Reader重なりなし。拡張z7は書込済み・確認待ち。Webは未目視 |
+| Reader/Web | chrome拡大/切詰め。文書zoomはnative。PaperMono Reader上限z7 | 既存reader/web回帰 | Reader z7・欠け/重なりなし・閉じて再読込でZoom保持PASS。Webは未目視 |
 | Plot | 文字領域の余白を確保。traceデータは物理座標 | 既存plot回帰 | 待ち |
 | WebRadio/RTSP | header/footer/row/dialog/controlsを拡大 | 共通media/RTSP layout/transport回帰 | 待ち |
 | Clock/View | Clockは画面に合わせたvector digits、Viewは画像。直接拡大不要 | 既存回帰 | 待ち |
@@ -339,3 +339,13 @@ USB REPLを終了して修正scriptで正常に再採取した。障害ログを
 BLE remembered1/1から自動再接続、Battery3.812V/56%/external、RTC読出し正常。
 doseとtimingをRAM上で再選択。起動ログ: `.research/ui-scale/reader-zoom-boot-20261011.log`。
 前Calc版artifactは `.research/ui-scale/artifact-before-reader-a45134a5` に保持した。
+
+### Reader z7の受入と保存内容の照合
+
+ユーザーからz7まで拡大・欠け/重なりなし・Escで終了・再度開いてz7保持の回答を受けた。
+その後USBでShell active、Touch lease 0・requested OFF、display error=0を確認。
+Reader位置ファイルの対象行は `0 129 z=7 c=0 /writer-zoom-20261011.md`。
+他の5件の読書位置の行は書込前と同じで、新規文書の本文129 bytesも作成時SHA256と
+一致した。Readerの追加Zoomは表示・保存・再読込まで受入済み。
+証跡: `.research/ui-scale/reader-z7-acceptance-20261011.log`、
+`reader-z7-saved-data-20261011.log`。
