@@ -24,4 +24,3 @@ static inline int solar_os_ui_px(int pixels)
     const int value = pixels * (int)solar_os_ui_scale_percent();
     return (value + (value < 0 ? -50 : 50)) / 100;
 }
-
