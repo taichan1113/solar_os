@@ -56,8 +56,8 @@ python3 fonts/generate_u8g2_fonts.py
 | Writer UI | header34、title25、dialog22/25、実幅による入力切詰め | GFX native font/文書layout/保存/recovery/checkpoint回帰 | 待ち |
 | Writer本文 | native font、従来z0〜z4維持、追加依頼でz5〜z7対応 | 文書layout/実font/checkpoint | 追加Zoom問題なし、保存z6=25px・本文保持照合PASS |
 | Sketch | icon/label縦配置、browser行/Cancel/popup拡大 | 140%lease/PNG保存再読込/座標/キャンバス100%往復 | ボタン文字・Pen/指の位置・新規保存・100%往復・Open/Cancel・再読込・追描画・終了PASS |
-| Calc | 実font metricsによる行高/選択行表示/実幅cursor | GFX widthと既存calc回帰 | cursor修正・文字重なりなし。文字が小さいとの指摘を受け25px版を準備中 |
-| Launcher | 既存role profileと実幅レイアウトへ追従 | launcher layout回帰 | 待ち |
+| Calc | 実font metricsによる行高/選択行表示/実幅cursor。140%で式/結果25px | GFX widthと既存calc回帰 | cursor修正・文字重なりなし・25pxのサイズOK |
+| Launcher | 既存role profileと実幅レイアウトへ追従 | launcher layout回帰 | ラベル/矢印選択の確認依頼に「異常なし」と回答 |
 | Reader/Web | chrome拡大/切詰め。文書zoomはnativeで保持 | 既存reader/web回帰 | 待ち |
 | Plot | 文字領域の余白を確保。traceデータは物理座標 | 既存plot回帰 | 待ち |
 | WebRadio/RTSP | header/footer/row/dialog/controlsを拡大 | 共通media/RTSP layout/transport回帰 | 待ち |
@@ -267,7 +267,7 @@ PaperMonoの140%で十分な画面領域がある場合、式と結果をMONO_18
 左パネルを199pxから280pxへ拡張する。行高・cursor・切詰めは同じ実効metricsを
 用いる。100%、小さいviewport、他ボードの従来サイズは維持する。
 グラフの数値・ピクセル間隔、保存形式、表示driverは変更しない。
-25px版の実機目視はこれから行う。
+25px版の実機目視結果は下記に記録する。
 
 Calc修正commit: `f13af33f`。Host全134 executable PASS、Python578 tests / 4 skip / failureなし。
 ビルド95.84秒、SUCCESS。ログは `.research/ui-scale/host-calc-readable.log`、
@@ -290,3 +290,13 @@ statusbar showを保持し、ZMKは登録済み1/1から自動接続した。
 Battery3.808V/56%/external、RTC2026-10-11 01:46:36を読み取り正常。
 doseとtimingログをRAM上で再選択した。
 起動ログ: `.research/ui-scale/calc-readable-boot-20261011.log`。
+
+### Calc拡大版・Launcherの受入結果とReaderの上限
+
+ユーザーから「CalcのサイズOK」「Launcher異常なし」と回答を受けた。
+Readerについては「z4までしかない」との回答。既存Readerは本文Zoomをz0〜z4に
+維持しており、Writer追加依頼によるz5〜z7拡張はReaderへ自動適用していない。
+Readerの見出し/本文/案内の重なりについてはまだ明示的回答がないため保留。
+ログではCalc/Launcher/Readerの起動・終了を確認し、最後はShell active、
+Touch lease 0・requested OFF、display error=0、BLE remembered1/1接続を保持。
+証跡: `.research/ui-scale/calc-launcher-reader-acceptance-20261011.log`。
