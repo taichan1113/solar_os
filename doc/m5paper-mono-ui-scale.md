@@ -58,7 +58,7 @@ python3 fonts/generate_u8g2_fonts.py
 | Sketch | icon/label縦配置、browser行/Cancel/popup拡大 | 140%lease/PNG保存再読込/座標/キャンバス100%往復 | ボタン文字・Pen/指の位置・新規保存・100%往復・Open/Cancel・再読込・追描画・終了PASS |
 | Calc | 実font metricsによる行高/選択行表示/実幅cursor。140%で式/結果25px | GFX widthと既存calc回帰 | cursor修正・文字重なりなし・25pxのサイズOK |
 | Launcher | 既存role profileと実幅レイアウトへ追従 | launcher layout回帰 | ラベル/矢印選択の確認依頼に「異常なし」と回答 |
-| Reader/Web | chrome拡大/切詰め。文書zoomはnative | 既存reader/web回帰 | Reader重なりなし。追加依頼でReader上限z7を準備中。Webは未目視 |
+| Reader/Web | chrome拡大/切詰め。文書zoomはnative。PaperMono Reader上限z7 | 既存reader/web回帰 | Reader重なりなし。拡張z7は書込済み・確認待ち。Webは未目視 |
 | Plot | 文字領域の余白を確保。traceデータは物理座標 | 既存plot回帰 | 待ち |
 | WebRadio/RTSP | header/footer/row/dialog/controlsを拡大 | 共通media/RTSP layout/transport回帰 | 待ち |
 | Clock/View | Clockは画面に合わせたvector digits、Viewは画像。直接拡大不要 | 既存回帰 | 待ち |
@@ -315,3 +315,27 @@ Readerの読書位置ファイルは既存のテキスト形式のまま、選�
 古いReader firmwareはz5以上を保存した読書位置からZoomを復元せず、既存処理で
 初期z1となる。本文データの互換性には影響しない。
 拡張後のZoom操作・レイアウト・閉じて再度開いたときの保存Zoomを実機で確認する。
+
+Reader拡張commit: `a45134a5`。Host全134 executable PASS、Python578 tests / 4 skip、
+ビルド94.35秒SUCCESS。ログは `.research/ui-scale/host-reader-zoom.log`、
+`python-reader-zoom.log`、`build-reader-zoom.log`。
+
+最新の実機artifact:
+
+- `build/papermono-ui-scale-140-trial/firmware.bin`
+- 3,429,008 bytes
+- SHA256: `b3827e6dbc4a2d539ed4e9a71fe6c82210b6ff7172eb6490139122e2de242ba5`
+- Flash: `.research/ui-scale/flash-20261011-015724/summary.json`、PASS
+- NVS/FAT/otadata: 前後全バイト一致。MAC・partition table・artifact SHA照合済み
+
+書込前はShell active・文書/画像アプリなしをUSBで確認。
+全文読み取りによるSHA256では新規Writer文書129 bytesが作成時と一致し、
+保存PNG003/004各72,617 bytesと既存Reader位置ファイル210 bytesを読み取れた。
+証跡: `.research/ui-scale/reader-zoom-preflash-data2-20261011.log`。
+その前の読み取りscriptは改行escaping不備で失敗したが、実機へのファイル書込はなく、
+USB REPLを終了して修正scriptで正常に再採取した。障害ログを成功扱いしない。
+
+起動mono/base20・scale140・orientation270・statusbar showを保持。
+BLE remembered1/1から自動再接続、Battery3.812V/56%/external、RTC読出し正常。
+doseとtimingをRAM上で再選択。起動ログ: `.research/ui-scale/reader-zoom-boot-20261011.log`。
+前Calc版artifactは `.research/ui-scale/artifact-before-reader-a45134a5` に保持した。
