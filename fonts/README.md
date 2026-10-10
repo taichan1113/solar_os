@@ -62,7 +62,7 @@ python3 fonts/generate_u8g2_fonts.py --bdfconv /path/to/bdfconv
 
 Defaults:
 
-- Sizes: `10, 12, 14, 16, 18, 20`
+- Sizes: `10, 12, 14, 16, 17, 18, 20, 22, 25, 28`
 - Styles: regular, bold, italic, bold italic
 - Glyphs: ASCII plus Latin-1 supplement, `0x20-0x7e` and `0xa0-0xff`
 - Rendering: monochrome FreeType output, no antialiasing
@@ -75,3 +75,11 @@ python3 fonts/generate_u8g2_fonts.py --glyph-ranges 0x20-0x7e
 python3 fonts/generate_u8g2_fonts.py --antialias --threshold 160
 python3 fonts/generate_u8g2_fonts.py --no-u8g2
 ```
+
+PaperMono resolves UI sizes at 140% using nearest integer pixels (half up):
+10Å®14, 12Å®17, 14Å®20, 16Å®22, 18Å®25, 20Å®28. All four styles use the
+same generated cell metrics. Terminal NVS keeps the logical size and font
+family; `compact` resolves its smaller face before applying the UI scale.
+Document rendering selects native fonts, keeping Writer/Reader zoom independent.
+The generated C files are picked up by the existing build glob; no font IDs or
+persisted size enum values were added or renumbered.

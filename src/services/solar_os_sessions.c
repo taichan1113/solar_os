@@ -1,4 +1,5 @@
 #include "solar_os_sessions.h"
+#include "solar_os_ui_scale.h"
 
 #include <stdio.h>
 #include <inttypes.h>
@@ -2351,6 +2352,22 @@ static bool session_terminal_layout_changed(
          before->font != after->font ||
          before->text_size != after->text_size ||
          before->status_bar_visible != after->status_bar_visible);
+}
+
+esp_err_t solar_os_sessions_set_ui_scale(unsigned percent)
+{
+    if (percent == solar_os_ui_scale_percent()) return ESP_OK;
+    if (!solar_os_ui_scale_set_percent(percent)) return ESP_ERR_NOT_SUPPORTED;
+    bool shell_applied = false;
+    for (size_t i = 0; i < SOLAR_OS_SESSION_MAX; i++) {
+        solar_os_session_entry_t *session = &session_state.sessions[i];
+        if (!session->used || session->terminal == NULL || session->terminal->u8g2 == NULL) continue;
+        solar_os_terminal_refresh_ui_scale(session->terminal);
+        if (session->app != solar_os_shell_app()) session->terminal_redraw_requested = true;
+        if (session->terminal == session_state.shell_terminal) shell_applied = true;
+    }
+    if (!shell_applied) solar_os_terminal_refresh_ui_scale(session_state.shell_terminal);
+    return ESP_OK;
 }
 
 esp_err_t solar_os_sessions_set_display_terminal_profile(

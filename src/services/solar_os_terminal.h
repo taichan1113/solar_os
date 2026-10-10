@@ -142,4 +142,6 @@ esp_err_t solar_os_terminal_apply_profile_transient(
     const solar_os_terminal_profile_t *profile);
 bool solar_os_terminal_needs_draw(const solar_os_terminal_t *terminal);
 void solar_os_terminal_invalidate_render(solar_os_terminal_t *terminal);
+/* Recompute UI geometry without changing saved preferences; clears screen/history. */
+void solar_os_terminal_refresh_ui_scale(solar_os_terminal_t *terminal);
 void solar_os_terminal_draw(solar_os_terminal_t *terminal);

@@ -1316,7 +1316,9 @@ static void writer_draw_dialog(solar_os_gfx_t *gfx)
     const solar_os_ui_font_profile_t *ui = solar_os_ui_font_profile();
     const int small_extra = ui->small_px - 12;
     const int body_extra = ui->body_px - 14;
-    const int choice_stride = 16 + body_extra;
+    solar_os_gfx_set_font(gfx, ui->dialog_title);
+    const solar_os_gfx_font_metrics_t title_metrics = solar_os_gfx_font_metrics(gfx);
+    const int choice_stride = title_metrics.height + 3;
     const int choice_first = 42 + 2 * body_extra;
     int x = 12;
     int y = screen_h / 3;
@@ -1341,7 +1343,7 @@ static void writer_draw_dialog(solar_os_gfx_t *gfx)
             content_width = cancel_width;
         }
         w = (int)content_width + 16;
-        h = 84 + 4 * body_extra;
+        h = choice_first + 2 * choice_stride + title_metrics.descent + 8;
         x = (screen_w - w) / 2;
         y = (screen_h - h) / 2;
     }
@@ -1388,8 +1390,11 @@ static void writer_draw_dialog(solar_os_gfx_t *gfx)
     if (writer.dialog != WRITER_DIALOG_EXIT && writer.dialog != WRITER_DIALOG_RECOVERY) {
         char input[WRITER_DIALOG_INPUT_MAX + 2U];
         snprintf(input, sizeof(input), "%s_", writer.dialog_input);
-        const size_t max_chars = w > 14 ? (size_t)((w - 14) / (7 + small_extra / 2)) : 1U;
-        const char *visible = strlen(input) > max_chars ? &input[strlen(input) - max_chars] : input;
+        const char *visible = input;
+        while (*visible && solar_os_gfx_text_width(gfx, visible) > (size_t)(w > 14 ? w - 14 : 0)) {
+            visible++;
+            while (((unsigned char)*visible & 0xc0U) == 0x80U) visible++;
+        }
         solar_os_gfx_text(gfx, x + 5, y + 34 + 2 * small_extra, visible);
     }
 }

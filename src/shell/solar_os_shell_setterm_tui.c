@@ -25,6 +25,7 @@
 #include "solar_os_terminal.h"
 #include "solar_os_time.h"
 #include "solar_os_tui.h"
+#include "solar_os_ui_scale.h"
 #include "solar_os_tui_widgets.h"
 
 #define SETTERM_TUI_EDIT_MAX 256
@@ -44,6 +45,9 @@ typedef enum {
     SETTERM_TUI_ORIENTATION,
     SETTERM_TUI_FONT,
     SETTERM_TUI_TEXTSIZE,
+#if SOLAR_OS_BOARD_UI_SCALE_PERCENT == 140
+    SETTERM_TUI_UISCALE,
+#endif
     SETTERM_TUI_PALETTE,
     SETTERM_TUI_FOREGROUND,
     SETTERM_TUI_BACKGROUND,
@@ -87,6 +91,9 @@ static const setterm_tui_item_def_t setterm_tui_items[] = {
     [SETTERM_TUI_ORIENTATION] = {.label = "orientation"},
     [SETTERM_TUI_FONT] = {.label = "font"},
     [SETTERM_TUI_TEXTSIZE] = {.label = "textsize"},
+#if SOLAR_OS_BOARD_UI_SCALE_PERCENT == 140
+    [SETTERM_TUI_UISCALE] = {.label = "uiscale (RAM)"},
+#endif
     [SETTERM_TUI_PALETTE] = {.label = "palette"},
     [SETTERM_TUI_FOREGROUND] = {.label = "foreground"},
     [SETTERM_TUI_BACKGROUND] = {.label = "background"},
@@ -127,6 +134,11 @@ static void setterm_tui_current_value(setterm_tui_item_t item, char *buffer, siz
                 solar_os_terminal_font_name(solar_os_terminal_font(term)),
                 buffer_len);
         break;
+#if SOLAR_OS_BOARD_UI_SCALE_PERCENT == 140
+    case SETTERM_TUI_UISCALE:
+        snprintf(buffer, buffer_len, "%u", solar_os_ui_scale_percent());
+        break;
+#endif
     case SETTERM_TUI_TEXTSIZE:
         strlcpy(buffer,
                 solar_os_terminal_text_size_name(solar_os_terminal_text_size(term)),
@@ -375,6 +387,12 @@ static bool setterm_tui_cycle_selected(int direction)
         return setterm_tui_cycle_value(font_values,
                                        sizeof(font_values) / sizeof(font_values[0]),
                                        direction);
+#if SOLAR_OS_BOARD_UI_SCALE_PERCENT == 140
+    case SETTERM_TUI_UISCALE: {
+        static const char *const values[] = {"100", "140"};
+        return setterm_tui_cycle_value(values, 2, direction);
+    }
+#endif
     case SETTERM_TUI_TEXTSIZE:
         return setterm_tui_cycle_value(textsize_values,
                                        sizeof(textsize_values) / sizeof(textsize_values[0]),
@@ -495,6 +513,14 @@ static bool setterm_tui_apply_selected(void)
         return solar_os_terminal_parse_font(setterm_tui.edit_text, &font) &&
             solar_os_sessions_set_terminal_font(term, font) == ESP_OK;
     }
+#if SOLAR_OS_BOARD_UI_SCALE_PERCENT == 140
+    case SETTERM_TUI_UISCALE: {
+        size_t percent = 0;
+        return parse_size_arg(setterm_tui.edit_text, 100, 140, &percent) &&
+            (percent == 100 || percent == 140) &&
+            solar_os_sessions_set_ui_scale((unsigned)percent) == ESP_OK;
+    }
+#endif
     case SETTERM_TUI_TEXTSIZE: {
         solar_os_terminal_text_size_t text_size;
         return solar_os_terminal_parse_text_size(setterm_tui.edit_text, &text_size) &&

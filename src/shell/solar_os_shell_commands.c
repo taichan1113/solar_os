@@ -1,5 +1,6 @@
 #include "solar_os_shell_commands.h"
 #include "solar_os_shell_common.h"
+#include "solar_os_ui_scale.h"
 
 static const char * const display_commands[] = {
     "list", "layouts", "test", "mode", "async", "join", "unjoin", "split", "unsplit",
@@ -9,7 +10,7 @@ static const char * const ota_commands[] = {"status", "check", "upgrade", "url",
 #endif
 static const char * const job_commands[] = {"status", "start", "stop"};
 static const char * const setterm_commands[] = {
-    "--display", "orientation", "font", "textsize", "palette", "foreground", "background", "statusbar",
+    "uiscale", "--display", "orientation", "font", "textsize", "palette", "foreground", "background", "statusbar",
     "brightness", "backlight",
     "profile", "charset", "keyboard", "keymap", "powerkey", "key", "keyrate", "typerate",
 #if SOLAR_OS_PACKAGE_SERVICE_BLE
@@ -2115,6 +2116,28 @@ void solar_os_shell_cmd_setterm(solar_os_context_t *ctx, int argc, char **argv)
     const char *display_target = NULL;
     solar_os_terminal_profile_t display_profile = {0};
 
+    if (argc >= 2 && strcmp(argv[1], "uiscale") == 0) {
+        if (argc == 3) {
+            size_t percent = 0;
+            if (!parse_size_arg(argv[2], 100, 140, &percent) ||
+                (percent != 100 && percent != 140)) {
+                solar_os_shell_io_writeln(term, "usage: setterm uiscale [100|140]");
+                return;
+            }
+            const esp_err_t err = solar_os_sessions_set_ui_scale((unsigned)percent);
+            if (err != ESP_OK) {
+                solar_os_shell_io_printf(term, "setterm uiscale: %s\n", solar_os_shell_error_text(err));
+                return;
+            }
+            solar_os_shell_io_writeln(term, "UI scale changed (RAM only); terminal screen/history cleared.");
+        } else if (argc != 2) {
+            solar_os_shell_io_writeln(term, "usage: setterm uiscale [100|140]");
+            return;
+        }
+        solar_os_shell_io_printf(term, "UI scale: %u%% (RAM only)\n", solar_os_ui_scale_percent());
+        return;
+    }
+
     if (argc >= 2 && strcmp(argv[1], "--display") == 0) {
         if (argc < 3) {
             solar_os_shell_diag_missing(term,
@@ -2822,7 +2845,7 @@ void solar_os_shell_cmd_setterm(solar_os_context_t *ctx, int argc, char **argv)
                                    "setterm",
                                    argc,
                                    argv,
-                                   "setterm orientation|font|textsize|palette|foreground|background|statusbar|brightness|backlight|profile|charset|keyboard|ble|powerkey|keyrate|timezone|startup|otaurl",
+                                   "setterm uiscale|orientation|font|textsize|palette|foreground|background|statusbar|brightness|backlight|profile|charset|keyboard|ble|powerkey|keyrate|timezone|startup|otaurl",
                                    setterm_commands,
                                    sizeof(setterm_commands) / sizeof(setterm_commands[0]));
 }

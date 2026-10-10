@@ -58,6 +58,8 @@ bool solar_os_sessions_cycle_display_focus_down(void);
 bool solar_os_sessions_cycle_display_focus_up(void);
 void solar_os_sessions_show_input_focus_overlay(void);
 void solar_os_sessions_mark_foreground_dirty(void);
+/* RAM-only board UI scale. Saved font/textsize and application data are unchanged. */
+esp_err_t solar_os_sessions_set_ui_scale(unsigned percent);
 
 void solar_os_sessions_dispatch_foreground_event(const solar_os_event_t *event);
 bool solar_os_sessions_dispatch_input_event(const solar_os_event_t *event);

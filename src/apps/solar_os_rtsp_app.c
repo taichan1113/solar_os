@@ -24,8 +24,8 @@
 #define RTSP_DECODE_STACK 24576U
 #define RTSP_IMAGE_PIXELS (640U * 480U)
 #define RTSP_VIDEO_SLOTS 2U
-#define RTSP_HEADER_HEIGHT 28
-#define RTSP_CONTROLS_HEIGHT 88
+#define RTSP_HEADER_HEIGHT (solar_os_ui_px(28))
+#define RTSP_CONTROLS_HEIGHT (solar_os_ui_px(88))
 #if !CONFIG_FREERTOS_TASK_CREATE_ALLOW_EXT_MEM
 SOLAR_OS_TASK_REQUIRE_FOREGROUND_STACK(RTSP_DECODE_STACK);
 #endif
@@ -240,17 +240,17 @@ static void draw_controls(solar_os_gfx_t *gfx, int w, int h,
     solar_os_gfx_fill_rect(gfx, 0, 0, w, RTSP_HEADER_HEIGHT);
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_WHITE);
     solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_BOLD_16);
-    solar_os_gfx_text(gfx, 7, 19, "RTSP");
+    solar_os_gfx_text(gfx, 7, solar_os_ui_px(19), "RTSP");
     solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_MONO_12);
     const char *label = playback_label(status);
-    solar_os_gfx_text(gfx, w - (int)solar_os_gfx_text_width(gfx, label) - 7, 18, label);
+    solar_os_gfx_text(gfx, w - (int)solar_os_gfx_text_width(gfx, label) - 7, solar_os_ui_px(18), label);
     solar_os_gfx_fill_rect(gfx, 0, h - RTSP_CONTROLS_HEIGHT, w, RTSP_CONTROLS_HEIGHT);
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
     solar_os_gfx_line(gfx, 0, h - RTSP_CONTROLS_HEIGHT, w - 1, h - RTSP_CONTROLS_HEIGHT);
     char title[SOLAR_OS_RTSP_URI_MAX];
     snprintf(title, sizeof(title), "%s", rtsp.url + strlen("rtsp://"));
     solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_BOLD_16);
-    centered_text(gfx, w, h - 68, title);
+    centered_text(gfx, w, h - solar_os_ui_px(68), title);
     char detail[96];
     if (status->video && status->audio)
         snprintf(detail, sizeof(detail), "JPEG %lu.%lu fps  L16 %lu Hz %u ch",
@@ -264,22 +264,22 @@ static void draw_controls(solar_os_gfx_t *gfx, int w, int h,
             (unsigned long)status->sample_rate, status->channels);
     else snprintf(detail, sizeof(detail), "%s", label);
     solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_SMALL);
-    centered_text(gfx, w, h - 52, detail);
+    centered_text(gfx, w, h - solar_os_ui_px(52), detail);
     solar_os_audio_status_t audio;
     solar_os_audio_get_status(&audio);
-    const int volume_width = w / 2, volume_x = (w - volume_width) / 2, volume_y = h - 44;
-    solar_os_gfx_text(gfx, volume_x - 29, volume_y + 9, "VOL");
+    const int volume_width = w / 2, volume_x = (w - volume_width) / 2, volume_y = h - (solar_os_ui_scale_percent() == 100U ? 44 : solar_os_ui_px(40));
+    solar_os_gfx_text(gfx, volume_x - solar_os_ui_px(29), volume_y + (solar_os_ui_scale_percent() == 100U ? 9 : solar_os_ui_px(12)), "VOL");
     solar_os_gfx_rect(gfx, volume_x, volume_y, volume_width, 10);
     if (audio.volume)
         solar_os_gfx_fill_rect(gfx, volume_x + 2, volume_y + 2,
             (volume_width - 4) * audio.volume / 100, 6);
     char percent[8];
     snprintf(percent, sizeof(percent), "%u%%", audio.volume);
-    solar_os_gfx_text(gfx, volume_x + volume_width + 5, volume_y + 9, percent);
+    solar_os_gfx_text(gfx, volume_x + volume_width + 5, volume_y + (solar_os_ui_scale_percent() == 100U ? 9 : solar_os_ui_px(12)), percent);
     /* A URL is a single live source, not a playlist. Keep the common center
      * button without offering non-functional previous/next controls. */
     const int button_width = (w - 20) / 3;
-    solar_os_media_transport_button_draw(gfx, (w - button_width) / 2, h - 25, button_width, 21,
+    solar_os_media_transport_button_draw(gfx, (w - button_width) / 2, h - solar_os_ui_px(25), button_width, solar_os_ui_px(21),
         rtsp.stopped ? SOLAR_OS_MEDIA_TRANSPORT_PLAY : SOLAR_OS_MEDIA_TRANSPORT_STOP, false);
 }
 

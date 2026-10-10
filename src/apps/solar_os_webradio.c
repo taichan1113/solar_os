@@ -1,3 +1,4 @@
+#include "solar_os_ui_scale.h"
 #include "solar_os_webradio.h"
 
 #include <ctype.h>
@@ -50,8 +51,8 @@ SOLAR_OS_TASK_REQUIRE_FOREGROUND_STACK(WEBRADIO_TASK_STACK);
 #define WEBRADIO_WORKER_POLL_MS 20U
 #define WEBRADIO_INVALID_STREAM_BYTES (64U * 1024U)
 #define WEBRADIO_GUI_HEADER_HEIGHT SOLAR_OS_MEDIA_PLAYER_HEADER_HEIGHT
-#define WEBRADIO_GUI_ROW_HEIGHT 24
-#define WEBRADIO_GUI_FOOTER_HEIGHT 20
+#define WEBRADIO_GUI_ROW_HEIGHT (solar_os_ui_px(24))
+#define WEBRADIO_GUI_FOOTER_HEIGHT (solar_os_ui_px(20))
 #define WEBRADIO_SCOPE_SAMPLES 256U
 #define WEBRADIO_SPECTRUM_FFT_SIZE 256U
 #define WEBRADIO_VISUALIZER_REFRESH_MS 40U
@@ -638,7 +639,7 @@ static void webradio_draw_dialog(solar_os_gfx_t *gfx, int width, int height)
         return;
     }
     const int dialog_width = width - 24;
-    const int dialog_height = 76;
+    const int dialog_height = solar_os_ui_px(76);
     const int x = 12;
     const int y = (height - dialog_height) / 2;
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_WHITE);
@@ -647,17 +648,17 @@ static void webradio_draw_dialog(solar_os_gfx_t *gfx, int width, int height)
     solar_os_gfx_rect(gfx, x, y, dialog_width, dialog_height);
     solar_os_gfx_rect(gfx, x + 2, y + 2, dialog_width - 4, dialog_height - 4);
     solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_BOLD_14);
-    solar_os_gfx_text(gfx, x + 9, y + 20, webradio_dialog_label());
+    solar_os_gfx_text(gfx, x + 9, y + solar_os_ui_px(20), webradio_dialog_label());
     solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_MONO_12);
     char input[WEBRADIO_GUI_INPUT_MAX + 2U];
     snprintf(input, sizeof(input), "%s_", webradio.dialog_input);
     const size_t max_chars = dialog_width > 26 ?
-        (size_t)((dialog_width - 26) / 7) : 1U;
+        (size_t)((dialog_width - 26) / solar_os_ui_px(7)) : 1U;
     const size_t length = strlen(input);
     const char *visible = length > max_chars ? input + length - max_chars : input;
-    solar_os_gfx_text(gfx, x + 9, y + 43, visible);
+    solar_os_gfx_text(gfx, x + 9, y + solar_os_ui_px(43), visible);
     solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_SMALL);
-    solar_os_gfx_text(gfx, x + 9, y + 64, "Enter next/save   Esc cancel");
+    solar_os_gfx_text(gfx, x + 9, y + solar_os_ui_px(64), "Enter next/save   Esc cancel");
 }
 
 static void webradio_render_channels(solar_os_gfx_t *gfx,
@@ -698,12 +699,12 @@ static void webradio_render_channels(solar_os_gfx_t *gfx,
         const bool active = active_name[0] != '\0' &&
             strcmp(active_name, webradio.stations[index].name) == 0 &&
             state != WEBRADIO_PLAYBACK_IDLE && state != WEBRADIO_PLAYBACK_ERROR;
-        solar_os_gfx_text(gfx, 14, row_y + 17, active ? ">" : " ");
-        solar_os_gfx_text(gfx, 30, row_y + 17, webradio.stations[index].name);
+        solar_os_gfx_text(gfx, 14, row_y + solar_os_ui_px(17), active ? ">" : " ");
+        solar_os_gfx_text(gfx, 30, row_y + solar_os_ui_px(17), webradio.stations[index].name);
     }
     if (webradio.station_count == 0U) {
         solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
-        solar_os_gfx_text(gfx, 14, list_y + 17, "Catalog is empty");
+        solar_os_gfx_text(gfx, 14, list_y + solar_os_ui_px(17), "Catalog is empty");
     }
 
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);

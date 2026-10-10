@@ -1,6 +1,22 @@
 #pragma once
 
 #include <stdint.h>
+extern const uint8_t u8g2_font_solar_os_default_r_17_tf[];
+extern const uint8_t u8g2_font_solar_os_default_b_17_tf[];
+extern const uint8_t u8g2_font_solar_os_default_i_17_tf[];
+extern const uint8_t u8g2_font_solar_os_default_bi_17_tf[];
+extern const uint8_t u8g2_font_solar_os_default_r_22_tf[];
+extern const uint8_t u8g2_font_solar_os_default_b_22_tf[];
+extern const uint8_t u8g2_font_solar_os_default_i_22_tf[];
+extern const uint8_t u8g2_font_solar_os_default_bi_22_tf[];
+extern const uint8_t u8g2_font_solar_os_default_r_25_tf[];
+extern const uint8_t u8g2_font_solar_os_default_b_25_tf[];
+extern const uint8_t u8g2_font_solar_os_default_i_25_tf[];
+extern const uint8_t u8g2_font_solar_os_default_bi_25_tf[];
+extern const uint8_t u8g2_font_solar_os_default_r_28_tf[];
+extern const uint8_t u8g2_font_solar_os_default_b_28_tf[];
+extern const uint8_t u8g2_font_solar_os_default_i_28_tf[];
+extern const uint8_t u8g2_font_solar_os_default_bi_28_tf[];
 
 extern const uint8_t u8g2_font_solar_os_default_r_10_tf[];
 extern const uint8_t u8g2_font_solar_os_default_b_10_tf[];

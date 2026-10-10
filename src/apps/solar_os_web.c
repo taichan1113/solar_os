@@ -1,3 +1,4 @@
+#include "solar_os_ui_scale.h"
 #include "solar_os_web.h"
 
 #include <ctype.h>
@@ -56,11 +57,11 @@ SOLAR_OS_TASK_REQUIRE_FOREGROUND_STACK(WEB_TASK_STACK);
 #define WEB_TIMEOUT_MS 12000
 #define WEB_REDIRECT_MAX 5
 #define WEB_MARGIN_X 5
-#define WEB_HEADER_HEIGHT 18
+#define WEB_HEADER_HEIGHT (solar_os_ui_px(18))
 #define WEB_NAV_BUTTON_SIZE 18
 #define WEB_NAV_BUTTON_COUNT 3
 #define WEB_NAV_TITLE_X (WEB_NAV_BUTTON_SIZE * WEB_NAV_BUTTON_COUNT + 4)
-#define WEB_FOOTER_HEIGHT 12
+#define WEB_FOOTER_HEIGHT (solar_os_ui_scale_percent() == 100U ? 12 : solar_os_ui_px(16))
 #define WEB_MAX_ZOOM 4
 #define WEB_CONTROL_BOX_SIZE 11
 
@@ -2650,6 +2651,7 @@ static void web_draw_text_clipped(solar_os_gfx_t *gfx,
     if (max_chars + 1U < sizeof(clipped)) {
         clipped[max_chars] = '\0';
     }
+    solar_os_gfx_text_fit(gfx, clipped, (int)solar_os_gfx_width(gfx) - x - WEB_MARGIN_X, clipped, sizeof(clipped));
     solar_os_gfx_text(gfx, x, baseline_y, clipped);
 }
 
@@ -2734,7 +2736,7 @@ static void web_draw_control_text(solar_os_gfx_t *gfx,
         return;
     }
 
-    solar_os_gfx_set_font(gfx, metrics.regular_font);
+    solar_os_gfx_set_font_native(gfx, metrics.regular_font);
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
     web_draw_text_clipped(gfx,
                           row_x,
@@ -2806,7 +2808,7 @@ static void web_draw_control_button(solar_os_gfx_t *gfx,
     const int text_w = (int)((label_len < max_chars ? label_len : max_chars) *
                              metrics.char_width);
     const int text_x = button_x + (button_w - text_w) / 2;
-    solar_os_gfx_set_font(gfx, metrics.bold_font);
+    solar_os_gfx_set_font_native(gfx, metrics.bold_font);
     solar_os_gfx_set_color(gfx, selected ? SOLAR_OS_GFX_COLOR_WHITE : SOLAR_OS_GFX_COLOR_BLACK);
     web_draw_text_clipped(gfx, text_x, button_y + metrics.baseline, label, max_chars);
 }
@@ -2840,7 +2842,7 @@ static void web_draw_control_choice(solar_os_gfx_t *gfx,
         }
     }
 
-    solar_os_gfx_set_font(gfx, metrics.regular_font);
+    solar_os_gfx_set_font_native(gfx, metrics.regular_font);
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
     web_draw_text_clipped(gfx,
                           box_x + WEB_CONTROL_BOX_SIZE + 7,
@@ -3044,7 +3046,7 @@ static void web_render(solar_os_context_t *ctx)
     }
     web_draw_text_clipped(gfx,
                           WEB_NAV_TITLE_X,
-                          13,
+                          solar_os_ui_px(13),
                           header,
                           width > WEB_NAV_TITLE_X ?
                               (size_t)((width - WEB_NAV_TITLE_X) / 6) : 1U);
@@ -3128,7 +3130,7 @@ static void web_render(solar_os_context_t *ctx)
                                draw_width,
                                draw_height);
             } else {
-                solar_os_gfx_set_font(gfx, metrics.regular_font);
+                solar_os_gfx_set_font_native(gfx, metrics.regular_font);
                 web_draw_text_clipped(gfx,
                                       WEB_MARGIN_X,
                                       y + metrics.baseline,
@@ -3143,7 +3145,7 @@ static void web_render(solar_os_context_t *ctx)
                                     width > 2 * WEB_MARGIN_X ? width - 2 * WEB_MARGIN_X : width,
                                     selected);
         } else {
-            solar_os_gfx_set_font(gfx,
+            solar_os_gfx_set_font_native(gfx,
                                   line->style == WEB_LINE_HEADING ?
                                       metrics.bold_font : metrics.regular_font);
             web_draw_text_clipped(gfx,

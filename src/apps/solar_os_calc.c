@@ -1,3 +1,4 @@
+#include "solar_os_ui_scale.h"
 #include "solar_os_calc.h"
 
 #include <ctype.h>
@@ -634,58 +635,56 @@ static void calc_graphics_render(solar_os_context_t *ctx)
         return;
     const int width = (int)solar_os_gfx_width(gfx);
     const int height = (int)solar_os_gfx_height(gfx);
-    const int footer = height >= 120 ? 18 : 12;
-    const int panel = width >= 380 ? 142 : (width >= 240 ? 110 : width / 2);
+    const int footer = height >= 120 ? solar_os_ui_px(22) : 12;
+    const int panel = width >= 380 ? solar_os_ui_px(142) : (width >= 240 ? 110 : width / 2);
     solar_os_gfx_clear(gfx, SOLAR_OS_GFX_COLOR_WHITE);
     solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_MONO_12);
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
     if (height >= 120)
-        solar_os_gfx_text(gfx, 5, 14, "calc");
+        solar_os_gfx_text(gfx, 5, solar_os_ui_px(14), "calc");
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_LIGHT);
     solar_os_gfx_line(gfx, panel, 0, panel, height - footer);
     solar_os_gfx_line(gfx, 0, height - footer, width - 1, height - footer);
 
-    const int row_height = height >= 120 ? 25 : 15;
-    for (size_t i = 0;
-         i < calc->row_count && 20 + (int)i * row_height < height - footer;
-         i++) {
-        const int y = (height >= 120 ? 27 : 12) + (int)i * row_height;
+    const solar_os_gfx_font_metrics_t metrics = solar_os_gfx_font_metrics(gfx);
+    const int row_height = height >= 120 ? metrics.height * 2 + 6 : metrics.height + 4;
+    const int list_top = height >= 120 ? solar_os_ui_px(18) : 0;
+    const size_t visible = (size_t)((height - footer - list_top) / row_height);
+    const size_t first = visible > 0 && calc->active_row >= visible ? calc->active_row - visible + 1 : 0;
+    for (size_t i = first; i < calc->row_count && i - first < visible; i++) {
+        const int row_top = list_top + (int)(i - first) * row_height;
+        const int y = row_top + metrics.ascent + 2;
         if (i == calc->active_row) {
-            const int row_top = y >= 13 ? y - 13 : 0;
             solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_DARK);
             solar_os_gfx_rect(gfx, 1, row_top, panel - 2, row_height - 1);
         }
         solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
-        char shown[24];
-        int source_chars = panel / 7 - 4;
-        if (source_chars < 1)
-            source_chars = 1;
-        if (source_chars > 17)
-            source_chars = 17;
-        size_t source_start = 0U;
-        if (i == calc->active_row && calc->cursor >= (size_t)source_chars) {
-            source_start = calc->cursor - (size_t)source_chars + 1U;
-        }
-        snprintf(shown, sizeof(shown), "%u %c %.*s", (unsigned)(i + 1U),
-                 calc->rows[i].visible ? '*' : ' ', source_chars,
-                 calc->rows[i].source + source_start);
-        solar_os_gfx_text(gfx, 4, y, shown);
-        if (i == calc->active_row && calc->focus == CALC_FOCUS_ROWS) {
-            const int cursor_x =
-                4 + (4 + (int)(calc->cursor - source_start)) * 7;
-            if (cursor_x < panel) {
-                solar_os_gfx_line(gfx, cursor_x, y - 11, cursor_x, y + 2);
+        char prefix[16], shown[256], source[256];
+        snprintf(prefix, sizeof(prefix), "%u %c ", (unsigned)(i + 1), calc->rows[i].visible ? '*' : ' ');
+        const int source_width = panel - 10 - (int)solar_os_gfx_text_width(gfx, prefix);
+        size_t source_start = 0;
+        if (i == calc->active_row) {
+            while (source_start < calc->cursor) {
+                snprintf(source, sizeof(source), "%.*s", (int)(calc->cursor - source_start), calc->rows[i].source + source_start);
+                if (solar_os_gfx_text_width(gfx, source) < (size_t)(source_width > 0 ? source_width : 1)) break;
+                source_start++;
             }
         }
-        char result[22];
-        if (height >= 120 && calc->rows[i].has_result) {
-            calc_format(calc->rows[i].result, result, sizeof(result));
+        solar_os_gfx_text_fit(gfx, calc->rows[i].source + source_start, source_width, source, sizeof(source));
+        snprintf(shown, sizeof(shown), "%s%.*s", prefix, (int)(sizeof(shown) - strlen(prefix) - 1), source);
+        solar_os_gfx_text(gfx, 4, y, shown);
+        if (i == calc->active_row && calc->focus == CALC_FOCUS_ROWS) {
+            snprintf(source, sizeof(source), "%.*s", (int)(calc->cursor - source_start), calc->rows[i].source + source_start);
+            const int cursor_x = 4 + (int)solar_os_gfx_text_width(gfx, prefix) + (int)solar_os_gfx_text_width(gfx, source);
+            if (cursor_x < panel) solar_os_gfx_line(gfx, cursor_x, y - metrics.ascent, cursor_x, y + metrics.descent);
+        }
+        char result[256];
+        if (height >= 120 && (calc->rows[i].has_result || calc->rows[i].error.message[0])) {
+            if (calc->rows[i].has_result) calc_format(calc->rows[i].result, result, sizeof(result));
+            else snprintf(result, sizeof(result), "%s", calc->rows[i].error.message);
             solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_SMALL);
-            solar_os_gfx_text(gfx, 23, y + 10, result);
-            solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_MONO_12);
-        } else if (height >= 120 && calc->rows[i].error.message[0] != '\0') {
-            solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_SMALL);
-            solar_os_gfx_text(gfx, 23, y + 10, calc->rows[i].error.message);
+            solar_os_gfx_text_fit(gfx, result, panel - 12, result, sizeof(result));
+            solar_os_gfx_text(gfx, 8, y + metrics.height + 2, result);
             solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_MONO_12);
         }
     }

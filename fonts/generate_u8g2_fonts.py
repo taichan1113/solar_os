@@ -24,7 +24,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 FONT_DIR = Path(__file__).resolve().parent
-DEFAULT_SIZES = [10, 12, 14, 16, 18, 20]
+DEFAULT_SIZES = [10, 12, 14, 16, 17, 18, 20, 22, 25, 28]
 DEFAULT_RANGES = [(0x20, 0x7E), (0xA0, 0xFF)]
 
 

@@ -1,3 +1,4 @@
+#include "solar_os_ui_scale.h"
 #include "solar_os_player.h"
 
 #include <inttypes.h>
@@ -35,8 +36,8 @@
 #define PLAYER_SCOPE_SAMPLES 256U
 #define PLAYER_SPECTRUM_FFT_SIZE 256U
 #define PLAYER_HEADER_HEIGHT SOLAR_OS_MEDIA_PLAYER_HEADER_HEIGHT
-#define PLAYER_ROW_HEIGHT 24
-#define PLAYER_FOOTER_HEIGHT 20
+#define PLAYER_ROW_HEIGHT (solar_os_ui_px(24))
+#define PLAYER_FOOTER_HEIGHT (solar_os_ui_px(20))
 #define PLAYER_VOLUME_STEP 5
 #if !CONFIG_FREERTOS_TASK_CREATE_ALLOW_EXT_MEM
 SOLAR_OS_TASK_REQUIRE_FOREGROUND_STACK(PLAYER_TASK_STACK);
@@ -633,7 +634,7 @@ static void player_render_list(solar_os_gfx_t *gfx, int width, int height)
             solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
         }
         solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_MONO_14);
-        solar_os_gfx_text(gfx, 9, y + 17, label);
+        solar_os_gfx_text(gfx, 9, y + solar_os_ui_px(17), label);
     }
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
     solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_SMALL);

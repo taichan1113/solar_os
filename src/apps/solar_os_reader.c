@@ -20,7 +20,8 @@
 #include "solar_os_memory.h"
 #include "solar_os_storage.h"
 
-#define READER_HEADER_H 16
+#include "solar_os_ui_scale.h"
+#define READER_HEADER_H (solar_os_ui_px(16))
 #define READER_MARGIN_X 8
 #define READER_MARGIN_Y 5
 #define READER_MESSAGE_MAX 96
@@ -327,22 +328,9 @@ static void reader_draw_text_clipped(solar_os_gfx_t *gfx,
                                       const char *text,
                                       int char_w)
 {
-    if (gfx == NULL || text == NULL || width <= 0 || char_w <= 0) {
-        return;
-    }
-
+    (void)char_w;
     char clipped[128];
-    size_t max_chars = (size_t)(width / char_w);
-    if (max_chars >= sizeof(clipped)) {
-        max_chars = sizeof(clipped) - 1U;
-    }
-
-    const size_t len = strlen(text);
-    const size_t n = len < max_chars ? len : max_chars;
-    if (n > 0) {
-        memcpy(clipped, text, n);
-    }
-    clipped[n] = '\0';
+    solar_os_gfx_text_fit(gfx, text, width, clipped, sizeof(clipped));
     solar_os_gfx_text(gfx, x, baseline_y, clipped);
 }
 
@@ -851,7 +839,7 @@ static void reader_draw_header(solar_os_gfx_t *gfx)
     } else {
         snprintf(title, sizeof(title), "reader z%d %s", reader.zoom, reader.display_name);
     }
-    reader_draw_text_clipped(gfx, 3, 11, screen_w - 6, title, 6);
+    reader_draw_text_clipped(gfx, 3, solar_os_ui_px(11), screen_w - 6, title, 0);
 }
 
 static void reader_draw_scrollbar(solar_os_gfx_t *gfx, const solar_os_doc_view_t *view)
@@ -1114,7 +1102,7 @@ static void reader_draw_match(solar_os_gfx_t *gfx, const solar_os_doc_view_t *vi
         const int char_w = run->char_w > 0 ? run->char_w : 1;
         const int screen_x = view->x + run->x + ((int)(start - run->text_offset) * char_w);
 
-        solar_os_gfx_set_font(gfx, run->font);
+        solar_os_gfx_set_font_native(gfx, run->font);
         reader_draw_match_text(gfx,
                                &block_text[start],
                                end - start,

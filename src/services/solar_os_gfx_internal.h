@@ -11,6 +11,7 @@ struct solar_os_gfx {
     u8g2_t *u8g2;
     solar_os_gfx_color_t color;
     solar_os_gfx_font_t font;
+    bool font_native;
     solar_os_gfx_line_style_t line_style;
     bool dirty;
     bool black_is_one;

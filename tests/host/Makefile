@@ -28,7 +28,7 @@ TARGETS += ft6336_test
 TARGETS += rtc_rx8130ce_test
 TARGETS += ft6336_lifecycle_test
 TARGETS += status_led_provider_test
-TARGETS += sketch_lifecycle_test
+TARGETS += sketch_lifecycle_test sketch_scale140_lifecycle_test
 TARGETS += sketch_legacy_lifecycle_test
 
 sketch_legacy_lifecycle_test: sketch_legacy_lifecycle_test.c sketch_lifecycle_test.c $(ROOT)/src/apps/solar_os_sketch.c $(ROOT)/src/apps/solar_os_sketch_canvas.c
@@ -40,6 +40,13 @@ sketch_lifecycle_test: sketch_lifecycle_test.c $(ROOT)/src/apps/solar_os_sketch.
 		-DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' -DSOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT=1 \
 		-include compat.h -I. -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/src/apps \
 		-I$(ROOT)/components/stb_image/include $< $(ROOT)/src/apps/solar_os_sketch_canvas.c -lm -o $@
+
+sketch_scale140_lifecycle_test: sketch_lifecycle_test.c $(ROOT)/src/apps/solar_os_sketch.c $(ROOT)/src/apps/solar_os_sketch_canvas.c $(ROOT)/src/services/solar_os_ui_scale.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -DSOLAR_OS_PACKAGE_SERVICE_EXPANSION=1 \
+		-DSOLAR_OS_BOARD_UI_SCALE_PERCENT=140 \
+		-DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' -DSOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT=1 \
+		-include compat.h -I. -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/src/apps \
+		-I$(ROOT)/components/stb_image/include $< $(ROOT)/src/apps/solar_os_sketch_canvas.c $(ROOT)/src/services/solar_os_ui_scale.c -lm -o $@
 
 status_led_provider_test: status_led_provider_test.c $(ROOT)/src/services/solar_os_status_led.c
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -Iexpansion_stubs -Igpio_controller_stubs -I. -I$(ROOT)/src/services -I$(ROOT)/src/drivers -o $@ $^
@@ -64,7 +71,7 @@ TARGETS += rtsp_client_test
 TARGETS += gfx_mono_raster_test
 TARGETS += display_async_test
 TARGETS += writer_checkpoint_test
-TARGETS += terminal_render_normal_test terminal_render_readable_test terminal_render_large_test
+TARGETS += terminal_render_normal_test terminal_render_readable_test terminal_render_large_test terminal_render_scale140_test
 
 display_async_test: display_async_test.c $(ROOT)/src/services/solar_os_display_async.c $(ROOT)/src/services/solar_os_display_async.h $(ROOT)/src/services/solar_os_display_submission.h $(wildcard async_stubs/*.h async_stubs/freertos/*.h)
 	$(CC) $(CFLAGS) -pthread -Iasync_stubs -I. -I$(ROOT)/src/services -o $@ $<
@@ -819,7 +826,7 @@ terminal_preferences_test: terminal_preferences_test.c $(ROOT)/src/services/sola
 	$(CC) $(CFLAGS) -I. -I$(ROOT)/src -I$(ROOT)/src/services \
 		terminal_preferences_test.c $(ROOT)/src/services/solar_os_terminal_preferences.c -o $@
 
-TERMINAL_RENDER_U8G2 := $(addprefix $(ROOT)/components/u8g2/src/clib/,u8g2_font.c u8g2_buffer.c u8g2_hvline.c u8g2_ll_hvline.c u8g2_box.c u8g2_setup.c u8g2_intersection.c u8x8_setup.c u8x8_display.c u8x8_cad.c u8x8_byte.c u8x8_gpio.c u8x8_8x8.c)
+TERMINAL_RENDER_U8G2 := $(addprefix $(ROOT)/components/u8g2/src/clib/,u8g2_font.c u8g2_bitmap.c u8g2_buffer.c u8g2_hvline.c u8g2_ll_hvline.c u8g2_box.c u8g2_setup.c u8g2_intersection.c u8x8_setup.c u8x8_display.c u8x8_cad.c u8x8_byte.c u8x8_gpio.c u8x8_8x8.c)
 TERMINAL_RENDER_SOURCES := terminal_render_test.c $(ROOT)/src/services/solar_os_terminal.c $(ROOT)/src/services/solar_os_terminal_preferences.c $(ROOT)/src/services/solar_os_terminal_geometry.c $(TERMINAL_RENDER_U8G2) $(wildcard $(ROOT)/fonts/build/u8g2/*.c)
 terminal_render_normal_test terminal_render_readable_test terminal_render_large_test: $(TERMINAL_RENDER_SOURCES) $(ROOT)/src/services/solar_os_ui_font.h
 	$(CC) $(CFLAGS) -Wno-unused-function -Wno-unused-variable -Wno-unused-parameter -Wno-format-truncation \
@@ -828,6 +835,14 @@ terminal_render_normal_test terminal_render_readable_test terminal_render_large_
 		-DSOLAR_OS_BOARD_TERMINAL_STATUS_REFRESH_ON_CHANGE=$(if $(findstring normal,$@),1,0) \
 		-I. -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/components/u8g2/src/clib \
 		$(TERMINAL_RENDER_SOURCES) -Wl,--gc-sections -o $@
+
+terminal_render_scale140_test: $(TERMINAL_RENDER_SOURCES) $(ROOT)/src/services/solar_os_gfx.c $(ROOT)/src/services/solar_os_ui_scale.c
+	$(CC) $(CFLAGS) -Wno-unused-function -Wno-unused-variable -Wno-unused-parameter -Wno-format-truncation -Wno-sign-compare \
+		-D_GNU_SOURCE -ffunction-sections -fdata-sections -include compat.h \
+		-DSOLAR_OS_BOARD_UI_FONT_PRESET=2 -DSOLAR_OS_BOARD_UI_SCALE_PERCENT=140 \
+		-DSOLAR_OS_BOARD_TERMINAL_STATUS_REFRESH_ON_CHANGE=0 \
+		-I. -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/components/u8g2/src/clib \
+		$(TERMINAL_RENDER_SOURCES) $(ROOT)/src/services/solar_os_gfx.c $(ROOT)/src/services/solar_os_ui_scale.c -Wl,--gc-sections -o $@
 
 tui_widgets_test: tui_widgets_test.c $(ROOT)/src/services/solar_os_tui_widgets.c $(ROOT)/src/services/solar_os_tui_widgets.h
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -ffunction-sections -fdata-sections -I. \
@@ -920,6 +935,7 @@ test: $(TARGETS)
 	./writer_files_test
 	./sketch_canvas_test
 	./sketch_lifecycle_test
+	./sketch_scale140_lifecycle_test
 	./sketch_legacy_lifecycle_test
 	./launcher_layout_test
 	./display_layout_test
@@ -999,6 +1015,7 @@ test: $(TARGETS)
 	./terminal_render_normal_test
 	./terminal_render_readable_test
 	./terminal_render_large_test
+	./terminal_render_scale140_test
 	./tui_widgets_test
 	./wireguard_crypto_test
 	./meshcore_channel_key_test

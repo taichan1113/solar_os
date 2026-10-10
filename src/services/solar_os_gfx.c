@@ -7,6 +7,8 @@
 
 #include "solar_os_display.h"
 #include "solar_os_fonts.h"
+#include "solar_os_font_face.h"
+#include "solar_os_ui_scale.h"
 #include "solar_os_log.h"
 #include "solar_os_memory.h"
 #include "solar_os_gfx_mono_raster.h"
@@ -48,57 +50,17 @@ static const char *TAG = "gfx";
 static bool gfx_uses_index8(const solar_os_gfx_t *gfx);
 static void gfx_mark_index8_all_dirty(solar_os_gfx_t *gfx);
 
-static const uint8_t *gfx_font_data(solar_os_gfx_font_t font)
+static const uint8_t *gfx_font_data(solar_os_gfx_font_t font, bool native)
 {
-    switch (font) {
-    case SOLAR_OS_GFX_FONT_SMALL:
-        return u8g2_font_solar_os_default_r_12_tf;
-    case SOLAR_OS_GFX_FONT_BOLD:
-        return u8g2_font_solar_os_default_b_14_tf;
-    case SOLAR_OS_GFX_FONT_MONO_12:
-        return u8g2_font_solar_os_default_r_12_tf;
-    case SOLAR_OS_GFX_FONT_MONO_14:
-        return u8g2_font_solar_os_default_r_14_tf;
-    case SOLAR_OS_GFX_FONT_MONO_16:
-        return u8g2_font_solar_os_default_r_16_tf;
-    case SOLAR_OS_GFX_FONT_MONO_18:
-        return u8g2_font_solar_os_default_r_18_tf;
-    case SOLAR_OS_GFX_FONT_MONO_20:
-        return u8g2_font_solar_os_default_r_20_tf;
-    case SOLAR_OS_GFX_FONT_BOLD_12:
-        return u8g2_font_solar_os_default_b_12_tf;
-    case SOLAR_OS_GFX_FONT_BOLD_14:
-        return u8g2_font_solar_os_default_b_14_tf;
-    case SOLAR_OS_GFX_FONT_BOLD_16:
-        return u8g2_font_solar_os_default_b_16_tf;
-    case SOLAR_OS_GFX_FONT_BOLD_18:
-        return u8g2_font_solar_os_default_b_18_tf;
-    case SOLAR_OS_GFX_FONT_BOLD_20:
-        return u8g2_font_solar_os_default_b_20_tf;
-    case SOLAR_OS_GFX_FONT_ITALIC_12:
-        return u8g2_font_solar_os_default_i_12_tf;
-    case SOLAR_OS_GFX_FONT_ITALIC_14:
-        return u8g2_font_solar_os_default_i_14_tf;
-    case SOLAR_OS_GFX_FONT_ITALIC_16:
-        return u8g2_font_solar_os_default_i_16_tf;
-    case SOLAR_OS_GFX_FONT_ITALIC_18:
-        return u8g2_font_solar_os_default_i_18_tf;
-    case SOLAR_OS_GFX_FONT_ITALIC_20:
-        return u8g2_font_solar_os_default_i_20_tf;
-    case SOLAR_OS_GFX_FONT_BOLD_ITALIC_12:
-        return u8g2_font_solar_os_default_bi_12_tf;
-    case SOLAR_OS_GFX_FONT_BOLD_ITALIC_14:
-        return u8g2_font_solar_os_default_bi_14_tf;
-    case SOLAR_OS_GFX_FONT_BOLD_ITALIC_16:
-        return u8g2_font_solar_os_default_bi_16_tf;
-    case SOLAR_OS_GFX_FONT_BOLD_ITALIC_18:
-        return u8g2_font_solar_os_default_bi_18_tf;
-    case SOLAR_OS_GFX_FONT_BOLD_ITALIC_20:
-        return u8g2_font_solar_os_default_bi_20_tf;
-    case SOLAR_OS_GFX_FONT_MONO:
-    default:
-        return u8g2_font_solar_os_default_r_14_tf;
+    unsigned px = 14U, style = 0U;
+    if (font == SOLAR_OS_GFX_FONT_SMALL) px = 12U;
+    else if (font == SOLAR_OS_GFX_FONT_BOLD) style = 1U;
+    else if (font >= SOLAR_OS_GFX_FONT_MONO_12 && font < SOLAR_OS_GFX_FONT_COUNT) {
+        unsigned index = (unsigned)font - SOLAR_OS_GFX_FONT_MONO_12;
+        px = 12U + (index % 5U) * 2U;
+        style = index / 5U;
     }
+    return solar_os_font_face(native ? px : (unsigned)solar_os_ui_px((int)px), style);
 }
 
 static const uint8_t *gfx_icon_font_data(solar_os_gfx_icon_size_t size)
@@ -688,7 +650,7 @@ static void gfx_apply_draw_state(solar_os_gfx_t *gfx)
 
     u8g2_SetDrawColor(gfx->u8g2, gfx_binary_draw_color(gfx, gfx->color));
     u8g2_SetBitmapMode(gfx->u8g2, 1);
-    u8g2_SetFont(gfx->u8g2, gfx_font_data(gfx->font));
+    u8g2_SetFont(gfx->u8g2, gfx_font_data(gfx->font, gfx->font_native));
     u8g2_SetFontMode(gfx->u8g2, 1);
     u8g2_SetFontPosBaseline(gfx->u8g2);
 }
@@ -892,6 +854,25 @@ void solar_os_gfx_set_font(solar_os_gfx_t *gfx, solar_os_gfx_font_t font)
     }
 
     gfx->font = font;
+    gfx->font_native = false;
+}
+
+void solar_os_gfx_set_font_native(solar_os_gfx_t *gfx, solar_os_gfx_font_t font)
+{
+    solar_os_gfx_set_font(gfx, font);
+    if (gfx != NULL) gfx->font_native = true;
+}
+
+solar_os_gfx_font_metrics_t solar_os_gfx_font_metrics(solar_os_gfx_t *gfx)
+{
+    solar_os_gfx_font_metrics_t result = {0};
+    if (!gfx_ready(gfx)) return result;
+    gfx_apply_draw_state(gfx);
+    result.height = u8g2_GetMaxCharHeight(gfx->u8g2);
+    result.descent = -(int)gfx->u8g2->font_info.y_offset;
+    if (result.descent < 0) result.descent = 0;
+    result.ascent = result.height - result.descent;
+    return result;
 }
 
 solar_os_gfx_font_t solar_os_gfx_font(const solar_os_gfx_t *gfx)
@@ -907,6 +888,25 @@ size_t solar_os_gfx_text_width(solar_os_gfx_t *gfx, const char *text)
 
     gfx_apply_draw_state(gfx);
     return (size_t)u8g2_GetUTF8Width(gfx->u8g2, text);
+}
+
+size_t solar_os_gfx_text_fit(solar_os_gfx_t *gfx, const char *text, int width,
+                              char *buffer, size_t capacity)
+{
+    if (buffer == NULL || capacity == 0) return 0;
+    if (text == NULL || width <= 0) { buffer[0] = '\0'; return 0; }
+    size_t n = strlen(text);
+    if (n >= capacity) n = capacity - 1;
+    /* If capacity ends in the middle of a code point, drop that code point. */
+    while (n > 0 && ((unsigned char)text[n] & 0xc0U) == 0x80U) n--;
+    memmove(buffer, text, n);
+    buffer[n] = '\0';
+    while (n > 0 && solar_os_gfx_text_width(gfx, buffer) > (size_t)width) {
+        n--;
+        while (n > 0 && ((unsigned char)buffer[n] & 0xc0U) == 0x80U) n--;
+        buffer[n] = '\0';
+    }
+    return n;
 }
 
 void solar_os_gfx_set_line_style(solar_os_gfx_t *gfx, solar_os_gfx_line_style_t style)

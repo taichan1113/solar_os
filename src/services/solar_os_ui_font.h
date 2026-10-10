@@ -3,9 +3,10 @@
 #include "solar_os_board.h"
 #include "solar_os_gfx.h"
 #include "solar_os_terminal.h"
+#include "solar_os_ui_scale.h"
 
-/* Roles select existing bitmap faces; explicit GFX sizes and document zoom
- * are independent. Normal reproduces the existing terminal/UI geometry. */
+/* Roles select logical font IDs. Shared GFX resolves their effective UI face;
+ * native document fonts keep zoom independent. */
 #define SOLAR_OS_UI_FONT_PRESET_NORMAL 0
 #define SOLAR_OS_UI_FONT_PRESET_READABLE 1
 #define SOLAR_OS_UI_FONT_PRESET_LARGE 2
@@ -74,5 +75,31 @@ static inline const solar_os_ui_font_profile_t *solar_os_ui_font_profile_for(uns
 
 static inline const solar_os_ui_font_profile_t *solar_os_ui_font_profile(void)
 {
-    return solar_os_ui_font_profile_for(SOLAR_OS_BOARD_UI_FONT_PRESET);
+    const solar_os_ui_font_profile_t *base = solar_os_ui_font_profile_for(SOLAR_OS_BOARD_UI_FONT_PRESET);
+    if (solar_os_ui_scale_percent() == 100U) return base;
+    /* Immutable profiles are safe for both the UI and rendering workers. */
+    static const solar_os_ui_font_profile_t scaled[] = {
+        {.name = "normal", .terminal_font = SOLAR_OS_TERMINAL_FONT_COMPACT,
+         .terminal_size = SOLAR_OS_TERMINAL_TEXT_SIZE_16,
+         .small = SOLAR_OS_GFX_FONT_SMALL, .body = SOLAR_OS_GFX_FONT_MONO_14,
+         .bold = SOLAR_OS_GFX_FONT_BOLD_14, .title = SOLAR_OS_GFX_FONT_SMALL,
+         .heading = SOLAR_OS_GFX_FONT_BOLD_14, .dialog_title = SOLAR_OS_GFX_FONT_MONO_14,
+         .small_px = 17, .body_px = 20, .title_px = 17, .heading_px = 20,
+         .writer_header_height = 22, .writer_title_baseline = 15, .status_height = 22},
+        {.name = "readable", .terminal_font = SOLAR_OS_TERMINAL_FONT_MONO,
+         .terminal_size = SOLAR_OS_TERMINAL_TEXT_SIZE_16,
+         .small = SOLAR_OS_GFX_FONT_MONO_14, .body = SOLAR_OS_GFX_FONT_MONO_14,
+         .bold = SOLAR_OS_GFX_FONT_BOLD_14, .title = SOLAR_OS_GFX_FONT_MONO_16,
+         .heading = SOLAR_OS_GFX_FONT_BOLD_16, .dialog_title = SOLAR_OS_GFX_FONT_MONO_16,
+         .small_px = 20, .body_px = 20, .title_px = 22, .heading_px = 22,
+         .writer_header_height = 28, .writer_title_baseline = 21, .status_height = 28},
+        {.name = "large", .terminal_font = SOLAR_OS_TERMINAL_FONT_MONO,
+         .terminal_size = SOLAR_OS_TERMINAL_TEXT_SIZE_18,
+         .small = SOLAR_OS_GFX_FONT_MONO_16, .body = SOLAR_OS_GFX_FONT_MONO_16,
+         .bold = SOLAR_OS_GFX_FONT_BOLD_16, .title = SOLAR_OS_GFX_FONT_MONO_18,
+         .heading = SOLAR_OS_GFX_FONT_BOLD_18, .dialog_title = SOLAR_OS_GFX_FONT_MONO_18,
+         .small_px = 22, .body_px = 22, .title_px = 25, .heading_px = 25,
+         .writer_header_height = 34, .writer_title_baseline = 24, .status_height = 34},
+    };
+    return &scaled[SOLAR_OS_BOARD_UI_FONT_PRESET];
 }

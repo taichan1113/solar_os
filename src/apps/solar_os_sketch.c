@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 
 #include "solar_os_gfx.h"
+#include "solar_os_ui_scale.h"
 #include "solar_os_keys.h"
 #include "solar_os_memory.h"
 #include "solar_os_sketch_canvas.h"
@@ -24,7 +25,7 @@
 
 #define SKETCH_SIDE_BAR 64
 #define SKETCH_BOTTOM_BAR 30
-#define SKETCH_BROWSER_ROW_HEIGHT 16
+#define SKETCH_BROWSER_ROW_HEIGHT (solar_os_ui_px(16))
 #define SKETCH_IMPORT_MAX_BYTES (4U * 1024U * 1024U)
 #define SKETCH_IMPORT_MAX_PIXELS (2U * 1024U * 1024U)
 #define SKETCH_TICK_MS 40U
@@ -526,6 +527,16 @@ static sketch_button_symbol_layout_t sketch_draw_button_symbol_frame(
             .size = symbol_size,
         };
     }
+    /* Keep the physical canvas/sidebar size; stack the enlarged label below
+     * its icon rather than silently hiding it in narrow buttons. */
+    if (label_width > 0 && label_width <= width - 4 &&
+        height >= symbol_size + solar_os_ui_px(16) + 4) {
+        solar_os_gfx_text(gfx, x + (width - label_width) / 2,
+                          y + height - 4, label);
+        return (sketch_button_symbol_layout_t){
+            .x = x + (width - symbol_size) / 2, .y = y + 3, .size = symbol_size,
+        };
+    }
     return (sketch_button_symbol_layout_t){
         .x = x + (width - symbol_size) / 2,
         .y = y + (height - symbol_size) / 2,
@@ -640,14 +651,17 @@ static void sketch_render_browser(solar_os_gfx_t *gfx,
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
     solar_os_gfx_rect(gfx, x, y, width, height);
     solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_SMALL);
-    solar_os_gfx_text(gfx, x + 5, y + 12,
+    solar_os_gfx_text(gfx, x + 5, y + solar_os_ui_px(12),
                       sketch.modal == SKETCH_MODAL_OPEN ? "Open PNG" :
                                                          "Import image");
     const char *path = solar_os_storage_browser_path(sketch.browser);
-    solar_os_gfx_text(gfx, x + 70, y + 12, path);
+    char shown_path[SOLAR_OS_STORAGE_PATH_MAX];
+    const int path_x = x + (solar_os_ui_scale_percent() == 100U ? 70 : solar_os_ui_px(110));
+    solar_os_gfx_text_fit(gfx, path, x + width - path_x - 5, shown_path, sizeof(shown_path));
+    solar_os_gfx_text(gfx, path_x, y + solar_os_ui_px(12), shown_path);
 
-    const int list_top = y + 18;
-    const int rows = (height - 42) / SKETCH_BROWSER_ROW_HEIGHT;
+    const int list_top = y + solar_os_ui_px(18);
+    const int rows = (height - solar_os_ui_px(42)) / SKETCH_BROWSER_ROW_HEIGHT;
     const size_t count = solar_os_storage_browser_count(sketch.browser);
     const size_t cursor = solar_os_storage_browser_cursor(sketch.browser);
     size_t first = cursor >= (size_t)rows ? cursor - (size_t)rows + 1U : 0U;
@@ -670,18 +684,19 @@ static void sketch_render_browser(solar_os_gfx_t *gfx,
         char label[SOLAR_OS_STORAGE_BROWSER_NAME_MAX + 4U];
         snprintf(label, sizeof(label), "%s%s", entry.is_directory ? "> " : "  ",
                  entry.name);
-        solar_os_gfx_text(gfx, x + 5, row_y + 11, label);
+        solar_os_gfx_text_fit(gfx, label, width - 10, label, sizeof(label));
+        solar_os_gfx_text(gfx, x + 5, row_y + solar_os_ui_px(11), label);
     }
-    sketch_draw_button(gfx, x + width - 52, y + height - 20,
-                       46, 16, "Cancel", false);
+    sketch_draw_button(gfx, x + width - solar_os_ui_px(62), y + height - solar_os_ui_px(24),
+                       solar_os_ui_px(56), solar_os_ui_px(20), "Cancel", false);
 }
 
 static void sketch_render_popup(solar_os_gfx_t *gfx,
                                 const sketch_layout_t *layout)
 {
-    const int width = layout->screen_width > 300 ? 250 :
+    const int width = layout->screen_width > solar_os_ui_px(380) ? (solar_os_ui_scale_percent() == 100U ? 250 : solar_os_ui_px(350)) :
         layout->screen_width - 24;
-    const int height = 78;
+    const int height = solar_os_ui_scale_percent() == 100U ? 78 : solar_os_ui_px(92);
     const int x = (layout->screen_width - width) / 2;
     const int y = (layout->screen_height - height) / 2;
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_WHITE);
@@ -689,20 +704,20 @@ static void sketch_render_popup(solar_os_gfx_t *gfx,
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
     solar_os_gfx_rect(gfx, x, y, width, height);
     solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_BOLD_12);
-    solar_os_gfx_text(gfx, x + 7, y + 16,
+    solar_os_gfx_text(gfx, x + 7, y + solar_os_ui_px(16),
                       sketch.modal == SKETCH_MODAL_NO_POINTER ?
                           "No pointer attached" : "Sketch");
     solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_SMALL);
     if (sketch.modal == SKETCH_MODAL_NO_POINTER) {
-        solar_os_gfx_text(gfx, x + 7, y + 34,
+        solar_os_gfx_text(gfx, x + 7, y + solar_os_ui_px(34),
                           "Attach a pointer at any time.");
-        solar_os_gfx_text(gfx, x + 7, y + 48,
+        solar_os_gfx_text(gfx, x + 7, y + solar_os_ui_px(48),
                           "Enter or Esc dismisses this message.");
     } else {
-        solar_os_gfx_text(gfx, x + 7, y + 38, sketch.message);
+        solar_os_gfx_text(gfx, x + 7, y + solar_os_ui_px(38), sketch.message);
     }
-    sketch_draw_button(gfx, x + width - 40, y + height - 20,
-                       34, 15, "OK", false);
+    sketch_draw_button(gfx, x + width - solar_os_ui_px(40), y + height - solar_os_ui_px(24),
+                       solar_os_ui_px(34), solar_os_ui_px(20), "OK", false);
 }
 
 static void sketch_render(solar_os_context_t *ctx)
@@ -1036,13 +1051,13 @@ static void sketch_browser_pointer(const sketch_layout_t *layout)
     const int box_y = 12;
     const int box_width = layout->screen_width - 20;
     const int box_height = layout->screen_height - 24;
-    if (sketch.pointer_y >= box_y + box_height - 22 &&
-        sketch.pointer_x >= box_x + box_width - 58) {
+    if (sketch.pointer_y >= box_y + box_height - solar_os_ui_px(24) &&
+        sketch.pointer_x >= box_x + box_width - solar_os_ui_px(62)) {
         sketch_browser_close();
         return;
     }
-    const int list_top = box_y + 18;
-    const int rows = (box_height - 42) / SKETCH_BROWSER_ROW_HEIGHT;
+    const int list_top = box_y + solar_os_ui_px(18);
+    const int rows = (box_height - solar_os_ui_px(42)) / SKETCH_BROWSER_ROW_HEIGHT;
     if (sketch.pointer_y < list_top ||
         sketch.pointer_y >= list_top + rows * SKETCH_BROWSER_ROW_HEIGHT) {
         return;

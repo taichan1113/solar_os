@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "solar_os_board.h"
@@ -13,6 +14,7 @@
 #include "solar_os_terminal_geometry.h"
 #include "solar_os_terminal_preferences.h"
 #include "solar_os_ui_font.h"
+#include "solar_os_font_face.h"
 
 #define TERM_MARGIN_X 4
 #define TERM_STATUS_BAR_HEIGHT (solar_os_ui_font_profile()->status_height)
@@ -328,20 +330,10 @@ static const uint8_t *terminal_selected_font(const solar_os_terminal_t *terminal
         text_size = TERM_DEFAULT_TEXT_SIZE;
     }
 
-    const terminal_text_size_profile_t *profile = &terminal_text_sizes[text_size];
-    if (bold && italic && profile->bold_italic_font[font] != NULL) {
-        return profile->bold_italic_font[font];
-    }
-    if (italic && profile->italic_font[font] != NULL) {
-        return profile->italic_font[font];
-    }
-    if (bold && profile->bold_font[font] != NULL) {
-        return profile->bold_font[font];
-    }
-    if (profile->regular_font[font] != NULL) {
-        return profile->regular_font[font];
-    }
-    return u8g2_font_solar_os_default_r_14_tf;
+    unsigned px = (unsigned)strtoul(terminal_text_sizes[text_size].name, NULL, 10);
+    if (font == SOLAR_OS_TERMINAL_FONT_COMPACT && px >= 14U) px -= 2U;
+    return solar_os_font_face((unsigned)solar_os_ui_px((int)px),
+                             (bold ? 1U : 0U) | (italic ? 2U : 0U));
 }
 
 static uint8_t terminal_text_scale(const solar_os_terminal_t *terminal)
@@ -513,7 +505,7 @@ static void terminal_apply_settings(solar_os_terminal_t *terminal, bool clear_sc
         &terminal_text_sizes[terminal->text_size] :
         &terminal_text_sizes[TERM_DEFAULT_TEXT_SIZE];
     if ((size_t)terminal->font < sizeof(profile->cell_width) / sizeof(profile->cell_width[0]) &&
-        profile->cell_width[terminal->font] > 0) {
+        profile->cell_width[terminal->font] > 0 && solar_os_ui_scale_percent() == 100U) {
         char_width = profile->cell_width[terminal->font];
     }
     if (char_width <= 0) {
@@ -2363,24 +2355,24 @@ static void terminal_draw_battery_icon(u8g2_t *u8g2,
         percent = 100;
     }
 
-    u8g2_DrawFrame(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)y, 18, 10);
-    u8g2_DrawBox(u8g2, (u8g2_uint_t)(x + 18), (u8g2_uint_t)(y + 3), 2, 4);
+    u8g2_DrawFrame(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)y, solar_os_ui_px(18), solar_os_ui_px(10));
+    u8g2_DrawBox(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(18)), (u8g2_uint_t)(y + solar_os_ui_px(3)), solar_os_ui_px(2), solar_os_ui_px(4));
 
     if (!valid) {
-        terminal_draw_status_slash(u8g2, x + 2, y + 1, 15, 8);
+        terminal_draw_status_slash(u8g2, x + solar_os_ui_px(2), y + solar_os_ui_px(1), solar_os_ui_px(15), solar_os_ui_px(8));
         return;
     }
 
-    int fill_width = ((int)percent * 14 + 99) / 100;
+    int fill_width = ((int)percent * solar_os_ui_px(14) + 99) / 100;
     if (percent == 0) {
         fill_width = 0;
     }
     if (fill_width > 0) {
         u8g2_DrawBox(u8g2,
-                     (u8g2_uint_t)(x + 2),
-                     (u8g2_uint_t)(y + 2),
+                     (u8g2_uint_t)(x + solar_os_ui_px(2)),
+                     (u8g2_uint_t)(y + solar_os_ui_px(2)),
                      (u8g2_uint_t)fill_width,
-                     6);
+                     solar_os_ui_px(6));
     }
 }
 
@@ -2391,7 +2383,7 @@ static int terminal_inbox_icon_width(u8g2_t *u8g2, uint16_t unread, char count_t
     } else {
         snprintf(count_text, 4, "%u", (unsigned)unread);
     }
-    return 16 + (int)u8g2_GetStrWidth(u8g2, count_text);
+    return solar_os_ui_px(16) + (int)u8g2_GetStrWidth(u8g2, count_text);
 }
 
 static void terminal_draw_inbox_icon(u8g2_t *u8g2,
@@ -2400,26 +2392,26 @@ static void terminal_draw_inbox_icon(u8g2_t *u8g2,
                                      int baseline,
                                      const char *count_text)
 {
-    u8g2_DrawFrame(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)(y + 1), 14, 10);
-    terminal_draw_diag_down(u8g2, x + 1, y + 2, 6, 4);
-    terminal_draw_diag_up(u8g2, x + 7, y + 2, 6, 4);
+    u8g2_DrawFrame(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)(y + solar_os_ui_px(1)), solar_os_ui_px(14), solar_os_ui_px(10));
+    terminal_draw_diag_down(u8g2, x + solar_os_ui_px(1), y + solar_os_ui_px(2), solar_os_ui_px(6), solar_os_ui_px(4));
+    terminal_draw_diag_up(u8g2, x + solar_os_ui_px(7), y + solar_os_ui_px(2), solar_os_ui_px(6), solar_os_ui_px(4));
     u8g2_DrawStr(u8g2,
-                 (u8g2_uint_t)(x + 16),
+                 (u8g2_uint_t)(x + solar_os_ui_px(16)),
                  (u8g2_uint_t)baseline,
                  count_text);
 }
 
 static void terminal_draw_plug_icon(u8g2_t *u8g2, int x, int y)
 {
-    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + 5), (u8g2_uint_t)y, 4);
-    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + 10), (u8g2_uint_t)y, 4);
-    u8g2_DrawHLine(u8g2, (u8g2_uint_t)(x + 4), (u8g2_uint_t)(y + 4), 8);
-    u8g2_DrawFrame(u8g2, (u8g2_uint_t)(x + 3), (u8g2_uint_t)(y + 4), 10, 7);
-    u8g2_DrawBox(u8g2, (u8g2_uint_t)(x + 5), (u8g2_uint_t)(y + 6), 6, 4);
-    u8g2_DrawHLine(u8g2, (u8g2_uint_t)(x + 13), (u8g2_uint_t)(y + 7), 4);
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 17), (u8g2_uint_t)(y + 8));
-    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + 18), (u8g2_uint_t)(y + 8), 3);
-    u8g2_DrawHLine(u8g2, (u8g2_uint_t)(x + 15), (u8g2_uint_t)(y + 11), 4);
+    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(5)), (u8g2_uint_t)y, solar_os_ui_px(4));
+    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(10)), (u8g2_uint_t)y, solar_os_ui_px(4));
+    u8g2_DrawHLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(4)), (u8g2_uint_t)(y + solar_os_ui_px(4)), solar_os_ui_px(8));
+    u8g2_DrawFrame(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(3)), (u8g2_uint_t)(y + solar_os_ui_px(4)), solar_os_ui_px(10), solar_os_ui_px(7));
+    u8g2_DrawBox(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(5)), (u8g2_uint_t)(y + solar_os_ui_px(6)), solar_os_ui_px(6), solar_os_ui_px(4));
+    u8g2_DrawHLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(13)), (u8g2_uint_t)(y + solar_os_ui_px(7)), solar_os_ui_px(4));
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(17)), (u8g2_uint_t)(y + solar_os_ui_px(8)));
+    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(18)), (u8g2_uint_t)(y + solar_os_ui_px(8)), solar_os_ui_px(3));
+    u8g2_DrawHLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(15)), (u8g2_uint_t)(y + solar_os_ui_px(11)), solar_os_ui_px(4));
 }
 
 static void terminal_draw_keyboard_icon(u8g2_t *u8g2,
@@ -2427,33 +2419,33 @@ static void terminal_draw_keyboard_icon(u8g2_t *u8g2,
                                         int y,
                                         bool available)
 {
-    u8g2_DrawFrame(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)(y + 1), 18, 10);
-    u8g2_DrawHLine(u8g2, (u8g2_uint_t)(x + 2), (u8g2_uint_t)(y + 4), 14);
-    u8g2_DrawHLine(u8g2, (u8g2_uint_t)(x + 2), (u8g2_uint_t)(y + 7), 14);
+    u8g2_DrawFrame(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)(y + solar_os_ui_px(1)), solar_os_ui_px(18), solar_os_ui_px(10));
+    u8g2_DrawHLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(2)), (u8g2_uint_t)(y + solar_os_ui_px(4)), solar_os_ui_px(14));
+    u8g2_DrawHLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(2)), (u8g2_uint_t)(y + solar_os_ui_px(7)), solar_os_ui_px(14));
     for (int key = 0; key < 4; key++) {
-        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 3 + key * 4), (u8g2_uint_t)(y + 3));
-        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 4 + key * 3), (u8g2_uint_t)(y + 6));
+        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(3) + key * solar_os_ui_px(4)), (u8g2_uint_t)(y + solar_os_ui_px(3)));
+        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(4) + key * 3), (u8g2_uint_t)(y + solar_os_ui_px(6)));
     }
-    u8g2_DrawBox(u8g2, (u8g2_uint_t)(x + 5), (u8g2_uint_t)(y + 9), 8, 1);
+    u8g2_DrawBox(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(5)), (u8g2_uint_t)(y + solar_os_ui_px(9)), solar_os_ui_px(8), solar_os_ui_px(1));
 
     if (!available) {
-        terminal_draw_status_slash(u8g2, x + 1, y + 2, 16, 8);
+        terminal_draw_status_slash(u8g2, x + solar_os_ui_px(1), y + solar_os_ui_px(2), solar_os_ui_px(16), solar_os_ui_px(8));
     }
 }
 
 static void terminal_draw_bluetooth_icon(u8g2_t *u8g2, int x, int y,
                                          bool enabled, bool scanning)
 {
-    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + 4), (u8g2_uint_t)y, 11);
-    terminal_draw_diag_down(u8g2, x + 4, y, 5, 3);
-    terminal_draw_diag_up(u8g2, x, y + 2, 9, 7);
-    terminal_draw_diag_down(u8g2, x, y + 2, 9, 7);
-    terminal_draw_diag_up(u8g2, x + 4, y + 8, 5, 3);
+    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(4)), (u8g2_uint_t)y, solar_os_ui_px(11));
+    terminal_draw_diag_down(u8g2, x + solar_os_ui_px(4), y, solar_os_ui_px(5), solar_os_ui_px(3));
+    terminal_draw_diag_up(u8g2, x, y + solar_os_ui_px(2), solar_os_ui_px(9), solar_os_ui_px(7));
+    terminal_draw_diag_down(u8g2, x, y + solar_os_ui_px(2), solar_os_ui_px(9), solar_os_ui_px(7));
+    terminal_draw_diag_up(u8g2, x + solar_os_ui_px(4), y + solar_os_ui_px(8), solar_os_ui_px(5), solar_os_ui_px(3));
     if (!enabled) {
-        terminal_draw_status_slash(u8g2, x, y + 1, 9, 9);
+        terminal_draw_status_slash(u8g2, x, y + solar_os_ui_px(1), solar_os_ui_px(9), solar_os_ui_px(9));
     } else if (scanning) {
-        u8g2_DrawFrame(u8g2, (u8g2_uint_t)(x + 9), (u8g2_uint_t)y, 3, 3);
-        terminal_draw_diag_down(u8g2, x + 11, y + 2, 3, 3);
+        u8g2_DrawFrame(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(9)), (u8g2_uint_t)y, solar_os_ui_px(3), solar_os_ui_px(3));
+        terminal_draw_diag_down(u8g2, x + solar_os_ui_px(11), y + solar_os_ui_px(2), solar_os_ui_px(3), solar_os_ui_px(3));
     }
 }
 
@@ -2469,28 +2461,28 @@ static void terminal_draw_wifi_icon(u8g2_t *u8g2,
         level = 3;
     }
 
-    const int base_y = y + 11;
+    const int base_y = y + solar_os_ui_px(11);
     for (int bar = 0; bar < 3; bar++) {
-        const int height = 3 + (bar * 3);
-        const int bar_x = x + (bar * 5);
+        const int height = solar_os_ui_px(3 + (bar * 3));
+        const int bar_x = x + solar_os_ui_px(bar * 5);
         const int bar_y = base_y - height + 1;
         if (connected && has_ip && level > (uint8_t)bar) {
             u8g2_DrawBox(u8g2,
                          (u8g2_uint_t)bar_x,
                          (u8g2_uint_t)bar_y,
-                         3,
+                         solar_os_ui_px(3),
                          (u8g2_uint_t)height);
         } else {
             u8g2_DrawFrame(u8g2,
                            (u8g2_uint_t)bar_x,
                            (u8g2_uint_t)bar_y,
-                           3,
+                           solar_os_ui_px(3),
                            (u8g2_uint_t)height);
         }
     }
 
     if (!started) {
-        terminal_draw_status_slash(u8g2, x, y + 2, 13, 9);
+        terminal_draw_status_slash(u8g2, x, y + solar_os_ui_px(2), solar_os_ui_px(13), solar_os_ui_px(9));
     }
 }
 
@@ -2652,14 +2644,9 @@ static void terminal_draw_status_bar(solar_os_terminal_t *terminal, u8g2_t *u8g2
     u8g2_DrawBox(u8g2, 0, 0, (u8g2_uint_t)width, (u8g2_uint_t)height);
 
     terminal_set_draw_color(terminal, u8g2, 1);
-    const int icon_y = height >= 16 ? (height - 10) / 2 : 1;
+    const int icon_y = height >= 16 ? (height - solar_os_ui_px(14)) / 2 : 1;
 
-    const uint8_t *status_font = u8g2_font_solar_os_default_r_12_tf;
-    if (solar_os_ui_font_profile()->small_px == 14) {
-        status_font = u8g2_font_solar_os_default_r_14_tf;
-    } else if (solar_os_ui_font_profile()->small_px == 16) {
-        status_font = u8g2_font_solar_os_default_r_16_tf;
-    }
+    const uint8_t *status_font = solar_os_font_face(solar_os_ui_font_profile()->small_px, 0U);
     u8g2_SetFont(u8g2, status_font);
     u8g2_SetFontMode(u8g2, 1);
     u8g2_SetFontPosBaseline(u8g2);
@@ -2677,7 +2664,7 @@ static void terminal_draw_status_bar(solar_os_terminal_t *terminal, u8g2_t *u8g2
 
     const int time_width = (int)u8g2_GetStrWidth(u8g2, time_text);
     const int time_x = width - time_width - 4;
-    const int clock_x = time_x - 12;
+    const int clock_x = time_x - solar_os_ui_px(12);
     const bool compact = width <= TERM_STATUS_BAR_COMPACT_MAX_WIDTH;
     const int icon_right_limit = compact && !status->time_valid ? time_x : clock_x;
     char inbox_count_text[4] = {0};
@@ -2696,14 +2683,14 @@ static void terminal_draw_status_bar(solar_os_terminal_t *terminal, u8g2_t *u8g2
             terminal_draw_battery_icon(
                 u8g2, x, icon_y, status->battery_valid, status->battery_percent);
         }
-        x += 28;
+        x += solar_os_ui_px(28);
         terminal_draw_keyboard_icon(
             u8g2, x, icon_y, status->keyboard_count > 0);
-        x += 26;
+        x += solar_os_ui_px(26);
         if (status->bluetooth_supported) {
             terminal_draw_bluetooth_icon(u8g2, x, icon_y,
                                          status->bluetooth_enabled, status->bluetooth_scanning);
-            x += 18;
+            x += solar_os_ui_px(18);
         }
         terminal_draw_wifi_icon(u8g2,
                                 x,
@@ -2712,9 +2699,9 @@ static void terminal_draw_status_bar(solar_os_terminal_t *terminal, u8g2_t *u8g2
                                 status->wifi_connected,
                                 status->wifi_has_ip,
                                 status->wifi_level);
-        x += 22;
+        x += solar_os_ui_px(22);
         terminal_draw_speaker_icon(u8g2, x, icon_y, status->audio_enabled, status->audio_volume);
-        x += 24;
+        x += solar_os_ui_px(24);
         x = terminal_draw_radio_link_icons(
             u8g2, x, icon_y, leading_icon_right_limit,
             status->radio_attached, status->link_running);
@@ -2723,30 +2710,30 @@ static void terminal_draw_status_bar(solar_os_terminal_t *terminal, u8g2_t *u8g2
             u8g2, x, icon_y, leading_icon_right_limit,
             status->radio_attached, status->link_running);
         if ((status->battery_external_power || status->battery_valid) &&
-            terminal_status_icon_fits(x, 20, leading_icon_right_limit)) {
+            terminal_status_icon_fits(x, solar_os_ui_px(20), leading_icon_right_limit)) {
             if (status->battery_external_power) {
                 terminal_draw_plug_icon(u8g2, x, icon_y);
             } else {
                 terminal_draw_battery_icon(
                     u8g2, x, icon_y, true, status->battery_percent);
             }
-            x += 20 + TERM_STATUS_BAR_ICON_GAP;
+            x += solar_os_ui_px(20) + TERM_STATUS_BAR_ICON_GAP;
         }
 
-        if (terminal_status_icon_fits(x, 18, leading_icon_right_limit)) {
+        if (terminal_status_icon_fits(x, solar_os_ui_px(18), leading_icon_right_limit)) {
             terminal_draw_keyboard_icon(
                 u8g2, x, icon_y, status->keyboard_count > 0);
-            x += 18 + TERM_STATUS_BAR_ICON_GAP;
+            x += solar_os_ui_px(18) + TERM_STATUS_BAR_ICON_GAP;
         }
         if (status->bluetooth_supported &&
-            terminal_status_icon_fits(x, 14, leading_icon_right_limit)) {
+            terminal_status_icon_fits(x, solar_os_ui_px(14), leading_icon_right_limit)) {
             terminal_draw_bluetooth_icon(u8g2, x, icon_y,
                                          status->bluetooth_enabled, status->bluetooth_scanning);
-            x += 14 + TERM_STATUS_BAR_ICON_GAP;
+            x += solar_os_ui_px(14) + TERM_STATUS_BAR_ICON_GAP;
         }
 
         if (status->wifi_started &&
-            terminal_status_icon_fits(x, 13, leading_icon_right_limit)) {
+            terminal_status_icon_fits(x, solar_os_ui_px(13), leading_icon_right_limit)) {
             terminal_draw_wifi_icon(u8g2,
                                     x,
                                     icon_y,
@@ -2754,7 +2741,7 @@ static void terminal_draw_status_bar(solar_os_terminal_t *terminal, u8g2_t *u8g2
                                     status->wifi_connected,
                                     status->wifi_has_ip,
                                     status->wifi_level);
-            x += 13 + TERM_STATUS_BAR_ICON_GAP;
+            x += solar_os_ui_px(13) + TERM_STATUS_BAR_ICON_GAP;
         }
 
         if (status->audio_enabled && status->audio_volume > 0 &&
@@ -2952,6 +2939,11 @@ static void terminal_clear_text_row(solar_os_terminal_t *terminal,
     u8g2_DrawBox(u8g2, 0, (u8g2_uint_t)top,
                  u8g2_GetDisplayWidth(u8g2), (u8g2_uint_t)height);
     terminal_set_draw_color(terminal, u8g2, 0);
+}
+
+void solar_os_terminal_refresh_ui_scale(solar_os_terminal_t *terminal)
+{
+    terminal_apply_settings(terminal, true);
 }
 
 void solar_os_terminal_draw(solar_os_terminal_t *terminal)

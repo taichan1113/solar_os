@@ -29,6 +29,7 @@ class StatusBarIconsTest(unittest.TestCase):
         ))
         harness = r'''
 #include <assert.h>
+#include "solar_os_ui_scale.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -77,7 +78,7 @@ int main(void) {
             binary = Path(directory) / "icons"
             source.write_text(harness)
             subprocess.run(["cc", "-std=c11", "-Wall", "-Wextra", "-Werror",
-                            str(source), "-o", str(binary)], check=True)
+                            f"-I{ROOT / 'tests/host'}", f"-I{ROOT / 'src/services'}", str(source), "-o", str(binary)], check=True)
             preview = subprocess.check_output([str(binary)])
             if os.environ.get("SOLAROS_ICON_PREVIEW"):
                 Path(os.environ["SOLAROS_ICON_PREVIEW"]).write_bytes(preview)

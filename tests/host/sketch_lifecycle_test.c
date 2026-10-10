@@ -43,7 +43,8 @@ solar_os_display_format_t solar_os_gfx_format(const solar_os_gfx_t *g){(void)g;r
 void solar_os_gfx_clear(solar_os_gfx_t *g,solar_os_gfx_color_t c){(void)g;(void)c;}
 void solar_os_gfx_set_color(solar_os_gfx_t *g,solar_os_gfx_color_t c){(void)g;(void)c;}
 void solar_os_gfx_set_font(solar_os_gfx_t *g,solar_os_gfx_font_t f){(void)g;(void)f;}
-size_t solar_os_gfx_text_width(solar_os_gfx_t *g,const char *t){(void)g;return strlen(t)*6;}
+size_t solar_os_gfx_text_fit(solar_os_gfx_t *g,const char *text,int width,char *out,size_t cap){(void)g;size_t n=strlen(text);if(n>=cap)n=cap-1;if(n>(size_t)(width>0?width/6:0))n=width>0?width/6:0;memmove(out,text,n);out[n]=0;return n;}
+size_t solar_os_gfx_text_width(solar_os_gfx_t *g,const char *t){(void)g;return strlen(t)*(solar_os_ui_scale_percent()==140U?9:6);}
 void solar_os_gfx_text(solar_os_gfx_t *g,int x,int y,const char *t){(void)g;(void)x;(void)y;(void)t;}
 void solar_os_gfx_fill_rect(solar_os_gfx_t *g,int x,int y,int w,int h)
 {assert(x>=0 && y>=0 && w>=0 && h>=0 && x+w<=(int)g->width && y+h<=(int)g->height);}
@@ -120,6 +121,14 @@ int main(void)
     other_pointer=fail_enable=false;c=begin(0);assert(sketch_start(&c)==ESP_OK && leased && sketch.modal==SKETCH_MODAL_NONE);
     assert(submits==1 && !synchronous_presents);
     sketch_layout_t l=sketch_layout(c.gfx);assert(l.canvas_x==64 && l.canvas_width==736 && l.canvas_height==392);
+#if SOLAR_OS_BOARD_UI_SCALE_PERCENT == 140
+    const sketch_button_symbol_layout_t symbol = sketch_draw_button_symbol_frame(c.gfx, 2, 2, 60, 49, "Import", false);
+    assert(symbol.y == 5); /* 54 px label stays visible below its 16 px icon. */
+    assert(solar_os_ui_scale_set_percent(100));
+    sketch_layout_t original = sketch_layout(c.gfx);
+    assert(memcmp(&l, &original, sizeof(l)) == 0);
+    assert(solar_os_ui_scale_set_percent(140));
+#endif
     pointer(&c,SOLAR_OS_INPUT_POINTER_PRESS,100,100);
     for(int x=101;x<=200;x++)pointer(&c,SOLAR_OS_INPUT_POINTER_MOVE,x,100);
     assert(submits==1);tick(&c);assert(submits==2);

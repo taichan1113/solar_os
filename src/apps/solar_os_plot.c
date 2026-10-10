@@ -1,3 +1,4 @@
+#include "solar_os_ui_scale.h"
 #include "solar_os_plot.h"
 
 #include <errno.h>
@@ -961,10 +962,10 @@ static void plot_render(solar_os_context_t *ctx)
 
     const int screen_w = (int)solar_os_gfx_width(gfx);
     const int screen_h = (int)solar_os_gfx_height(gfx);
-    const int left = 42;
-    const int top = 22;
+    const int left = solar_os_ui_px(42);
+    const int top = solar_os_ui_px(22);
     const int right_pad = 4;
-    const int bottom_pad = 22;
+    const int bottom_pad = solar_os_ui_px(22);
     const int plot_w = screen_w - left - right_pad;
     const int plot_h = screen_h - top - bottom_pad;
 
@@ -994,7 +995,7 @@ static void plot_render(solar_os_context_t *ctx)
                  plot.paused ? "paused " : "",
                  (unsigned)plot.count);
     }
-    solar_os_gfx_text(gfx, 2, 10, title);
+    solar_os_gfx_text(gfx, 2, solar_os_ui_px(12), title);
 
     if (plot.count == 0 || plot.series_count == 0 || plot_w <= 8 || plot_h <= 8) {
         solar_os_gfx_text(gfx, 2, screen_h / 2, plot.message[0] ? plot.message : "no data");
@@ -1011,7 +1012,7 @@ static void plot_render(solar_os_context_t *ctx)
 
     char label[24];
     plot_format_float(label, sizeof(label), max_v);
-    solar_os_gfx_text(gfx, 2, top + 8, label);
+    solar_os_gfx_text(gfx, 2, top + solar_os_ui_px(12), label);
     plot_format_float(label, sizeof(label), min_v);
     solar_os_gfx_text(gfx, 2, top + plot_h - 2, label);
 
@@ -1039,7 +1040,7 @@ static void plot_render(solar_os_context_t *ctx)
              (unsigned)plot.count);
     solar_os_gfx_text(gfx, 2, screen_h - 3, footer);
     if (plot.message[0]) {
-        solar_os_gfx_text(gfx, screen_w / 2, 10, plot.message);
+        solar_os_gfx_text(gfx, screen_w / 2, solar_os_ui_px(12), plot.message);
     }
 
     solar_os_gfx_present(gfx);

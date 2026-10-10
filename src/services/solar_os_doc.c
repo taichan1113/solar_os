@@ -3086,7 +3086,7 @@ static void doc_render_image_block(solar_os_gfx_t *gfx,
     solar_os_gfx_fill_rect(gfx, x, y, box_w, box_h);
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
     solar_os_gfx_rect(gfx, x, y, box_w, box_h);
-    solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_SMALL);
+    solar_os_gfx_set_font_native(gfx, SOLAR_OS_GFX_FONT_SMALL);
     doc_render_text_slice_clipped(gfx,
                                   block->text != NULL ? block->text : "image",
                                   block->text != NULL ? strlen(block->text) : 5U,
@@ -3213,7 +3213,7 @@ void solar_os_doc_layout_render(solar_os_gfx_t *gfx,
 
             int char_w = run->char_w > 0 ? run->char_w : doc_base_style_for(layout->zoom).char_w;
 
-            solar_os_gfx_set_font(gfx, run->font);
+            solar_os_gfx_set_font_native(gfx, run->font);
             const solar_os_gfx_color_t text_color =
                 (run->style & SOLAR_OS_DOC_RUN_ITALIC) != 0 &&
                         (run->style & SOLAR_OS_DOC_RUN_BOLD) == 0 ?

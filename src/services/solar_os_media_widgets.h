@@ -5,6 +5,7 @@
 
 #include "esp_err.h"
 #include "solar_os_gfx.h"
+#include "solar_os_ui_scale.h"
 
 typedef struct solar_os_cassette_widget solar_os_cassette_widget_t;
 
@@ -28,8 +29,8 @@ void solar_os_media_transport_button_draw(
     solar_os_media_transport_icon_t icon,
     bool active);
 
-#define SOLAR_OS_MEDIA_PLAYER_HEADER_HEIGHT 28
-#define SOLAR_OS_MEDIA_PLAYER_CONTROLS_HEIGHT 78
+#define SOLAR_OS_MEDIA_PLAYER_HEADER_HEIGHT (solar_os_ui_px(28))
+#define SOLAR_OS_MEDIA_PLAYER_CONTROLS_HEIGHT (solar_os_ui_scale_percent() == 100U ? 78 : solar_os_ui_px(88))
 
 typedef struct {
     int view_x, view_y, view_width, view_height;
