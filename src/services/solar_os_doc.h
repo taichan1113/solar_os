@@ -8,6 +8,8 @@
 #include "solar_os_gfx.h"
 #include "solar_os_storage.h"
 
+#include "solar_os_doc_zoom.h"
+
 typedef enum {
     SOLAR_OS_DOC_BLOCK_PARAGRAPH,
     SOLAR_OS_DOC_BLOCK_HEADING,

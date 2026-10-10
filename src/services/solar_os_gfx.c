@@ -55,12 +55,23 @@ static const uint8_t *gfx_font_data(solar_os_gfx_font_t font, bool native)
     unsigned px = 14U, style = 0U;
     if (font == SOLAR_OS_GFX_FONT_SMALL) px = 12U;
     else if (font == SOLAR_OS_GFX_FONT_BOLD) style = 1U;
-    else if (font >= SOLAR_OS_GFX_FONT_MONO_12 && font < SOLAR_OS_GFX_FONT_COUNT) {
+    else if (font >= SOLAR_OS_GFX_FONT_MONO_12 && font <= SOLAR_OS_GFX_FONT_BOLD_ITALIC_20) {
         unsigned index = (unsigned)font - SOLAR_OS_GFX_FONT_MONO_12;
         px = 12U + (index % 5U) * 2U;
         style = index / 5U;
     }
-    return solar_os_font_face(native ? px : (unsigned)solar_os_ui_px((int)px), style);
+    else if (font >= SOLAR_OS_GFX_FONT_MONO_22 && font < SOLAR_OS_GFX_FONT_COUNT) {
+        static const unsigned sizes[] = {22U, 25U, 28U};
+        unsigned index = (unsigned)font - SOLAR_OS_GFX_FONT_MONO_22;
+        px = sizes[index % 3U];
+        style = index / 3U;
+    }
+    if (!native) {
+        px = (unsigned)solar_os_ui_px((int)px);
+        /* The largest generated face is 28px; never fall back to 14px. */
+        if (px > 28U) px = 28U;
+    }
+    return solar_os_font_face(px, style);
 }
 
 static const uint8_t *gfx_icon_font_data(solar_os_gfx_icon_size_t size)

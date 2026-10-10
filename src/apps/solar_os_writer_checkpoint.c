@@ -10,6 +10,7 @@
 #include "freertos/semphr.h"
 #include "solar_os_task.h"
 #include "solar_os_perf.h"
+#include "solar_os_doc_zoom.h"
 
 #define CHECKPOINT_CLIENTS 16
 #define CHECKPOINT_HEADER 200U
@@ -50,7 +51,7 @@ static uint8_t *snapshot(const char *document, const solar_os_writer_buffer_t *b
                         const solar_os_writer_checkpoint_meta_t *m)
 {
     const size_t len=m->saved ? 0 : solar_os_writer_buffer_length(buffer);
-    if (len>SOLAR_OS_WRITER_BUFFER_MAX_BYTES || strlen(document)>=160 || m->zoom>4) return NULL;
+    if (len>SOLAR_OS_WRITER_BUFFER_MAX_BYTES || strlen(document)>=160 || m->zoom>SOLAR_OS_DOC_MAX_ZOOM) return NULL;
     uint8_t *p=heap_caps_malloc(CHECKPOINT_HEADER+len+1, MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT);
     if (!p) return NULL;
     memset(p,0,CHECKPOINT_HEADER);
@@ -324,7 +325,7 @@ esp_err_t solar_os_writer_checkpoint_read(const char *path, const char *document
         *legacy=true; *text=(char *)p; *len=n; return ESP_OK;
     }
     if (n<CHECKPOINT_HEADER || memcmp(p,magic,8) || get32(p+8)>SOLAR_OS_WRITER_BUFFER_MAX_BYTES || record_size(p)!=n ||
-        get32(p+32)>1 || get32(p+20)>4 || !memchr(p+40,0,160) || strcmp((char *)p+40,document) ||
+        get32(p+32)>1 || get32(p+20)>SOLAR_OS_DOC_MAX_ZOOM || !memchr(p+40,0,160) || strcmp((char *)p+40,document) ||
         get32(p+36)!=checksum(p,n) || (get32(p+32) && get32(p+8))) {
         heap_caps_free(p); return ESP_ERR_INVALID_STATE;
     }

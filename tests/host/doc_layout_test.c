@@ -231,11 +231,52 @@ static void test_adjacent_heading_navigation(void)
     solar_os_doc_free(&doc);
 }
 
+static void test_zoom_faces_and_metrics(void)
+{
+    const char *text = "plain **bold** *italic* both";
+    const int sizes[] = {12,14,16,18,20,22,25,28};
+    const int advances[] = {6,7,8,9,10,11,13,14};
+    solar_os_doc_t doc; solar_os_doc_layout_t layout;
+    solar_os_doc_init(&doc); solar_os_doc_layout_init(&layout);
+    assert(solar_os_doc_parse_markdown(&doc,text,strlen(text),"zoom.md")==ESP_OK);
+    /* Combined style is supplied directly: the current Markdown parser does
+     * not recursively parse triple emphasis delimiters. */
+    assert(doc.run_count>0);
+    doc.runs[doc.run_count-1].style=SOLAR_OS_DOC_RUN_BOLD|SOLAR_OS_DOC_RUN_ITALIC;
+    for (int z=0;z<=SOLAR_OS_DOC_MAX_ZOOM;z++) {
+        assert(solar_os_doc_layout_build(&layout,&doc,200,z)==ESP_OK);
+        unsigned faces=0;
+        for (size_t i=0;i<layout.run_count;i++) {
+            const solar_os_doc_layout_run_t *r=&layout.runs[i];
+            unsigned face=((r->style&SOLAR_OS_DOC_RUN_BOLD)?1:0) |
+                          ((r->style&SOLAR_OS_DOC_RUN_ITALIC)?2:0);
+            solar_os_gfx_font_t expected = z<=4 ?
+                (solar_os_gfx_font_t)(SOLAR_OS_GFX_FONT_MONO_12+face*5+z) :
+                (solar_os_gfx_font_t)(SOLAR_OS_GFX_FONT_MONO_22+face*3+z-5);
+            assert(r->font==expected && r->pixel_size==sizes[z] && r->char_w==advances[z]);
+            assert(r->baseline>0 && r->baseline<r->height);
+            assert(r->width<=200);
+            faces |= 1U<<face;
+        }
+        assert(faces==15);
+    }
+    assert(solar_os_doc_layout_build(&layout,&doc,200,99)==ESP_OK && layout.zoom==7);
+    solar_os_doc_free(&doc);
+    text="# Heading";
+    assert(solar_os_doc_parse_markdown(&doc,text,strlen(text),"zoom.md")==ESP_OK);
+    assert(solar_os_doc_layout_build(&layout,&doc,200,3)==ESP_OK);
+    assert(layout.runs[0].pixel_size==20); /* Preserve legacy heading cap. */
+    assert(solar_os_doc_layout_build(&layout,&doc,200,5)==ESP_OK);
+    assert(layout.runs[0].pixel_size==28);
+    solar_os_doc_layout_free(&layout); solar_os_doc_free(&doc);
+}
+
 int main(void)
 {
     test_raw_ranges_and_reader_wrapper();
-    for (int zoom=0; zoom<=4; ++zoom) test_reveal_round_trip(zoom);
+    for (int zoom=0; zoom<=SOLAR_OS_DOC_MAX_ZOOM; ++zoom) test_reveal_round_trip(zoom);
     test_adjacent_heading_navigation();
+    test_zoom_faces_and_metrics();
     puts("document reveal layout tests: ok");
     return 0;
 }

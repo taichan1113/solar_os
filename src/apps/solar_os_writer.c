@@ -30,7 +30,11 @@
 #define WRITER_HEADER_H (solar_os_ui_font_profile()->writer_header_height)
 #define WRITER_MARGIN_X 4
 #define WRITER_MARGIN_Y 3
-#define WRITER_MAX_ZOOM 4
+#if SOLAR_OS_BOARD_UI_SCALE_PERCENT == 140
+#define WRITER_MAX_ZOOM SOLAR_OS_DOC_MAX_ZOOM
+#else
+#define WRITER_MAX_ZOOM SOLAR_OS_DOC_LEGACY_MAX_ZOOM
+#endif
 #define WRITER_IDLE_RECOVERY_MS 2000U
 #define WRITER_CURSOR_BLINK_MS 500U
 /* Full-refresh panels can opt out of idle cursor animation. */
@@ -292,7 +296,7 @@ static esp_err_t writer_read_recovery(char **out, size_t *len, bool apply)
         size_t limit=m.saved ? solar_os_writer_buffer_length(&writer.buffer) : *len;
         writer.cursor=m.cursor<=limit ? m.cursor : limit;
         writer.saved_scroll_anchor=m.anchor<=limit ? m.anchor : writer.cursor;
-        writer.zoom=m.zoom;
+        writer.zoom=m.zoom<=WRITER_MAX_ZOOM ? (int)m.zoom : WRITER_MAX_ZOOM;
     }
     if (m.saved) { heap_caps_free(*out); *out=NULL; *len=0; return ESP_ERR_NOT_FOUND; }
     return ESP_OK;

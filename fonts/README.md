@@ -83,3 +83,8 @@ family; `compact` resolves its smaller face before applying the UI scale.
 Document rendering selects native fonts, keeping Writer/Reader zoom independent.
 The generated C files are picked up by the existing build glob; no font IDs or
 persisted size enum values were added or renumbered.
+
+PaperMono Writer additionally offers native document zoom z5=22px, z6=25px,
+and z7=28px. z0..z4 and their persisted meanings are unchanged. These levels
+reuse the generated regular/bold/italic/bold-italic faces and remain independent
+of the UI scale. Other boards keep the original Writer zoom selection limit.

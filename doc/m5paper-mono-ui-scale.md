@@ -154,3 +154,41 @@ SPIは各plane約9.9〜10.0ms、BUSY約51〜52ms、warm REF総時間約110msで�
 USBのinput emit経由なので、BLE入力からのend-to-end遅延はここでは評価しない。
 ログ: `.research/ui-scale/shell-perf.log`、集計: `shell-perf-summary.json`。
 修正版Status/TUI/GUIの目視確認は未了。
+
+## 追加依頼: Writer本文Zoomの拡張
+
+ユーザーからTUIの大きさは問題なしとの回答を受けた。操作/全項目/100%GUIの
+個別結果は引き続き未確認。続いて本文も大きくする追加依頼を受け、
+「本文Zoomを変更しない」という当初の範囲から、PaperMonoの選択上限を拡張した。
+
+| Writer Zoom | 本文font | 備考 |
+|---|---:|---|
+| z0 | 12px | 従来値を維持 |
+| z1 | 14px | 従来値を維持 |
+| z2 | 16px | 従来値を維持 |
+| z3 | 18px | 従来値を維持 |
+| z4 | 20px | 保存済み文書も変更しない |
+| z5 | 22px | 新規追加 |
+| z6 | 25px | 新規追加 |
+| z7 | 28px | 新規追加、Shellと同程度 |
+
+操作は従来どおりCtrl+=/Ctrl+-。Ctrl+Sで保存、閉じて再度開いてもZoomを読み出す。
+初期Zoom・既存文書の設定を自動で変更しない。UI scale100/140とは独立した物理font。
+
+生成済み22/25/28pxのRegular/Bold/Italic/BoldItalicを再利用。GFX font IDは末尾へ
+12個を追加し、既存IDを保持。文字幅11/13/14、行高25/28/32、baseline19/21/24。
+本文だけでなく文書layout/折返し/cursor/hit testを新metricsに一致させる。
+z0〜z4の見出し上限も従来20pxを維持。z5以上は見出し上限28px。
+
+PaperMono UI scale対応ビルドだけWriterの操作上限を7へ拡張し、他ボードは4を維持。
+共有Documentサービスは新metricsを扱えるが、Reader/Webの選択範囲と既存表示は不変。
+保存metadataとcheckpointの形式・checksum・magicは変更しない。zoom欄の許容値を7へ
+拡張して新規値も保存/復旧できるようにした。旧firmwareはz5以上のmetadata/checkpointを
+受け付けないため、新Zoom使用後に旧firmwareへ戻す際は先にz4以下で保存する。
+本文のファイル形式は変わらない。
+
+自動検証追加: z0〜z7のsource↔xy往復/UTF-8折返し、全4styleのfont/advance、
+従来見出しcap、100/140での全12新fontの実U8g2 glyph幅/raster、
+z5〜z7のcheckpoint/saved tombstone読出しと範囲外8拒否。
+ログ: `.research/ui-scale/host-zoom2.log`、`python-zoom.log`、`build-zoom.log`。
+追加Zoomの実機目視・保存再読込は未確認。

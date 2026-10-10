@@ -228,6 +228,26 @@ int main(int argc, char **argv)
         solar_os_gfx_set_font_native(&gfx, font);
         assert(solar_os_gfx_text_width(&gfx, sample) < expected);
     }
+    /* New native document faces keep exact glyph widths and rasters at both
+     * UI scales, independently of the shared chrome's font mapping. */
+    for (unsigned scale=100;scale<=140;scale+=40) {
+        assert(solar_os_ui_scale_set_percent(scale));
+        const unsigned sizes[]={22,25,28};
+        for (unsigned style=0;style<4;style++) for (unsigned size=0;size<3;size++) {
+            solar_os_gfx_font_t font=(solar_os_gfx_font_t)(SOLAR_OS_GFX_FONT_MONO_22+style*3+size);
+            solar_os_gfx_set_font_native(&gfx,font);
+            u8g2_SetFont(&u,solar_os_font_face(sizes[size],style));
+            assert(solar_os_gfx_text_width(&gfx,sample)==u8g2_GetUTF8Width(&u,sample));
+            solar_os_gfx_font_metrics_t fm=solar_os_gfx_font_metrics(&gfx);
+            assert(fm.ascent>=19 && fm.descent>=4);
+            u8g2_ClearBuffer(&u); solar_os_gfx_text(&gfx,20,80,sample);
+            uint8_t drawn[sizeof(frame)]; memcpy(drawn,frame,sizeof(frame));
+            u8g2_ClearBuffer(&u); u8g2_SetFont(&u,solar_os_font_face(sizes[size],style));
+            u8g2_SetFontMode(&u,1); u8g2_SetFontPosBaseline(&u); u8g2_SetDrawColor(&u,1);
+            u8g2_DrawUTF8(&u,20,80,sample);
+            assert(memcmp(frame,drawn,sizeof(frame))==0);
+        }
+    }
     char clipped[32];
     solar_os_gfx_set_font(&gfx, SOLAR_OS_GFX_FONT_MONO_20);
     assert(solar_os_gfx_text_fit(&gfx, "ABCDE", 28, clipped, sizeof(clipped)) == 2);

@@ -227,6 +227,33 @@ int main(void)
     f=fopen(path,"wb"); assert(f); fputs("legacy recovery",f); fclose(f);
     assert(solar_os_writer_checkpoint_read(path,"doc",&text,&len,&meta,&legacy)==ESP_OK && legacy);
     heap_caps_free(text);
+    /* New zoom values survive the same durable recovery/tombstone format. */
+    assert(solar_os_writer_checkpoint_open(path,"doc",&c)==ESP_OK);
+    solar_os_writer_checkpoint_fence(c);
+    solar_os_writer_buffer_init(&b);
+    assert(solar_os_writer_buffer_set(&b,"ZOOM",4)==ESP_OK);
+    for (unsigned z=5;z<=SOLAR_OS_DOC_MAX_ZOOM;z++) {
+        for (unsigned saved=0;saved<2;saved++) {
+            m.zoom=z; m.saved=saved!=0;
+            assert(solar_os_writer_checkpoint_commit(c,path,"doc",&b,&m)==ESP_OK);
+            assert(solar_os_writer_checkpoint_read(path,"doc",&text,&len,&meta,&legacy)==ESP_OK);
+            assert(!legacy && meta.zoom==z && meta.saved==(saved!=0));
+            assert(len==(saved?0:4));
+            if (!saved) assert(memcmp(text,"ZOOM",4)==0);
+            heap_caps_free(text);
+        }
+    }
+    m.zoom=SOLAR_OS_DOC_MAX_ZOOM+1;
+    assert(snapshot("doc",&b,&m)==NULL);
+    m.zoom=7; m.saved=false;
+    uint8_t *record=snapshot("doc",&b,&m); assert(record);
+    put32(record+20,8); put32(record+36,checksum(record,record_size(record)));
+    f=fopen(path,"wb"); assert(f);
+    assert(fwrite(record,1,record_size(record),f)==record_size(record)); assert(!fclose(f));
+    heap_caps_free(record);
+    assert(solar_os_writer_checkpoint_read(path,"doc",&text,&len,&meta,&legacy)==ESP_ERR_INVALID_STATE);
+    solar_os_writer_buffer_free(&b); m.zoom=1;
+    solar_os_writer_checkpoint_close(c); reap();
     /* Maximum-size real gap-buffer snapshot and complete readback. */
     assert(solar_os_writer_checkpoint_open(path,"doc",&c)==ESP_OK);
     solar_os_writer_buffer_init(&b); char *large=malloc(SOLAR_OS_WRITER_BUFFER_MAX_BYTES); assert(large);

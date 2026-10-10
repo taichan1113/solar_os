@@ -1759,8 +1759,8 @@ static doc_style_t doc_base_style_for(int zoom)
     if (zoom < 0) {
         zoom = 0;
     }
-    if (zoom > 4) {
-        zoom = 4;
+    if (zoom > SOLAR_OS_DOC_MAX_ZOOM) {
+        zoom = SOLAR_OS_DOC_MAX_ZOOM;
     }
 
     static const doc_style_t styles[] = {
@@ -1769,6 +1769,9 @@ static doc_style_t doc_base_style_for(int zoom)
         {.font = SOLAR_OS_GFX_FONT_MONO_16, .char_w = 8, .line_h = 18, .baseline = 14, .paragraph_gap = 7, .heading_gap = 12, .block_gap = 4, .pixel_size = 16, .face = 0},
         {.font = SOLAR_OS_GFX_FONT_MONO_18, .char_w = 9, .line_h = 20, .baseline = 15, .paragraph_gap = 9, .heading_gap = 15, .block_gap = 5, .pixel_size = 18, .face = 0},
         {.font = SOLAR_OS_GFX_FONT_MONO_20, .char_w = 10, .line_h = 22, .baseline = 17, .paragraph_gap = 11, .heading_gap = 18, .block_gap = 6, .pixel_size = 20, .face = 0},
+        {.font = SOLAR_OS_GFX_FONT_MONO_22, .char_w = 11, .line_h = 25, .baseline = 19, .paragraph_gap = 13, .heading_gap = 20, .block_gap = 7, .pixel_size = 22, .face = 0},
+        {.font = SOLAR_OS_GFX_FONT_MONO_25, .char_w = 13, .line_h = 28, .baseline = 21, .paragraph_gap = 15, .heading_gap = 23, .block_gap = 8, .pixel_size = 25, .face = 0},
+        {.font = SOLAR_OS_GFX_FONT_MONO_28, .char_w = 14, .line_h = 32, .baseline = 24, .paragraph_gap = 18, .heading_gap = 26, .block_gap = 9, .pixel_size = 28, .face = 0},
     };
     doc_style_t style = styles[zoom];
     return style;
@@ -1779,8 +1782,8 @@ static solar_os_gfx_font_t doc_font_for_style(int zoom, uint8_t style)
     if (zoom < 0) {
         zoom = 0;
     }
-    if (zoom > 4) {
-        zoom = 4;
+    if (zoom > SOLAR_OS_DOC_MAX_ZOOM) {
+        zoom = SOLAR_OS_DOC_MAX_ZOOM;
     }
 
     static const solar_os_gfx_font_t regular[] = {
@@ -1789,6 +1792,9 @@ static solar_os_gfx_font_t doc_font_for_style(int zoom, uint8_t style)
         SOLAR_OS_GFX_FONT_MONO_16,
         SOLAR_OS_GFX_FONT_MONO_18,
         SOLAR_OS_GFX_FONT_MONO_20,
+        SOLAR_OS_GFX_FONT_MONO_22,
+        SOLAR_OS_GFX_FONT_MONO_25,
+        SOLAR_OS_GFX_FONT_MONO_28,
     };
     static const solar_os_gfx_font_t bold[] = {
         SOLAR_OS_GFX_FONT_BOLD_12,
@@ -1796,6 +1802,9 @@ static solar_os_gfx_font_t doc_font_for_style(int zoom, uint8_t style)
         SOLAR_OS_GFX_FONT_BOLD_16,
         SOLAR_OS_GFX_FONT_BOLD_18,
         SOLAR_OS_GFX_FONT_BOLD_20,
+        SOLAR_OS_GFX_FONT_BOLD_22,
+        SOLAR_OS_GFX_FONT_BOLD_25,
+        SOLAR_OS_GFX_FONT_BOLD_28,
     };
     static const solar_os_gfx_font_t italic[] = {
         SOLAR_OS_GFX_FONT_ITALIC_12,
@@ -1803,6 +1812,9 @@ static solar_os_gfx_font_t doc_font_for_style(int zoom, uint8_t style)
         SOLAR_OS_GFX_FONT_ITALIC_16,
         SOLAR_OS_GFX_FONT_ITALIC_18,
         SOLAR_OS_GFX_FONT_ITALIC_20,
+        SOLAR_OS_GFX_FONT_ITALIC_22,
+        SOLAR_OS_GFX_FONT_ITALIC_25,
+        SOLAR_OS_GFX_FONT_ITALIC_28,
     };
     static const solar_os_gfx_font_t bold_italic[] = {
         SOLAR_OS_GFX_FONT_BOLD_ITALIC_12,
@@ -1810,6 +1822,9 @@ static solar_os_gfx_font_t doc_font_for_style(int zoom, uint8_t style)
         SOLAR_OS_GFX_FONT_BOLD_ITALIC_16,
         SOLAR_OS_GFX_FONT_BOLD_ITALIC_18,
         SOLAR_OS_GFX_FONT_BOLD_ITALIC_20,
+        SOLAR_OS_GFX_FONT_BOLD_ITALIC_22,
+        SOLAR_OS_GFX_FONT_BOLD_ITALIC_25,
+        SOLAR_OS_GFX_FONT_BOLD_ITALIC_28,
     };
 
     const bool want_bold = (style & SOLAR_OS_DOC_RUN_BOLD) != 0;
@@ -2408,9 +2423,11 @@ static int doc_heading_zoom(int zoom, uint8_t level)
         delta = 1;
     }
 
+    /* Existing documents keep exactly the old heading size at z0..z4. */
+    const int max_zoom = zoom <= SOLAR_OS_DOC_LEGACY_MAX_ZOOM ? SOLAR_OS_DOC_LEGACY_MAX_ZOOM : SOLAR_OS_DOC_MAX_ZOOM;
     zoom += delta;
-    if (zoom > 4) {
-        zoom = 4;
+    if (zoom > max_zoom) {
+        zoom = max_zoom;
     }
     if (zoom < 0) {
         zoom = 0;
@@ -2783,7 +2800,7 @@ esp_err_t solar_os_doc_layout_build_ex(solar_os_doc_layout_t *layout,
     layout->run_count = 0;
     layout->width = width;
     layout->height = 0;
-    layout->zoom = zoom < 0 ? 0 : (zoom > 4 ? 4 : zoom);
+    layout->zoom = zoom < 0 ? 0 : (zoom > SOLAR_OS_DOC_MAX_ZOOM ? SOLAR_OS_DOC_MAX_ZOOM : zoom);
 
     const doc_style_t base = doc_base_style_for(layout->zoom);
     int y = 0;

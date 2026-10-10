@@ -414,7 +414,7 @@ writer_buffer_test: writer_buffer_test.c $(WRITER_DIR)/solar_os_writer_buffer.c 
 	$(CC) $(CFLAGS) -DSOLAR_OS_WRITER_HOST_TEST -I. -I$(WRITER_DIR) \
 		writer_buffer_test.c $(WRITER_DIR)/solar_os_writer_buffer.c -o $@
 
-doc_layout_test: doc_layout_test.c doc_test_support.c $(ROOT)/src/services/solar_os_doc.c $(ROOT)/src/services/solar_os_doc.h
+doc_layout_test: doc_layout_test.c doc_test_support.c $(ROOT)/src/services/solar_os_doc.c $(ROOT)/src/services/solar_os_doc.h $(ROOT)/src/services/solar_os_doc_zoom.h
 	$(CC) $(CFLAGS) -Wno-unused-function -Wno-unused-variable \
 		-D_GNU_SOURCE -ffunction-sections -fdata-sections -include compat.h \
 		-I. -I$(ROOT)/src -I$(ROOT)/src/services \
@@ -1060,5 +1060,5 @@ clean:
 	$(RM) $(TARGETS) model_bundle_test inference_lua_json_test zoo_test
 	$(RM) -r generated
 
-writer_checkpoint_test: writer_checkpoint_test.c $(WRITER_DIR)/solar_os_writer_checkpoint.c $(WRITER_DIR)/solar_os_writer_checkpoint.h $(WRITER_DIR)/solar_os_writer_files.c $(WRITER_DIR)/solar_os_writer_buffer.c
+writer_checkpoint_test: writer_checkpoint_test.c $(ROOT)/src/services/solar_os_doc_zoom.h $(WRITER_DIR)/solar_os_writer_checkpoint.c $(WRITER_DIR)/solar_os_writer_checkpoint.h $(WRITER_DIR)/solar_os_writer_files.c $(WRITER_DIR)/solar_os_writer_buffer.c
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -DSOLAR_OS_WRITER_HOST_TEST -pthread -Iasync_stubs -I. -I$(WRITER_DIR) -I$(ROOT)/src/services -o $@ $< $(WRITER_DIR)/solar_os_writer_buffer.c -Wl,--wrap=rename
