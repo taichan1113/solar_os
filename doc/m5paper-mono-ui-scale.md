@@ -192,3 +192,21 @@ PaperMono UI scale対応ビルドだけWriterの操作上限を7へ拡張し、�
 z5〜z7のcheckpoint/saved tombstone読出しと範囲外8拒否。
 ログ: `.research/ui-scale/host-zoom2.log`、`python-zoom.log`、`build-zoom.log`。
 追加Zoomの実機目視・保存再読込は未確認。
+
+### Zoom拡張版の書込み結果
+
+- Commit: `91e99094`、branch `feature/papermono-ui-scale-140`
+- Host全134 executable PASS、Python578 test / 4 skip / failureなし
+- Build: 238.98秒、PASS
+- Artifact: `build/papermono-ui-scale-140-trial/firmware.bin`
+- Size: 3426800 bytes
+- SHA256: `1225a78efb1058acdb07c2105d3fe34617d9a0883ec3185589a2ef1853f7f46d`
+- Flash: `.research/ui-scale/flash-20261011-010721/summary.json`、PASS
+- NVS/FAT/otadata: 前後全バイト一致
+- Boot: scale140、mono20、BLE remembered1/1・自動接続、Battery3.812V/56%、RTC正常
+- dose: RAMだけで再選択済み
+- 新規目視用文書: `/writer-zoom-20261011.md`、129 bytes、作成後バイト照合PASS
+
+Writerをこの新規文書・従来default z4で起動した。既存文書には追記/上書きしない。
+実機でz5〜z7の読みやすさ、cursor/edit、保存後再読込を依頼する。
+未回答の目視確認は成功扱いしない。
