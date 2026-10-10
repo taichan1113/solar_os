@@ -15,6 +15,9 @@
 #include "solar_os_terminal_preferences.h"
 #include "solar_os_ui_font.h"
 #include "solar_os_font_face.h"
+#if defined(ESP_PLATFORM) && SOLAR_OS_BOARD_UI_SCALE_PERCENT == 140
+#include "solar_os_perf.h"
+#endif
 
 #define TERM_MARGIN_X 4
 #define TERM_STATUS_BAR_HEIGHT (solar_os_ui_font_profile()->status_height)
@@ -2423,8 +2426,8 @@ static void terminal_draw_keyboard_icon(u8g2_t *u8g2,
     u8g2_DrawHLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(2)), (u8g2_uint_t)(y + solar_os_ui_px(4)), solar_os_ui_px(14));
     u8g2_DrawHLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(2)), (u8g2_uint_t)(y + solar_os_ui_px(7)), solar_os_ui_px(14));
     for (int key = 0; key < 4; key++) {
-        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(3) + key * solar_os_ui_px(4)), (u8g2_uint_t)(y + solar_os_ui_px(3)));
-        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(4) + key * 3), (u8g2_uint_t)(y + solar_os_ui_px(6)));
+        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(3 + key * 4)), (u8g2_uint_t)(y + solar_os_ui_px(3)));
+        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(4 + key * 3)), (u8g2_uint_t)(y + solar_os_ui_px(6)));
     }
     u8g2_DrawBox(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(5)), (u8g2_uint_t)(y + solar_os_ui_px(9)), solar_os_ui_px(8), solar_os_ui_px(1));
 
@@ -2488,17 +2491,17 @@ static void terminal_draw_wifi_icon(u8g2_t *u8g2,
 
 static void terminal_draw_sd_icon(u8g2_t *u8g2, int x, int y, bool mounted)
 {
-    u8g2_DrawHLine(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)y, 8);
-    terminal_draw_diag_down(u8g2, x + 8, y, 5, 5);
-    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + 12), (u8g2_uint_t)(y + 4), 7);
-    u8g2_DrawHLine(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)(y + 10), 13);
-    u8g2_DrawVLine(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)y, 11);
+    u8g2_DrawHLine(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)y, solar_os_ui_px(8));
+    terminal_draw_diag_down(u8g2, x + solar_os_ui_px(8), y, solar_os_ui_px(5), solar_os_ui_px(5));
+    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(12)), (u8g2_uint_t)(y + solar_os_ui_px(4)), solar_os_ui_px(7));
+    u8g2_DrawHLine(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)(y + solar_os_ui_px(10)), solar_os_ui_px(13));
+    u8g2_DrawVLine(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)y, solar_os_ui_px(11));
 
     if (mounted) {
-        u8g2_DrawBox(u8g2, (u8g2_uint_t)(x + 3), (u8g2_uint_t)(y + 3), 5, 2);
-        u8g2_DrawHLine(u8g2, (u8g2_uint_t)(x + 3), (u8g2_uint_t)(y + 7), 7);
+        u8g2_DrawBox(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(3)), (u8g2_uint_t)(y + solar_os_ui_px(3)), solar_os_ui_px(5), solar_os_ui_px(2));
+        u8g2_DrawHLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(3)), (u8g2_uint_t)(y + solar_os_ui_px(7)), solar_os_ui_px(7));
     } else {
-        terminal_draw_status_slash(u8g2, x + 1, y + 2, 11, 8);
+        terminal_draw_status_slash(u8g2, x + solar_os_ui_px(1), y + solar_os_ui_px(2), solar_os_ui_px(11), solar_os_ui_px(8));
     }
 }
 
@@ -2507,55 +2510,55 @@ static void terminal_draw_speaker_icon(u8g2_t *u8g2, int x, int y, bool enabled,
     const bool audible = enabled && volume > 0;
     const uint8_t bars = audible ? (volume > 80 ? 2 : 1) : 0;
 
-    u8g2_DrawBox(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)(y + 5), 3, 4);
-    terminal_draw_diag_up(u8g2, x + 3, y + 2, 6, 4);
-    terminal_draw_diag_down(u8g2, x + 3, y + 8, 6, 4);
-    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + 8), (u8g2_uint_t)(y + 2), 10);
+    u8g2_DrawBox(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)(y + solar_os_ui_px(5)), solar_os_ui_px(3), solar_os_ui_px(4));
+    terminal_draw_diag_up(u8g2, x + solar_os_ui_px(3), y + solar_os_ui_px(2), solar_os_ui_px(6), solar_os_ui_px(4));
+    terminal_draw_diag_down(u8g2, x + solar_os_ui_px(3), y + solar_os_ui_px(8), solar_os_ui_px(6), solar_os_ui_px(4));
+    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(8)), (u8g2_uint_t)(y + solar_os_ui_px(2)), solar_os_ui_px(10));
 
     if (bars >= 1) {
-        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 11), (u8g2_uint_t)(y + 4));
-        u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + 12), (u8g2_uint_t)(y + 5), 4);
-        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 11), (u8g2_uint_t)(y + 9));
+        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(11)), (u8g2_uint_t)(y + solar_os_ui_px(4)));
+        u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(12)), (u8g2_uint_t)(y + solar_os_ui_px(5)), solar_os_ui_px(4));
+        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(11)), (u8g2_uint_t)(y + solar_os_ui_px(9)));
     }
 
     if (bars >= 2) {
-        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 15), (u8g2_uint_t)(y + 2));
-        u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + 16), (u8g2_uint_t)(y + 3), 8);
-        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 15), (u8g2_uint_t)(y + 11));
+        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(15)), (u8g2_uint_t)(y + solar_os_ui_px(2)));
+        u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(16)), (u8g2_uint_t)(y + solar_os_ui_px(3)), solar_os_ui_px(8));
+        u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(15)), (u8g2_uint_t)(y + solar_os_ui_px(11)));
     }
 
     if (!audible) {
-        terminal_draw_status_slash(u8g2, x, y + 2, 17, 9);
+        terminal_draw_status_slash(u8g2, x, y + solar_os_ui_px(2), solar_os_ui_px(17), solar_os_ui_px(9));
     }
 }
 
 static void terminal_draw_radio_icon(u8g2_t *u8g2, int x, int y)
 {
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 2), (u8g2_uint_t)y);
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 1), (u8g2_uint_t)(y + 1));
-    u8g2_DrawVLine(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)(y + 2), 5);
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 1), (u8g2_uint_t)(y + 7));
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 2), (u8g2_uint_t)(y + 8));
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 12), (u8g2_uint_t)y);
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 13), (u8g2_uint_t)(y + 1));
-    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + 14), (u8g2_uint_t)(y + 2), 5);
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 13), (u8g2_uint_t)(y + 7));
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 12), (u8g2_uint_t)(y + 8));
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(2)), (u8g2_uint_t)y);
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(1)), (u8g2_uint_t)(y + solar_os_ui_px(1)));
+    u8g2_DrawVLine(u8g2, (u8g2_uint_t)x, (u8g2_uint_t)(y + solar_os_ui_px(2)), solar_os_ui_px(5));
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(1)), (u8g2_uint_t)(y + solar_os_ui_px(7)));
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(2)), (u8g2_uint_t)(y + solar_os_ui_px(8)));
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(12)), (u8g2_uint_t)y);
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(13)), (u8g2_uint_t)(y + solar_os_ui_px(1)));
+    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(14)), (u8g2_uint_t)(y + solar_os_ui_px(2)), solar_os_ui_px(5));
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(13)), (u8g2_uint_t)(y + solar_os_ui_px(7)));
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(12)), (u8g2_uint_t)(y + solar_os_ui_px(8)));
 
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 5), (u8g2_uint_t)(y + 1));
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 4), (u8g2_uint_t)(y + 2));
-    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + 3), (u8g2_uint_t)(y + 3), 3);
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 4), (u8g2_uint_t)(y + 6));
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 5), (u8g2_uint_t)(y + 7));
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 9), (u8g2_uint_t)(y + 1));
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 10), (u8g2_uint_t)(y + 2));
-    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + 11), (u8g2_uint_t)(y + 3), 3);
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 10), (u8g2_uint_t)(y + 6));
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 9), (u8g2_uint_t)(y + 7));
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(5)), (u8g2_uint_t)(y + solar_os_ui_px(1)));
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(4)), (u8g2_uint_t)(y + solar_os_ui_px(2)));
+    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(3)), (u8g2_uint_t)(y + solar_os_ui_px(3)), solar_os_ui_px(3));
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(4)), (u8g2_uint_t)(y + solar_os_ui_px(6)));
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(5)), (u8g2_uint_t)(y + solar_os_ui_px(7)));
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(9)), (u8g2_uint_t)(y + solar_os_ui_px(1)));
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(10)), (u8g2_uint_t)(y + solar_os_ui_px(2)));
+    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(11)), (u8g2_uint_t)(y + solar_os_ui_px(3)), solar_os_ui_px(3));
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(10)), (u8g2_uint_t)(y + solar_os_ui_px(6)));
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(9)), (u8g2_uint_t)(y + solar_os_ui_px(7)));
 
-    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + 7), (u8g2_uint_t)(y + 2));
-    u8g2_DrawBox(u8g2, (u8g2_uint_t)(x + 6), (u8g2_uint_t)(y + 3), 3, 2);
-    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + 7), (u8g2_uint_t)(y + 5), 7);
+    u8g2_DrawPixel(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(7)), (u8g2_uint_t)(y + solar_os_ui_px(2)));
+    u8g2_DrawBox(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(6)), (u8g2_uint_t)(y + solar_os_ui_px(3)), solar_os_ui_px(3), solar_os_ui_px(2));
+    u8g2_DrawVLine(u8g2, (u8g2_uint_t)(x + solar_os_ui_px(7)), (u8g2_uint_t)(y + solar_os_ui_px(5)), solar_os_ui_px(7));
 }
 
 static void terminal_draw_link_icon(u8g2_t *u8g2, int x, int y)
@@ -2565,10 +2568,13 @@ static void terminal_draw_link_icon(u8g2_t *u8g2, int x, int y)
         {4, 5}, {5, 2}, {4, 2}, {3, 2}, {2, 2}, {1, 3},
     };
     for (size_t row = 0; row < sizeof(bolt_rows) / sizeof(bolt_rows[0]); row++) {
-        u8g2_DrawHLine(u8g2,
-                       (u8g2_uint_t)(x + bolt_rows[row][0]),
-                       (u8g2_uint_t)(y + (int)row),
-                       bolt_rows[row][1]);
+        const int left = solar_os_ui_px(bolt_rows[row][0]);
+        const int top = solar_os_ui_px((int)row);
+        u8g2_DrawBox(u8g2,
+                     (u8g2_uint_t)(x + left),
+                     (u8g2_uint_t)(y + top),
+                     (u8g2_uint_t)(solar_os_ui_px(bolt_rows[row][0] + bolt_rows[row][1]) - left),
+                     (u8g2_uint_t)(solar_os_ui_px((int)row + 1) - top));
     }
 }
 
@@ -2596,17 +2602,21 @@ static void terminal_draw_clock_icon(u8g2_t *u8g2, int x, int y, bool valid)
         {-2, -3},
         {-1, -4},
     };
-    const int cx = x + 4;
-    const int cy = y + 5;
+    const int cx = x + solar_os_ui_px(4);
+    const int cy = y + solar_os_ui_px(5);
     for (size_t i = 0; i < sizeof(face) / sizeof(face[0]); i++) {
-        u8g2_DrawPixel(u8g2,
-                       (u8g2_uint_t)(cx + face[i][0]),
-                       (u8g2_uint_t)(cy + face[i][1]));
+        const int left = solar_os_ui_px(4 + face[i][0]);
+        const int top = solar_os_ui_px(5 + face[i][1]);
+        u8g2_DrawBox(u8g2,
+                     (u8g2_uint_t)(x + left),
+                     (u8g2_uint_t)(y + top),
+                     (u8g2_uint_t)(solar_os_ui_px(5 + face[i][0]) - left),
+                     (u8g2_uint_t)(solar_os_ui_px(6 + face[i][1]) - top));
     }
-    u8g2_DrawVLine(u8g2, (u8g2_uint_t)cx, (u8g2_uint_t)(cy - 3), 4);
-    u8g2_DrawHLine(u8g2, (u8g2_uint_t)cx, (u8g2_uint_t)cy, 3);
+    u8g2_DrawVLine(u8g2, (u8g2_uint_t)cx, (u8g2_uint_t)(cy - solar_os_ui_px(3)), solar_os_ui_px(4));
+    u8g2_DrawHLine(u8g2, (u8g2_uint_t)cx, (u8g2_uint_t)cy, solar_os_ui_px(3));
     if (!valid) {
-        terminal_draw_status_slash(u8g2, x, y + 1, 9, 8);
+        terminal_draw_status_slash(u8g2, x, y + solar_os_ui_px(1), solar_os_ui_px(9), solar_os_ui_px(8));
     }
 }
 
@@ -2622,13 +2632,13 @@ static int terminal_draw_radio_link_icons(u8g2_t *u8g2,
                                           bool radio_attached,
                                           bool link_running)
 {
-    if (radio_attached && terminal_status_icon_fits(x, 15, right_limit)) {
+    if (radio_attached && terminal_status_icon_fits(x, solar_os_ui_px(15), right_limit)) {
         terminal_draw_radio_icon(u8g2, x, y);
-        x += 15 + TERM_STATUS_BAR_ICON_GAP;
+        x += solar_os_ui_px(15) + solar_os_ui_px(TERM_STATUS_BAR_ICON_GAP);
     }
-    if (link_running && terminal_status_icon_fits(x, 11, right_limit)) {
+    if (link_running && terminal_status_icon_fits(x, solar_os_ui_px(11), right_limit)) {
         terminal_draw_link_icon(u8g2, x, y);
-        x += 11 + TERM_STATUS_BAR_ICON_GAP;
+        x += solar_os_ui_px(11) + solar_os_ui_px(TERM_STATUS_BAR_ICON_GAP);
     }
     return x;
 }
@@ -2672,7 +2682,7 @@ static void terminal_draw_status_bar(solar_os_terminal_t *terminal, u8g2_t *u8g2
         ? terminal_inbox_icon_width(u8g2, status->inbox_unread, inbox_count_text)
         : 0;
     const int leading_icon_right_limit = compact && inbox_width > 0
-        ? icon_right_limit - inbox_width - TERM_STATUS_BAR_ICON_GAP
+        ? icon_right_limit - inbox_width - solar_os_ui_px(TERM_STATUS_BAR_ICON_GAP)
         : icon_right_limit;
     int x = 4;
 
@@ -2717,19 +2727,19 @@ static void terminal_draw_status_bar(solar_os_terminal_t *terminal, u8g2_t *u8g2
                 terminal_draw_battery_icon(
                     u8g2, x, icon_y, true, status->battery_percent);
             }
-            x += solar_os_ui_px(20) + TERM_STATUS_BAR_ICON_GAP;
+            x += solar_os_ui_px(20) + solar_os_ui_px(TERM_STATUS_BAR_ICON_GAP);
         }
 
         if (terminal_status_icon_fits(x, solar_os_ui_px(18), leading_icon_right_limit)) {
             terminal_draw_keyboard_icon(
                 u8g2, x, icon_y, status->keyboard_count > 0);
-            x += solar_os_ui_px(18) + TERM_STATUS_BAR_ICON_GAP;
+            x += solar_os_ui_px(18) + solar_os_ui_px(TERM_STATUS_BAR_ICON_GAP);
         }
         if (status->bluetooth_supported &&
             terminal_status_icon_fits(x, solar_os_ui_px(14), leading_icon_right_limit)) {
             terminal_draw_bluetooth_icon(u8g2, x, icon_y,
                                          status->bluetooth_enabled, status->bluetooth_scanning);
-            x += solar_os_ui_px(14) + TERM_STATUS_BAR_ICON_GAP;
+            x += solar_os_ui_px(14) + solar_os_ui_px(TERM_STATUS_BAR_ICON_GAP);
         }
 
         if (status->wifi_started &&
@@ -2741,25 +2751,25 @@ static void terminal_draw_status_bar(solar_os_terminal_t *terminal, u8g2_t *u8g2
                                     status->wifi_connected,
                                     status->wifi_has_ip,
                                     status->wifi_level);
-            x += solar_os_ui_px(13) + TERM_STATUS_BAR_ICON_GAP;
+            x += solar_os_ui_px(13) + solar_os_ui_px(TERM_STATUS_BAR_ICON_GAP);
         }
 
         if (status->audio_enabled && status->audio_volume > 0 &&
-            terminal_status_icon_fits(x, 17, leading_icon_right_limit)) {
+            terminal_status_icon_fits(x, solar_os_ui_px(17), leading_icon_right_limit)) {
             terminal_draw_speaker_icon(u8g2, x, icon_y, true, status->audio_volume);
-            x += 17 + TERM_STATUS_BAR_ICON_GAP;
+            x += solar_os_ui_px(17) + solar_os_ui_px(TERM_STATUS_BAR_ICON_GAP);
         }
     }
 
-    if ((!compact || status->sd_mounted) && x + 15 < leading_icon_right_limit) {
+    if ((!compact || status->sd_mounted) && x + solar_os_ui_px(15) < leading_icon_right_limit) {
         terminal_draw_sd_icon(u8g2, x, icon_y, status->sd_mounted);
-        x += 20;
+        x += solar_os_ui_px(20);
     }
     if (inbox_width > 0 && terminal_status_icon_fits(x, inbox_width, icon_right_limit)) {
         terminal_draw_inbox_icon(u8g2, x, icon_y, height - 3, inbox_count_text);
-        x += inbox_width + TERM_STATUS_BAR_ICON_GAP;
+        x += inbox_width + solar_os_ui_px(TERM_STATUS_BAR_ICON_GAP);
     }
-    if ((!compact && x + 10 < clock_x) || (compact && status->time_valid)) {
+    if ((!compact && x + solar_os_ui_px(10) < clock_x) || (compact && status->time_valid)) {
         terminal_draw_clock_icon(u8g2, clock_x, icon_y, status->time_valid);
     }
 
@@ -2952,6 +2962,10 @@ void solar_os_terminal_draw(solar_os_terminal_t *terminal)
         return;
     }
 
+#if defined(ESP_PLATFORM) && SOLAR_OS_BOARD_UI_SCALE_PERCENT == 140
+    const bool perf = solar_os_perf_enabled();
+    const int64_t draw_start = perf ? esp_timer_get_time() : 0;
+#endif
     u8g2_t *u8g2 = terminal->u8g2;
     (void)solar_os_display_request_present_mode(u8g2, SOLAR_OS_DISPLAY_PRESENT_TEXT);
     terminal_apply_settings(terminal, false);
@@ -3030,7 +3044,20 @@ void solar_os_terminal_draw(solar_os_terminal_t *terminal)
     }
 
     if (changed) {
+#if defined(ESP_PLATFORM) && SOLAR_OS_BOARD_UI_SCALE_PERCENT == 140
+        const int64_t draw_end = perf ? esp_timer_get_time() : 0;
+#endif
         solar_os_display_present(u8g2, SOLAR_OS_DISPLAY_PRESENT_TEXT);
+#if defined(ESP_PLATFORM) && SOLAR_OS_BOARD_UI_SCALE_PERCENT == 140
+        if (perf) {
+            SOLAR_OS_LOGD(TAG,
+                "UI scale=%u full=%u cell=%ux%u raster_us=%lld present_us=%lld",
+                (unsigned)solar_os_ui_scale_percent(), (unsigned)full,
+                (unsigned)terminal->char_width, (unsigned)terminal->line_height,
+                (long long)(draw_end - draw_start),
+                (long long)(esp_timer_get_time() - draw_end));
+        }
+#endif
     }
     terminal->rendered_profile_hash = profile_hash;
     terminal->rendered_status_hash = status_hash;

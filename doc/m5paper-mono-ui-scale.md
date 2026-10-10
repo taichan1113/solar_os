@@ -50,9 +50,9 @@ python3 fonts/generate_u8g2_fonts.py
 
 | 対象 | 対応内容 | 自動検証 | 実機確認 |
 |---|---|---|---|
-| Shell/Terminal | 保存値から実効font、セル/行列/折返し/footer再計算 | 実font raster/幅/UTF-8/wrap/scroll/NVS20読込/100↔140 | 待ち |
+| Shell/Terminal | 保存値から実効font、セル/行列/折返し/footer再計算 | 実font raster/幅/UTF-8/wrap/scroll/NVS20読込/100↔140 | 28px・欠け/重なりなし・cursor PASS、切替回答待ち |
 | TUI | Terminalセルへ追従。設定にRAM scale追加 | 既存menu/list/session/file widgets回帰 | 待ち |
-| Status bar | 高さ・clock font・主要アイコン・間隔 | 各状態のrasterと100%従来アイコン | 待ち |
+| Status bar | 高さ・clock font・全アイコン・間隔 | 各状態raster、全10種100↔140拡大と描画範囲 | 初回サイズ不揃い指摘、修正後確認待ち |
 | Writer UI | header34、title25、dialog22/25、実幅による入力切詰め | GFX native font/文書layout/保存/recovery/checkpoint回帰 | 待ち |
 | Writer本文 | native font APIで従来zoom/Markdown layoutを維持 | 文書layoutとnative幅、zoom enum不変 | 待ち |
 | Sketch | icon/label縦配置、browser行/Cancel/popup拡大 | 140%lease/PNG保存再読込/座標/キャンバス100%往復 | 待ち |
@@ -113,5 +113,15 @@ Font全40配列の再生成バイト一致PASS。ビルド最終37秒（初回�
 - RTC: date/time読出し正常、Battery3.804V/56%/external
 - 評価用dose: 起動後RAMだけで再選択済み
 
-Shellの実機目視A/Eを依頼し、`.research/ui-scale/shell-acceptance.log` へ記録中。
-目視の回答は未受信。未確認のCPU描画時間やGUI目視を成功扱いしない。
+Shell目視回答: 28pxは読みやすく、文字欠け・行の重なり・カーソルのずれなし。
+100↔140比較操作は依頼済みだが、往復結果の個別回答はまだない。
+上部バーのアイコン、特に時計が小さいとの指摘を受け、SD/音声/radio/link/clockの
+未拡大部分とキーボード内の間隔を修正。全10種の100↔140描画範囲・拡大を
+追加テストしPASS。修正版の目視はこれから確認する。
+
+修正版Host全134 executable PASS、Python578 test / 4 skip / failureなし。
+ログ: `.research/ui-scale/host-icons.log`、`python-icons.log`、`build-icons.log`。
+実描画preview: `.research/ui-scale/status-icons-140.png`。
+PaperMonoのdebug時だけTerminalのraster_usとpresent_usを分けて記録する。
+raster_usは設定解決/hash/文字・アイコン描画の経過時間、present_usはdisplay呼出し。
+SPI/BUSYは既存SSD1677 timingログで別に比較する。未測定値を結果扱いしない。
