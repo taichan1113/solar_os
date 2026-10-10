@@ -125,3 +125,32 @@ Shell目視回答: 28pxは読みやすく、文字欠け・行の重なり・カ
 PaperMonoのdebug時だけTerminalのraster_usとpresent_usを分けて記録する。
 raster_usは設定解決/hash/文字・アイコン描画の経過時間、present_usはdisplay呼出し。
 SPI/BUSYは既存SSD1677 timingログで別に比較する。未測定値を結果扱いしない。
+
+## Shell目視指摘の修正版
+
+Commit: `a2efd1b7`。時計/SD/音声/radio/linkも140%で描画し、
+キーボード内の間隔とstatus barのfit判定・間隔を揃えた。
+100%往復で各アイコンのraster一致、全10種の拡大と描画範囲を確認。
+
+- Firmware: `build/papermono-ui-scale-140-trial/firmware.bin`
+- Size: 3426624 bytes
+- SHA256: `481e6c928f371f8a326d583f73305fdcbc502464d869b831e6617ec43fdc8729`
+- Build: 99.52秒、PASS
+- Flash: `.research/ui-scale/flash-20261011-004356/summary.json`、PASS
+- NVS/FAT/otadata: 前後の全バイト一致。起動mono20/scale140、BLE自動接続
+- dose: 起動後RAMだけで再選択。計測後log levelは元のinfoへ戻した
+
+Shell入力行へ同じaを10文字、自動入力してCPU側とpanel待ちを分離測定。
+再配置のfull描画・cold更新と、140%でのBackspaceは集計から除外した。
+
+| UI | CPU raster平均 | CPU raster中央値 | display呼出し平均 | 件数 |
+|---|---:|---:|---:|---:|
+| 100% | 16.79ms | 16.70ms | 113.35ms | 10 |
+| 140% | 21.06ms | 21.07ms | 113.03ms | 10 |
+
+CPU rasterは設定/font解決・hash・変更行の描画を含む経過時間で、字形単体の時間ではない。
+SPIは各plane約9.9〜10.0ms、BUSY約51〜52ms、warm REF総時間約110msで、
+140%化によってSPI40MHzやLUTは変わっていない。入力試験はBLE経由ではなく
+USBのinput emit経由なので、BLE入力からのend-to-end遅延はここでは評価しない。
+ログ: `.research/ui-scale/shell-perf.log`、集計: `shell-perf-summary.json`。
+修正版Status/TUI/GUIの目視確認は未了。
