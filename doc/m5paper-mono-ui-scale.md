@@ -54,7 +54,7 @@ python3 fonts/generate_u8g2_fonts.py
 | TUI | Terminalセルへ追従。設定にRAM scale追加 | 既存menu/list/session/file widgets回帰 | 待ち |
 | Status bar | 高さ・clock font・全アイコン・間隔 | 各状態raster、全10種100↔140拡大と描画範囲 | 初回サイズ不揃い指摘、修正後確認待ち |
 | Writer UI | header34、title25、dialog22/25、実幅による入力切詰め | GFX native font/文書layout/保存/recovery/checkpoint回帰 | 待ち |
-| Writer本文 | native font APIで従来zoom/Markdown layoutを維持 | 文書layoutとnative幅、zoom enum不変 | 待ち |
+| Writer本文 | native font、従来z0〜z4維持、追加依頼でz5〜z7対応 | 文書layout/実font/checkpoint | 追加Zoom問題なし、保存z6=25px・本文保持照合PASS |
 | Sketch | icon/label縦配置、browser行/Cancel/popup拡大 | 140%lease/PNG保存再読込/座標/キャンバス100%往復 | 待ち |
 | Calc | 実font metricsによる行高/選択行表示/実幅cursor | GFX widthと既存calc回帰 | 待ち |
 | Launcher | 既存role profileと実幅レイアウトへ追従 | launcher layout回帰 | 待ち |
@@ -210,3 +210,15 @@ z5〜z7のcheckpoint/saved tombstone読出しと範囲外8拒否。
 Writerをこの新規文書・従来default z4で起動した。既存文書には追記/上書きしない。
 実機でz5〜z7の読みやすさ、cursor/edit、保存後再読込を依頼する。
 未回答の目視確認は成功扱いしない。
+
+### 追加Zoomの受入結果
+
+ユーザー回答「問題なし」。z5〜z7の表示と選択、cursor/edit、保存再読込の
+依頼に対する目視回答として記録。選択値はUSBの読取りでz6=25pxと確認。
+保存済みcheckpoint（tombstone）のpath/zoom/saved flag/checksumを照合PASS。
+テスト本文129 bytesは作成時とバイト同一で保持されている。
+新Writerはlegacy .metaも読めるが、今回の保存Zoomは.recovery内のsaved recordに
+保存される。書込み/保存後に再起動を強制せず、read-onlyで確認した。
+証跡: `.research/ui-scale/zoom-saved-audit.json`、`zoom-checkpoint-audit.log`、
+`zoom-writer-acceptance.log`。新Zoomの追加依頼は実装・実機確認済み。
+UI140%全体ではSketchなど残りの目視を継続する。
