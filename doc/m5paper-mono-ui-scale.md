@@ -96,3 +96,22 @@ startupのrefresh=fastestは変更しない。DC/寿命未確認という前回�
 
 目視Acceptance A〜F、CPU表示計測、書込前後のデータ保持、最終artifact識別の結果は
 実機確認後に追記する。現時点で全UI対応完了/受入完了とはしない。
+
+## 書込済みartifactと自動検証の確定結果
+
+実装commit: `5095918c`。Host全134 executable PASS、Python577 test、4 skip、失敗なし。
+Font全40配列の再生成バイト一致PASS。ビルド最終37秒（初回再構成253秒）。
+
+- Firmware: `build/papermono-ui-scale-140-trial/firmware.bin`
+- Size: 3,425,328 bytes
+- SHA256: `ac74df37bb5daada36522206a8691df9f3b36df3bc41c041a796a70ac8f1579d`
+- Source: 5095918cと同内容のcode（ビルドはコミット直前）
+- Flash: `.research/ui-scale/flash-20261011-002922/summary.json`、PASS
+- NVS/FAT/otadata: 書込前後の全バイト一致
+- Boot: scale140、orientation270、mono、textsize20、statusbar show
+- BLE: travelers-split接続、remembered1/1保持
+- RTC: date/time読出し正常、Battery3.804V/56%/external
+- 評価用dose: 起動後RAMだけで再選択済み
+
+Shellの実機目視A/Eを依頼し、`.research/ui-scale/shell-acceptance.log` へ記録中。
+目視の回答は未受信。未確認のCPU描画時間やGUI目視を成功扱いしない。
