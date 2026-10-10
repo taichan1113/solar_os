@@ -51,12 +51,12 @@ python3 fonts/generate_u8g2_fonts.py
 | 対象 | 対応内容 | 自動検証 | 実機確認 |
 |---|---|---|---|
 | Shell/Terminal | 保存値から実効font、セル/行列/折返し/footer再計算 | 実font raster/幅/UTF-8/wrap/scroll/NVS20読込/100↔140 | 28px・欠け/重なりなし・cursor PASS、切替回答待ち |
-| TUI | Terminalセルへ追従。設定にRAM scale追加 | 既存menu/list/session/file widgets回帰 | 待ち |
+| TUI | Terminalセルへ追従。設定にRAM scale追加 | 既存menu/list/session/file widgets回帰 | 設定メニュー140%正常・100%従来通り。その他TUIの個別目視は未確認 |
 | Status bar | 高さ・clock font・全アイコン・間隔 | 各状態raster、全10種100↔140拡大と描画範囲 | 初回サイズ不揃い指摘、修正後確認待ち |
 | Writer UI | header34、title25、dialog22/25、実幅による入力切詰め | GFX native font/文書layout/保存/recovery/checkpoint回帰 | 待ち |
 | Writer本文 | native font、従来z0〜z4維持、追加依頼でz5〜z7対応 | 文書layout/実font/checkpoint | 追加Zoom問題なし、保存z6=25px・本文保持照合PASS |
 | Sketch | icon/label縦配置、browser行/Cancel/popup拡大 | 140%lease/PNG保存再読込/座標/キャンバス100%往復 | ボタン文字・Pen/指の位置・新規保存・100%往復・Open/Cancel・再読込・追描画・終了PASS |
-| Calc | 実font metricsによる行高/選択行表示/実幅cursor | GFX widthと既存calc回帰 | 待ち |
+| Calc | 実font metricsによる行高/選択行表示/実幅cursor | GFX widthと既存calc回帰 | cursor修正・文字重なりなし。文字が小さいとの指摘を受け25px版を準備中 |
 | Launcher | 既存role profileと実幅レイアウトへ追従 | launcher layout回帰 | 待ち |
 | Reader/Web | chrome拡大/切詰め。文書zoomはnativeで保持 | 既存reader/web回帰 | 待ち |
 | Plot | 文字領域の余白を確保。traceデータは物理座標 | 既存plot回帰 | 待ち |
@@ -252,3 +252,19 @@ Touchはmanual OFF・lease 0・requested OFF・ready=noとなり、自動OFFを�
 Displayはerror=0、busy/pending=0。UI scaleは140のまま維持された。
 証跡: `.research/ui-scale/sketch-exit-acceptance-20261011.log`。
 Test DのSketch表示・描画・PNG保存再読込・Touch lifecycleは受入済み。
+
+### 設定メニューとCalcの目視結果
+
+ユーザーから「140%メニュー問題なし」「100%メニュー従来通り」と回答を受けた。
+最後の項目への移動・スクロール・選択表示の確認依頼に対する回答として記録。
+Calcは「カーソル位置が修正されている」「文字の重なり無し」だが、文字サイズは
+小さいとの指摘があった。ログでも設定メニューの終了、Calcの起動・終了・再起動、
+UI scale140・display error=0を確認した。
+証跡: `.research/ui-scale/menu-calc-acceptance-20261011.log`。
+
+Calcの既存GUIは式MONO_12→17px、結果SMALL→14pxだった。
+PaperMonoの140%で十分な画面領域がある場合、式と結果をMONO_18→25pxに揃え、
+左パネルを199pxから280pxへ拡張する。行高・cursor・切詰めは同じ実効metricsを
+用いる。100%、小さいviewport、他ボードの従来サイズは維持する。
+グラフの数値・ピクセル間隔、保存形式、表示driverは変更しない。
+25px版の実機目視はこれから行う。

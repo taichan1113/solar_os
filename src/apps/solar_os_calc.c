@@ -635,8 +635,15 @@ static void calc_graphics_render(solar_os_context_t *ctx)
         return;
     const int width = (int)solar_os_gfx_width(gfx);
     const int height = (int)solar_os_gfx_height(gfx);
+    const bool readable = solar_os_ui_scale_percent() == 140U &&
+                          width >= 560 && height >= 240;
+    const solar_os_gfx_font_t row_font = readable ? SOLAR_OS_GFX_FONT_MONO_18 :
+                                                  SOLAR_OS_GFX_FONT_MONO_12;
+    const solar_os_gfx_font_t result_font = readable ? row_font :
+                                                     SOLAR_OS_GFX_FONT_SMALL;
     const int footer = height >= 120 ? solar_os_ui_px(22) : 12;
-    const int panel = width >= 380 ? solar_os_ui_px(142) : (width >= 240 ? 110 : width / 2);
+    const int panel = width >= 380 ? solar_os_ui_px(readable ? 200 : 142) :
+                                    (width >= 240 ? 110 : width / 2);
     solar_os_gfx_clear(gfx, SOLAR_OS_GFX_COLOR_WHITE);
     solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_MONO_12);
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
@@ -646,6 +653,7 @@ static void calc_graphics_render(solar_os_context_t *ctx)
     solar_os_gfx_line(gfx, panel, 0, panel, height - footer);
     solar_os_gfx_line(gfx, 0, height - footer, width - 1, height - footer);
 
+    solar_os_gfx_set_font(gfx, row_font);
     const solar_os_gfx_font_metrics_t metrics = solar_os_gfx_font_metrics(gfx);
     const int row_height = height >= 120 ? metrics.height * 2 + 6 : metrics.height + 4;
     const int list_top = height >= 120 ? solar_os_ui_px(18) : 0;
@@ -682,10 +690,10 @@ static void calc_graphics_render(solar_os_context_t *ctx)
         if (height >= 120 && (calc->rows[i].has_result || calc->rows[i].error.message[0])) {
             if (calc->rows[i].has_result) calc_format(calc->rows[i].result, result, sizeof(result));
             else snprintf(result, sizeof(result), "%s", calc->rows[i].error.message);
-            solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_SMALL);
+            solar_os_gfx_set_font(gfx, result_font);
             solar_os_gfx_text_fit(gfx, result, panel - 12, result, sizeof(result));
             solar_os_gfx_text(gfx, 8, y + metrics.height + 2, result);
-            solar_os_gfx_set_font(gfx, SOLAR_OS_GFX_FONT_MONO_12);
+            solar_os_gfx_set_font(gfx, row_font);
         }
     }
     calc_draw_graph(gfx, panel + 1, 0, width - panel - 1, height - footer - 1);
