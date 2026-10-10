@@ -268,3 +268,19 @@ PaperMonoの140%で十分な画面領域がある場合、式と結果をMONO_18
 用いる。100%、小さいviewport、他ボードの従来サイズは維持する。
 グラフの数値・ピクセル間隔、保存形式、表示driverは変更しない。
 25px版の実機目視はこれから行う。
+
+Calc修正commit: `f13af33f`。Host全134 executable PASS、Python578 tests / 4 skip / failureなし。
+ビルド95.84秒、SUCCESS。ログは `.research/ui-scale/host-calc-readable.log`、
+`python-calc-readable.log`、`build-calc-readable.log`。
+PowerShellのnative stderr転送はプロセスstatusを1にする場合があるため、suiteの終了結果も
+確認した。Pythonは `OK (skipped=4)`、SDK負例のassertは期待された子プロセス試験である。
+
+書込準備済みartifact（現時点では未書込）:
+
+- `build/papermono-ui-scale-140-trial/firmware.bin`
+- 3,426,896 bytes
+- SHA256: `39ea09d99460d71399ac255a8521fbc610c681b9ac38b98b1d62d12bb3e6112b`
+
+前artifact一式は `.research/ui-scale/artifact-before-calc-f13af33f` に保持した。
+実機にはまだ `91e99094` のfirmwareが稼働中。現在のCalcを閉じてShellへ戻ったことを
+確認してから、保護領域の比較付きでアプリだけを書き込む。
