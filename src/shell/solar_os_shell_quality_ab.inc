@@ -242,8 +242,9 @@ done:
         /* Cleanup only on a healthy exit; hardware failure is never retried.
          * Restore the pre-trial RAM selector and refresh policy after cleanup. */
         if (healthy) {
-            const esp_err_t cleanup = solar_os_display_set_controller_mode(target.name, "refresh=cleanup");
-            if (cleanup == ESP_OK) (void)quality_ab_present(io, &target, d, "exit-cleanup", 0, false);
+            esp_err_t cleanup = solar_os_display_set_controller_mode(target.name, "refresh=cleanup");
+            if (cleanup == ESP_OK) cleanup = quality_ab_present(io, &target, d, "exit-cleanup", 0, false);
+            if (cleanup != ESP_OK) healthy = false;
         }
         char restore[40];
         const char *names[] = {"baseline", "dose", "hold"};
@@ -255,4 +256,11 @@ done:
     }
     solar_os_memory_free(masks);
     (void)solar_os_display_release(target.name, owner);
+    if (configured && healthy && solar_os_display_target_is_board_primary(target.name)) {
+        /* Direct graphics bypassed the terminal's retained-cell cache. Repaint
+         * its complete existing contents after releasing the diagnostic claim;
+         * refresh=cleanup alone would just refresh the remaining test image. */
+        (void)solar_os_display_set_controller_mode(target.name, "refresh=cleanup");
+        solar_os_sessions_mark_foreground_dirty();
+    }
 }

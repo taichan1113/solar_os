@@ -23,7 +23,7 @@ typedef struct {
 } solar_os_display_submission_status_t;
 
 static epd_ssd1677_t fixture;
-static unsigned submitted, fast_updates, otp_updates, claims, releases, gate_reads;
+static unsigned submitted, fast_updates, otp_updates, claims, releases, gate_reads, redraws;
 static unsigned failure_at;
 static bool no_memory;
 static const char *keys;
@@ -66,6 +66,10 @@ static esp_err_t solar_os_display_claim(const char *name, const char *owner, cha
 { assert(!strcmp(name, "display0") && !strcmp(owner, "shell:quality-ab") && n); *busy=0; claims++; return ESP_OK; }
 static esp_err_t solar_os_display_release(const char *name, const char *owner)
 { (void)name; (void)owner; releases++; return ESP_OK; }
+static bool solar_os_display_target_is_board_primary(const char *name)
+{ return !strcmp(name, "display0"); }
+static void solar_os_sessions_mark_foreground_dirty(void)
+{ assert(releases == 1 && !fixture.faulted && fixture.cleanup_pending); redraws++; }
 static void *solar_os_memory_alloc(size_t n, int cls, const char *tag)
 { assert(n==96000 && cls==3 && tag); return no_memory ? NULL : malloc(n); }
 static void solar_os_memory_free(void *p) { free(p); }
@@ -131,7 +135,7 @@ static void setup(void)
     fixture.configured_spi_hz=40000000;
     u8g2_SetupDisplay(&fixture.u8g2, ssd1677_u8x8_display_cb, u8x8_dummy_cb, u8x8_dummy_cb, u8x8_dummy_cb);
     u8g2_SetupBuffer(&fixture.u8g2, frame, 60, u8g2_ll_hvline_vertical_top_lsb, U8G2_R0);
-    submitted=fast_updates=otp_updates=claims=releases=gate_reads=failure_at=0;
+    submitted=fast_updates=otp_updates=claims=releases=gate_reads=failure_at=redraws=0;
     no_memory=false; output_len=0; output[0]=0; last_error=ESP_OK;
     keys="gggggggggggq"; stuck_busy=false; actual_spi_hz=40000000;
 }
@@ -150,7 +154,7 @@ int main(void)
         keys=b ? "gggggggggggq" : "ggggggggggq";
         run(b ? "ab-b" : "ab-a", w ? "dose" : "baseline");
         assert(fast_updates==10 && otp_updates==(b ? 3U : 2U));
-        assert(claims==1 && releases==1 && !*keys);
+        assert(claims==1 && releases==1 && redraws==1 && !*keys);
         assert(fixture.waveform_trial==EPD_SSD1677_WAVEFORM_DOSE &&
                fixture.refresh_mode==EPD_SSD1677_REFRESH_FASTEST && !fixture.timing_enabled);
         assert(strstr(output,"AB finished fast_count=10") && strstr(output,"fixed_black_00=1"));
@@ -163,12 +167,14 @@ int main(void)
     assert(!memcmp(initial,frame,sizeof(frame)) && hash==quality_ab_image_hash(frame,sizeof(frame)));
     printf("AB reference native image FNV1a=%08x bytes=%zu\n", hash, sizeof(frame));
     setup(); keys="q"; run("ab-a","baseline");
-    assert(fast_updates==0 && otp_updates==2 && releases==1); /* abort at white */
+    assert(fast_updates==0 && otp_updates==2 && releases==1 && redraws==1); /* abort at white */
     for (unsigned fail=1; fail<=4; ++fail) {
         setup(); failure_at=fail; run("ab-b","dose");
-        assert(submitted==fail && fixture.faulted && releases==1); /* no cleanup/retry after BUSY fault */
+        assert(submitted==fail && fixture.faulted && releases==1 && redraws==0); /* no cleanup/retry after BUSY fault */
         assert(!strstr(output,"AB finished"));
     }
+    setup(); failure_at=13; run("ab-b","dose");
+    assert(submitted==13 && fixture.faulted && releases==1 && redraws==0); /* cleanup fault cannot redraw */
     setup(); no_memory=true; run("ab-a","baseline");
     assert(submitted==0 && claims==1 && releases==1);
     setup(); run("ab-a","hold"); assert(claims==0 && submitted==0);
