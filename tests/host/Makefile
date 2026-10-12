@@ -26,6 +26,7 @@ ble_keyboard_reconnect_test: ble_keyboard_reconnect_test.c $(ROOT)/src/services/
 TARGETS += input_action_match_test gesture_completion_test
 TARGETS += epd_ssd1677_test epd_uc8179_test uc8179_expansion_test epd_uc8279_test uc8279_expansion_test
 TARGETS += epd_ssd1677_waveform_trial_test
+TARGETS += quality_ab_test
 TARGETS += frontlight_pwm_test epd_xteink_identify_test x4pro_expansion_test
 TARGETS += gt911_test
 TARGETS += sdmmc_expansion_test
@@ -201,6 +202,15 @@ epd_ssd1677_waveform_trial_test: epd_ssd1677_test.c $(ROOT)/src/drivers/epd_ssd1
 	$(CC) $(CFLAGS) -DSOLAR_OS_SSD1677_WAVEFORM_TRIAL=1 -ffunction-sections -fdata-sections \
 		-Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib \
 		epd_ssd1677_test.c -Wl,--gc-sections -o $@
+
+quality_ab_test: quality_ab_test.c epd_ssd1677_test.c $(ROOT)/src/shell/solar_os_shell_quality_ab.inc \
+        $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677_reference.inc $(ROOT)/src/drivers/epd_ssd1677_waveform_trial.inc \
+        $(EPD_U8G2_TEST_SOURCES) $(ROOT)/components/u8g2/src/clib/u8g2_box.c $(ROOT)/components/u8g2/src/clib/u8x8_8x8.c \
+        $(ROOT)/fonts/build/u8g2/u8g2_font_solar_os_default_r_20_tf.c
+	$(CC) $(CFLAGS) -DSOLAR_OS_SSD1677_WAVEFORM_TRIAL=1 -ffunction-sections -fdata-sections \
+		-Iepd_stubs -I. -I$(ROOT)/src/drivers -I$(ROOT)/src/services -I$(ROOT)/components/u8g2/src/clib \
+		quality_ab_test.c $(EPD_U8G2_TEST_SOURCES) $(ROOT)/components/u8g2/src/clib/u8g2_box.c $(ROOT)/components/u8g2/src/clib/u8x8_8x8.c \
+		$(ROOT)/fonts/build/u8g2/u8g2_font_solar_os_default_r_20_tf.c -Wl,--gc-sections -o $@
 
 messaging_service_test: messaging_service_test.c $(ROOT)/src/services/solar_os_contacts.c \
         $(ROOT)/src/services/solar_os_messaging.c $(ROOT)/src/services/solar_os_messaging_types.c \
@@ -1044,6 +1054,7 @@ test: $(TARGETS)
 	./axp2101_test
 	./epd_ssd1677_test
 	./epd_ssd1677_waveform_trial_test
+	./quality_ab_test
 	./m5papermono_power_test
 	./ft6336_test
 	./rtc_rx8130ce_test

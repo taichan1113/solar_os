@@ -278,6 +278,9 @@ static void display_print_usage(solar_os_shell_io_t *term)
     solar_os_shell_io_writeln(term, "  display [list]");
     solar_os_shell_io_writeln(term, "  display layouts");
     solar_os_shell_io_writeln(term, "  display test <target> [white|black|half|box-left|box-right|corners|fine]");
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+    solar_os_shell_io_writeln(term, "  display test display0 ab-a|ab-b baseline|dose (serial, operator-stepped)");
+#endif
     solar_os_shell_io_writeln(term, "  display mode <target> [mode]");
     solar_os_shell_io_writeln(term,
                               "  display join <name> --horizontal|--vertical <target> <target> [target ...]");
@@ -636,9 +639,20 @@ static void display_draw_test_pattern(u8g2_t *u8g2, const char *name)
     solar_os_display_present(u8g2, SOLAR_OS_DISPLAY_PRESENT_TEXT);
 }
 
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+#include "solar_os_shell_quality_ab.inc"
+#endif
+
 static void display_cmd_test(solar_os_shell_io_t *term, int argc, char **argv)
 {
     static const char owner[] = "shell:display-test";
+
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+    if (argc >= 4 && strncmp(argv[3], "ab-", 3) == 0) {
+        display_cmd_quality_ab(term, argc, argv);
+        return;
+    }
+#endif
 
     if (argc != 3 && argc != 4) {
         if (argc < 3) {
