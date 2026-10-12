@@ -1,0 +1,162 @@
+{
+  "date": "2026-10-13",
+  "photography": "unavailable; user: 準備完了。写真は撮れない。",
+  "optical_numeric_C_R": "未測定",
+  "batches": {
+    "A1": {
+      "white": "白画面正常",
+      "initial": "汚れや残像、ちらつきはない",
+      "final": "１，２の黒四角も、３固定文字・細線も濃さはあまり変わらず。中央非代理の黒四角の右側に、小さな黒四角が表示されています"
+    },
+    "A2": {
+      "white": "正常です",
+      "initial": "A1よりも黒い気がしますが気のせいかも。汚れ・残像・ちらつき なし",
+      "final": "やや薄くなったような気がします。10回更新だとあまり変化はわかりにくいです。白地の汚れ・残像の有無は無し"
+    },
+    "B1": {
+      "white": "正常",
+      "initial": "開始状態を確認",
+      "final": "目立った変化は無し"
+    },
+    "B2": {
+      "white": "白地正常",
+      "initial": "B1と同じ程度",
+      "final": "目立った変化は無し"
+    }
+  },
+  "normal_return_initial": "いいえ、先ほどのテスト時の線やFIXED BLACKなどの固定文字が残っています",
+  "exit_repair_commit": "8a7df22dc671597089de85ed46256b2f5f192248",
+  "normal_return_after_fix": "正常です",
+  "exit_only_fast_updates": 0,
+  "source_commit": "fd27a0c09d7b607198d584c65723db3775a86eb4",
+  "branch": "experiment/papermono-baseline-dose-ab",
+  "artifact_sha256": "b2190ed453646760fa8db9a8e056e71f0ebb3ae9837387657667a3ac69a05aa7",
+  "image": {
+    "bytes": "48000",
+    "native_fnv1a": "c0b78f97"
+  },
+  "roi": {
+    "marker": "400,160,16,16",
+    "near_black": "320,160,48,48",
+    "far_black": "32,160,48,48",
+    "white": "32,216,48,24",
+    "text": "32,32,600,64",
+    "thin": "32,240,736,1",
+    "thick": "32,264,736,3"
+  },
+  "verdict": "CONDITIONAL",
+  "flash_protected": {
+    "nvs": {
+      "unchanged": true,
+      "sha256": "0d3f17aa3fd9cedd0de0611317a9bdb5eebcebac5a6cdb1e36ed4f77263e8e5a"
+    },
+    "otadata": {
+      "unchanged": true,
+      "sha256": "8ba3b110139f45443d4f268d1a3373ef99a1718b71d51664531b83ee2d4b91a3"
+    },
+    "phy_init": {
+      "unchanged": true,
+      "sha256": "58b59eb397fcc8b699d265a18af84e063dc9bab0bd03632ad2f91e70038aa788"
+    },
+    "flash": {
+      "unchanged": true,
+      "sha256": "82ca8a9b23e30a2385f35870b033777c19ad04ea9da146ab12db581bc957102b"
+    }
+  },
+  "raw_log_sha256": {
+    "A1": "d5cef0eeb409d36a44b9ecabb451136fd7024d6eb088d075d62971c89acdcd21",
+    "A2": "e08cec64948753ad97b4d5c138700d84a457f2910e31f81f54cb0368e877d9d8",
+    "B1": "0b2b488f1e8507dc665d7cae897697c7e3e37e9a4f3bab83347742f744cde6a7",
+    "B2": "fe78eff353040bedc2876b9680a64c37a5e8444cb439b238c8c7c3887dea5507"
+  },
+  "logical_data_audit": {
+    "result": "PASS",
+    "existing_files": 39,
+    "files_changed": [
+      "espressif/.shell/history"
+    ],
+    "files_added": [],
+    "files_removed": [],
+    "bond_values_unchanged": 6,
+    "nvs_keys": 38,
+    "nvs_changed": [
+      [
+        "wireguard",
+        "tai_ceiling"
+      ]
+    ]
+  },
+  "final_application_flash": {
+    "artifact_sha256": "72fbf8c20769dd6b248dd2d25b6e6ceb0558a147c239678105c26af98994fb39",
+    "source": "8a7df22dc671597089de85ed46256b2f5f192248",
+    "result": "PASS",
+    "offset": "0x10000",
+    "written_regions": [
+      "ota_0"
+    ],
+    "mac": "28:84:85:44:79:68",
+    "partitions": [
+      {
+        "name": "nvs",
+        "type": 1,
+        "subtype": 2,
+        "offset": 36864,
+        "size": 16384
+      },
+      {
+        "name": "otadata",
+        "type": 1,
+        "subtype": 0,
+        "offset": 53248,
+        "size": 8192
+      },
+      {
+        "name": "phy_init",
+        "type": 1,
+        "subtype": 1,
+        "offset": 61440,
+        "size": 4096
+      },
+      {
+        "name": "ota_0",
+        "type": 0,
+        "subtype": 16,
+        "offset": 65536,
+        "size": 7340032
+      },
+      {
+        "name": "ota_1",
+        "type": 0,
+        "subtype": 17,
+        "offset": 7405568,
+        "size": 7340032
+      },
+      {
+        "name": "flash",
+        "type": 1,
+        "subtype": 129,
+        "offset": 14745600,
+        "size": 2031616
+      }
+    ],
+    "previous_application_sha256": "b2190ed453646760fa8db9a8e056e71f0ebb3ae9837387657667a3ac69a05aa7",
+    "protected": {
+      "nvs": {
+        "unchanged": true,
+        "sha256": "fd2dfece274353ba0627fecdb7b427b366dbc6d6128d9be34d7b158a919aec06"
+      },
+      "otadata": {
+        "unchanged": true,
+        "sha256": "8ba3b110139f45443d4f268d1a3373ef99a1718b71d51664531b83ee2d4b91a3"
+      },
+      "phy_init": {
+        "unchanged": true,
+        "sha256": "58b59eb397fcc8b699d265a18af84e063dc9bab0bd03632ad2f91e70038aa788"
+      },
+      "flash": {
+        "unchanged": true,
+        "sha256": "d1866e291a5212d0ba5fbef894154885236d36347badd4d35538c44791435898"
+      }
+    }
+  }
+}
