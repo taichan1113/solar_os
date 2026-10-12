@@ -18,25 +18,25 @@ class FilesKeyPolicyTest(unittest.TestCase):
         cls.event_handler = FILES_SOURCE.split(
             "static bool files_event", 1
         )[1].split("static bool files_state_release_ready", 1)[0]
+        cls.help_items = re.findall(
+            r'\{"([^"]+)", (\d+)U\}',
+            FILES_SOURCE.split("files_help_items[] = {", 1)[1].split("};", 1)[0],
+        )
 
     def test_function_keys_remain_primary_and_help_shows_letter_mnemonics(self):
-        self.assertIn(
-            "F3 View F4 Edit F5 Copy F6 Move F7 mKdir F8 Delete F9 Zip",
-            self.draw_bottom,
+        self.assertEqual(
+            " ".join(text for text, _ in self.help_items),
+            "F3 View F4 Edit F5 Copy F6 Move F7 mKdir F8 Delete F9 Zip Alt+S Search",
         )
         self.assertNotRegex(self.draw_bottom, r"[A-Za-z]-[A-Za-z]")
 
     def test_help_renders_letter_mnemonics_in_bold(self):
-        for label, offset in (
-            ("View", 0),
-            ("Edit", 0),
-            ("Copy", 0),
-            ("Move", 0),
-            ("mKdir", 1),
-            ("Delete", 0),
-            ("Zip", 0),
-        ):
-            self.assertIn(f'{{"{label}", {offset}U}}', self.draw_bottom)
+        self.assertEqual(
+            "".join(text[int(offset)] for text, offset in self.help_items),
+            "VECMKDZS",
+        )
+        self.assertIn("col + files_help_items[i].mnemonic", self.draw_bottom)
+        self.assertIn("files_help_items[i].text[files_help_items[i].mnemonic]", self.draw_bottom)
         self.assertRegex(
             self.draw_bottom,
             re.compile(

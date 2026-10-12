@@ -723,16 +723,82 @@ static void files_transaction_end(void)
     memset(&files.transaction, 0, sizeof(files.transaction));
 }
 
+static const struct {
+    const char *text;
+    size_t mnemonic;
+} files_help_items[] = {
+    {"F3 View", 3U}, {"F4 Edit", 3U}, {"F5 Copy", 3U}, {"F6 Move", 3U},
+    {"F7 mKdir", 4U}, {"F8 Delete", 3U}, {"F9 Zip", 3U}, {"Alt+S Search", 6U},
+};
+
+typedef struct {
+    size_t help_rows;
+    size_t help_split;
+    size_t footer_rows;
+    size_t pane_height;
+    size_t list_rows;
+    bool valid;
+} files_layout_t;
+
+/* The same geometry drives rendering, popups and PageUp/PageDown. */
+static files_layout_t files_layout(size_t rows, size_t cols)
+{
+    files_layout_t layout = {0};
+    const size_t item_count = sizeof(files_help_items) / sizeof(files_help_items[0]);
+    const bool fullscreen = solar_os_tui_screen_fullscreen(&files.tui);
+    if (!files.launcher_mode && !fullscreen) {
+        size_t total = item_count - 1U;
+        for (size_t i = 0; i < item_count; i++) {
+            total += strlen(files_help_items[i].text);
+        }
+        if (total <= cols) {
+            layout.help_rows = 1U;
+            layout.help_split = item_count;
+        } else {
+            /* Choose the most balanced item boundary that fits both rows. */
+            size_t left = 0U;
+            size_t best_width = SIZE_MAX;
+            for (size_t i = 0; i + 1U < item_count; i++) {
+                left += strlen(files_help_items[i].text) + (i != 0U ? 1U : 0U);
+                const size_t right = total - left - 1U;
+                const size_t width = left > right ? left : right;
+                if (width <= cols && width < best_width) {
+                    best_width = width;
+                    layout.help_split = i + 1U;
+                    layout.help_rows = 2U;
+                }
+            }
+            if (layout.help_rows == 0U) {
+                return layout; /* No complete two-row legend: use too-small. */
+            }
+        }
+    }
+    layout.footer_rows = files.launcher_mode ? 0U : fullscreen ?
+        (files.input_mode != FILES_INPUT_NONE ? 1U : 0U) : 1U + layout.help_rows;
+    const size_t min_cols = FILES_PANEL_MIN_WIDTH * (files.launcher_mode ? 1U : 2U);
+    const size_t min_rows = files.launcher_mode ? 4U : 6U;
+    if (cols < min_cols || rows < min_rows || rows < 4U + layout.footer_rows) {
+        return layout;
+    }
+    layout.pane_height = rows - 1U - layout.footer_rows;
+    layout.list_rows = layout.pane_height - 2U;
+    layout.valid = true;
+    return layout;
+}
+
 static void files_draw_transaction(size_t rows, size_t cols)
 {
     if (!files.transaction.active || rows < 4U || cols < 12U) {
         return;
     }
-    const size_t height = solar_os_tui_screen_content_rows(&files.tui, 1U, 2U);
+    const files_layout_t layout = files_layout(rows, cols);
+    if (!layout.valid) {
+        return;
+    }
     const solar_os_tui_rect_t bounds = {
         .row = rows > 2U ? 1U : 0U,
         .col = 0U,
-        .height = rows > 2U ? height : rows,
+        .height = layout.pane_height,
         .width = cols,
     };
     solar_os_tui_rect_t popup = {0};
@@ -863,29 +929,14 @@ static void files_draw_pane(files_pane_t *pane,
     }
 }
 
-static void files_draw_bottom(size_t rows, size_t cols)
+static void files_draw_bottom(size_t rows, size_t cols, const files_layout_t *layout)
 {
-    static const char help[] =
-        "F3 View F4 Edit F5 Copy F6 Move F7 mKdir F8 Delete F9 Zip Alt+S Search";
-    static const struct {
-        const char *label;
-        size_t offset;
-    } mnemonics[] = {
-        {"View", 0U},
-        {"Edit", 0U},
-        {"Copy", 0U},
-        {"Move", 0U},
-        {"mKdir", 1U},
-        {"Delete", 0U},
-        {"Zip", 0U},
-        {"Search", 0U},
-    };
     const bool input_active = files.input_mode != FILES_INPUT_NONE;
     if (solar_os_tui_screen_fullscreen(&files.tui) && !input_active) {
         solar_os_tui_draw_footer(&files.tui, files.message, NULL);
         return;
     }
-    const size_t bottom_rows = solar_os_tui_screen_fullscreen(&files.tui) ? 1U : 2U;
+    const size_t bottom_rows = layout->footer_rows;
     const size_t msg_row = rows >= bottom_rows ? rows - bottom_rows : 0U;
     solar_os_tui_fill(&files.tui, msg_row, 0, 1, cols, ' ', SOLAR_OS_TUI_ATTR_NORMAL);
     if (files.input_mode == FILES_INPUT_MKDIR ||
@@ -900,31 +951,34 @@ static void files_draw_bottom(size_t rows, size_t cols)
         char prompt[FILES_INPUT_MAX + 12];
         snprintf(prompt, sizeof(prompt), "%s%s", label, value);
         solar_os_tui_write_cell(&files.tui, msg_row, 0, cols, prompt, SOLAR_OS_TUI_ATTR_NORMAL);
-        solar_os_tui_move(&files.tui, msg_row, strlen(label) + value_len);
+        const size_t cursor_col = strlen(label) + value_len;
+        solar_os_tui_move(&files.tui, msg_row, cursor_col < cols ? cursor_col : cols - 1U);
     } else if (files.input_mode == FILES_INPUT_DELETE_CONFIRM) {
         solar_os_tui_write_cell(&files.tui, msg_row, 0, cols, files.message, SOLAR_OS_TUI_ATTR_BOLD);
     } else {
         solar_os_tui_write_cell(&files.tui, msg_row, 0, cols, files.message, SOLAR_OS_TUI_ATTR_NORMAL);
     }
 
-    solar_os_tui_draw_help(&files.tui, help);
-    if (!solar_os_tui_screen_fullscreen(&files.tui)) {
-        const size_t help_row = solar_os_tui_rows(&files.tui) - 1U;
-        for (size_t index = 0;
-             index < sizeof(mnemonics) / sizeof(mnemonics[0]);
-             index++) {
-            const char *label = strstr(help, mnemonics[index].label);
-            const size_t col = label != NULL ?
-                (size_t)(label - help) + mnemonics[index].offset : cols;
-            if (col < cols) {
-                (void)solar_os_tui_putch(&files.tui,
-                                         help_row,
-                                         col,
-                                         help[col],
-                                         SOLAR_OS_TUI_ATTR_INVERSE |
-                                             SOLAR_OS_TUI_ATTR_BOLD);
+    size_t help_row = rows - layout->help_rows;
+    size_t col = 0U;
+    for (size_t i = 0; i < sizeof(files_help_items) / sizeof(files_help_items[0]) &&
+                       layout->help_rows != 0U; i++) {
+        if (i == 0U || i == layout->help_split) {
+            if (i != 0U) {
+                help_row++;
             }
+            col = 0U;
+            solar_os_tui_fill(&files.tui, help_row, 0U, 1U, cols, ' ', SOLAR_OS_TUI_ATTR_INVERSE);
+        } else {
+            col++; /* One space between items, as in the original legend. */
         }
+        const size_t width = strlen(files_help_items[i].text);
+        solar_os_tui_write_cell(&files.tui, help_row, col, width,
+                                files_help_items[i].text, SOLAR_OS_TUI_ATTR_INVERSE);
+        solar_os_tui_putch(&files.tui, help_row, col + files_help_items[i].mnemonic,
+                           files_help_items[i].text[files_help_items[i].mnemonic],
+                           SOLAR_OS_TUI_ATTR_INVERSE | SOLAR_OS_TUI_ATTR_BOLD);
+        col += width;
     }
 }
 
@@ -937,10 +991,8 @@ static void files_render(solar_os_context_t *ctx)
                                     files.input_mode == FILES_INPUT_SEARCH);
     const size_t rows = solar_os_tui_rows(&files.tui);
     const size_t cols = solar_os_tui_cols(&files.tui);
-    const size_t min_cols = files.launcher_mode ?
-        FILES_PANEL_MIN_WIDTH : FILES_PANEL_MIN_WIDTH * 2U;
-    const size_t min_rows = files.launcher_mode ? 4U : 6U;
-    if (rows < min_rows || cols < min_cols) {
+    const files_layout_t layout = files_layout(rows, cols);
+    if (!layout.valid) {
         solar_os_tui_clear(&files.tui);
         solar_os_tui_draw_too_small(&files.tui, "files");
         solar_os_tui_refresh(&files.tui);
@@ -968,19 +1020,16 @@ static void files_render(solar_os_context_t *ctx)
 
     const size_t pane_row = 1;
     if (files.launcher_mode) {
-        files_draw_pane(&files.panes[0], 0, pane_row, 0, rows - pane_row, cols);
+        files_draw_pane(&files.panes[0], 0, pane_row, 0, layout.pane_height, cols);
         solar_os_tui_refresh(&files.tui);
         return;
     }
-    const size_t footer_rows = solar_os_tui_screen_fullscreen(&files.tui) ?
-        (files.input_mode != FILES_INPUT_NONE ? 1U : 0U) : 2U;
-    const size_t pane_height = rows > 1U + footer_rows ?
-        rows - 1U - footer_rows : 1U;
+    const size_t pane_height = layout.pane_height;
     const size_t left_width = cols / 2U;
     const size_t right_width = cols - left_width;
     files_draw_pane(&files.panes[0], 0, pane_row, 0, pane_height, left_width);
     files_draw_pane(&files.panes[1], 1, pane_row, left_width, pane_height, right_width);
-    files_draw_bottom(rows, cols);
+    files_draw_bottom(rows, cols, &layout);
     files_draw_transaction(rows, cols);
     solar_os_tui_refresh(&files.tui);
 }
@@ -1023,10 +1072,12 @@ static void files_move_cursor(files_pane_t *pane, int delta)
 
 static void files_page(files_pane_t *pane, bool down)
 {
-    const size_t rows = solar_os_tui_rows(&files.tui);
-    const size_t reserved = files.launcher_mode ? 3U :
-        (solar_os_tui_screen_fullscreen(&files.tui) ? 4U : 6U);
-    const size_t page = rows > reserved ? rows - reserved : 1U;
+    const files_layout_t layout = files_layout(solar_os_tui_rows(&files.tui),
+                                               solar_os_tui_cols(&files.tui));
+    if (!layout.valid) {
+        return;
+    }
+    const size_t page = layout.list_rows;
     files_move_cursor(pane, down ? (int)page : -(int)page);
 }
 

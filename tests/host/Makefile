@@ -11,6 +11,13 @@ MANUAL_GENERATED_HEADER := $(MANUAL_GENERATED_DIR)/solar_os_manual_data.h
 
 .PHONY: all test clean
 
+TARGETS += files_layout_test
+files_layout_test: files_layout_test.c $(ROOT)/src/apps/solar_os_files.c
+	# Existing bounded ZIP/delete prompts deliberately truncate long filenames.
+	$(CC) $(CFLAGS) -Wno-format-truncation -D_GNU_SOURCE -include compat.h -ffunction-sections -fdata-sections \
+		-Ijobs_admission_stubs -I. -I$(ROOT)/src -I$(ROOT)/src/apps -I$(ROOT)/src/shell \
+		-I$(ROOT)/src/services -Inimble_stubs $< -Wl,--gc-sections -o $@
+
 TARGETS += ble_service_test ble_multi_peer_test ble_nimble_test ble_hid_test ble_lua_bindings_test ble_server_test
 TARGETS += ble_keyboard_reconnect_test
 
@@ -921,6 +928,7 @@ rtc_pcf85063_test: rtc_pcf85063_test.c \
 		rtc_pcf85063_test.c $(ROOT)/src/drivers/rtc_pcf85063.c -o $@
 
 test: $(TARGETS)
+	./files_layout_test
 	./writer_checkpoint_test
 	./cw2017_test
 	./rtc_pcf8563_test
