@@ -14,7 +14,10 @@ def fields(line):
 
 
 def analyze(text):
-    rows = {kind: [fields(line) for line in text.splitlines() if f"WQ {kind} " in line]
+    # Recover row boundaries for diagnostics only when a truncated printf lost
+    # its newline. Missing fields still invalidate the capture; never invent them.
+    journal = re.sub(r"(?<!\n)(WQ \w+ )", r"\n\1", text)
+    rows = {kind: [fields(line) for line in journal.splitlines() if f"WQ {kind} " in line]
             for kind in ("begin", "roi", "input", "frame", "physical", "observation", "summary", "exit")}
     errors = []
     def check(ok, message):
@@ -41,6 +44,9 @@ def analyze(text):
     check(len(by_hash) == len(frames), "ambiguous snapshot identity")
     completed = set()
     for r in physical:
+        check(all(k in r for k in ("total_us", "observer_us", "busy_us", "convert_us", "spi_us",
+                                  "writes", "activations", "spi_hz", "path")),
+              "truncated physical timing/transfer record")
         f = by_hash.get(r.get("hash"), {})
         check(r.get("gen") == f.get("gen") and r.get("chars") == f.get("chars"), "snapshot/generation mapping")
         check(not r.get("err") and r.get("writes") == 2 and r.get("activations") == 1, "driver execution failed")
@@ -78,8 +84,10 @@ def analyze(text):
                 intervals_us=intervals, burst_input_intervals_us=burst_input_intervals,
                 burst_update_intervals_us=burst_updates,
                 mean_burst_update_interval_us=statistics.mean(burst_updates) if burst_updates else None,
-                driver_p50_us=statistics.median(r["total_us"] for r in physical) if physical else None,
-                observer_p50_us=statistics.median(r["observer_us"] for r in physical) if physical else None,
+                driver_p50_us=statistics.median(r["total_us"] for r in physical)
+                    if physical and all("total_us" in r for r in physical) else None,
+                observer_p50_us=statistics.median(r["observer_us"] for r in physical)
+                    if physical and all("observer_us" in r for r in physical) else None,
                 observations=rows["observation"], optical_C="未測定", optical_R="未測定", rows=rows)
 
 

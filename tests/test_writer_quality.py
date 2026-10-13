@@ -25,7 +25,8 @@ def sample(mode="slow", merged=False):
         lines.append(f"WQ physical ordinal={ordinal} gen={i} chars={i} hash=x{i} start={i*200000+4} "
                      f"end={i*200000+120000} err=0 fixed_change=0 fixed00=100 fixed11=7400 "
                      f"first_change={50 if ordinal==1 else 0} first00={0 if ordinal==1 else 50} "
-                     "writes=2 activations=1 spi_hz=40000000 path=tile total_us=112000 observer_us=1000")
+                     "writes=2 activations=1 spi_hz=40000000 path=tile total_us=112000 observer_us=1000 "
+                     "busy_us=51000 convert_us=35000 spi_us=20000")
     lines.append(f"WQ summary inputs=10 renders=10 submitted=10 completed={len(executed)} physical={len(executed)} "
                  f"replaced={10-len(executed)} overflow=0")
     lines.append("WQ exit err=0 healthy=1 restored=1")
@@ -33,6 +34,14 @@ def sample(mode="slow", merged=False):
 
 
 class WriterQualityTests(unittest.TestCase):
+    def test_truncated_uart_records_fail_without_inventing_timing(self):
+        bad=sample().replace("total_us=112000 ", "").replace("\nWQ physical", "WQ physical")
+        result=analysis.analyze(bad)
+        self.assertFalse(result["valid"])
+        self.assertIsNone(result["driver_p50_us"])
+        self.assertEqual(result["physical_count"],10)
+        self.assertIn("truncated physical timing/transfer record",result["errors"])
+
     def test_actual_completions_and_replaced_requests_are_separate(self):
         slow=analysis.analyze(sample())
         fast=analysis.analyze(sample("fast",True))

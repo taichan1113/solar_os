@@ -203,9 +203,13 @@ static void wq_dump(solar_os_shell_io_t *io, wq_trace_t *q,
     }
     for (unsigned i=0;i<q->renders;i++) {
         const wq_frame_t *r=&q->frame[i];
-        solar_os_shell_io_printf(io,"WQ frame chars=%u len=%u gen=%llu hash=%08lx doc_start=%lld doc_end=%lld render_start=%lld render_end=%lld submit_start=%lld submit_end=%lld replaced=%u completed=%llu busy=%u pending=%u cursor=0\n",
-            r->chars,r->length,(unsigned long long)r->generation,(unsigned long)r->hash,
-            (long long)r->doc_start,(long long)r->doc_end,(long long)r->render_start,(long long)r->render_end,
+        /* Shell printf has a 192-byte buffer. Assemble each journal row from
+         * bounded fragments; emit the newline only after its final field. */
+        solar_os_shell_io_printf(io,"WQ frame chars=%u len=%u gen=%llu hash=%08lx ",
+            r->chars,r->length,(unsigned long long)r->generation,(unsigned long)r->hash);
+        solar_os_shell_io_printf(io,"doc_start=%lld doc_end=%lld render_start=%lld render_end=%lld ",
+            (long long)r->doc_start,(long long)r->doc_end,(long long)r->render_start,(long long)r->render_end);
+        solar_os_shell_io_printf(io,"submit_start=%lld submit_end=%lld replaced=%u completed=%llu busy=%u pending=%u cursor=0\n",
             (long long)r->submit_start,(long long)r->submit_end,r->status.replaced,
             (unsigned long long)r->status.completed_id,r->status.busy,r->status.pending);
     }
@@ -215,10 +219,13 @@ static void wq_dump(solar_os_shell_io_t *io, wq_trace_t *q,
         for (unsigned j=0;j<q->renders;j++) if (q->frame[j].hash==r->hash) {
             chars=q->frame[j].chars; gen=q->frame[j].generation;
         }
-        solar_os_shell_io_printf(io,"WQ physical ordinal=%u gen=%llu chars=%u hash=%08lx start=%lld end=%lld err=%d changes=%u bounds=%d,%d,%d,%d fixed_change=%u fixed00=%u fixed11=%u first_change=%u first00=%u first_following=%u observer_us=%lld total_us=%lld busy_us=%lld convert_us=%lld spi_us=%lld writes=%u activations=%u spi_hz=%d path=tile\n",
-            i+1,(unsigned long long)gen,chars,(unsigned long)r->hash,(long long)r->start,(long long)r->end,r->error,
-            r->changed,r->x0,r->y0,r->x1,r->y1,r->fixed_changed,r->fixed_00,r->fixed_11,r->first_changed,r->first_00,i,
-            (long long)r->observer_us,(long long)(t->end_us-t->start_us),
+        solar_os_shell_io_printf(io,"WQ physical ordinal=%u gen=%llu chars=%u hash=%08lx start=%lld end=%lld err=%d ",
+            i+1,(unsigned long long)gen,chars,(unsigned long)r->hash,(long long)r->start,(long long)r->end,r->error);
+        solar_os_shell_io_printf(io,"changes=%u bounds=%d,%d,%d,%d fixed_change=%u fixed00=%u fixed11=%u ",
+            r->changed,r->x0,r->y0,r->x1,r->y1,r->fixed_changed,r->fixed_00,r->fixed_11);
+        solar_os_shell_io_printf(io,"first_change=%u first00=%u first_following=%u observer_us=%lld total_us=%lld ",
+            r->first_changed,r->first_00,i,(long long)r->observer_us,(long long)(t->end_us-t->start_us));
+        solar_os_shell_io_printf(io,"busy_us=%lld convert_us=%lld spi_us=%lld writes=%u activations=%u spi_hz=%d path=tile\n",
             (long long)(t->ready_us[0]-t->activate_us[0]),(long long)(t->convert_us[0]+t->convert_us[1]),
             (long long)(t->spi_us[0]+t->spi_us[1]),t->writes,t->activations,q->driver->actual_spi_hz);
     }

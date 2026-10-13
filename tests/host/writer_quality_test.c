@@ -109,10 +109,14 @@ solar_os_shell_io_kind_t solar_os_shell_io_kind(const solar_os_shell_io_t *io) {
 esp_err_t solar_os_shell_io_printf(solar_os_shell_io_t *io,const char *format,...)
 {
     (void)io;va_list ap;va_start(ap,format);
-    int n=vsnprintf(output+output_len,sizeof(output)-output_len,format,ap);va_end(ap);
-    assert(n>=0 && (size_t)n<sizeof(output)-output_len);
-    const char *s=output+output_len;
-    if (!strncmp(s,"WQ physical ",12) && !failure_at) {
+    char fragment[192]; /* Same per-call limit as the real Shell. */
+    int n=vsnprintf(fragment,sizeof(fragment),format,ap);va_end(ap);
+    assert(n>=0 && (size_t)n<sizeof(fragment) && (size_t)n<sizeof(output)-output_len);
+    memcpy(output+output_len,fragment,(size_t)n+1);
+    size_t line_start=output_len;
+    while (line_start && output[line_start-1]!='\n') line_start--;
+    const char *s=output+line_start;
+    if (strchr(fragment,'\n') && !strncmp(s,"WQ physical ",12) && !failure_at) {
         unsigned ordinal=(unsigned)field(s,"ordinal=");
         assert(field(s,"gen=")>0 && field(s,"fixed_change=")==0);
         assert(field(s,"writes=")==2 && field(s,"activations=")==1);
