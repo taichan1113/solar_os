@@ -641,6 +641,7 @@ static void display_draw_test_pattern(u8g2_t *u8g2, const char *name)
 
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
 #include "solar_os_shell_quality_ab.inc"
+#include "solar_os_writer.h"
 #endif
 
 static void display_cmd_test(solar_os_shell_io_t *term, int argc, char **argv)
@@ -648,6 +649,10 @@ static void display_cmd_test(solar_os_shell_io_t *term, int argc, char **argv)
     static const char owner[] = "shell:display-test";
 
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+    if (argc >= 4 && strcmp(argv[3], "writer-quality") == 0) {
+        solar_os_writer_quality_command(term, argc, argv);
+        return;
+    }
     if (argc >= 4 && strncmp(argv[3], "ab-", 3) == 0) {
         display_cmd_quality_ab(term, argc, argv);
         return;

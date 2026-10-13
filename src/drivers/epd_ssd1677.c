@@ -949,7 +949,21 @@ esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *display, const uint8_t *fr
     if (!display || !display->buffer || !frame || size != display->buffer_size)
         return ESP_ERR_INVALID_ARG;
     display->snapshot = frame;
+#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+    if (display->trial_observer) {
+        const esp_err_t gate=display->trial_observer(display->trial_observer_context, frame, false, ESP_OK);
+        if (gate!=ESP_OK) {
+            display->snapshot=NULL;
+            display->last_error=gate;
+            return gate; /* trial safety budget: no 11th hardware activation */
+        }
+    }
+#endif
     const esp_err_t err = ssd1677_refresh(display);
+#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+    if (display->trial_observer)
+        (void)display->trial_observer(display->trial_observer_context, frame, true, err);
+#endif
     display->snapshot = NULL;
     display->last_error = err;
     return err;

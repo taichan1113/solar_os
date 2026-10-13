@@ -78,6 +78,11 @@ typedef struct {
     u8g2_t u8g2;
     uint8_t *buffer;
     const uint8_t *snapshot; /* worker-only source; never changes U8g2's buffer */
+#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+    /* Installed/removed only while the executor is drained. No production ABI. */
+    void *trial_observer_context;
+    esp_err_t (*trial_observer)(void *, const uint8_t *, bool, esp_err_t);
+#endif
     void *execution_context;
     void (*operation_begin)(void *, epd_ssd1677_operation_t);
     void (*operation_end)(void *, epd_ssd1677_operation_t, esp_err_t);

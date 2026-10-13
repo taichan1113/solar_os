@@ -32,6 +32,9 @@
 #include "solar_os_config.h"
 #if SOLAR_OS_PACKAGE_APP_WRITER
 #include "apps/solar_os_writer_checkpoint.h"
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+#include "apps/solar_os_writer.h"
+#endif
 #endif
 #include "solar_os_display.h"
 #if SOLAR_OS_PACKAGE_SERVICE_EXPANSION
@@ -1121,6 +1124,13 @@ static void key_button_init(void)
 
 static void poll_key_button(void)
 {
+#if SOLAR_OS_PACKAGE_APP_WRITER && defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+    if (solar_os_writer_quality_active()) {
+        key_ignore_until_released=true;
+        key_pressed=key_long_press_fired=false;
+        return;
+    }
+#endif
     if (!board_has(SOLAR_OS_BOARD_CAP_KEY)) {
         return;
     }
@@ -1535,12 +1545,16 @@ static void poll_local_input_sources(void)
 static void dispatch_input_sources(void)
 {
     poll_local_input_sources();
+    bool discard=false;
+#if SOLAR_OS_PACKAGE_APP_WRITER && defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+    discard=solar_os_writer_quality_active();
+#endif
     solar_os_input_key_event_t events[16];
     size_t count;
     while ((count = solar_os_input_read_events(events,
                                                sizeof(events) / sizeof(events[0]))) > 0) {
         for (size_t i = 0; i < count; i++) {
-            dispatch_input_key(&events[i]);
+            if (!discard) dispatch_input_key(&events[i]);
         }
     }
     solar_os_input_pointer_event_t pointer_events[8];
@@ -1548,7 +1562,7 @@ static void dispatch_input_sources(void)
                 pointer_events,
                 sizeof(pointer_events) / sizeof(pointer_events[0]))) > 0) {
         for (size_t i = 0; i < count; i++) {
-            dispatch_input_pointer(&pointer_events[i]);
+            if (!discard) dispatch_input_pointer(&pointer_events[i]);
         }
     }
     solar_os_input_axis_event_t axis_events[8];
@@ -1556,7 +1570,7 @@ static void dispatch_input_sources(void)
                 axis_events,
                 sizeof(axis_events) / sizeof(axis_events[0]))) > 0) {
         for (size_t i = 0; i < count; i++) {
-            dispatch_input_axis(&axis_events[i]);
+            if (!discard) dispatch_input_axis(&axis_events[i]);
         }
     }
     solar_os_input_gesture_event_t gesture_events[8];
@@ -1564,7 +1578,7 @@ static void dispatch_input_sources(void)
                 gesture_events,
                 sizeof(gesture_events) / sizeof(gesture_events[0]))) > 0) {
         for (size_t i = 0; i < count; i++) {
-            dispatch_input_gesture(&gesture_events[i]);
+            if (!discard) dispatch_input_gesture(&gesture_events[i]);
         }
     }
 }
@@ -1975,6 +1989,14 @@ void app_main(void)
                   requires_fast_poll ? "polled" : "event-driven");
 
     while (true) {
+#if SOLAR_OS_PACKAGE_APP_WRITER && defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+        if (solar_os_writer_quality_active()) {
+            poll_key_button();
+            dispatch_input_sources(); /* consume external input, no app ticks */
+            vTaskDelay(pdMS_TO_TICKS(20));
+            continue;
+        }
+#endif
         solar_os_schedule_poll();
         solar_os_power_poll();
 #if SOLAR_OS_PACKAGE_SERVICE_EXPANSION

@@ -27,6 +27,7 @@ TARGETS += input_action_match_test gesture_completion_test
 TARGETS += epd_ssd1677_test epd_uc8179_test uc8179_expansion_test epd_uc8279_test uc8279_expansion_test
 TARGETS += epd_ssd1677_waveform_trial_test
 TARGETS += quality_ab_test
+TARGETS += writer_quality_test
 TARGETS += frontlight_pwm_test epd_xteink_identify_test x4pro_expansion_test
 TARGETS += gt911_test
 TARGETS += sdmmc_expansion_test
@@ -211,6 +212,21 @@ quality_ab_test: quality_ab_test.c epd_ssd1677_test.c $(ROOT)/src/shell/solar_os
 		-Iepd_stubs -I. -I$(ROOT)/src/drivers -I$(ROOT)/src/services -I$(ROOT)/components/u8g2/src/clib \
 		quality_ab_test.c $(EPD_U8G2_TEST_SOURCES) $(ROOT)/components/u8g2/src/clib/u8g2_box.c $(ROOT)/components/u8g2/src/clib/u8x8_8x8.c \
 		$(ROOT)/fonts/build/u8g2/u8g2_font_solar_os_default_r_20_tf.c -Wl,--gc-sections -o $@
+
+WQ_SOURCES := writer_quality_test.c doc_test_support.c $(ROOT)/src/apps/solar_os_writer_buffer.c \
+    $(ROOT)/src/apps/solar_os_writer_files.c $(ROOT)/src/services/solar_os_doc.c \
+    $(ROOT)/src/services/solar_os_gfx.c $(ROOT)/src/services/solar_os_ui_scale.c \
+    $(ROOT)/src/services/solar_os_text_search.c $(ROOT)/src/services/solar_os_clipboard.c \
+    $(TERMINAL_RENDER_U8G2) $(wildcard $(ROOT)/fonts/build/u8g2/*.c)
+writer_quality_test: $(WQ_SOURCES) $(ROOT)/src/apps/solar_os_writer.c \
+    $(ROOT)/src/apps/solar_os_writer_quality.inc $(ROOT)/src/apps/solar_os_writer_quality_trace.h \
+    epd_ssd1677_test.c $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677.h
+	$(CC) $(CFLAGS) -Wno-unused-function -Wno-unused-variable -Wno-unused-parameter -Wno-format-truncation -Wno-sign-compare \
+		-D_GNU_SOURCE -DSOLAR_OS_SSD1677_WAVEFORM_TRIAL=1 -DSOLAR_OS_BOARD_UI_SCALE_PERCENT=140 \
+		-DSOLAR_OS_BOARD_UI_FONT_PRESET=2 -ffunction-sections -fdata-sections -include compat.h \
+		-Iepd_stubs -Ijobs_admission_stubs -Inimble_stubs -I. -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/src/apps \
+		-I$(ROOT)/src/drivers -I$(ROOT)/src/shell -I$(ROOT)/components/u8g2/src/clib \
+		$(WQ_SOURCES) $(TERMINAL_RENDER_U8G2) -Wl,--gc-sections -lm -o $@
 
 messaging_service_test: messaging_service_test.c $(ROOT)/src/services/solar_os_contacts.c \
         $(ROOT)/src/services/solar_os_messaging.c $(ROOT)/src/services/solar_os_messaging_types.c \
@@ -938,6 +954,7 @@ rtc_pcf85063_test: rtc_pcf85063_test.c \
 		rtc_pcf85063_test.c $(ROOT)/src/drivers/rtc_pcf85063.c -o $@
 
 test: $(TARGETS)
+	./writer_quality_test
 	./files_layout_test
 	./writer_checkpoint_test
 	./cw2017_test

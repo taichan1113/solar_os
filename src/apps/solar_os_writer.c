@@ -26,6 +26,12 @@
 #include "solar_os_writer_files.h"
 #include "solar_os_writer_recovery.h"
 #include "solar_os_writer_checkpoint.h"
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+#include "solar_os_writer_quality_trace.h"
+#define WRITER_QUALITY_ACTIVE (writer.quality != NULL)
+#else
+#define WRITER_QUALITY_ACTIVE false
+#endif
 
 #define WRITER_HEADER_H (solar_os_ui_font_profile()->writer_header_height)
 #define WRITER_MARGIN_X 4
@@ -59,6 +65,9 @@ typedef enum {
 } writer_dialog_t;
 
 typedef struct {
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+    wq_trace_t *quality;
+#endif
     solar_os_writer_checkpoint_t *checkpoint;
     uint64_t document_version;
     uint32_t checkpoint_errors;
@@ -1409,6 +1418,16 @@ static void writer_render(solar_os_context_t *ctx)
     if (gfx == NULL || writer.suspended) {
         return;
     }
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+    if (WRITER_QUALITY_ACTIVE) {
+        if (writer.quality->armed && writer.quality->renders >= WQ_LIMIT) {
+            writer.quality->overflow = true;
+            writer.render_pending = false;
+            return; /* reserve before submit, including active/pending requests */
+        }
+        writer_quality_render_begin();
+    }
+#endif
     const bool perf = solar_os_perf_enabled();
     const uint32_t frame = ++writer.perf_frame;
     const int64_t start = perf ? esp_timer_get_time() : 0;
@@ -1429,7 +1448,7 @@ static void writer_render(solar_os_context_t *ctx)
         int cursor_x = 0;
         int cursor_y = 0;
         int cursor_h = 14;
-        if (writer.cursor_visible &&
+        if (!WRITER_QUALITY_ACTIVE && writer.cursor_visible &&
             solar_os_doc_layout_source_to_xy(&writer.layout,
                                              writer.cursor,
                                              &cursor_x,
@@ -1444,7 +1463,13 @@ static void writer_render(solar_os_context_t *ctx)
     }
     const int64_t render_end = perf ? esp_timer_get_time() : 0;
     uint64_t generation = 0;
-    const esp_err_t submit_error = solar_os_gfx_submit(gfx, &generation);
+    esp_err_t submit_error;
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+    if (WRITER_QUALITY_ACTIVE && writer.quality->armed)
+        writer_quality_render_end(gfx, &generation, &submit_error);
+    else
+#endif
+        submit_error = solar_os_gfx_submit(gfx, &generation);
     if (submit_error != ESP_OK && submit_error != writer.display_error) {
         writer.display_error = submit_error;
         SOLAR_OS_LOGE("writer", "display submission failed: %d; inspect display async status", submit_error);
@@ -1478,6 +1503,26 @@ static esp_err_t writer_start(solar_os_context_t *ctx)
     }
     solar_os_context_set_graphics_active(ctx, true);
     const int argc = solar_os_context_argc(ctx);
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+    /* Only the serial diagnostic constructs this private output marker. Normal
+     * CLI launches cannot select the RAM-only state or bypass checkpointing. */
+    if (ctx->output_fn == writer_quality_output_marker && ctx->output_user) {
+        static const char reference[] =
+            "FIXED REFERENCE\n\nThe quick brown fox jumps over the lazy dog\n\n";
+        writer.quality = ctx->output_user;
+        writer.discard_on_stop = true;
+        writer.zoom = 4;
+        strlcpy(writer.display_name, "quality (RAM)", sizeof(writer.display_name));
+        esp_err_t ret = solar_os_writer_buffer_set(&writer.buffer, reference, sizeof(reference)-1);
+        if (ret != ESP_OK) return ret;
+        writer.cursor = sizeof(reference)-1;
+        writer.quality->initial_length = writer.cursor;
+        writer.loaded = writer.parse_pending = writer.layout_pending = writer.render_pending = true;
+        ret = writer_update_document(ctx);
+        if (ret == ESP_OK) writer_render(ctx); /* caller armed OTP cleanup */
+        return ret == ESP_OK ? writer.display_error : ret;
+    }
+#endif
     if (argc > 2) {
         solar_os_context_finish(ctx, 2, "usage: writer [file.md]");
         return ESP_OK;
@@ -1590,9 +1635,27 @@ static bool writer_event(solar_os_context_t *ctx, const solar_os_event_t *event)
         return true;
     }
     if (event->type == SOLAR_OS_EVENT_CHAR) {
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+        wq_input_t *qi = NULL;
+        if (WRITER_QUALITY_ACTIVE) {
+            wq_trace_t *q = writer.quality;
+            if (!q->armed || q->inputs >= WQ_LIMIT ||
+                event->data.ch != "abcdefghij"[q->inputs]) return false;
+            qi = &q->input[q->inputs++];
+            qi->seq = q->inputs; qi->ch = (uint8_t)event->data.ch;
+            qi->accepted = esp_timer_get_time();
+        }
+#endif
         const bool perf = solar_os_perf_enabled();
         const int64_t start = perf ? esp_timer_get_time() : 0;
         const bool handled = writer_handle_char(ctx, (uint8_t)event->data.ch);
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+        if (qi) {
+            qi->mutated = esp_timer_get_time();
+            qi->request = writer.render_pending ? qi->mutated : 0;
+            qi->length = solar_os_writer_buffer_length(&writer.buffer);
+        }
+#endif
         const int64_t mutation_end = perf ? esp_timer_get_time() : 0;
         if (perf) {
             SOLAR_OS_LOGD("pipeline", "frame=%" PRIu32 " WRITER_INPUT t=%" PRId64 " key=%u",
@@ -1617,8 +1680,8 @@ static bool writer_event(solar_os_context_t *ctx, const solar_os_event_t *event)
         int64_t recovery_us = 0, document_us = 0;
         esp_err_t recovery_err = ESP_OK;
         writer.last_tick_ms = event->data.tick_ms;
-        writer_poll_checkpoint();
-        if (!writer.suspended && writer.dirty && solar_os_writer_recovery_due(writer.recovery_written,
+        if (!WRITER_QUALITY_ACTIVE) writer_poll_checkpoint();
+        if (!WRITER_QUALITY_ACTIVE && !writer.suspended && writer.dirty && solar_os_writer_recovery_due(writer.recovery_written,
                 writer.recovery_retry, event->data.tick_ms, writer.last_edit_ms,
                 writer.last_recovery_attempt_ms, WRITER_IDLE_RECOVERY_MS)) {
             const int64_t recovery_start = perf ? esp_timer_get_time() : 0;
@@ -1631,14 +1694,20 @@ static bool writer_event(solar_os_context_t *ctx, const solar_os_event_t *event)
             if (perf) recovery_us = esp_timer_get_time() - recovery_start;
         }
         if (writer.parse_pending || writer.layout_pending) {
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+            if (WRITER_QUALITY_ACTIVE) writer.quality->doc_start = esp_timer_get_time();
+#endif
             const int64_t document_start = perf ? esp_timer_get_time() : 0;
             esp_err_t ret = writer_update_document(ctx);
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+            if (WRITER_QUALITY_ACTIVE) writer.quality->doc_end = esp_timer_get_time();
+#endif
             if (perf) document_us = esp_timer_get_time() - document_start;
             if (ret != ESP_OK) {
                 writer_set_message("layout failed");
             }
         }
-        if (SOLAR_OS_BOARD_WRITER_CURSOR_BLINK && !writer.suspended &&
+        if (!WRITER_QUALITY_ACTIVE && SOLAR_OS_BOARD_WRITER_CURSOR_BLINK && !writer.suspended &&
             writer.dialog == WRITER_DIALOG_NONE) {
             if (writer.cursor_blink_ms == 0) {
                 writer.cursor_blink_ms = event->data.tick_ms;
@@ -1692,3 +1761,6 @@ const solar_os_app_t solar_os_writer_app = {
     .tick_interval_ms = 40,
     .tick_deadline_ms = 40,
 };
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+#include "solar_os_writer_quality.inc"
+#endif
