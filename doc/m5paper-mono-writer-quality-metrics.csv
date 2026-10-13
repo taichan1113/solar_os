@@ -1,0 +1,5 @@
+condition,waveform,mode,inputs,renders,physical_updates,pending_replacements,first_following_updates,mean_update_interval_ms_including_operator_wait,mean_burst_update_interval_ms,driver_p50_ms,observer_p50_ms,optical_C,optical_R,measurement_status
+W1,baseline,slow,10,10,10,0,9,22596.267,175.704,,,not measured,not measured,partial: UART printf truncated timing/transfer fields
+W2,dose,slow,10,10,10,0,9,34533.763,175.797,112.19,11.697,not measured,not measured,complete
+W3,baseline,fast,10,10,7,3,6,25065.353,126.958,113.64,11.832,not measured,not measured,complete
+W4,dose,fast,10,10,7,3,6,41788.227,126.929,113.571,11.886,not measured,not measured,complete

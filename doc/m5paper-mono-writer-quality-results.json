@@ -1,0 +1,2683 @@
+{
+  "firmware_sources": {
+    "W1": "c420acfe860ca7fb99b7ec8cc290a88e73a5490e",
+    "W2_W3_W4": "8a84bd8bdc3269fb51a3d7d39fdf653e6f8b4c42"
+  },
+  "optical_measurement": "visual only; no photographs; C/R not measured",
+  "conditions": {
+    "W1": {
+      "valid": false,
+      "errors": [
+        "truncated physical timing/transfer record",
+        "driver execution failed",
+        "SPI/tile condition changed",
+        "truncated physical timing/transfer record",
+        "driver execution failed",
+        "SPI/tile condition changed",
+        "truncated physical timing/transfer record",
+        "driver execution failed",
+        "SPI/tile condition changed",
+        "truncated physical timing/transfer record",
+        "driver execution failed",
+        "SPI/tile condition changed",
+        "truncated physical timing/transfer record",
+        "driver execution failed",
+        "SPI/tile condition changed",
+        "truncated physical timing/transfer record",
+        "driver execution failed",
+        "SPI/tile condition changed",
+        "truncated physical timing/transfer record",
+        "driver execution failed",
+        "SPI/tile condition changed",
+        "truncated physical timing/transfer record",
+        "driver execution failed",
+        "SPI/tile condition changed",
+        "truncated physical timing/transfer record",
+        "driver execution failed",
+        "SPI/tile condition changed",
+        "truncated physical timing/transfer record",
+        "driver execution failed",
+        "SPI/tile condition changed"
+      ],
+      "waveform": "baseline",
+      "mode": "slow",
+      "input_count": 10,
+      "render_count": 10,
+      "physical_count": 10,
+      "replaced": 0,
+      "first_following_updates": 9,
+      "mean_update_interval_us": 22596266.666666668,
+      "intervals_us": [
+        36079085,
+        175059,
+        175005,
+        67516087,
+        176179,
+        175884,
+        98717005,
+        176052,
+        176044
+      ],
+      "burst_input_intervals_us": [
+        175760,
+        175000,
+        176708,
+        176000,
+        176780,
+        176000
+      ],
+      "burst_update_intervals_us": [
+        175059,
+        175005,
+        176179,
+        175884,
+        176052,
+        176044
+      ],
+      "mean_burst_update_interval_us": 175703.83333333334,
+      "driver_p50_us": null,
+      "observer_p50_us": null,
+      "observations": [
+        {
+          "stage": "white",
+          "ack_us": 297127003,
+          "since_complete_us": 159859969,
+          "key": 103
+        },
+        {
+          "stage": "reference",
+          "ack_us": 587834003,
+          "since_complete_us": 286360280,
+          "key": 103
+        },
+        {
+          "stage": "first",
+          "ack_us": 623915003,
+          "since_complete_us": 35561993,
+          "key": 103
+        },
+        {
+          "stage": "plus3",
+          "ack_us": 691781006,
+          "since_complete_us": 67342005,
+          "key": 103
+        },
+        {
+          "stage": "plus6",
+          "ack_us": 790850003,
+          "since_complete_us": 98541998,
+          "key": 103
+        },
+        {
+          "stage": "final",
+          "ack_us": 885159003,
+          "since_complete_us": 93781965,
+          "key": 103
+        }
+      ],
+      "optical_C": "未測定",
+      "optical_R": "未測定",
+      "rows": {
+        "begin": [
+          {
+            "waveform": "baseline",
+            "mode": "slow",
+            "text": "abcdefghij",
+            "zoom": 4,
+            "spi": 40000000,
+            "path": "tile",
+            "tick_ms": 40,
+            "fast_interval_ms": 60,
+            "max_fast": 10,
+            "storage": "none"
+          }
+        ],
+        "roi": [
+          {
+            "fixed": "4,37,250,30",
+            "first": "4,147,10,22",
+            "rotation": "R2"
+          }
+        ],
+        "input": [
+          {
+            "seq": 1,
+            "ch": 97,
+            "len": 63,
+            "sent": 587834466,
+            "accepted": 587834480,
+            "mutated": 587834690,
+            "request": 587834690
+          },
+          {
+            "seq": 2,
+            "ch": 98,
+            "len": 64,
+            "sent": 623915234,
+            "accepted": 623915248,
+            "mutated": 623915376,
+            "request": 623915376
+          },
+          {
+            "seq": 3,
+            "ch": 99,
+            "len": 65,
+            "sent": 624090994,
+            "accepted": 624091009,
+            "mutated": 624091133,
+            "request": 624091133
+          },
+          {
+            "seq": 4,
+            "ch": 100,
+            "len": 66,
+            "sent": 624265994,
+            "accepted": 624266006,
+            "mutated": 624266136,
+            "request": 624266136
+          },
+          {
+            "seq": 5,
+            "ch": 101,
+            "len": 67,
+            "sent": 691781286,
+            "accepted": 691781307,
+            "mutated": 691781437,
+            "request": 691781437
+          },
+          {
+            "seq": 6,
+            "ch": 102,
+            "len": 68,
+            "sent": 691957994,
+            "accepted": 691958010,
+            "mutated": 691958139,
+            "request": 691958139
+          },
+          {
+            "seq": 7,
+            "ch": 103,
+            "len": 69,
+            "sent": 692133994,
+            "accepted": 692134010,
+            "mutated": 692134141,
+            "request": 692134141
+          },
+          {
+            "seq": 8,
+            "ch": 104,
+            "len": 70,
+            "sent": 790850214,
+            "accepted": 790850228,
+            "mutated": 790850364,
+            "request": 790850364
+          },
+          {
+            "seq": 9,
+            "ch": 105,
+            "len": 71,
+            "sent": 791026994,
+            "accepted": 791027009,
+            "mutated": 791027129,
+            "request": 791027129
+          },
+          {
+            "seq": 10,
+            "ch": 106,
+            "len": 72,
+            "sent": 791202994,
+            "accepted": 791203009,
+            "mutated": 791203141,
+            "request": 791203141
+          }
+        ],
+        "frame": [
+          {
+            "chars": 1,
+            "len": 63,
+            "gen": 3,
+            "hash": "316cadb9",
+            "doc_start": 587875038,
+            "doc_end": 587875556,
+            "render_start": 587875567,
+            "render_end": 587879595,
+            "submit_start": 587883543,
+            "submit_end": 587885016,
+            "replaced": 0
+          },
+          {
+            "chars": 2,
+            "len": 64,
+            "gen": 4,
+            "hash": "a7d8bc0b",
+            "doc_start": 623956036,
+            "doc_end": 623956539,
+            "render_start": 623956550,
+            "render_end": 623960580,
+            "submit_start": 623963215,
+            "submit_end": 623964454,
+            "replaced": 0
+          },
+          {
+            "chars": 3,
+            "len": 65,
+            "gen": 5,
+            "hash": "e7165621",
+            "doc_start": 624131034,
+            "doc_end": 624131557,
+            "render_start": 624131568,
+            "render_end": 624135633,
+            "submit_start": 624138267,
+            "submit_end": 624139523,
+            "replaced": 0
+          },
+          {
+            "chars": 4,
+            "len": 66,
+            "gen": 6,
+            "hash": "b8d2477b",
+            "doc_start": 624306026,
+            "doc_end": 624306548,
+            "render_start": 624306557,
+            "render_end": 624310655,
+            "submit_start": 624313291,
+            "submit_end": 624314555,
+            "replaced": 0
+          },
+          {
+            "chars": 5,
+            "len": 67,
+            "gen": 7,
+            "hash": "a296186d",
+            "doc_start": 691822034,
+            "doc_end": 691822536,
+            "render_start": 691822546,
+            "render_end": 691826717,
+            "submit_start": 691829351,
+            "submit_end": 691830608,
+            "replaced": 0
+          },
+          {
+            "chars": 6,
+            "len": 68,
+            "gen": 8,
+            "hash": "91b482e5",
+            "doc_start": 691998039,
+            "doc_end": 691998561,
+            "render_start": 691998572,
+            "render_end": 692002769,
+            "submit_start": 692005404,
+            "submit_end": 692006656,
+            "replaced": 0
+          },
+          {
+            "chars": 7,
+            "len": 69,
+            "gen": 9,
+            "hash": "945ca3a9",
+            "doc_start": 692174039,
+            "doc_end": 692174567,
+            "render_start": 692174577,
+            "render_end": 692178788,
+            "submit_start": 692181423,
+            "submit_end": 692182676,
+            "replaced": 0
+          },
+          {
+            "chars": 8,
+            "len": 70,
+            "gen": 10,
+            "hash": "5eefb333",
+            "doc_start": 790891032,
+            "doc_end": 790891539,
+            "render_start": 790891549,
+            "render_end": 790895782,
+            "submit_start": 790898417,
+            "submit_end": 790899682,
+            "replaced": 0
+          },
+          {
+            "chars": 9,
+            "len": 71,
+            "gen": 11,
+            "hash": "64e6fee5",
+            "doc_start": 791067027,
+            "doc_end": 791067549,
+            "render_start": 791067557,
+            "render_end": 791071831,
+            "submit_start": 791074467,
+            "submit_end": 791075719,
+            "replaced": 0
+          },
+          {
+            "chars": 10,
+            "len": 72,
+            "gen": 12,
+            "hash": "b24717bd",
+            "doc_start": 791243032,
+            "doc_end": 791243558,
+            "render_start": 791243568,
+            "render_end": 791247878,
+            "submit_start": 791250515,
+            "submit_end": 791251779,
+            "replaced": 0
+          }
+        ],
+        "physical": [
+          {
+            "ordinal": 1,
+            "gen": 3,
+            "chars": 1,
+            "hash": "316cadb9",
+            "start": 587897123,
+            "end": 588353011,
+            "err": 0,
+            "changes": 1205,
+            "bounds": "488,316,794,472",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 47,
+            "first00": 0
+          },
+          {
+            "ordinal": 2,
+            "gen": 4,
+            "chars": 2,
+            "hash": "a7d8bc0b",
+            "start": 623976208,
+            "end": 624089000,
+            "err": 0,
+            "changes": 58,
+            "bounds": "777,316,784,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47
+          },
+          {
+            "ordinal": 3,
+            "gen": 5,
+            "chars": 3,
+            "hash": "e7165621",
+            "start": 624151267,
+            "end": 624264003,
+            "err": 0,
+            "changes": 37,
+            "bounds": "767,316,774,324",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47
+          },
+          {
+            "ordinal": 4,
+            "gen": 6,
+            "chars": 4,
+            "hash": "b8d2477b",
+            "start": 624326272,
+            "end": 624439003,
+            "err": 0,
+            "changes": 58,
+            "bounds": "757,316,764,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47
+          },
+          {
+            "ordinal": 5,
+            "gen": 7,
+            "chars": 5,
+            "hash": "a296186d",
+            "start": 691842359,
+            "end": 691956008,
+            "err": 0,
+            "changes": 41,
+            "bounds": "747,316,754,324",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47
+          },
+          {
+            "ordinal": 6,
+            "gen": 8,
+            "chars": 6,
+            "hash": "91b482e5",
+            "start": 692018538,
+            "end": 692132076,
+            "err": 0,
+            "changes": 48,
+            "bounds": "736,316,744,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47
+          },
+          {
+            "ordinal": 7,
+            "gen": 9,
+            "chars": 7,
+            "hash": "945ca3a9",
+            "start": 692194422,
+            "end": 692308007,
+            "err": 0,
+            "changes": 63,
+            "bounds": "727,313,734,324",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47
+          },
+          {
+            "ordinal": 8,
+            "gen": 10,
+            "chars": 8,
+            "hash": "5eefb333",
+            "start": 790911427,
+            "end": 791025004,
+            "err": 0,
+            "changes": 52,
+            "bounds": "717,316,724,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47
+          },
+          {
+            "ordinal": 9,
+            "gen": 11,
+            "chars": 9,
+            "hash": "64e6fee5",
+            "start": 791087479,
+            "end": 791201004,
+            "err": 0,
+            "changes": 33,
+            "bounds": "707,316,714,327",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47
+          },
+          {
+            "ordinal": 10,
+            "gen": 12,
+            "chars": 10,
+            "hash": "b24717bd",
+            "start": 791263523,
+            "end": 791377039,
+            "err": 0,
+            "changes": 44,
+            "bounds": "698,313,704,327",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "PYG3": 1
+          }
+        ],
+        "observation": [
+          {
+            "stage": "white",
+            "ack_us": 297127003,
+            "since_complete_us": 159859969,
+            "key": 103
+          },
+          {
+            "stage": "reference",
+            "ack_us": 587834003,
+            "since_complete_us": 286360280,
+            "key": 103
+          },
+          {
+            "stage": "first",
+            "ack_us": 623915003,
+            "since_complete_us": 35561993,
+            "key": 103
+          },
+          {
+            "stage": "plus3",
+            "ack_us": 691781006,
+            "since_complete_us": 67342005,
+            "key": 103
+          },
+          {
+            "stage": "plus6",
+            "ack_us": 790850003,
+            "since_complete_us": 98541998,
+            "key": 103
+          },
+          {
+            "stage": "final",
+            "ack_us": 885159003,
+            "since_complete_us": 93781965,
+            "key": 103
+          }
+        ],
+        "summary": [
+          {
+            "inputs": 10,
+            "renders": 10,
+            "submitted": 10,
+            "replaced": 0,
+            "started": 10,
+            "completed": 10,
+            "physical": 10,
+            "overflow": 0
+          }
+        ],
+        "exit": [
+          {
+            "err": 0,
+            "healthy": 1,
+            "restored": 1
+          }
+        ]
+      },
+      "operator_answers": {
+        "white": {
+          "answer": "白画面正常",
+          "recorded_at": "2026-10-13T09:55:42.259533",
+          "physical_updates": 0,
+          "photos": false
+        },
+        "reference": {
+          "answer": "表示問題なし。開始状態を確認しました。",
+          "recorded_at": "2026-10-13T10:00:32.948862",
+          "physical_updates": 0,
+          "photos": false
+        },
+        "first": {
+          "answer": "①はい②あまり変わらない③なし",
+          "recorded_at": "2026-10-13T10:01:09.045384",
+          "physical_updates": 1,
+          "inputs": 1,
+          "photos": false
+        },
+        "plus3": {
+          "answer": "a, bcd の濃さに大きな違いは見られない。表示正常。",
+          "recorded_at": "2026-10-13T10:02:16.893476",
+          "physical_updates": 4,
+          "inputs": 4,
+          "photos": false
+        },
+        "plus6": {
+          "answer": "①薄くなっている気がする。③ a → g に連れて濃さのグラデーションが変わっているような印象を受ける。\n②「FIXED REFERENCE」は開始時より薄くなっている気がする（aと同じ程度）",
+          "recorded_at": "2026-10-13T10:03:55.980546",
+          "physical_updates": 7,
+          "inputs": 7,
+          "photos": false
+        },
+        "final": {
+          "answer": "① あまり変わらない印象 ② aよりもjが濃い ③ 正常",
+          "recorded_at": "2026-10-13T10:05:30.276077",
+          "physical_updates": 10,
+          "inputs": 10,
+          "photos": false
+        },
+        "shell_restore": {
+          "answer": "正常です。",
+          "recorded_at": "2026-10-13T10:11:59.841794",
+          "photos": false
+        }
+      },
+      "measurement_status": "partial: UART printf truncated timing/transfer fields"
+    },
+    "W2": {
+      "valid": true,
+      "errors": [],
+      "waveform": "dose",
+      "mode": "slow",
+      "input_count": 10,
+      "render_count": 10,
+      "physical_count": 10,
+      "replaced": 0,
+      "first_following_updates": 9,
+      "mean_update_interval_us": 34533763.222222224,
+      "intervals_us": [
+        186016200,
+        175162,
+        174963,
+        40015964,
+        176057,
+        176119,
+        83716923,
+        175051,
+        177430
+      ],
+      "burst_input_intervals_us": [
+        175697,
+        175000,
+        176705,
+        176000,
+        175774,
+        176000
+      ],
+      "burst_update_intervals_us": [
+        175162,
+        174963,
+        176057,
+        176119,
+        175051,
+        177430
+      ],
+      "mean_burst_update_interval_us": 175797,
+      "driver_p50_us": 112190.0,
+      "observer_p50_us": 11697.0,
+      "observations": [
+        {
+          "stage": "white",
+          "ack_us": 99616983,
+          "since_complete_us": 57219971,
+          "key": 103
+        },
+        {
+          "stage": "reference",
+          "ack_us": 146566072,
+          "since_complete_us": 42599371,
+          "key": 103
+        },
+        {
+          "stage": "first",
+          "ack_us": 332583990,
+          "since_complete_us": 185502000,
+          "key": 103
+        },
+        {
+          "stage": "plus3",
+          "ack_us": 372949989,
+          "since_complete_us": 39842005,
+          "key": 103
+        },
+        {
+          "stage": "plus6",
+          "ack_us": 457018983,
+          "since_complete_us": 83541996,
+          "key": 103
+        },
+        {
+          "stage": "final",
+          "ack_us": 553968983,
+          "since_complete_us": 96421998,
+          "key": 103
+        }
+      ],
+      "optical_C": "未測定",
+      "optical_R": "未測定",
+      "rows": {
+        "begin": [
+          {
+            "waveform": "dose",
+            "mode": "slow",
+            "text": "abcdefghij",
+            "zoom": 4,
+            "spi": 40000000,
+            "path": "tile",
+            "tick_ms": 40,
+            "fast_interval_ms": 60,
+            "max_fast": 10,
+            "storage": "none"
+          }
+        ],
+        "roi": [
+          {
+            "fixed": "4,37,250,30",
+            "first": "4,147,10,22",
+            "rotation": "R2"
+          }
+        ],
+        "input": [
+          {
+            "seq": 1,
+            "ch": 97,
+            "len": 63,
+            "sent": 146566538,
+            "accepted": 146566553,
+            "mutated": 146566778,
+            "request": 146566778
+          },
+          {
+            "seq": 2,
+            "ch": 98,
+            "len": 64,
+            "sent": 332584278,
+            "accepted": 332584299,
+            "mutated": 332584424,
+            "request": 332584424
+          },
+          {
+            "seq": 3,
+            "ch": 99,
+            "len": 65,
+            "sent": 332759975,
+            "accepted": 332759990,
+            "mutated": 332760121,
+            "request": 332760121
+          },
+          {
+            "seq": 4,
+            "ch": 100,
+            "len": 66,
+            "sent": 332934975,
+            "accepted": 332934993,
+            "mutated": 332935124,
+            "request": 332935124
+          },
+          {
+            "seq": 5,
+            "ch": 101,
+            "len": 67,
+            "sent": 372950270,
+            "accepted": 372950285,
+            "mutated": 372950418,
+            "request": 372950418
+          },
+          {
+            "seq": 6,
+            "ch": 102,
+            "len": 68,
+            "sent": 373126975,
+            "accepted": 373126992,
+            "mutated": 373127124,
+            "request": 373127124
+          },
+          {
+            "seq": 7,
+            "ch": 103,
+            "len": 69,
+            "sent": 373302975,
+            "accepted": 373302993,
+            "mutated": 373303128,
+            "request": 373303128
+          },
+          {
+            "seq": 8,
+            "ch": 104,
+            "len": 70,
+            "sent": 457019201,
+            "accepted": 457019222,
+            "mutated": 457019351,
+            "request": 457019351
+          },
+          {
+            "seq": 9,
+            "ch": 105,
+            "len": 71,
+            "sent": 457194975,
+            "accepted": 457194988,
+            "mutated": 457195114,
+            "request": 457195114
+          },
+          {
+            "seq": 10,
+            "ch": 106,
+            "len": 72,
+            "sent": 457370975,
+            "accepted": 457370992,
+            "mutated": 457371116,
+            "request": 457371116
+          }
+        ],
+        "frame": [
+          {
+            "chars": 1,
+            "len": 63,
+            "gen": 3,
+            "hash": "316cadb9",
+            "doc_start": 146607020,
+            "doc_end": 146607547,
+            "render_start": 146607559,
+            "render_end": 146611573,
+            "submit_start": 146615493,
+            "submit_end": 146617033,
+            "replaced": 0,
+            "completed": 2,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 2,
+            "len": 64,
+            "gen": 4,
+            "hash": "a7d8bc0b",
+            "doc_start": 332625014,
+            "doc_end": 332625516,
+            "render_start": 332625528,
+            "render_end": 332629557,
+            "submit_start": 332632194,
+            "submit_end": 332633487,
+            "replaced": 0,
+            "completed": 3,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 3,
+            "len": 65,
+            "gen": 5,
+            "hash": "e7165621",
+            "doc_start": 332800016,
+            "doc_end": 332800534,
+            "render_start": 332800547,
+            "render_end": 332804625,
+            "submit_start": 332807262,
+            "submit_end": 332808516,
+            "replaced": 0,
+            "completed": 4,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 4,
+            "len": 66,
+            "gen": 6,
+            "hash": "b8d2477b",
+            "doc_start": 332975014,
+            "doc_end": 332975542,
+            "render_start": 332975553,
+            "render_end": 332979675,
+            "submit_start": 332982337,
+            "submit_end": 332983589,
+            "replaced": 0,
+            "completed": 5,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 5,
+            "len": 67,
+            "gen": 7,
+            "hash": "a296186d",
+            "doc_start": 372991020,
+            "doc_end": 372991544,
+            "render_start": 372991556,
+            "render_end": 372995689,
+            "submit_start": 372998325,
+            "submit_end": 372999570,
+            "replaced": 0,
+            "completed": 6,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 6,
+            "len": 68,
+            "gen": 8,
+            "hash": "91b482e5",
+            "doc_start": 373167014,
+            "doc_end": 373167538,
+            "render_start": 373167550,
+            "render_end": 373171738,
+            "submit_start": 373174375,
+            "submit_end": 373175625,
+            "replaced": 0,
+            "completed": 7,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 7,
+            "len": 69,
+            "gen": 9,
+            "hash": "945ca3a9",
+            "doc_start": 373343016,
+            "doc_end": 373343539,
+            "render_start": 373343551,
+            "render_end": 373347776,
+            "submit_start": 373350412,
+            "submit_end": 373351733,
+            "replaced": 0,
+            "completed": 8,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 8,
+            "len": 70,
+            "gen": 10,
+            "hash": "5eefb333",
+            "doc_start": 457060012,
+            "doc_end": 457060519,
+            "render_start": 457060533,
+            "render_end": 457064775,
+            "submit_start": 457067412,
+            "submit_end": 457068674,
+            "replaced": 0,
+            "completed": 9,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 9,
+            "len": 71,
+            "gen": 11,
+            "hash": "64e6fee5",
+            "doc_start": 457235014,
+            "doc_end": 457235540,
+            "render_start": 457235554,
+            "render_end": 457239846,
+            "submit_start": 457242481,
+            "submit_end": 457243736,
+            "replaced": 0,
+            "completed": 10,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 10,
+            "len": 72,
+            "gen": 12,
+            "hash": "b24717bd",
+            "doc_start": 457411015,
+            "doc_end": 457411546,
+            "render_start": 457411557,
+            "render_end": 457416981,
+            "submit_start": 457419747,
+            "submit_end": 457420992,
+            "replaced": 0,
+            "completed": 11,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          }
+        ],
+        "physical": [
+          {
+            "ordinal": 1,
+            "gen": 3,
+            "chars": 1,
+            "hash": "316cadb9",
+            "start": 146629024,
+            "end": 147081991,
+            "err": 0,
+            "changes": 1205,
+            "bounds": "488,316,794,472",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 47,
+            "first00": 0,
+            "first_following": 0,
+            "observer_us": 11941,
+            "total_us": 451741,
+            "busy_us": 134036,
+            "convert_us": 34746,
+            "spi_us": 19795,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 2,
+            "gen": 4,
+            "chars": 2,
+            "hash": "a7d8bc0b",
+            "start": 332645224,
+            "end": 332758028,
+            "err": 0,
+            "changes": 58,
+            "bounds": "777,316,784,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 1,
+            "observer_us": 11682,
+            "total_us": 111592,
+            "busy_us": 51117,
+            "convert_us": 34466,
+            "spi_us": 19798,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 3,
+            "gen": 5,
+            "chars": 3,
+            "hash": "e7165621",
+            "start": 332820386,
+            "end": 332932986,
+            "err": 0,
+            "changes": 37,
+            "bounds": "767,316,774,324",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 2,
+            "observer_us": 11819,
+            "total_us": 111397,
+            "busy_us": 51027,
+            "convert_us": 34418,
+            "spi_us": 19789,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 4,
+            "gen": 6,
+            "chars": 4,
+            "hash": "b8d2477b",
+            "start": 332995349,
+            "end": 333107984,
+            "err": 0,
+            "changes": 58,
+            "bounds": "757,316,764,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 3,
+            "observer_us": 11709,
+            "total_us": 111412,
+            "busy_us": 51026,
+            "convert_us": 34442,
+            "spi_us": 19797,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 5,
+            "gen": 7,
+            "chars": 5,
+            "hash": "a296186d",
+            "start": 373011313,
+            "end": 373125239,
+            "err": 0,
+            "changes": 41,
+            "bounds": "747,316,754,324",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 4,
+            "observer_us": 11689,
+            "total_us": 112724,
+            "busy_us": 52147,
+            "convert_us": 34433,
+            "spi_us": 19795,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 6,
+            "gen": 8,
+            "chars": 6,
+            "hash": "91b482e5",
+            "start": 373187370,
+            "end": 373300986,
+            "err": 0,
+            "changes": 48,
+            "bounds": "736,316,744,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 5,
+            "observer_us": 11692,
+            "total_us": 112385,
+            "busy_us": 51942,
+            "convert_us": 34500,
+            "spi_us": 19794,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 7,
+            "gen": 9,
+            "chars": 7,
+            "hash": "945ca3a9",
+            "start": 373363489,
+            "end": 373476988,
+            "err": 0,
+            "changes": 63,
+            "bounds": "727,313,734,324",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 6,
+            "observer_us": 11702,
+            "total_us": 112048,
+            "busy_us": 51656,
+            "convert_us": 34418,
+            "spi_us": 19792,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 8,
+            "gen": 10,
+            "chars": 8,
+            "hash": "5eefb333",
+            "start": 457080412,
+            "end": 457192987,
+            "err": 0,
+            "changes": 52,
+            "bounds": "717,316,724,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 7,
+            "observer_us": 11683,
+            "total_us": 111375,
+            "busy_us": 51010,
+            "convert_us": 34407,
+            "spi_us": 19795,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 9,
+            "gen": 11,
+            "chars": 9,
+            "hash": "64e6fee5",
+            "start": 457255463,
+            "end": 457368997,
+            "err": 0,
+            "changes": 33,
+            "bounds": "707,316,714,327",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 8,
+            "observer_us": 11665,
+            "total_us": 112332,
+            "busy_us": 51608,
+            "convert_us": 34736,
+            "spi_us": 19791,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 10,
+            "gen": 12,
+            "chars": 10,
+            "hash": "b24717bd",
+            "start": 457432893,
+            "end": 457546986,
+            "err": 0,
+            "changes": 44,
+            "bounds": "698,313,704,327",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 9,
+            "observer_us": 11852,
+            "total_us": 112778,
+            "busy_us": 51668,
+            "convert_us": 35067,
+            "spi_us": 19806,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          }
+        ],
+        "observation": [
+          {
+            "stage": "white",
+            "ack_us": 99616983,
+            "since_complete_us": 57219971,
+            "key": 103
+          },
+          {
+            "stage": "reference",
+            "ack_us": 146566072,
+            "since_complete_us": 42599371,
+            "key": 103
+          },
+          {
+            "stage": "first",
+            "ack_us": 332583990,
+            "since_complete_us": 185502000,
+            "key": 103
+          },
+          {
+            "stage": "plus3",
+            "ack_us": 372949989,
+            "since_complete_us": 39842005,
+            "key": 103
+          },
+          {
+            "stage": "plus6",
+            "ack_us": 457018983,
+            "since_complete_us": 83541996,
+            "key": 103
+          },
+          {
+            "stage": "final",
+            "ack_us": 553968983,
+            "since_complete_us": 96421998,
+            "key": 103
+          }
+        ],
+        "summary": [
+          {
+            "inputs": 10,
+            "renders": 10,
+            "submitted": 10,
+            "replaced": 0,
+            "started": 10,
+            "completed": 10,
+            "physical": 10,
+            "overflow": 0
+          }
+        ],
+        "exit": [
+          {
+            "err": 0,
+            "healthy": 1,
+            "restored": 1
+          }
+        ]
+      },
+      "operator_answers": {
+        "white": {
+          "answer": "白画面は正常",
+          "recorded_at": "2026-10-13T10:14:28.680617",
+          "physical_updates": 0,
+          "inputs": 0,
+          "photos": false
+        },
+        "reference": {
+          "answer": "開始状態は正常",
+          "recorded_at": "2026-10-13T10:15:15.640727",
+          "physical_updates": 0,
+          "inputs": 0,
+          "photos": false
+        },
+        "first": {
+          "answer": "a：濃く読みやすい。固定参照・背景：参照文字は変わらず、表示正常。",
+          "recorded_at": "2026-10-13T10:18:21.640329",
+          "physical_updates": 1,
+          "inputs": 1,
+          "photos": false
+        },
+        "plus3": {
+          "answer": "濃さは変わらず、表示正常",
+          "recorded_at": "2026-10-13T10:19:02.006175",
+          "physical_updates": 4,
+          "inputs": 4,
+          "photos": false
+        },
+        "plus6": {
+          "answer": "g->aにかけて薄い",
+          "recorded_at": "2026-10-13T10:20:26.088561",
+          "physical_updates": 7,
+          "inputs": 7,
+          "photos": false
+        },
+        "final": {
+          "answer": "先ほど同様、j->aにかけて薄くなっている。\n1回目のテストの時もそうだったかもしれないが、aよりも固定文字の方がやや濃い印象",
+          "recorded_at": "2026-10-13T10:22:03.032096",
+          "physical_updates": 10,
+          "inputs": 10,
+          "photos": false
+        },
+        "shell_restore": {
+          "answer": "Shell表示は正常",
+          "recorded_at": "2026-10-13T10:24:26.551186",
+          "photos": false
+        }
+      },
+      "measurement_status": "complete"
+    },
+    "W3": {
+      "valid": true,
+      "errors": [],
+      "waveform": "baseline",
+      "mode": "fast",
+      "input_count": 10,
+      "render_count": 10,
+      "physical_count": 7,
+      "replaced": 3,
+      "first_following_updates": 6,
+      "mean_update_interval_us": 25065353,
+      "intervals_us": [
+        43197129,
+        127163,
+        46596910,
+        126967,
+        60217205,
+        126744
+      ],
+      "burst_input_intervals_us": [
+        60707,
+        60000,
+        60711,
+        60999,
+        60780,
+        60000
+      ],
+      "burst_update_intervals_us": [
+        127163,
+        126967,
+        126744
+      ],
+      "mean_burst_update_interval_us": 126958,
+      "driver_p50_us": 113640,
+      "observer_p50_us": 11832,
+      "observations": [
+        {
+          "stage": "white",
+          "ack_us": 738568983,
+          "since_complete_us": 33599971,
+          "key": 103
+        },
+        {
+          "stage": "reference",
+          "ack_us": 809795983,
+          "since_complete_us": 66880283,
+          "key": 103
+        },
+        {
+          "stage": "first",
+          "ack_us": 852994990,
+          "since_complete_us": 42682001,
+          "key": 103
+        },
+        {
+          "stage": "plus3",
+          "ack_us": 899718983,
+          "since_complete_us": 46421001,
+          "key": 103
+        },
+        {
+          "stage": "plus6",
+          "ack_us": 960062983,
+          "since_complete_us": 60041028,
+          "key": 103
+        },
+        {
+          "stage": "final",
+          "ack_us": 1064285983,
+          "since_complete_us": 103921031,
+          "key": 103
+        }
+      ],
+      "optical_C": "未測定",
+      "optical_R": "未測定",
+      "rows": {
+        "begin": [
+          {
+            "waveform": "baseline",
+            "mode": "fast",
+            "text": "abcdefghij",
+            "zoom": 4,
+            "spi": 40000000,
+            "path": "tile",
+            "tick_ms": 40,
+            "fast_interval_ms": 60,
+            "max_fast": 10,
+            "storage": "none"
+          }
+        ],
+        "roi": [
+          {
+            "fixed": "4,37,250,30",
+            "first": "4,147,10,22",
+            "rotation": "R2"
+          }
+        ],
+        "input": [
+          {
+            "seq": 1,
+            "ch": 97,
+            "len": 63,
+            "sent": 809796445,
+            "accepted": 809796460,
+            "mutated": 809796684,
+            "request": 809796684
+          },
+          {
+            "seq": 2,
+            "ch": 98,
+            "len": 64,
+            "sent": 852995263,
+            "accepted": 852995279,
+            "mutated": 852995417,
+            "request": 852995417
+          },
+          {
+            "seq": 3,
+            "ch": 99,
+            "len": 65,
+            "sent": 853055970,
+            "accepted": 853055984,
+            "mutated": 853056117,
+            "request": 853056117
+          },
+          {
+            "seq": 4,
+            "ch": 100,
+            "len": 66,
+            "sent": 853115970,
+            "accepted": 853115984,
+            "mutated": 853116105,
+            "request": 853116105
+          },
+          {
+            "seq": 5,
+            "ch": 101,
+            "len": 67,
+            "sent": 899719260,
+            "accepted": 899719281,
+            "mutated": 899719411,
+            "request": 899719411
+          },
+          {
+            "seq": 6,
+            "ch": 102,
+            "len": 68,
+            "sent": 899779971,
+            "accepted": 899779987,
+            "mutated": 899780108,
+            "request": 899780108
+          },
+          {
+            "seq": 7,
+            "ch": 103,
+            "len": 69,
+            "sent": 899840970,
+            "accepted": 899840982,
+            "mutated": 899841103,
+            "request": 899841103
+          },
+          {
+            "seq": 8,
+            "ch": 104,
+            "len": 70,
+            "sent": 960063190,
+            "accepted": 960063213,
+            "mutated": 960063337,
+            "request": 960063337
+          },
+          {
+            "seq": 9,
+            "ch": 105,
+            "len": 71,
+            "sent": 960123970,
+            "accepted": 960123985,
+            "mutated": 960124115,
+            "request": 960124115
+          },
+          {
+            "seq": 10,
+            "ch": 106,
+            "len": 72,
+            "sent": 960183970,
+            "accepted": 960183983,
+            "mutated": 960184089,
+            "request": 960184089
+          }
+        ],
+        "frame": [
+          {
+            "chars": 1,
+            "len": 63,
+            "gen": 16,
+            "hash": "316cadb9",
+            "doc_start": 809837019,
+            "doc_end": 809837543,
+            "render_start": 809837555,
+            "render_end": 809841635,
+            "submit_start": 809845561,
+            "submit_end": 809847036,
+            "replaced": 0,
+            "completed": 15,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 2,
+            "len": 64,
+            "gen": 17,
+            "hash": "a7d8bc0b",
+            "doc_start": 853036020,
+            "doc_end": 853036547,
+            "render_start": 853036559,
+            "render_end": 853040598,
+            "submit_start": 853043236,
+            "submit_end": 853044487,
+            "replaced": 0,
+            "completed": 16,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 3,
+            "len": 65,
+            "gen": 18,
+            "hash": "e7165621",
+            "doc_start": 853077010,
+            "doc_end": 853077512,
+            "render_start": 853077525,
+            "render_end": 853082154,
+            "submit_start": 853085447,
+            "submit_end": 853086616,
+            "replaced": 0,
+            "completed": 16,
+            "busy": 1,
+            "pending": 1,
+            "cursor": 0
+          },
+          {
+            "chars": 4,
+            "len": 66,
+            "gen": 19,
+            "hash": "b8d2477b",
+            "doc_start": 853117009,
+            "doc_end": 853117524,
+            "render_start": 853117537,
+            "render_end": 853121644,
+            "submit_start": 853124455,
+            "submit_end": 853125596,
+            "replaced": 1,
+            "completed": 16,
+            "busy": 1,
+            "pending": 1,
+            "cursor": 0
+          },
+          {
+            "chars": 5,
+            "len": 67,
+            "gen": 20,
+            "hash": "a296186d",
+            "doc_start": 899760014,
+            "doc_end": 899760522,
+            "render_start": 899760535,
+            "render_end": 899764660,
+            "submit_start": 899767296,
+            "submit_end": 899768548,
+            "replaced": 1,
+            "completed": 19,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 6,
+            "len": 68,
+            "gen": 21,
+            "hash": "91b482e5",
+            "doc_start": 899801008,
+            "doc_end": 899801504,
+            "render_start": 899801517,
+            "render_end": 899806271,
+            "submit_start": 899809549,
+            "submit_end": 899810722,
+            "replaced": 1,
+            "completed": 19,
+            "busy": 1,
+            "pending": 1,
+            "cursor": 0
+          },
+          {
+            "chars": 7,
+            "len": 69,
+            "gen": 22,
+            "hash": "945ca3a9",
+            "doc_start": 899841153,
+            "doc_end": 899841665,
+            "render_start": 899841676,
+            "render_end": 899845886,
+            "submit_start": 899848527,
+            "submit_end": 899849653,
+            "replaced": 2,
+            "completed": 19,
+            "busy": 1,
+            "pending": 1,
+            "cursor": 0
+          },
+          {
+            "chars": 8,
+            "len": 70,
+            "gen": 23,
+            "hash": "5eefb333",
+            "doc_start": 960104013,
+            "doc_end": 960104520,
+            "render_start": 960104533,
+            "render_end": 960108781,
+            "submit_start": 960111419,
+            "submit_end": 960112678,
+            "replaced": 2,
+            "completed": 22,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 9,
+            "len": 71,
+            "gen": 24,
+            "hash": "64e6fee5",
+            "doc_start": 960145013,
+            "doc_end": 960145518,
+            "render_start": 960145532,
+            "render_end": 960150365,
+            "submit_start": 960153677,
+            "submit_end": 960154843,
+            "replaced": 2,
+            "completed": 22,
+            "busy": 1,
+            "pending": 1,
+            "cursor": 0
+          },
+          {
+            "chars": 10,
+            "len": 72,
+            "gen": 25,
+            "hash": "b24717bd",
+            "doc_start": 960185003,
+            "doc_end": 960185504,
+            "render_start": 960185516,
+            "render_end": 960189818,
+            "submit_start": 960192459,
+            "submit_end": 960193593,
+            "replaced": 3,
+            "completed": 22,
+            "busy": 1,
+            "pending": 1,
+            "cursor": 0
+          }
+        ],
+        "physical": [
+          {
+            "ordinal": 1,
+            "gen": 16,
+            "chars": 1,
+            "hash": "316cadb9",
+            "start": 809859163,
+            "end": 810312990,
+            "err": 0,
+            "changes": 1205,
+            "bounds": "488,316,794,472",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 47,
+            "first00": 0,
+            "first_following": 0,
+            "observer_us": 12075,
+            "total_us": 452602,
+            "busy_us": 134056,
+            "convert_us": 35693,
+            "spi_us": 19812,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 2,
+            "gen": 17,
+            "chars": 2,
+            "hash": "a7d8bc0b",
+            "start": 853056292,
+            "end": 853171508,
+            "err": 0,
+            "changes": 58,
+            "bounds": "777,316,784,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 1,
+            "observer_us": 11754,
+            "total_us": 113998,
+            "busy_us": 51463,
+            "convert_us": 35965,
+            "spi_us": 19807,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 3,
+            "gen": 19,
+            "chars": 4,
+            "hash": "b8d2477b",
+            "start": 853183455,
+            "end": 853297983,
+            "err": 0,
+            "changes": 95,
+            "bounds": "757,316,774,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 2,
+            "observer_us": 11889,
+            "total_us": 113329,
+            "busy_us": 51720,
+            "convert_us": 35399,
+            "spi_us": 19928,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 4,
+            "gen": 20,
+            "chars": 5,
+            "hash": "a296186d",
+            "start": 899780365,
+            "end": 899895365,
+            "err": 0,
+            "changes": 41,
+            "bounds": "747,316,754,324",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 3,
+            "observer_us": 11767,
+            "total_us": 113784,
+            "busy_us": 51528,
+            "convert_us": 35834,
+            "spi_us": 19803,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 5,
+            "gen": 22,
+            "chars": 7,
+            "hash": "945ca3a9",
+            "start": 899907332,
+            "end": 900021956,
+            "err": 0,
+            "changes": 111,
+            "bounds": "727,313,744,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 4,
+            "observer_us": 11905,
+            "total_us": 113450,
+            "busy_us": 51869,
+            "convert_us": 35447,
+            "spi_us": 19829,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 6,
+            "gen": 23,
+            "chars": 8,
+            "hash": "5eefb333",
+            "start": 960124537,
+            "end": 960239391,
+            "err": 0,
+            "changes": 52,
+            "bounds": "717,316,724,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 5,
+            "observer_us": 11806,
+            "total_us": 113640,
+            "busy_us": 51268,
+            "convert_us": 35923,
+            "spi_us": 19806,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 7,
+            "gen": 25,
+            "chars": 10,
+            "hash": "b24717bd",
+            "start": 960251281,
+            "end": 960364953,
+            "err": 0,
+            "changes": 77,
+            "bounds": "698,313,714,327",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 6,
+            "observer_us": 11832,
+            "total_us": 112501,
+            "busy_us": 51221,
+            "convert_us": 35221,
+            "spi_us": 19816,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          }
+        ],
+        "observation": [
+          {
+            "stage": "white",
+            "ack_us": 738568983,
+            "since_complete_us": 33599971,
+            "key": 103
+          },
+          {
+            "stage": "reference",
+            "ack_us": 809795983,
+            "since_complete_us": 66880283,
+            "key": 103
+          },
+          {
+            "stage": "first",
+            "ack_us": 852994990,
+            "since_complete_us": 42682001,
+            "key": 103
+          },
+          {
+            "stage": "plus3",
+            "ack_us": 899718983,
+            "since_complete_us": 46421001,
+            "key": 103
+          },
+          {
+            "stage": "plus6",
+            "ack_us": 960062983,
+            "since_complete_us": 60041028,
+            "key": 103
+          },
+          {
+            "stage": "final",
+            "ack_us": 1064285983,
+            "since_complete_us": 103921031,
+            "key": 103
+          }
+        ],
+        "summary": [
+          {
+            "inputs": 10,
+            "renders": 10,
+            "submitted": 10,
+            "replaced": 3,
+            "started": 7,
+            "completed": 7,
+            "physical": 7,
+            "overflow": 0
+          }
+        ],
+        "exit": [
+          {
+            "err": 0,
+            "healthy": 1,
+            "restored": 1
+          }
+        ]
+      },
+      "operator_answers": {
+        "white": {
+          "answer": "白画面は正常",
+          "recorded_at": "2026-10-13T10:25:07.637362",
+          "physical_updates": 0,
+          "inputs": 0,
+          "photos": false
+        },
+        "reference": {
+          "answer": "開始状態は正常",
+          "recorded_at": "2026-10-13T10:26:18.853615",
+          "physical_updates": 0,
+          "inputs": 0,
+          "photos": false
+        },
+        "first": {
+          "answer": "aは濃く読みやすく、表示正常",
+          "recorded_at": "2026-10-13T10:27:02.052751",
+          "physical_updates": 1,
+          "inputs": 1,
+          "photos": false
+        },
+        "plus3": {
+          "answer": "濃さは変わらず、表示正常",
+          "recorded_at": "2026-10-13T10:27:48.767932",
+          "physical_updates": 3,
+          "inputs": 4,
+          "photos": false
+        },
+        "plus6": {
+          "answer": "a→g  で濃い\n固定文字はaと同じぐらい",
+          "recorded_at": "2026-10-13T10:28:49.125139",
+          "physical_updates": 5,
+          "inputs": 7,
+          "photos": false
+        },
+        "final": {
+          "answer": "7文字時点とほぼ同じ・表示正常",
+          "recorded_at": "2026-10-13T10:30:33.350037",
+          "physical_updates": 7,
+          "inputs": 10,
+          "photos": false
+        },
+        "shell_restore": {
+          "answer": "Shell表示は正常",
+          "recorded_at": "2026-10-13T10:31:30.513597",
+          "photos": false
+        }
+      },
+      "measurement_status": "complete"
+    },
+    "W4": {
+      "valid": true,
+      "errors": [],
+      "waveform": "dose",
+      "mode": "fast",
+      "input_count": 10,
+      "render_count": 10,
+      "physical_count": 7,
+      "replaced": 3,
+      "first_following_updates": 6,
+      "mean_update_interval_us": 41788227.333333336,
+      "intervals_us": [
+        126276235,
+        127075,
+        67116037,
+        126975,
+        56956304,
+        126738
+      ],
+      "burst_input_intervals_us": [
+        60768,
+        60000,
+        60769,
+        60000,
+        60705,
+        60000
+      ],
+      "burst_update_intervals_us": [
+        127075,
+        126975,
+        126738
+      ],
+      "mean_burst_update_interval_us": 126929.33333333333,
+      "driver_p50_us": 113571,
+      "observer_p50_us": 11886,
+      "observations": [
+        {
+          "stage": "white",
+          "ack_us": 1163023983,
+          "since_complete_us": 33559971,
+          "key": 103
+        },
+        {
+          "stage": "reference",
+          "ack_us": 1237733983,
+          "since_complete_us": 70360234,
+          "key": 103
+        },
+        {
+          "stage": "first",
+          "ack_us": 1364011983,
+          "since_complete_us": 125761986,
+          "key": 103
+        },
+        {
+          "stage": "plus3",
+          "ack_us": 1431254983,
+          "since_complete_us": 66941031,
+          "key": 103
+        },
+        {
+          "stage": "plus6",
+          "ack_us": 1488337991,
+          "since_complete_us": 56781039,
+          "key": 103
+        },
+        {
+          "stage": "final",
+          "ack_us": 1632381983,
+          "since_complete_us": 143741005,
+          "key": 103
+        }
+      ],
+      "optical_C": "未測定",
+      "optical_R": "未測定",
+      "rows": {
+        "begin": [
+          {
+            "waveform": "dose",
+            "mode": "fast",
+            "text": "abcdefghij",
+            "zoom": 4,
+            "spi": 40000000,
+            "path": "tile",
+            "tick_ms": 40,
+            "fast_interval_ms": 60,
+            "max_fast": 10,
+            "storage": "none"
+          }
+        ],
+        "roi": [
+          {
+            "fixed": "4,37,250,30",
+            "first": "4,147,10,22",
+            "rotation": "R2"
+          }
+        ],
+        "input": [
+          {
+            "seq": 1,
+            "ch": 97,
+            "len": 63,
+            "sent": 1237734433,
+            "accepted": 1237734448,
+            "mutated": 1237734671,
+            "request": 1237734671
+          },
+          {
+            "seq": 2,
+            "ch": 98,
+            "len": 64,
+            "sent": 1364012202,
+            "accepted": 1364012217,
+            "mutated": 1364012351,
+            "request": 1364012351
+          },
+          {
+            "seq": 3,
+            "ch": 99,
+            "len": 65,
+            "sent": 1364072970,
+            "accepted": 1364072983,
+            "mutated": 1364073101,
+            "request": 1364073101
+          },
+          {
+            "seq": 4,
+            "ch": 100,
+            "len": 66,
+            "sent": 1364132970,
+            "accepted": 1364132981,
+            "mutated": 1364133100,
+            "request": 1364133100
+          },
+          {
+            "seq": 5,
+            "ch": 101,
+            "len": 67,
+            "sent": 1431255201,
+            "accepted": 1431255223,
+            "mutated": 1431255353,
+            "request": 1431255353
+          },
+          {
+            "seq": 6,
+            "ch": 102,
+            "len": 68,
+            "sent": 1431315970,
+            "accepted": 1431315985,
+            "mutated": 1431316105,
+            "request": 1431316105
+          },
+          {
+            "seq": 7,
+            "ch": 103,
+            "len": 69,
+            "sent": 1431375970,
+            "accepted": 1431375983,
+            "mutated": 1431376092,
+            "request": 1431376092
+          },
+          {
+            "seq": 8,
+            "ch": 104,
+            "len": 70,
+            "sent": 1488338265,
+            "accepted": 1488338289,
+            "mutated": 1488338421,
+            "request": 1488338421
+          },
+          {
+            "seq": 9,
+            "ch": 105,
+            "len": 71,
+            "sent": 1488398970,
+            "accepted": 1488398985,
+            "mutated": 1488399127,
+            "request": 1488399127
+          },
+          {
+            "seq": 10,
+            "ch": 106,
+            "len": 72,
+            "sent": 1488458970,
+            "accepted": 1488458986,
+            "mutated": 1488459109,
+            "request": 1488459109
+          }
+        ],
+        "frame": [
+          {
+            "chars": 1,
+            "len": 63,
+            "gen": 29,
+            "hash": "316cadb9",
+            "doc_start": 1237775015,
+            "doc_end": 1237775543,
+            "render_start": 1237775555,
+            "render_end": 1237779570,
+            "submit_start": 1237783557,
+            "submit_end": 1237785030,
+            "replaced": 3,
+            "completed": 28,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 2,
+            "len": 64,
+            "gen": 30,
+            "hash": "a7d8bc0b",
+            "doc_start": 1364053014,
+            "doc_end": 1364053516,
+            "render_start": 1364053529,
+            "render_end": 1364057567,
+            "submit_start": 1364060205,
+            "submit_end": 1364061477,
+            "replaced": 3,
+            "completed": 29,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 3,
+            "len": 65,
+            "gen": 31,
+            "hash": "e7165621",
+            "doc_start": 1364094004,
+            "doc_end": 1364094508,
+            "render_start": 1364094522,
+            "render_end": 1364099071,
+            "submit_start": 1364102378,
+            "submit_end": 1364103543,
+            "replaced": 3,
+            "completed": 29,
+            "busy": 1,
+            "pending": 1,
+            "cursor": 0
+          },
+          {
+            "chars": 4,
+            "len": 66,
+            "gen": 32,
+            "hash": "b8d2477b",
+            "doc_start": 1364134005,
+            "doc_end": 1364134507,
+            "render_start": 1364134518,
+            "render_end": 1364138621,
+            "submit_start": 1364141261,
+            "submit_end": 1364142394,
+            "replaced": 4,
+            "completed": 29,
+            "busy": 1,
+            "pending": 1,
+            "cursor": 0
+          },
+          {
+            "chars": 5,
+            "len": 67,
+            "gen": 33,
+            "hash": "a296186d",
+            "doc_start": 1431296012,
+            "doc_end": 1431296521,
+            "render_start": 1431296535,
+            "render_end": 1431300664,
+            "submit_start": 1431303301,
+            "submit_end": 1431304561,
+            "replaced": 4,
+            "completed": 32,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 6,
+            "len": 68,
+            "gen": 34,
+            "hash": "91b482e5",
+            "doc_start": 1431337004,
+            "doc_end": 1431337502,
+            "render_start": 1431337514,
+            "render_end": 1431342194,
+            "submit_start": 1431345490,
+            "submit_end": 1431346658,
+            "replaced": 4,
+            "completed": 32,
+            "busy": 1,
+            "pending": 1,
+            "cursor": 0
+          },
+          {
+            "chars": 7,
+            "len": 69,
+            "gen": 35,
+            "hash": "945ca3a9",
+            "doc_start": 1431377004,
+            "doc_end": 1431377499,
+            "render_start": 1431377511,
+            "render_end": 1431381698,
+            "submit_start": 1431384339,
+            "submit_end": 1431385470,
+            "replaced": 5,
+            "completed": 32,
+            "busy": 1,
+            "pending": 1,
+            "cursor": 0
+          },
+          {
+            "chars": 8,
+            "len": 70,
+            "gen": 36,
+            "hash": "5eefb333",
+            "doc_start": 1488379015,
+            "doc_end": 1488379527,
+            "render_start": 1488379540,
+            "render_end": 1488383779,
+            "submit_start": 1488386416,
+            "submit_end": 1488387676,
+            "replaced": 5,
+            "completed": 35,
+            "busy": 1,
+            "pending": 0,
+            "cursor": 0
+          },
+          {
+            "chars": 9,
+            "len": 71,
+            "gen": 37,
+            "hash": "64e6fee5",
+            "doc_start": 1488420015,
+            "doc_end": 1488420525,
+            "render_start": 1488420538,
+            "render_end": 1488425438,
+            "submit_start": 1488429150,
+            "submit_end": 1488430345,
+            "replaced": 5,
+            "completed": 35,
+            "busy": 1,
+            "pending": 1,
+            "cursor": 0
+          },
+          {
+            "chars": 10,
+            "len": 72,
+            "gen": 38,
+            "hash": "b24717bd",
+            "doc_start": 1488460004,
+            "doc_end": 1488460494,
+            "render_start": 1488460511,
+            "render_end": 1488464860,
+            "submit_start": 1488467500,
+            "submit_end": 1488468632,
+            "replaced": 6,
+            "completed": 35,
+            "busy": 1,
+            "pending": 1,
+            "cursor": 0
+          }
+        ],
+        "physical": [
+          {
+            "ordinal": 1,
+            "gen": 29,
+            "chars": 1,
+            "hash": "316cadb9",
+            "start": 1237797007,
+            "end": 1238249998,
+            "err": 0,
+            "changes": 1205,
+            "bounds": "488,316,794,472",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 47,
+            "first00": 0,
+            "first_following": 0,
+            "observer_us": 11923,
+            "total_us": 451789,
+            "busy_us": 133558,
+            "convert_us": 35195,
+            "spi_us": 19810,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 2,
+            "gen": 30,
+            "chars": 2,
+            "hash": "a7d8bc0b",
+            "start": 1364073242,
+            "end": 1364188391,
+            "err": 0,
+            "changes": 58,
+            "bounds": "777,316,784,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 1,
+            "observer_us": 11709,
+            "total_us": 113936,
+            "busy_us": 51619,
+            "convert_us": 35892,
+            "spi_us": 19802,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 3,
+            "gen": 32,
+            "chars": 4,
+            "hash": "b8d2477b",
+            "start": 1364200317,
+            "end": 1364313953,
+            "err": 0,
+            "changes": 95,
+            "bounds": "757,316,774,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 2,
+            "observer_us": 11873,
+            "total_us": 112462,
+            "busy_us": 51199,
+            "convert_us": 35249,
+            "spi_us": 19787,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 4,
+            "gen": 33,
+            "chars": 5,
+            "hash": "a296186d",
+            "start": 1431316354,
+            "end": 1431431389,
+            "err": 0,
+            "changes": 41,
+            "bounds": "747,316,754,324",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 3,
+            "observer_us": 11736,
+            "total_us": 113821,
+            "busy_us": 51545,
+            "convert_us": 35868,
+            "spi_us": 19792,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 5,
+            "gen": 35,
+            "chars": 7,
+            "hash": "945ca3a9",
+            "start": 1431443329,
+            "end": 1431556953,
+            "err": 0,
+            "changes": 111,
+            "bounds": "727,313,744,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 4,
+            "observer_us": 11886,
+            "total_us": 112450,
+            "busy_us": 51218,
+            "convert_us": 35151,
+            "spi_us": 19853,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 6,
+            "gen": 36,
+            "chars": 8,
+            "hash": "5eefb333",
+            "start": 1488399633,
+            "end": 1488514418,
+            "err": 0,
+            "changes": 52,
+            "bounds": "717,316,724,329",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 5,
+            "observer_us": 11906,
+            "total_us": 113571,
+            "busy_us": 51151,
+            "convert_us": 35900,
+            "spi_us": 19802,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          },
+          {
+            "ordinal": 7,
+            "gen": 38,
+            "chars": 10,
+            "hash": "b24717bd",
+            "start": 1488526371,
+            "end": 1488640979,
+            "err": 0,
+            "changes": 77,
+            "bounds": "698,313,714,327",
+            "fixed_change": 0,
+            "fixed00": 703,
+            "fixed11": 6797,
+            "first_change": 0,
+            "first00": 47,
+            "first_following": 6,
+            "observer_us": 11889,
+            "total_us": 113207,
+            "busy_us": 51688,
+            "convert_us": 35520,
+            "spi_us": 19787,
+            "writes": 2,
+            "activations": 1,
+            "spi_hz": 40000000,
+            "path": "tile"
+          }
+        ],
+        "observation": [
+          {
+            "stage": "white",
+            "ack_us": 1163023983,
+            "since_complete_us": 33559971,
+            "key": 103
+          },
+          {
+            "stage": "reference",
+            "ack_us": 1237733983,
+            "since_complete_us": 70360234,
+            "key": 103
+          },
+          {
+            "stage": "first",
+            "ack_us": 1364011983,
+            "since_complete_us": 125761986,
+            "key": 103
+          },
+          {
+            "stage": "plus3",
+            "ack_us": 1431254983,
+            "since_complete_us": 66941031,
+            "key": 103
+          },
+          {
+            "stage": "plus6",
+            "ack_us": 1488337991,
+            "since_complete_us": 56781039,
+            "key": 103
+          },
+          {
+            "stage": "final",
+            "ack_us": 1632381983,
+            "since_complete_us": 143741005,
+            "key": 103
+          }
+        ],
+        "summary": [
+          {
+            "inputs": 10,
+            "renders": 10,
+            "submitted": 10,
+            "replaced": 3,
+            "started": 7,
+            "completed": 7,
+            "physical": 7,
+            "overflow": 0
+          }
+        ],
+        "exit": [
+          {
+            "err": 0,
+            "healthy": 1,
+            "restored": 1
+          }
+        ]
+      },
+      "operator_answers": {
+        "white": {
+          "answer": "白画面は正常",
+          "recorded_at": "2026-10-13T10:32:12.077501",
+          "physical_updates": 0,
+          "inputs": 0,
+          "photos": false
+        },
+        "reference": {
+          "answer": "開始状態は正常",
+          "recorded_at": "2026-10-13T10:33:26.791103",
+          "physical_updates": 0,
+          "inputs": 0,
+          "photos": false
+        },
+        "first": {
+          "answer": "aは濃く読みやすく、表示正常",
+          "recorded_at": "2026-10-13T10:35:33.053046",
+          "physical_updates": 1,
+          "inputs": 1,
+          "photos": false
+        },
+        "plus3": {
+          "answer": "濃さは変わらず、表示正常",
+          "recorded_at": "2026-10-13T10:36:40.292639",
+          "physical_updates": 3,
+          "inputs": 4,
+          "photos": false
+        },
+        "plus6": {
+          "answer": "a→g  で濃くなっている",
+          "recorded_at": "2026-10-13T10:37:37.387096",
+          "physical_updates": 5,
+          "inputs": 7,
+          "photos": false
+        },
+        "final": {
+          "answer": "差はあまりわからないけど、気づいたこととして、\nabcdeぐらいまでは同じ濃さで、そこからfghijはだんだん濃くなってる気がする",
+          "recorded_at": "2026-10-13T10:40:01.427777",
+          "physical_updates": 7,
+          "inputs": 10,
+          "photos": false
+        },
+        "shell_restore": {
+          "answer": "Shell表示は正常",
+          "recorded_at": "2026-10-13T10:41:40.442445",
+          "photos": false
+        }
+      },
+      "measurement_status": "complete"
+    }
+  }
+}
