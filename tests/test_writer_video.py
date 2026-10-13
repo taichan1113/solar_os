@@ -52,6 +52,12 @@ class VideoTests(unittest.TestCase):
         # Single manually identified transition can be exploratory, not exact.
         windows,mapping=video.sync_windows(self.analysis(),dict(markers=sync['markers'][:1]))
         self.assertIsNone(mapping['time_uncertainty_s'])
+        windows,mapping=video.sync_windows(self.analysis(),dict(method='approximate visual completion',
+            markers=[dict(point='T0',event='completed',video_time_s=2)]))
+        self.assertEqual([x['requested_video_time_s'] for x in windows['T0']],[2.5,3,3.5])
+        self.assertIsNone(mapping['time_uncertainty_s'])
+        with self.assertRaises(ValueError):video.sync_windows(self.analysis(),dict(markers=[
+            dict(point='T0',event='unknown',video_time_s=2)]))
 
     def test_sync_rejects_missing_nonmonotonic_and_duplicate_markers(self):
         for sync in ({},dict(markers=[dict(point='T0',video_time_s=-1)]),

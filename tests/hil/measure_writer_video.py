@@ -59,7 +59,9 @@ def sync_windows(analysis,sync,offsets=(.5,1,1.5)):
         time=m.get('video_time_s')
         if not point or not isinstance(time,(int,float)) or not math.isfinite(time) or time<0:
             raise ValueError('invalid video marker')
-        known.append((point['ready_us']/1e6,time,m.get('uncertainty_s')))
+        event=m.get('event','ready')
+        if event not in ('ready','completed'):raise ValueError('unknown sync event')
+        known.append((point[event+'_us']/1e6,time,m.get('uncertainty_s')))
     if len(known)>2 or len({m.get('point') for m in markers})!=len(markers):
         raise ValueError('duplicate or too many sync markers')
     known.sort()
