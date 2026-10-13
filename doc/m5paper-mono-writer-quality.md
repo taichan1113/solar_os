@@ -1,6 +1,7 @@
 # PaperMono Writer連続入力・更新履歴比較
 
 Branch: `experiment/papermono-writer-quality`。出発点 `dc136007`。
+診断実装commit: `c420acfe860ca7fb99b7ec8cc290a88e73a5490e`。
 写真なしの目視評価。実機比較・光学評価は未実施。数値濃度C・保持率Rは未測定。
 
 ## Phase 1: 実装の更新経路
@@ -79,8 +80,17 @@ Fastで7物理更新/3置換となった。この値は**実機測定値では�
 PythonはWSLで592件実行、OK（4skip）。Windowsでは既存試験が`cc`/`make`を
 見つけられずUTF-8文書の既定encodingも異なったため、Hostと同じWSL環境で検証した。
 trial/production PlatformIO build SUCCESS。production binaryにWriter診断markerがなく、
-trialだけに含まれることを確認した。application-only flashと保護領域確認、
-W1〜W4の実機結果は作業中。未確認項目はPASS扱いしない。
+trialだけに含まれることを確認した。
+
+COM39・ESP32-S3・MAC `28:84:85:44:79:68`、既存app・partition・OTA選択を照合して
+`ota_0`のapplicationのみ0x10000へ書き込み、esptoolのwritten-data verification正常。
+NVS/FAT/otadata/phy_initは全面backupと書き込み前後比較で全てbyte一致。
+証跡: `.research/writer-quality/flash-20261013-094929/summary.json`。
+trial: 3,437,664 bytes / SHA256
+`edf380f09c465635fe995750c8e1af77a784a6c57d1afa2533dd6c89496af7e1`。
+production（未flash）: 3,426,752 bytes / SHA256
+`be1a73c50b34ab2c98e2f6a939199cb767e11f03f3f3f8460480257fe54a444a`。
+W1〜W4の実機比較はまだ未実施。未確認項目はPASS扱いしない。
 
 計時の限界: parse/layoutは一つの処理区間で記録し、render要求時刻はCHAR処理終了時の
 pending確認時刻。frameの対応は10件以内のnative FNV1a識別を使い、解析時に重複や
