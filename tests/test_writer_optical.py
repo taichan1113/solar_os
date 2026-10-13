@@ -30,5 +30,33 @@ class OpticalTests(unittest.TestCase):
                     dict(self.mask,roi=[799,0,16,10])):
             with self.assertRaises(ValueError):measure.compare_roi(self.sampler(40,200),self.sampler(80,200),bad)
 
+    def test_local_registration_tracks_same_glyph_under_fading(self):
+        # A shifted smooth rectangular glyph, with ample white on all sides.
+        mask=dict(roi=[10,10,16,14],rows=['0000']*4+['0f00']*6+['0000']*4,black_pixels=24)
+        import math
+        def image(level):
+            def sample(x,y):
+                # Half-pixel edges, smooth enough to avoid a plateau in pose fit.
+                x-=.75;y+=.5
+                sigmoid=lambda t:1/(1+math.exp(-8*t))
+                ink=sigmoid(x-14)*sigmoid(18-x)*sigmoid(y-14)*sigmoid(20-y)
+                return 200-(200-level)*ink
+            return sample
+        initial=measure.register_mask(image(40),mask)
+        faded=measure.register_mask(image(80),mask)
+        self.assertEqual((initial['dx'],initial['dy']),(.75,-.5))
+        self.assertEqual((initial['dx'],initial['dy']),(faded['dx'],faded['dy']))
+        self.assertAlmostEqual(initial['normalized_template_score'],faded['normalized_template_score'])
+        self.assertFalse(initial['boundary_hit'])
+        s0=lambda x,y:image(40)(x+initial['dx'],y+initial['dy'])
+        s1=lambda x,y:image(80)(x+faded['dx'],y+faded['dy'])
+        self.assertAlmostEqual(measure.compare_roi(s0,s1,mask)['R'],.75,places=3)
+
+    def test_registration_boundary_and_missing_white(self):
+        mask=dict(roi=[10,10,16,14],rows=['0000']*4+['0f00']*6+['0000']*4,black_pixels=24)
+        shifted=lambda x,y:40 if 17<=x<21 and 14<=y<20 else 200
+        self.assertTrue(measure.register_mask(shifted,mask,bound=1)['boundary_hit'])
+        with self.assertRaises(ValueError):measure.register_mask(shifted,mask,bound=5)
+
 
 if __name__=='__main__':unittest.main()

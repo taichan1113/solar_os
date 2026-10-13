@@ -7,6 +7,7 @@ not a statistical confidence interval or panel-lifetime measurement.
 """
 import argparse
 import json
+import math
 import statistics
 from pathlib import Path
 
@@ -46,6 +47,34 @@ def stats(values):
     return median,statistics.median(abs(x-median) for x in values)
 
 
+def register_mask(sample,mask,bound=4):
+    """Bounded local binary-template registration; never change the T0 mask.
+
+    Nearby white strokes/holes help distinguish the glyph from its border.
+    Score is normalized to avoid choosing a pose based on absolute brightness.
+    Boundary hits are unreliable and must not be reported as valid alignment.
+    """
+    if not 0<bound<=4:raise ValueError('registration bound must be in (0,4]')
+    black=sorted(black_coordinates(mask));x,y,w,h=mask['roi']
+    near={(a+dx,b+dy) for a,b in black for dx in (-1,0,1) for dy in (-1,0,1)}
+    white=sorted((near-set(black))&{(a,b) for a in range(x,x+w) for b in range(y,y+h)})
+    if not white:raise ValueError('registration requires neighboring white pixels')
+    def score(dx,dy):
+        B=[sample(a+.5+dx,b+.5+dy) for a,b in black]
+        W=[sample(a+.5+dx,b+.5+dy) for a,b in white]
+        n=len(B)+len(W);mean=(sum(B)+sum(W))/n
+        variance=sum((v-mean)**2 for v in B+W)/n
+        return (sum(W)/len(W)-sum(B)/len(B))/math.sqrt(variance) if variance else -math.inf
+    coarse=[(score(i/2,j/2),i/2,j/2) for i in range(-int(bound*2),int(bound*2)+1)
+            for j in range(-int(bound*2),int(bound*2)+1)]
+    _,cx,cy=max(coarse)
+    fine=[(score(cx+i/8,cy+j/8),cx+i/8,cy+j/8) for i in range(-4,5) for j in range(-4,5)
+          if abs(cx+i/8)<=bound and abs(cy+j/8)<=bound]
+    value,dx,dy=max(fine)
+    return dict(dx=dx,dy=dy,normalized_template_score=value,
+                boundary_hit=abs(dx)==bound or abs(dy)==bound,search_bound=bound)
+
+
 def compare_roi(sample0,sample1,mask):
     black=black_coordinates(mask)
     x,y,w,h=mask['roi']
@@ -83,6 +112,7 @@ def main():
     p.add_argument('--t0',type=Path,required=True)
     p.add_argument('--t1',type=Path,required=True)
     p.add_argument('--corners',type=Path,required=True,help='JSON with T0/T1 screen corners and camera_conditions')
+    p.add_argument('--register-local',action='store_true',help='Bounded local same-mask registration after corner alignment; report offsets')
     p.add_argument('--output',type=Path,required=True)
     a=p.parse_args();analysis=json.loads(a.analysis.read_text(encoding='utf-8'))
     if not analysis.get('valid') or analysis.get('protocol')!='continuous-optical':
@@ -92,6 +122,12 @@ def main():
         image=Image.open(path)
         exif={ExifTags.TAGS.get(k,str(k)):str(v) for k,v in image.getexif().items()
               if ExifTags.TAGS.get(k) in ('DateTime','ExposureTime','FNumber','ISOSpeedRatings','Orientation')}
+        # iPhone capture settings/time normally live in the Exif sub-IFD.
+        for k,v in image.getexif().get_ifd(34665).items():
+            key=ExifTags.TAGS.get(k,str(k))
+            if key in ('DateTimeOriginal','SubsecTimeOriginal','OffsetTimeOriginal','ExposureTime',
+                       'FNumber','ISOSpeedRatings','ExposureMode','WhiteBalance'):
+                exif[key]=str(v)
         source_size=image.size
         image=ImageOps.exif_transpose(image)
         metadata.append(dict(point=name,source=str(path),source_size=source_size,size=image.size,exif=exif))
@@ -99,13 +135,26 @@ def main():
         coeff=homography(config[name],3200,1920)
         rectified=image.convert('L').transform((3200,1920),Image.Transform.PERSPECTIVE,
             coeff,Image.Resampling.BICUBIC)
-        samplers.append(lambda x,y,img=rectified:img.getpixel((int(x*4),int(y*4))))
+        def sampler(x,y,img=rectified):
+            x*=4;y*=4;ix=math.floor(x);iy=math.floor(y);dx=x-ix;dy=y-iy
+            if not (0<=ix<3199 and 0<=iy<1919):raise ValueError('sample outside rectified panel')
+            return ((1-dx)*(1-dy)*img.getpixel((ix,iy))+dx*(1-dy)*img.getpixel((ix+1,iy))+
+                    (1-dx)*dy*img.getpixel((ix,iy+1))+dx*dy*img.getpixel((ix+1,iy+1)))
+        samplers.append(sampler)
     result=dict(camera_intensity_only=True,metadata=metadata,
         camera_conditions=config.get('camera_conditions','unrecorded'),
         photos_elapsed_after_completion_s=config.get('elapsed_after_completion_s',{'T0':None,'T1':None}),
-        source_points=analysis['rows']['point'],regions={})
+        source_points=analysis['rows']['point'],regions={},
+        registration_method='corner homography; optional bounded local normalized T0-mask correlation')
     for name,mask in analysis['black_masks'].items():
-        result['regions'][name]=compare_roi(*samplers,mask)
+        selected=samplers
+        if a.register_local:
+            offsets=[register_mask(sampler,mask) for sampler in samplers]
+            if any(o['boundary_hit'] for o in offsets):raise ValueError('local registration hit search boundary; contrast is unreliable')
+            selected=[lambda x,y,s=s,o=o:s(x+o['dx'],y+o['dy']) for s,o in zip(samplers,offsets)]
+        measured=compare_roi(*selected,mask)
+        if a.register_local:measured['local_registration']=dict(zip(('T0','T1'),offsets))
+        result['regions'][name]=measured
     a.output.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({name:{k:m[k] for k in ('R','contrast_drop','white_relative_change',
         'fading_exceeds_shift_and_white_noise_proxy')} for name,m in result['regions'].items()},indent=2))

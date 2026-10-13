@@ -1,8 +1,8 @@
 {
   "diagnostic_source_commit": "87be1872",
   "trial_sha256": "586b360b5487d7e2cdb439aa0b2070a46079d1cbfe5a140bfac1ea49c775e840",
-  "camera_conditions": "iPhone fixed at constant distance; exposure/focus/WB locks not confirmed; capture delay not supplied",
-  "optical_status": "photographs captured by user; image files not received; C/R not measured",
+  "camera_conditions": "iPhone fixed distance; EXIF all 1/60s, f/1.6, ISO250, exposure/WB mode auto; lock state and HDR unknown; received images 1824x1368, oriented 1368x1824 (original 4032x3024 noted by chat resize notice).",
+  "optical_status": "Exploratory C/R measured from received reduced JPEGs; CONDITIONAL: large spatial shading in first-glyph white ROI, unconfirmed AF/WB/HDR, non-identical photo timing.",
   "conditions": {
     "S1": {
       "valid": true,
@@ -152,8 +152,20 @@
           "black_pixels": 47
         }
       },
-      "optical_C": "未測定",
-      "optical_R": "未測定",
+      "optical_C": {
+        "fixed": {
+          "T0": 0.38416075650118203,
+          "T1": 0.35697399527186763
+        },
+        "first": {
+          "T0": 0.29584352078239606,
+          "T1": 0.1687344913151365
+        }
+      },
+      "optical_R": {
+        "fixed": 0.9292307692307693,
+        "first": 0.5703504706437259
+      },
       "rows": {
         "begin": [
           {
@@ -1163,7 +1175,236 @@
       "observer_range_us": [
         984,
         1000
-      ]
+      ],
+      "optical_measurement": {
+        "camera_intensity_only": true,
+        "metadata": [
+          {
+            "point": "T0",
+            "source": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/writer-optical/photos/attachment-2.jpg",
+            "source_size": [
+              1824,
+              1368
+            ],
+            "size": [
+              1368,
+              1824
+            ],
+            "exif": {
+              "Orientation": "6",
+              "DateTime": "2026:10:13 12:29:19",
+              "DateTimeOriginal": "2026:10:13 12:29:19",
+              "OffsetTimeOriginal": "+09:00",
+              "SubsecTimeOriginal": "861",
+              "ExposureTime": "0.016666666666666666",
+              "FNumber": "1.6",
+              "ISOSpeedRatings": "250",
+              "ExposureMode": "0",
+              "WhiteBalance": "0"
+            }
+          },
+          {
+            "point": "T1",
+            "source": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/writer-optical/photos/attachment-1.jpg",
+            "source_size": [
+              1824,
+              1368
+            ],
+            "size": [
+              1368,
+              1824
+            ],
+            "exif": {
+              "Orientation": "6",
+              "DateTime": "2026:10:13 12:30:21",
+              "DateTimeOriginal": "2026:10:13 12:30:21",
+              "OffsetTimeOriginal": "+09:00",
+              "SubsecTimeOriginal": "702",
+              "ExposureTime": "0.016666666666666666",
+              "FNumber": "1.6",
+              "ISOSpeedRatings": "250",
+              "ExposureMode": "0",
+              "WhiteBalance": "0"
+            }
+          }
+        ],
+        "camera_conditions": "iPhone fixed distance; EXIF 1/60s f/1.6 ISO250 all four; WB/AF lock and HDR unknown; supplied files reduced 1368x1824 oriented",
+        "photos_elapsed_after_completion_s": {
+          "T0": 44.232248,
+          "T1": 47.397829
+        },
+        "source_points": [
+          {
+            "name": "T0",
+            "gen": 3,
+            "chars": 1,
+            "completed_us": 514461027,
+            "ready_us": 516462013,
+            "settle_us": 2000000
+          },
+          {
+            "name": "T1",
+            "gen": 12,
+            "chars": 10,
+            "completed_us": 573143015,
+            "ready_us": 575144019,
+            "settle_us": 2000000
+          }
+        ],
+        "regions": {
+          "fixed": {
+            "roi": [
+              4,
+              37,
+              250,
+              30
+            ],
+            "black_pixels": 703,
+            "white_pixels": 5946,
+            "T0": {
+              "W": 211.5,
+              "B": 130.25,
+              "C": 0.38416075650118203,
+              "white_MAD": 2.0,
+              "black_MAD": 13.75,
+              "C_shift_min": 0.35106382978723405,
+              "C_shift_max": 0.3888888888888889
+            },
+            "T1": {
+              "W": 211.5,
+              "B": 136.0,
+              "C": 0.35697399527186763,
+              "white_MAD": 2.0,
+              "black_MAD": 13.5,
+              "C_shift_min": 0.3191489361702128,
+              "C_shift_max": 0.3664302600472813
+            },
+            "R": 0.9292307692307693,
+            "contrast_drop": 0.027186761229314405,
+            "white_relative_change": 0.0,
+            "white_noise_proxy": 0.05607943262411347,
+            "quarter_pixel_shift_gap": -0.015366430260047248,
+            "fading_exceeds_shift_and_white_noise_proxy": false,
+            "caveat": "Sensitivity/noise proxies do not exclude exposure, focus or lighting changes.",
+            "local_registration": {
+              "T0": {
+                "dx": -2.125,
+                "dy": -1.875,
+                "normalized_template_score": 1.8010671340256812,
+                "boundary_hit": false,
+                "search_bound": 4
+              },
+              "T1": {
+                "dx": -1.625,
+                "dy": -2.25,
+                "normalized_template_score": 1.7900122734298454,
+                "boundary_hit": false,
+                "search_bound": 4
+              }
+            }
+          },
+          "first": {
+            "roi": [
+              4,
+              147,
+              10,
+              22
+            ],
+            "black_pixels": 47,
+            "white_pixels": 119,
+            "T0": {
+              "W": 204.5,
+              "B": 144.0,
+              "C": 0.29584352078239606,
+              "white_MAD": 22.0,
+              "black_MAD": 9.5,
+              "C_shift_min": 0.2512437810945274,
+              "C_shift_max": 0.3036144578313253
+            },
+            "T1": {
+              "W": 201.5,
+              "B": 167.5,
+              "C": 0.1687344913151365,
+              "white_MAD": 23.5,
+              "black_MAD": 12.5,
+              "C_shift_min": 0.1658291457286432,
+              "C_shift_max": 0.18491484184914841
+            },
+            "R": 0.5703504706437259,
+            "contrast_drop": 0.12710902946725958,
+            "white_relative_change": -0.014669926650366705,
+            "white_noise_proxy": 0.6648119907539419,
+            "quarter_pixel_shift_gap": 0.06632893924537897,
+            "fading_exceeds_shift_and_white_noise_proxy": false,
+            "caveat": "Sensitivity/noise proxies do not exclude exposure, focus or lighting changes.",
+            "local_registration": {
+              "T0": {
+                "dx": -2.5,
+                "dy": -0.375,
+                "normalized_template_score": 1.468358302163696,
+                "boundary_hit": false,
+                "search_bound": 4
+              },
+              "T1": {
+                "dx": -2.125,
+                "dy": -0.75,
+                "normalized_template_score": 1.0639407509406296,
+                "boundary_hit": false,
+                "search_bound": 4
+              }
+            }
+          }
+        },
+        "registration_method": "corner homography; optional bounded local normalized T0-mask correlation",
+        "alignment_config": {
+          "camera_conditions": "iPhone fixed distance; EXIF 1/60s f/1.6 ISO250 all four; WB/AF lock and HDR unknown; supplied files reduced 1368x1824 oriented",
+          "elapsed_after_completion_s": {
+            "T0": 44.232248,
+            "T1": 47.397829
+          },
+          "attachment_mapping": {
+            "T0": 2,
+            "T1": 1
+          },
+          "T0": [
+            [
+              35,
+              561
+            ],
+            [
+              1326,
+              573
+            ],
+            [
+              1335,
+              1361
+            ],
+            [
+              1,
+              1337
+            ]
+          ],
+          "T1": [
+            [
+              34,
+              561
+            ],
+            [
+              1326,
+              573
+            ],
+            [
+              1334,
+              1361
+            ],
+            [
+              1,
+              1337
+            ]
+          ]
+        },
+        "photo_timing_caveat": "EXIF versus PC cue requires synchronized iPhone/PC clocks; clock offset not verified. Elapsed values are estimates, not claimed exact shutter delays."
+      }
     },
     "F1": {
       "valid": true,
@@ -1305,8 +1546,20 @@
           "black_pixels": 47
         }
       },
-      "optical_C": "未測定",
-      "optical_R": "未測定",
+      "optical_C": {
+        "fixed": {
+          "T0": 0.3919239904988123,
+          "T1": 0.36729857819905215
+        },
+        "first": {
+          "T0": 0.27722772277227725,
+          "T1": 0.19900497512437812
+        }
+      },
+      "optical_R": {
+        "fixed": 0.9371678874048543,
+        "first": 0.7178393745557924
+      },
       "rows": {
         "begin": [
           {
@@ -2193,7 +2446,353 @@
       "observer_range_us": [
         977,
         1030
+      ],
+      "optical_measurement": {
+        "camera_intensity_only": true,
+        "metadata": [
+          {
+            "point": "T0",
+            "source": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/writer-optical/photos/attachment-4.jpg",
+            "source_size": [
+              1824,
+              1368
+            ],
+            "size": [
+              1368,
+              1824
+            ],
+            "exif": {
+              "Orientation": "6",
+              "DateTime": "2026:10:13 12:33:59",
+              "DateTimeOriginal": "2026:10:13 12:33:59",
+              "OffsetTimeOriginal": "+09:00",
+              "SubsecTimeOriginal": "690",
+              "ExposureTime": "0.016666666666666666",
+              "FNumber": "1.6",
+              "ISOSpeedRatings": "250",
+              "ExposureMode": "0",
+              "WhiteBalance": "0"
+            }
+          },
+          {
+            "point": "T1",
+            "source": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/writer-optical/photos/attachment-3.jpg",
+            "source_size": [
+              1824,
+              1368
+            ],
+            "size": [
+              1368,
+              1824
+            ],
+            "exif": {
+              "Orientation": "6",
+              "DateTime": "2026:10:13 12:34:53",
+              "DateTimeOriginal": "2026:10:13 12:34:53",
+              "OffsetTimeOriginal": "+09:00",
+              "SubsecTimeOriginal": "568",
+              "ExposureTime": "0.016666666666666666",
+              "FNumber": "1.6",
+              "ISOSpeedRatings": "250",
+              "ExposureMode": "0",
+              "WhiteBalance": "0"
+            }
+          }
+        ],
+        "camera_conditions": "iPhone fixed distance; EXIF 1/60s f/1.6 ISO250 all four; WB/AF lock and HDR unknown; supplied files reduced 1368x1824 oriented",
+        "photos_elapsed_after_completion_s": {
+          "T0": 33.908023,
+          "T1": 40.047946
+        },
+        "source_points": [
+          {
+            "name": "T0",
+            "gen": 16,
+            "chars": 1,
+            "completed_us": 804623024,
+            "ready_us": 806624011,
+            "settle_us": 2000000
+          },
+          {
+            "name": "T1",
+            "gen": 25,
+            "chars": 10,
+            "completed_us": 852354022,
+            "ready_us": 854355020,
+            "settle_us": 2000000
+          }
+        ],
+        "regions": {
+          "fixed": {
+            "roi": [
+              4,
+              37,
+              250,
+              30
+            ],
+            "black_pixels": 703,
+            "white_pixels": 5946,
+            "T0": {
+              "W": 210.5,
+              "B": 128.0,
+              "C": 0.3919239904988123,
+              "white_MAD": 2.5,
+              "black_MAD": 13.5,
+              "C_shift_min": 0.35391923990498814,
+              "C_shift_max": 0.3919239904988123
+            },
+            "T1": {
+              "W": 211.0,
+              "B": 133.5,
+              "C": 0.36729857819905215,
+              "white_MAD": 2.5,
+              "black_MAD": 13.5,
+              "C_shift_min": 0.3341232227488152,
+              "C_shift_max": 0.37203791469194314
+            },
+            "R": 0.9371678874048543,
+            "contrast_drop": 0.024625412299760174,
+            "white_relative_change": 0.002375296912114022,
+            "white_noise_proxy": 0.07034885344080331,
+            "quarter_pixel_shift_gap": -0.018118674786955002,
+            "fading_exceeds_shift_and_white_noise_proxy": false,
+            "caveat": "Sensitivity/noise proxies do not exclude exposure, focus or lighting changes.",
+            "local_registration": {
+              "T0": {
+                "dx": -1.875,
+                "dy": -2.5,
+                "normalized_template_score": 1.7612739807412403,
+                "boundary_hit": false,
+                "search_bound": 4
+              },
+              "T1": {
+                "dx": -2.5,
+                "dy": -2.625,
+                "normalized_template_score": 1.714847191242332,
+                "boundary_hit": false,
+                "search_bound": 4
+              }
+            }
+          },
+          "first": {
+            "roi": [
+              4,
+              147,
+              10,
+              22
+            ],
+            "black_pixels": 47,
+            "white_pixels": 119,
+            "T0": {
+              "W": 202.0,
+              "B": 146.0,
+              "C": 0.27722772277227725,
+              "white_MAD": 23.0,
+              "black_MAD": 8.0,
+              "C_shift_min": 0.2474747474747475,
+              "C_shift_max": 0.2815533980582524
+            },
+            "T1": {
+              "W": 201.0,
+              "B": 161.0,
+              "C": 0.19900497512437812,
+              "white_MAD": 23.0,
+              "black_MAD": 11.0,
+              "C_shift_min": 0.18686868686868688,
+              "C_shift_max": 0.21951219512195122
+            },
+            "R": 0.7178393745557924,
+            "contrast_drop": 0.07822274764789913,
+            "white_relative_change": -0.004950495049504955,
+            "white_noise_proxy": 0.6769232747155313,
+            "quarter_pixel_shift_gap": 0.027962552352796266,
+            "fading_exceeds_shift_and_white_noise_proxy": false,
+            "caveat": "Sensitivity/noise proxies do not exclude exposure, focus or lighting changes.",
+            "local_registration": {
+              "T0": {
+                "dx": -3.0,
+                "dy": -1.25,
+                "normalized_template_score": 1.4084989235210417,
+                "boundary_hit": false,
+                "search_bound": 4
+              },
+              "T1": {
+                "dx": -3.5,
+                "dy": -1.25,
+                "normalized_template_score": 1.2241061391015422,
+                "boundary_hit": false,
+                "search_bound": 4
+              }
+            }
+          }
+        },
+        "registration_method": "corner homography; optional bounded local normalized T0-mask correlation",
+        "alignment_config": {
+          "camera_conditions": "iPhone fixed distance; EXIF 1/60s f/1.6 ISO250 all four; WB/AF lock and HDR unknown; supplied files reduced 1368x1824 oriented",
+          "elapsed_after_completion_s": {
+            "T0": 33.908023,
+            "T1": 40.047946
+          },
+          "attachment_mapping": {
+            "T0": 4,
+            "T1": 3
+          },
+          "T0": [
+            [
+              26,
+              530
+            ],
+            [
+              1333,
+              542
+            ],
+            [
+              1335,
+              1337
+            ],
+            [
+              0,
+              1312
+            ]
+          ],
+          "T1": [
+            [
+              27,
+              530
+            ],
+            [
+              1333,
+              542
+            ],
+            [
+              1335,
+              1337
+            ],
+            [
+              0,
+              1312
+            ]
+          ]
+        },
+        "photo_timing_caveat": "EXIF versus PC cue requires synchronized iPhone/PC clocks; clock offset not verified. Elapsed values are estimates, not claimed exact shutter delays."
+      }
+    }
+  },
+  "verdict": "CONDITIONAL",
+  "camera_metadata": [
+    {
+      "attachment_order": 1,
+      "metadata": {
+        "Orientation": "6",
+        "DateTime": "2026:10:13 12:30:21",
+        "DateTimeOriginal": "2026:10:13 12:30:21",
+        "DateTimeDigitized": "2026:10:13 12:30:21",
+        "ExposureBiasValue": "0.0",
+        "FocalLength": "4.2",
+        "OffsetTimeOriginal": "+09:00",
+        "SubsecTimeOriginal": "702",
+        "ExposureTime": "0.016666666666666666",
+        "FNumber": "1.6",
+        "ISOSpeedRatings": "250",
+        "ExposureMode": "0",
+        "WhiteBalance": "0"
+      },
+      "oriented_size": [
+        1368,
+        1824
+      ]
+    },
+    {
+      "attachment_order": 2,
+      "metadata": {
+        "Orientation": "6",
+        "DateTime": "2026:10:13 12:29:19",
+        "DateTimeOriginal": "2026:10:13 12:29:19",
+        "DateTimeDigitized": "2026:10:13 12:29:19",
+        "ExposureBiasValue": "0.0",
+        "FocalLength": "4.2",
+        "OffsetTimeOriginal": "+09:00",
+        "SubsecTimeOriginal": "861",
+        "ExposureTime": "0.016666666666666666",
+        "FNumber": "1.6",
+        "ISOSpeedRatings": "250",
+        "ExposureMode": "0",
+        "WhiteBalance": "0"
+      },
+      "oriented_size": [
+        1368,
+        1824
+      ]
+    },
+    {
+      "attachment_order": 3,
+      "metadata": {
+        "Orientation": "6",
+        "DateTime": "2026:10:13 12:34:53",
+        "DateTimeOriginal": "2026:10:13 12:34:53",
+        "DateTimeDigitized": "2026:10:13 12:34:53",
+        "ExposureBiasValue": "0.0",
+        "FocalLength": "4.2",
+        "OffsetTimeOriginal": "+09:00",
+        "SubsecTimeOriginal": "568",
+        "ExposureTime": "0.016666666666666666",
+        "FNumber": "1.6",
+        "ISOSpeedRatings": "250",
+        "ExposureMode": "0",
+        "WhiteBalance": "0"
+      },
+      "oriented_size": [
+        1368,
+        1824
+      ]
+    },
+    {
+      "attachment_order": 4,
+      "metadata": {
+        "Orientation": "6",
+        "DateTime": "2026:10:13 12:33:59",
+        "DateTimeOriginal": "2026:10:13 12:33:59",
+        "DateTimeDigitized": "2026:10:13 12:33:59",
+        "ExposureBiasValue": "0.0",
+        "FocalLength": "4.2",
+        "OffsetTimeOriginal": "+09:00",
+        "SubsecTimeOriginal": "690",
+        "ExposureTime": "0.016666666666666666",
+        "FNumber": "1.6",
+        "ISOSpeedRatings": "250",
+        "ExposureMode": "0",
+        "WhiteBalance": "0"
+      },
+      "oriented_size": [
+        1368,
+        1824
       ]
     }
-  }
+  ],
+  "received_photo_sha256": [
+    {
+      "attachment_order": 1,
+      "file": ".research\\writer-optical\\photos\\attachment-1.jpg",
+      "bytes": 365878,
+      "sha256": "d107bcf007cc8bff02fb8e95c72409ae6d3fe2aa53b179fae9476a4de1ba4649"
+    },
+    {
+      "attachment_order": 2,
+      "file": ".research\\writer-optical\\photos\\attachment-2.jpg",
+      "bytes": 372541,
+      "sha256": "a8b56c803939c6086f5c3d2d655735f18bbe1e86a3070fde4d0a28505c35066f"
+    },
+    {
+      "attachment_order": 3,
+      "file": ".research\\writer-optical\\photos\\attachment-3.jpg",
+      "bytes": 382088,
+      "sha256": "4a367db8c004775359001a5c057da3ae301f0ca3b2343c1c8de95b6fc3fbcd20"
+    },
+    {
+      "attachment_order": 4,
+      "file": ".research\\writer-optical\\photos\\attachment-4.jpg",
+      "bytes": 382403,
+      "sha256": "45740ab19953dc8e66de3de3a38c9bef0829f11099d3f7a151c5d8856758c8aa"
+    }
+  ]
 }
