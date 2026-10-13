@@ -53,7 +53,9 @@ static void advance(void)
             status.error=err; status.busy=status.pending=false; return;
         }
         assert(!memcmp(shadow,active_frame,sizeof(shadow)) && !display.snapshot);
-        if (display.timing.partial) {
+        if (!command_count) { /* Markdown edit can leave identical raster. */
+            return;
+        } else if (display.timing.partial) {
             physical++; assert(physical<=10);
             captured_command_t *a=find_command(0x26,0), *b=find_command(0x24,0);
             assert(a->length==48000 && b->length==48000);
@@ -193,7 +195,7 @@ esp_err_t solar_os_writer_checkpoint_commit(solar_os_writer_checkpoint_t *c,cons
 esp_err_t solar_os_writer_checkpoint_read(const char *r,const char *d,char **s,size_t *n,solar_os_writer_checkpoint_meta_t *m,bool *l)
 { (void)r;(void)d;(void)s;(void)n;(void)m;(void)l;assert(!"checkpoint read");return ESP_FAIL; }
 
-static void run(const char *wave,const char *mode,const char *keys,unsigned failure,bool optical)
+static void reset_fixture(const char *keys,unsigned failure)
 {
     display=make_display(); display.papermono_otp=true;display.band_buffer=band;
     display.shadow_valid=true;memcpy(shadow,frame,sizeof(shadow));
@@ -203,11 +205,16 @@ static void run(const char *wave,const char *mode,const char *keys,unsigned fail
     solar_os_gfx_init(&gfx,&display.u8g2);
     status=(solar_os_display_submission_status_t){0};
     physical=cleanups=redraws=0;output_len=0;time_us=0;failure_at=failure;gate_keys=keys;claimed=false;stuck_busy=false;gate_waiting=false;
+}
+static void run(const char *wave,const char *mode,const char *keys,unsigned failure,bool optical)
+{
+    reset_fixture(keys,failure);
+    const bool burst=!strcmp(mode,"burst");
     continuous_fast=optical && !strcmp(mode,"fast");
     char count[8],interval[8];snprintf(count,sizeof(count),"%u",video_following);snprintf(interval,sizeof(interval),"%u",video_interval);
     char *args[]={"display","test","display0","writer-quality",(char*)wave,(char*)mode,video_mode?count:"optical",interval};
     solar_os_shell_io_t io={0};
-    solar_os_writer_quality_command(&io,video_mode?8:optical?7:6,args);
+    solar_os_writer_quality_command(&io,burst?6:video_mode?8:optical?7:6,args);
     const char *outdir=getenv("WQ_OUTPUT_DIR");
     if (outdir && !failure && keys[0]!='q' && !expect_abort) {
         char path[512];
@@ -220,6 +227,16 @@ static void run(const char *wave,const char *mode,const char *keys,unsigned fail
     if (redraws!=1 || cleanups<2) fprintf(stderr,"%s\n",output);
     assert(redraws==1 && physical<=10 && cleanups>=2);
     assert(strstr(output,"healthy=1 restored=1"));
+    if (burst && expect_abort) {
+        assert(physical>=3 && physical<=4 && strstr(output,"aborted=1"));return;
+    }
+    if (burst && keys[0]!='q') {
+        assert(physical<10 && strstr(output,"inputs=29") && strstr(output,"WQ tick "));
+        assert(strstr(output,"WQ snapshot") && strstr(output,"WQ mutation seq=29 version=30"));
+        if (!strcmp(wave,"coalesced")) assert(strstr(output,"allowed=0") && physical<=5);
+        else assert(status.replaced>0 && physical>=6);
+        return;
+    }
     if (expect_abort) {assert(physical==3 && strstr(output,"aborted=1"));return;}
     if (video_mode) {
         assert(physical==video_following+1 && status.replaced==0);
@@ -241,6 +258,61 @@ static void run(const char *wave,const char *mode,const char *keys,unsigned fail
             assert(strstr(output,"WQ mask which=first") && strstr(output,"changes=unmeasured"));
         }
     }
+}
+
+/* Normal CHAR dispatcher, gap buffer, Markdown parse/layout, real raster and
+ * immutable submit all execute. Only executor clock is a boundary model. */
+static void test_burst_edits(unsigned interval,bool pause)
+{
+    reset_fixture("",0);continuous_fast=false;
+    wq_trace_t q={.driver=&display,.video=true,.burst=true,.coalesced=true,.following=9,.budget=10};
+    uint8_t *m=calloc(3,48000);assert(m);
+    q.fixed_mask=m;q.first_mask=m+48000;q.group_mask=m+96000;
+    solar_os_context_t ctx={0};ctx.gfx=&gfx;ctx.output_fn=writer_quality_output_marker;ctx.output_user=&q;
+    assert(solar_os_app_start(&solar_os_writer_app,&ctx)==ESP_OK);
+    assert(wq_drain(&q)==ESP_OK);
+    q.fixed=(wq_roi_t){4,37,120,22};wq_mask(q.fixed_mask,q.fixed);
+    display.trial_observer=wq_observer;display.trial_observer_context=&q;q.armed=true;
+    uint8_t script[]="aaaaaaaaaaaaaaaaaaaabc\b\rd";q.fixture_input=script;
+    unsigned length=sizeof(script)-1;
+    /* Shared 20 a formation in exactly one physical update. */
+    for (unsigned i=0;i<20;i++) {
+        q.input[q.inputs].sent=time_us;
+        solar_os_event_t e={.type=SOLAR_OS_EVENT_CHAR,.data.ch=script[i]};assert(writer_event(&ctx,&e));
+    }
+    vTaskDelay(40);solar_os_event_t tick={.type=SOLAR_OS_EVENT_TICK,.data.tick_ms=(uint32_t)(time_us/1000)};
+    assert(writer_event(&ctx,&tick));assert(wq_drain(&q)==ESP_OK);assert(q.starts==1);
+    vTaskDelay(2000);
+    int64_t next=time_us,deadline=time_us+40000;
+    while (q.inputs<length || writer.render_pending) {
+        if (q.inputs<length && time_us>=next) {
+            q.input[q.inputs].sent=time_us;
+            solar_os_event_t e={.type=SOLAR_OS_EVENT_CHAR,.data.ch=script[q.inputs]};
+            assert(writer_event(&ctx,&e));
+            next+=interval*1000;
+            if (pause && q.inputs==22) next+=250000;
+        }
+        if (time_us>=deadline) {
+            tick.data.tick_ms=(uint32_t)(time_us/1000);assert(writer_event(&ctx,&tick));deadline+=40000;
+        }
+        assert(!q.overflow && !writer.display_error);vTaskDelay(1);
+    }
+    assert(wq_drain(&q)==ESP_OK && !writer.render_pending && !status.pending && !status.busy);
+    char *text=NULL;size_t bytes=0;
+    assert(solar_os_writer_buffer_flatten(&writer.buffer,&text,&bytes)==ESP_OK);
+    assert(bytes==q.initial_length+23 && !strcmp(text+q.initial_length,"aaaaaaaaaaaaaaaaaaaab\nd"));
+    assert(writer.document_version==length+1 && q.policy.rendered_version==writer.document_version);
+    assert(q.frame[q.renders-1].document_hash==writer_quality_document_hash());
+    assert(!memcmp(shadow,frame,sizeof(frame)));free(text);
+    /* Suspension must never turn a pending Tick into a submit. No timer owns
+     * the app: clearing/freed state cannot execute a delayed callback. */
+    writer.suspended=true;writer.render_pending=true;
+    unsigned before=q.renders;tick.data.tick_ms+=40;assert(writer_event(&ctx,&tick));assert(q.renders==before);
+    writer.suspended=false;q.renders=10;
+    before=status.submitted;writer_render(&ctx);
+    assert(q.overflow && status.submitted==before && !writer.render_pending);
+    writer.render_pending=false;display.trial_observer=NULL;display.trial_observer_context=NULL;
+    solar_os_app_stop(&solar_os_writer_app,&ctx);free(m);assert(!writer_state);
 }
 static void test_sparse_observer_matches_full_audit(void)
 {
@@ -292,6 +364,12 @@ int main(void)
     run("baseline","video","gg",3,true);
     expect_abort=true;abort_after=3;run("baseline","video","ggg",0,true);expect_abort=false;
     video_mode=false;
+    run("baseline","burst","gggg",0,false);
+    run("coalesced","burst","gggg",0,false);
+    run("coalesced","burst","gg",3,false);
+    run("baseline","burst","q",0,false);
+    expect_abort=true;abort_after=3;run("coalesced","burst","ggg",0,false);expect_abort=false;
+    test_burst_edits(60,false);test_burst_edits(100,false);test_burst_edits(60,true);
     puts("writer_quality_test: PASS (real editing/raster, planes, pacing, replacement, cap, abort/fault)");
     return 0;
 }

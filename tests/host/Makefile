@@ -220,6 +220,7 @@ WQ_SOURCES := writer_quality_test.c doc_test_support.c $(ROOT)/src/apps/solar_os
     $(TERMINAL_RENDER_U8G2) $(wildcard $(ROOT)/fonts/build/u8g2/*.c)
 writer_quality_test: $(WQ_SOURCES) $(ROOT)/src/apps/solar_os_writer.c \
     $(ROOT)/src/apps/solar_os_writer_quality.inc $(ROOT)/src/apps/solar_os_writer_quality_trace.h \
+    $(ROOT)/src/apps/solar_os_writer_burst_trial.h \
     epd_ssd1677_test.c $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677.h
 	$(CC) $(CFLAGS) -Wno-unused-function -Wno-unused-variable -Wno-unused-parameter -Wno-format-truncation -Wno-sign-compare \
 		-D_GNU_SOURCE -DSOLAR_OS_SSD1677_WAVEFORM_TRIAL=1 -DSOLAR_OS_BOARD_UI_SCALE_PERCENT=140 \

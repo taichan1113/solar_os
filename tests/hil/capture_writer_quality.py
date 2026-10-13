@@ -36,7 +36,7 @@ def allowed_control(state, command):
 
 
 def ready_for_video_following(state):
-    return (state.get('mode')=='video' and state.get('gate')=='first' and
+    return (state.get('mode') in ('video','burst') and state.get('gate')=='first' and
             state.get('starts')==1 and state.get('inputs')==20 and
             'T0' in state.get('points',{}) and not state.get('fault') and
             not state.get('auto_following_sent'))
@@ -47,7 +47,8 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--port", required=True)
     p.add_argument("--waveform", choices=("baseline", "dose"), required=True)
-    p.add_argument("--mode", choices=("slow", "fast", "video"), required=True)
+    p.add_argument("--mode", choices=("slow", "fast", "video", "burst"), required=True)
+    p.add_argument("--policy",choices=("normal","coalesced"),default="normal",help="burst only; both use baseline LUT")
     p.add_argument("--following",type=int,choices=range(1,10))
     p.add_argument("--interval-ms",type=int,default=200)
     p.add_argument("--video-cue",action="store_true",help="Audible T0/T1 sync markers recorded in the video audio; no display update")
@@ -60,7 +61,9 @@ def main():
     if a.optical and a.waveform != "baseline": p.error("optical starts with baseline only")
     if a.mode=='video' and (a.waveform!='baseline' or a.following is None or not 180<=a.interval_ms<=2000):
         p.error('video requires baseline, following 1..9 and interval 180..2000ms')
-    if a.mode!='video' and (a.following is not None or a.video_cue or a.video_auto_following):p.error('video options require video mode')
+    if a.mode=='burst' and (a.waveform!='baseline' or a.following is not None):p.error('burst uses fixed baseline LUT and nine following inputs')
+    if a.mode!='burst' and a.policy!='normal':p.error('policy applies only to burst')
+    if a.mode not in ('video','burst') and (a.following is not None or a.video_cue or a.video_auto_following):p.error('video options require video/burst mode')
     if a.photo_cue and not a.optical: p.error("photo cue requires optical mode")
     if a.photo_cue or a.video_cue:
         import winsound
@@ -71,13 +74,16 @@ def main():
     port.dtr = port.rts = False
     port.open()
     state = dict(waveform=a.waveform, mode=a.mode, gate=None, fault=False, done=False)
+    if a.mode=='burst':state.update(policy=a.policy,following=9,interval_ms=60,
+        auto_following=a.video_auto_following,requested_utc=datetime.now(timezone.utc).isoformat())
     if a.mode=='video':state.update(following=a.following,interval_ms=a.interval_ms,auto_following=a.video_auto_following,
                                    requested_utc=datetime.now(timezone.utc).isoformat())
     offset = 0
     buffered = b""
     with port, a.log.open("xb") as log:
-        suffix=f" {a.following} {a.interval_ms}" if a.mode=='video' else " optical" if a.optical else ""
-        port.write(f"display test display0 writer-quality {a.waveform} {a.mode}{suffix}\r".encode("ascii"))
+        suffix=f" {a.following} {a.interval_ms}" if a.mode=='video' else " optical" if a.optical and a.mode!='burst' else ""
+        selector='coalesced' if a.mode=='burst' and a.policy=='coalesced' else a.waveform
+        port.write(f"display test display0 writer-quality {selector} {a.mode}{suffix}\r".encode("ascii"))
         deadline = time.monotonic() + 1800
         while time.monotonic() < deadline:
             data = port.read(port.in_waiting or 1)

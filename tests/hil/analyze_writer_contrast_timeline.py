@@ -250,6 +250,21 @@ def fit_offset(appearances, physical, t0_us):
         caveat='common visible offset absorbs optical/camera delay; unit clock scale fixed, not calibrated')
 
 
+def burst_sync_indices(physical, formation=20, total=29):
+    """One independently appearing NEW glyph per completed snapshot.
+
+    Replacement/coalescing can make several letters appear in the same update.
+    Select the last new letter in each physical snapshot, never zip nine input
+    letters onto an unrelated number of physical updates.
+    """
+    if not physical or physical[0].get('chars')!=formation or physical[-1].get('chars')!=total:
+        raise ValueError('burst formation/final snapshot mismatch')
+    counts=[r['chars'] for r in physical]
+    if counts!=sorted(set(counts)):
+        raise ValueError('non-monotonic burst physical membership')
+    return [n-formation-1 for n in counts[1:]]
+
+
 def event_intervals(physical, mapping, t0_us, appearances):
     if not mapping.get('valid'):
         return []
@@ -395,12 +410,15 @@ def analyze_experiment(config, out, executable):
     if not source.is_file():
         raise ValueError('original video missing: ' + str(source))
     analysis = journal.analyze(Path(config['log']).read_text(encoding='utf-8'))
-    if not analysis['valid'] or analysis.get('protocol') != 'writer-video':
+    burst=analysis.get('protocol')=='writer-burst'
+    if not analysis['valid'] or analysis.get('protocol') not in ('writer-video','writer-burst'):
         raise ValueError('complete valid Writer video journal required')
+    if burst and (not config.get('camera_pose_id') or 'crop' not in config):
+        raise ValueError('burst requires newly calibrated camera pose ID and native crop')
     previous = json.loads(Path(config['previous']).read_text(encoding='utf-8'))
     corners = json.loads(Path(config['corners']).read_text(encoding='utf-8'))['T0']
     masks = analysis['black_masks']
-    _, cells = immutable_geometry(masks, analysis['first_following_updates'])
+    _, cells = immutable_geometry(masks, 9 if burst else analysis['first_following_updates'])
     hash_before = hashlib.sha256()
     with source.open('rb') as stream:
         for block in iter(lambda: stream.read(1024 * 1024), b''):
@@ -414,7 +432,9 @@ def analyze_experiment(config, out, executable):
     final = initial_mapping['video_origin_s'] + physical[-1]['end'] / 1e6
     out.mkdir()
     (out / 'frames').mkdir()
-    crop = (550, 350, 1000, 180)  # original pixels, contains reference/targets/new-character cells
+    crop = tuple(config.get('crop',(550, 350, 1000, 180)))  # native pixels, no resizing
+    if len(crop)!=4 or any(not isinstance(n,int) for n in crop) or min(crop)<0 or min(crop[2:])<1:
+        raise ValueError('invalid native crop')
     engine = ImageMetrics(masks, corners, cells, crop)
     frozen = [f['actual_video_time_s'] for f in previous['frames']]
     rows, baseline = [], {name: previous['regions'][name]['T0']['C'] for name in masks}
@@ -443,6 +463,9 @@ def analyze_experiment(config, out, executable):
         raise ValueError('no decoded frames')
     appearances = [detect_appearance(rows, i, (initial + .5, initial + 1.5),
                     (final + .5, final + 1.5), (initial + 1.5, final + .5)) for i in range(len(cells))]
+    cell_indices=burst_sync_indices(physical) if burst else list(range(len(cells)))
+    cells=[cells[i] for i in cell_indices]
+    appearances=[appearances[i] for i in cell_indices]
     mapping = fit_offset(appearances, physical[1:], t0_us)
     events = event_intervals(physical[1:], mapping, t0_us, appearances)
     margin = .05 + .10 + mapping.get('empirical_envelope_s', 0)
@@ -474,6 +497,8 @@ def analyze_experiment(config, out, executable):
         row['relative_s'] = row['pts'] - origin
         row['phase'], row['gen'] = phase_for(row['pts'], events, margin)
         row['stable'] = any(a <= row['pts'] <= b for a, b, _ in gaps) and row['valid']
+        if burst:
+            row['input_relative_s']=row['pts']-(origin+(analysis['rows']['input'][20]['sent']-t0_us)/1e6)
     result = dict(experiment=config['id'], source=str(source), source_sha256=hash_before.hexdigest(),
         physical_updates=len(physical), following=len(physical) - 1,
         initial_formation=physical[0],
@@ -487,6 +512,8 @@ def analyze_experiment(config, out, executable):
         guard_sensitivity=sensitivity, fade_onset=onset, post_update_segments=post,
         previous_R={name: previous['regions'][name]['R'] for name in masks},
         frame_count=len(rows), valid_frame_count=sum(r['valid'] for r in rows),
+        policy=analysis.get('policy'),response=analysis.get('response'),
+        camera_pose_id=config.get('camera_pose_id'),sync_cell_indices=cell_indices,
         correlated_frames=True, independent_trials=1,
         caveat='Stable classification assumes stated sensitivity margins; absolute optical/camera latency unbounded.',
         frames=rows)
@@ -495,6 +522,7 @@ def analyze_experiment(config, out, executable):
         fields = ['experiment', 'frame_index', 'pts', 'relative_s', 'gen', 'phase', 'stable',
                   'roi', 'B', 'W', 'C', 'R', 'white_MAD', 'black_MAD', 'C_shift_min', 'C_shift_max',
                   'dx', 'dy', 'valid', 'reason']
+        if burst:fields.append('input_relative_s')
         writer = csv.DictWriter(stream, fieldnames=fields)
         writer.writeheader()
         for row in rows:
@@ -525,9 +553,9 @@ def plot_results(results, out):
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
-    colors = {'A1': '#1768ac', 'A2': '#b33d28', 'B2': '#268447'}
-    fig, axes = plt.subplots(3, 1, figsize=(11, 11), constrained_layout=True)
-    for ax, result in zip(axes, results):
+    colors = {'A1': '#1768ac', 'A2': '#b33d28', 'B2': '#268447', 'C0': '#1768ac', 'C1': '#268447'}
+    fig, axes = plt.subplots(len(results), 1, figsize=(11, max(4,len(results)*3.7)), constrained_layout=True,squeeze=False)
+    for ax, result in zip(axes[:,0], results):
         rows = [r for r in result['frames'] if r['valid'] and -.2 <= r['relative_s'] <= 7]
         for name, color in (('group', colors[result['experiment']]), ('fixed', '#666666')):
             ax.plot([r['relative_s'] for r in rows], [r['regions'][name]['R'] for r in rows], '.-',
@@ -618,13 +646,23 @@ def plot_results(results, out):
                 ax.set_title(appearance['reason']); continue
             t = appearance['video_pts']
             rows = [r for r in result['frames'] if r['valid'] and t - .65 <= r['pts'] <= t + .3]
-            ax.plot([r['pts'] - t for r in rows], [r['sync_signals'][i] for r in rows], '.-', linewidth=.8)
+            cell=result.get('sync_cell_indices',list(range(len(result['appearances']))))[i]
+            ax.plot([r['pts'] - t for r in rows], [r['sync_signals'][cell] for r in rows], '.-', linewidth=.8)
             for key, level in appearance['thresholds'].items():
                 ax.axvspan(level['before_pts'] - t, level['after_pts'] - t, alpha=.15, label=key)
             ax.set(title=f'New letter {i + 1}: original PTS50={t:.6f}; broad transition warning={appearance["transition_warning"]}',
                    xlabel='Seconds relative to this independent 50% appearance', ylabel='Cell dark fraction')
             ax.grid(alpha=.2); ax.legend(loc='upper left', ncol=3)
         fig.savefig(out / result['experiment'] / 'sync-signals.png', dpi=160); plt.close(fig)
+    if any(r.get('policy') for r in results):
+        fig,ax=plt.subplots(figsize=(10,5),constrained_layout=True)
+        for result in results:
+            valid=[r for r in result['frames'] if r['valid'] and r.get('input_relative_s') is not None]
+            ax.plot([r['input_relative_s'] for r in valid],[r['regions']['group']['R'] for r in valid],'.-',
+                linewidth=.8,markersize=2,label=result['experiment']+' '+str(result.get('policy')))
+        ax.set(xlabel='Seconds since first following CHAR (inferred optical correspondence)',ylabel='Group R',
+            title='Same input-start time basis; camera/optical offset not calibrated')
+        ax.grid(alpha=.2);ax.legend();fig.savefig(out/'05-input-start.png',dpi=180);plt.close(fig)
 
 
 def main():

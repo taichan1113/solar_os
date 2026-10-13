@@ -1658,6 +1658,11 @@ static bool writer_event(solar_os_context_t *ctx, const solar_os_event_t *event)
             qi->mutated = esp_timer_get_time();
             qi->request = writer.render_pending ? qi->mutated : 0;
             qi->length = solar_os_writer_buffer_length(&writer.buffer);
+            if (writer.quality->burst) {
+                qi->version = writer.document_version;
+                qi->document_hash = writer_quality_document_hash();
+                wq_burst_input(&writer.quality->policy, qi->mutated);
+            }
         }
 #endif
         const int64_t mutation_end = perf ? esp_timer_get_time() : 0;
@@ -1722,7 +1727,14 @@ static bool writer_event(solar_os_context_t *ctx, const solar_os_event_t *event)
                 writer.render_pending = true;
             }
         }
-        if (writer.render_pending) {
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+        const bool trial_render_allowed = !WRITER_QUALITY_ACTIVE || writer_quality_render_allowed();
+#endif
+        if (writer.render_pending
+#if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+            && trial_render_allowed
+#endif
+        ) {
             writer_render(ctx);
         }
         if (perf && esp_timer_get_time() - start >= 10000) {

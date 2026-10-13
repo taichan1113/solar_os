@@ -9,7 +9,7 @@ from pathlib import Path
 def fields(line):
     result = {}
     for key, value in re.findall(r"(\w+)=(\S+)", line):
-        result[key] = int(value) if re.fullmatch(r"-?\d+", value) and key not in ("hash","black") else value
+        result[key] = int(value) if re.fullmatch(r"-?\d+", value) and not key.endswith("hash") and key != "black" else value
     return result
 
 
@@ -18,7 +18,7 @@ def analyze(text):
     # its newline. Missing fields still invalidate the capture; never invent them.
     journal = re.sub(r"(?<!\n)(WQ \w+ )", r"\n\1", text)
     rows = {kind: [fields(line) for line in journal.splitlines() if f"WQ {kind} " in line]
-            for kind in ("begin", "protocol", "video", "plan", "group", "retained", "roi", "point", "mask", "scope", "input", "frame", "physical", "observation", "summary", "exit")}
+            for kind in ("begin", "protocol", "video", "burst", "mutation", "snapshot", "tick", "plan", "group", "retained", "roi", "point", "mask", "scope", "input", "frame", "physical", "observation", "summary", "exit")}
     errors = []
     def check(ok, message):
         if not ok:
@@ -32,14 +32,23 @@ def analyze(text):
         return dict(valid=False, errors=errors, rows=rows, optical_C="未測定", optical_R="未測定")
     summary, begin = rows["summary"][0], rows["begin"][0]
     optical=bool(rows['protocol']) and rows['protocol'][0].get('continuous')==1
-    video=bool(rows['video'])
-    plan=rows['video'][0] if video else {}
+    burst=bool(rows['burst'])
+    video=bool(rows['video']) or burst
+    plan=rows['burst'][0] if burst else rows['video'][0] if video else {}
     formation=plan.get('formation',1);following=plan.get('following',9)
     if not isinstance(formation,int) or not isinstance(following,int) or not 1<=formation<=20 or not 1<=following<=9:
         check(False,'invalid video formation/count');formation=20;following=9
     expected_text=b'a'*formation+b'bcdefghij'[:following] if video else b'abcdefghij'
     budget=1+following if video else 10
-    if video:
+    if burst:
+        check(len(rows['burst'])==len(rows['plan'])==1 and not rows['video'] and optical and
+              begin.get('mode')=='burst' and begin.get('waveform')=='baseline' and
+              formation==20 and following==9 and plan.get('interval_ms')==60 and
+              plan.get('max_fast')==10 and plan.get('policy') in ('normal','coalesced') and
+              plan.get('period_us')==160000 and plan.get('idle_us')==80000,'invalid burst plan')
+        check(bool(rows['plan']) and rows['plan'][0].get('aborted')==0 and
+              rows['plan'][0].get('budget')==10,'burst aborted or budget mismatch')
+    elif video:
         check(len(rows['video'])==len(rows['plan'])==1 and optical and begin.get('mode')=='video' and
               begin.get('waveform')=='baseline' and formation==20 and 1<=following<=9,
               'invalid video plan')
@@ -56,7 +65,7 @@ def analyze(text):
     check(len(physical) <= budget and len(frames) <= budget and not summary.get("overflow"), "update budget violated")
     check([r.get("seq") for r in inputs] == list(range(1,len(expected_text)+1)), "input sequence mismatch")
     check([r.get("ch") for r in inputs] == list(expected_text), "input text mismatch")
-    if video:
+    if video and not burst:
         check(len(physical)==len(frames)==summary.get('started')==budget and summary.get('replaced')==0,
               'specified physical count missing, extra or replaced')
         check([r.get('chars') for r in frames]==list(range(formation,formation+following+1)),
@@ -64,6 +73,30 @@ def analyze(text):
     for r in inputs:
         check(r.get("sent",0) <= r.get("accepted",0) <= r.get("mutated",0), "input timing order")
         if video:check(r.get('request',0)>=r.get('mutated',1),'video render request missing')
+    if burst:
+        check([r.get('version') for r in rows['mutation']]==list(range(2,31)) and
+              [r.get('seq') for r in rows['mutation']]==list(range(1,30)), 'mutation/version order')
+        check([r.get('gen') for r in frames]==sorted(set(r.get('gen',0) for r in frames)),
+              'generation order/duplicate')
+        check([r.get('chars') for r in frames]==sorted(set(r.get('chars',0) for r in frames)) and
+              bool(frames) and frames[0].get('chars')==20, 'formation/snapshot order')
+        snapshots={r.get('gen'):r for r in rows['snapshot']}
+        mutations={r.get('seq'):r for r in rows['mutation']}
+        check(len(snapshots)==len(frames)==len(rows['snapshot']), 'snapshot version journal missing/duplicate')
+        for f in frames:
+            m=mutations.get(f.get('chars'),{});s=snapshots.get(f.get('gen'),{})
+            check(s.get('version')==m.get('version') and s.get('document_hash')==m.get('document_hash')
+                  and bool(m.get('document_hash')),'snapshot/document mismatch')
+            check(f.get('submit_start',0)>=inputs[f['chars']-1].get('mutated',1)
+                  if isinstance(f.get('chars'),int) and 1<=f['chars']<=len(inputs) else False,
+                  'snapshot submitted before its input')
+        ticks=rows['tick']
+        check(bool(ticks) and len(ticks)<=96 and [t.get('time') for t in ticks]==sorted(set(t.get('time',0) for t in ticks)),
+              'tick journal missing/duplicate/order')
+        for t in ticks:
+            check(t.get('rendered',0)<=t.get('version',-1) and not t.get('fault') and
+                  not t.get('suspended'), 'invalid tick state')
+        check(summary.get('started')==len(physical), 'physical/start mismatch')
     by_hash = {r.get("hash"): r for r in frames}
     if video:
         for f in frames:
@@ -106,6 +139,8 @@ def analyze(text):
                              if len(inputs)>i]
     if begin.get("mode") == "fast":
         check(all(t>=begin.get("fast_interval_ms",60)*1000 for t in burst_input_intervals), "fast input interval below specified rate")
+    if burst:
+        check(all(abs(t-60000)<=10000 for t in burst_input_intervals), 'burst input spacing mismatch')
     masks={}
     if optical:
         check(not any(r.get('stage') in ('plus3','plus6') for r in rows['observation']), 'intermediate optical observation gate')
@@ -130,9 +165,9 @@ def analyze(text):
             except (IndexError,KeyError,ValueError,TypeError):
                 check(False,'invalid optical black masks')
     if video:
-        check([r.get('ordinal') for r in physical]==list(range(1,budget+1)), 'physical ordinal mismatch')
+        check([r.get('ordinal') for r in physical]==list(range(1,len(physical)+1)), 'physical ordinal mismatch')
         retained=rows['retained']
-        check([r.get('ordinal') for r in retained]==list(range(1,budget+1)), 'group audit missing')
+        check([r.get('ordinal') for r in retained]==list(range(1,len(physical)+1)), 'group audit missing')
         if retained and 'group' in masks:
             black=masks['group']['black_pixels'];_,_,w,h=masks['group']['roi']
             for r in retained[1:]:
@@ -147,6 +182,28 @@ def analyze(text):
                 group=int.from_bytes(bytes.fromhex(b),'big') >> (((gw+7)//8)*8-gw)
                 check(all((group>>(w*i))&((1<<w)-1)==first for i in range(formation)),
                       'repeated glyph shape mismatch')
+    response={}
+    if burst:
+        mapping=[]
+        for i in inputs:
+            completion=next((r for r in physical if r.get('chars',0)>=i.get('seq',1000)),None)
+            if completion is None:
+                check(False,'input never completed');continue
+            check(completion.get('end',0)>=i.get('mutated',1), 'input completes before mutation')
+            mapping.append(dict(seq=i['seq'],ch=i['ch'],generation=completion.get('gen'),
+                                sent_us=i['sent'],completed_us=completion.get('end'),
+                                latency_us=completion.get('end',0)-i['sent']))
+        following_latencies=[r['latency_us'] for r in mapping if r['seq']>20]
+        def percentile(values,q):
+            return sorted(values)[max(0,__import__('math').ceil(len(values)*q)-1)] if values else None
+        ends=[r['end'] for r in physical[1:] if 'end' in r]
+        response=dict(mapping=mapping, formation_first_us=mapping[0]['latency_us'] if mapping else None,
+            first_us=following_latencies[0] if following_latencies else None,
+            p50_us=percentile(following_latencies,.5),p95_us=percentile(following_latencies,.95),
+            maximum_us=max(following_latencies,default=None),final_us=following_latencies[-1] if following_latencies else None,
+            max_no_update_us=max([ends[0]-inputs[20]['sent']] + [b-a for a,b in zip(ends,ends[1:])],default=None)
+                if ends and len(inputs)>20 else None,
+            basis='CHAR sent to first containing snapshot Driver completion; not calibrated optical visibility')
     return dict(valid=not errors, errors=errors, waveform=begin.get("waveform"), mode=begin.get("mode"),
                 input_count=len(inputs), render_count=len(frames), physical_count=len(physical),
                 replaced=replaced, first_following_updates=max(0,len(physical)-1),
@@ -158,7 +215,8 @@ def analyze(text):
                     if physical and all("total_us" in r for r in physical) else None,
                 observer_p50_us=statistics.median(r["observer_us"] for r in physical)
                     if physical and all("observer_us" in r for r in physical) else None,
-                observations=rows["observation"], protocol="writer-video" if video else "continuous-optical" if optical else "stepped",
+                observations=rows["observation"], protocol="writer-burst" if burst else "writer-video" if video else "continuous-optical" if optical else "stepped",
+                policy=plan.get('policy') if burst else None, response=response,
                 target_interval_ms=plan.get('interval_ms') if video else None,
                 black_masks=masks,optical_C="未測定", optical_R="未測定", rows=rows)
 

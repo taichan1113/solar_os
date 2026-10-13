@@ -153,7 +153,7 @@ def main():
     p.add_argument('--offsets',default='0.5,1,1.5')
     a=p.parse_args();executable=ffmpeg_path(a.ffmpeg)
     analysis=json.loads(a.analysis.read_text(encoding='utf-8'))
-    if not analysis.get('valid') or analysis.get('protocol')!='writer-video':
+    if not analysis.get('valid') or analysis.get('protocol') not in ('writer-video','writer-burst'):
         raise ValueError('complete validated Writer video journal required')
     if not a.video.is_file():raise ValueError('original video missing; no density estimate')
     if a.output_dir.exists():raise ValueError('use a new output directory; original and prior frames are preserved')

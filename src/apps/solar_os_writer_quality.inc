@@ -83,6 +83,34 @@ static void writer_quality_render_begin(void)
     r->chars=q->inputs; r->length=solar_os_writer_buffer_length(&writer.buffer);
     r->doc_start=q->doc_start; r->doc_end=q->doc_end;
     r->render_start=esp_timer_get_time();
+    if (q->burst) {
+        r->version=writer.document_version;
+        r->document_hash=writer_quality_document_hash();
+    }
+}
+
+static uint32_t writer_quality_document_hash(void)
+{
+    /* Gap-buffer segments, no flatten/allocation on the input path. */
+    const solar_os_writer_buffer_t *b=&writer.buffer;
+    uint32_t h=UINT32_C(2166136261);
+    for (size_t i=0;i<b->gap_start;i++) h=(h^(uint8_t)b->data[i])*UINT32_C(16777619);
+    for (size_t i=b->gap_end;i<b->capacity;i++) h=(h^(uint8_t)b->data[i])*UINT32_C(16777619);
+    return h;
+}
+
+static bool writer_quality_render_allowed(void)
+{
+    wq_trace_t *q=writer.quality;
+    if (!q->burst) return true;
+    const int64_t now=esp_timer_get_time();
+    const bool allowed=!writer.suspended && !writer.display_error && !q->overflow &&
+        (!q->coalesced || wq_burst_allowed(&q->policy,now));
+    if (q->ticks>=WQ_TICK_LIMIT) {q->overflow=true;return false;}
+    q->tick[q->ticks++]=(wq_tick_t){.time=now,.version=writer.document_version,
+        .rendered_version=q->policy.rendered_version,.pending=writer.render_pending,
+        .allowed=allowed,.suspended=writer.suspended,.fault=writer.display_error!=ESP_OK};
+    return allowed;
 }
 
 static void writer_quality_render_end(solar_os_gfx_t *gfx, uint64_t *generation,
@@ -131,6 +159,7 @@ static void writer_quality_render_end(solar_os_gfx_t *gfx, uint64_t *generation,
     *error=solar_os_gfx_submit(gfx,generation);
     r->submit_end=esp_timer_get_time(); r->generation=*generation;
     (void)solar_os_gfx_submission_status(gfx,&r->status);
+    if (q->burst && *error==ESP_OK) wq_burst_rendered(&q->policy,r->submit_end,r->version);
 }
 
 static esp_err_t wq_observer(void *context, const uint8_t *frame, bool end, esp_err_t error)
@@ -305,6 +334,43 @@ static esp_err_t wq_drain(wq_trace_t *q)
     return err;
 }
 
+/* Absolute CHAR deadlines independent of render_pending and completion. One
+ * Tick every 40ms; no drain until the trailing render has submitted all input.
+ * Real executor owns/replaces pending snapshots exactly as in production. */
+static esp_err_t wq_burst_segment(solar_os_shell_io_t *io,solar_os_context_t *ctx,wq_trace_t *q)
+{
+    const int64_t start=esp_timer_get_time();
+    int64_t next_input=start,next_tick=start+40000;
+    while (q->inputs<WQ_FORMATION_CHARS+q->following || writer.render_pending) {
+        if (wq_video_cancel(io,q)) {writer.render_pending=false;return ESP_OK;}
+        const int64_t now=esp_timer_get_time();
+        /* Never catch up by silently delivering multiple overdue inputs. */
+        if (now-start>5000000 || (now-next_input>40000 && q->inputs<WQ_FORMATION_CHARS+q->following))
+            return ESP_ERR_TIMEOUT;
+        if (q->inputs<WQ_FORMATION_CHARS+q->following && now>=next_input) {
+            q->input[q->inputs].sent=now;
+            const solar_os_event_t e={.type=SOLAR_OS_EVENT_CHAR,.data.ch=wq_expected_char(q)};
+            if (!writer_event(ctx,&e)) return ESP_ERR_INVALID_STATE;
+            next_input+=WQ_FAST_INTERVAL_US;
+        }
+        if (now>=next_tick) {
+            const solar_os_event_t e={.type=SOLAR_OS_EVENT_TICK,.data.tick_ms=(uint32_t)(now/1000)};
+            writer_event(ctx,&e);
+            next_tick+=40000;
+            if (writer.display_error || q->overflow) return ESP_ERR_INVALID_STATE;
+        }
+        solar_os_display_submission_status_t s={0};
+        if (solar_os_display_submission_status(&q->driver->u8g2,&s)!=ESP_OK || s.error)
+            return ESP_ERR_INVALID_STATE;
+        vTaskDelay(1);
+    }
+    esp_err_t err=wq_drain(q);
+    if (err==ESP_OK && (!q->renders || q->policy.rendered_version!=writer.document_version ||
+        q->frame[q->renders-1].chars!=q->inputs ||
+        q->frame[q->renders-1].document_hash!=writer_quality_document_hash())) err=ESP_ERR_INVALID_STATE;
+    return err;
+}
+
 /* Use the app's declared 40ms Tick cadence. In the Host three-character burst,
  * 80ms can leave no pending replacement (40,80,160ms raster deadlines).
  * 60ms gives 40,80,120ms deadlines against measured warm ~112ms. Actual
@@ -367,6 +433,8 @@ static void wq_dump(solar_os_shell_io_t *io, wq_trace_t *q,
         const wq_input_t *r=&q->input[i];
         solar_os_shell_io_printf(io,"WQ input seq=%u ch=%u len=%u sent=%lld accepted=%lld mutated=%lld request=%lld\n",
             r->seq,r->ch,r->length,(long long)r->sent,(long long)r->accepted,(long long)r->mutated,(long long)r->request);
+        if (q->burst) solar_os_shell_io_printf(io,"WQ mutation seq=%u version=%llu document_hash=%08lx\n",
+            r->seq,(unsigned long long)r->version,(unsigned long)r->document_hash);
     }
     for (unsigned i=0;i<q->renders;i++) {
         const wq_frame_t *r=&q->frame[i];
@@ -379,6 +447,8 @@ static void wq_dump(solar_os_shell_io_t *io, wq_trace_t *q,
         solar_os_shell_io_printf(io,"submit_start=%lld submit_end=%lld replaced=%u completed=%llu busy=%u pending=%u cursor=0\n",
             (long long)r->submit_start,(long long)r->submit_end,r->status.replaced,
             (unsigned long long)r->status.completed_id,r->status.busy,r->status.pending);
+        if (q->burst) solar_os_shell_io_printf(io,"WQ snapshot gen=%llu version=%llu document_hash=%08lx\n",
+            (unsigned long long)r->generation,(unsigned long long)r->version,(unsigned long)r->document_hash);
     }
     for (unsigned i=0;i<q->starts;i++) {
         const wq_physical_t *r=&q->physical[i]; const epd_ssd1677_timing_t *t=&r->timing;
@@ -400,16 +470,25 @@ static void wq_dump(solar_os_shell_io_t *io, wq_trace_t *q,
         if (q->video) solar_os_shell_io_printf(io,"WQ retained ordinal=%u group_change=%u group00=%u group11=%u\n",
             i+1,r->group_changed,r->group_00,r->group_11);
     }
+    if (q->burst) for (unsigned i=0;i<q->ticks;i++) {
+        const wq_tick_t *t=&q->tick[i];
+        solar_os_shell_io_printf(io,"WQ tick time=%lld version=%llu rendered=%llu pending=%u allowed=%u suspended=%u fault=%u\n",
+            (long long)t->time,(unsigned long long)t->version,(unsigned long long)t->rendered_version,
+            t->pending,t->allowed,t->suspended,t->fault);
+    }
 }
 
 void solar_os_writer_quality_command(solar_os_shell_io_t *io, int argc, char **argv)
 {
     static const char owner[]="shell:writer-quality";
-    const bool video=argc==8 && !strcmp(argv[5],"video");
+    const bool burst=argc==6 && !strcmp(argv[5],"burst");
+    const bool coalesced=burst && !strcmp(argv[4],"coalesced");
+    const bool video=burst || (argc==8 && !strcmp(argv[5],"video"));
     const bool optical=video || (argc==7 && !strcmp(argv[6],"optical"));
     char *tail=NULL;
     unsigned following=0,interval_ms=0;
-    if (video) {
+    if (burst) {following=9;interval_ms=60;}
+    else if (video) {
         unsigned long n=strtoul(argv[6],&tail,10);
         if (*tail || n<1 || n>9) goto usage;
         following=(unsigned)n;
@@ -418,13 +497,14 @@ void solar_os_writer_quality_command(solar_os_shell_io_t *io, int argc, char **a
         interval_ms=(unsigned)n;
     }
     if ((argc!=6 && !optical) || argc<6 || strcmp(argv[2],"display0") || strcmp(argv[3],"writer-quality") ||
-        (strcmp(argv[4],"baseline") && strcmp(argv[4],"dose")) ||
-        (optical && strcmp(argv[4],"baseline")) ||
+        (strcmp(argv[4],"baseline") && strcmp(argv[4],"dose") && !coalesced) ||
+        (optical && strcmp(argv[4],"baseline") && !coalesced) ||
         (!video && strcmp(argv[5],"slow") && strcmp(argv[5],"fast")) ||
         solar_os_shell_io_kind(io)!=SOLAR_OS_SHELL_IO_KIND_PORT) {
 usage:
         solar_os_shell_io_writeln(io,"usage (serial): display test display0 writer-quality baseline|dose slow|fast [optical (baseline only)]");
-        solar_os_shell_io_writeln(io,"video: display test display0 writer-quality baseline video <following 1..9> <interval_ms 180..2000>");return;
+        solar_os_shell_io_writeln(io,"video: display test display0 writer-quality baseline video <following 1..9> <interval_ms 180..2000>");
+        solar_os_shell_io_writeln(io,"burst: display test display0 writer-quality baseline|coalesced burst (baseline LUT)");return;
     }
     solar_os_display_target_t target;
     if (writer_state || !solar_os_display_find_target(argv[2],&target) || !target.ready ||
@@ -453,6 +533,7 @@ usage:
     bool healthy=false,started=false,configured=false;
     if (!q || !ctx) { err=ESP_ERR_NO_MEM; goto done; }
     q->driver=d; q->optical=optical;q->video=video;
+    q->burst=burst;q->coalesced=coalesced;
     q->following=following;q->interval_ms=interval_ms;q->budget=video?1+following:WQ_LIMIT;
     q->fixed_mask=solar_os_memory_calloc(1,video?144000:96000,SOLAR_OS_MEMORY_EXTERNAL_REQUIRED,"writer-quality-masks");
     if (!q->fixed_mask) { err=ESP_ERR_NO_MEM; goto done; }
@@ -470,9 +551,11 @@ usage:
     err=solar_os_gfx_submit(gfx,&gen); if (err==ESP_OK) err=wq_drain(q);
     if (err!=ESP_OK) { healthy=false; goto done; }
     q->completed_at=esp_timer_get_time();
-    solar_os_shell_io_printf(io,"WQ begin waveform=%s mode=%s text=abcdefghij zoom=4 spi=40000000 path=tile tick_ms=40 fast_interval_ms=60 max_fast=10 storage=none\n",argv[4],argv[5]);
+    solar_os_shell_io_printf(io,"WQ begin waveform=%s mode=%s text=abcdefghij zoom=4 spi=40000000 path=tile tick_ms=40 fast_interval_ms=60 max_fast=10 storage=none\n",burst?"baseline":argv[4],argv[5]);
     if (optical) solar_os_shell_io_writeln(io,"WQ protocol continuous=1 observer=roi hash_scope=typing-roi global_changes=unmeasured settle_us=2000000");
-    if (video) solar_os_shell_io_printf(io,"WQ video following=%u formation=%u interval_ms=%u max_fast=%u baseline_only=1\n",
+    if (burst) solar_os_shell_io_printf(io,"WQ burst policy=%s following=9 formation=20 interval_ms=60 max_fast=10 period_us=%d idle_us=%d\n",
+        coalesced?"coalesced":"normal",WQ_BURST_PERIOD_US,WQ_BURST_IDLE_US);
+    else if (video) solar_os_shell_io_printf(io,"WQ video following=%u formation=%u interval_ms=%u max_fast=%u baseline_only=1\n",
         following,WQ_FORMATION_CHARS,interval_ms,q->budget);
     if (!wq_gate(io,q,"white")) goto done;
     solar_os_context_init(ctx,NULL,gfx);
@@ -502,7 +585,7 @@ usage:
     d->trial_observer_context=q; d->trial_observer=wq_observer; q->armed=true;
     const unsigned stops[]={1,4,7,10}; const char *stages[]={"first","plus3","plus6","final"};
     for (unsigned i=0;i<(optical?2U:4U);i++) {
-        err=video ? wq_video_segment(io,ctx,q,!i) :
+        err=burst && i ? wq_burst_segment(io,ctx,q) : video ? wq_video_segment(io,ctx,q,!i) :
             wq_segment(ctx,q,optical?(i?10U:1U):stops[i],!strcmp(argv[5],"slow") || i==0);
         if (err!=ESP_OK) { healthy=false; break; }
         if (q->aborted) break;
@@ -512,7 +595,7 @@ usage:
         }
         if (!wq_gate(io,q,optical?(i?"final":"first"):stages[i])) break;
     }
-    if (video && !q->aborted && err==ESP_OK) {
+    if (video && !burst && !q->aborted && err==ESP_OK) {
         solar_os_display_submission_status_t after={0};
         (void)solar_os_display_submission_status(target.u8g2,&after);
         if (q->starts!=q->budget || q->renders!=q->budget || q->inputs!=WQ_FORMATION_CHARS+following ||
