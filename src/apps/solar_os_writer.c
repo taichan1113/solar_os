@@ -1420,7 +1420,7 @@ static void writer_render(solar_os_context_t *ctx)
     }
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     if (WRITER_QUALITY_ACTIVE) {
-        if (writer.quality->armed && writer.quality->renders >= WQ_LIMIT) {
+        if (writer.quality->armed && writer.quality->renders >= wq_budget(writer.quality)) {
             writer.quality->overflow = true;
             writer.render_pending = false;
             return; /* reserve before submit, including active/pending requests */
@@ -1509,13 +1509,17 @@ static esp_err_t writer_start(solar_os_context_t *ctx)
     if (ctx->output_fn == writer_quality_output_marker && ctx->output_user) {
         static const char reference[] =
             "FIXED REFERENCE\n\nThe quick brown fox jumps over the lazy dog\n\n";
+        static const char video_reference[] =
+            "VIDEO WRITER TRIAL\n\nOTP reference aaaaaaaaaaaa\n\n"
+            "Stable reference\n\nPOSITION 01234567890123456789 ";
         writer.quality = ctx->output_user;
         writer.discard_on_stop = true;
         writer.zoom = 4;
         strlcpy(writer.display_name, "quality (RAM)", sizeof(writer.display_name));
-        esp_err_t ret = solar_os_writer_buffer_set(&writer.buffer, reference, sizeof(reference)-1);
+        const char *seed=writer.quality->video ? video_reference : reference;
+        esp_err_t ret = solar_os_writer_buffer_set(&writer.buffer, seed, strlen(seed));
         if (ret != ESP_OK) return ret;
-        writer.cursor = sizeof(reference)-1;
+        writer.cursor = strlen(seed);
         writer.quality->initial_length = writer.cursor;
         writer.loaded = writer.parse_pending = writer.layout_pending = writer.render_pending = true;
         ret = writer_update_document(ctx);
@@ -1639,8 +1643,8 @@ static bool writer_event(solar_os_context_t *ctx, const solar_os_event_t *event)
         wq_input_t *qi = NULL;
         if (WRITER_QUALITY_ACTIVE) {
             wq_trace_t *q = writer.quality;
-            if (!q->armed || q->inputs >= WQ_LIMIT ||
-                event->data.ch != "abcdefghij"[q->inputs]) return false;
+            if (!q->armed || q->inputs >= (q->video ? WQ_INPUT_LIMIT : WQ_LIMIT) ||
+                event->data.ch != wq_expected_char(q)) return false;
             qi = &q->input[q->inputs++];
             qi->seq = q->inputs; qi->ch = (uint8_t)event->data.ch;
             qi->accepted = esp_timer_get_time();

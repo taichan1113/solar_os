@@ -21,6 +21,8 @@ static uint64_t pending_id, active_id;
 static int64_t finish_at;
 static unsigned physical, cleanups, redraws, failure_at;
 static bool claimed, continuous_fast;
+static bool gate_waiting, video_mode,expect_abort;
+static unsigned video_following,video_interval=200,abort_after;
 static const char *gate_keys;
 static char output[50000]; static size_t output_len;
 static solar_os_log_level_t level=SOLAR_OS_LOG_LEVEL_INFO;
@@ -111,6 +113,8 @@ solar_os_shell_io_kind_t solar_os_shell_io_kind(const solar_os_shell_io_t *io) {
 esp_err_t solar_os_shell_io_printf(solar_os_shell_io_t *io,const char *format,...)
 {
     (void)io;va_list ap;va_start(ap,format);
+    if (!strncmp(format,"WQ gate=",8)) gate_waiting=true;
+    if (!strncmp(format,"WQ observation ",15)) gate_waiting=false;
     char fragment[192]; /* Same per-call limit as the real Shell. */
     int n=vsnprintf(fragment,sizeof(fragment),format,ap);va_end(ap);
     assert(n>=0 && (size_t)n<sizeof(fragment) && (size_t)n<sizeof(output)-output_len);
@@ -139,7 +143,15 @@ esp_err_t solar_os_shell_io_write(solar_os_shell_io_t *io,const char *s)
 { return solar_os_shell_io_printf(io,"%s",s); }
 esp_err_t solar_os_shell_io_flush(solar_os_shell_io_t *io) { (void)io;return ESP_OK; }
 esp_err_t solar_os_port_read(const solar_os_port_handle_t *port,uint8_t *data,size_t size,uint32_t timeout,size_t *n)
-{ (void)port;assert(size==1 && !timeout && *gate_keys);assert(!status.busy && !status.pending);*(char*)data=*gate_keys++;*n=1;return ESP_OK; }
+{
+    (void)port;assert(size==1 && !timeout);
+    if (!gate_waiting) {
+        *n=0;
+        if (abort_after && physical>=abort_after) {*data='q';*n=1;abort_after=0;}
+        return ESP_OK;
+    }
+    assert(*gate_keys && !status.busy && !status.pending);*(char*)data=*gate_keys++;*n=1;return ESP_OK;
+}
 esp_err_t solar_os_log_get_status(solar_os_log_status_t *s) { *s=(solar_os_log_status_t){.level=level};return ESP_OK; }
 esp_err_t solar_os_log_set_level(solar_os_log_level_t l) { level=l;return ESP_OK; }
 solar_os_gfx_t *solar_os_context_gfx(solar_os_context_t *ctx) { return ctx->gfx; }
@@ -190,14 +202,17 @@ static void run(const char *wave,const char *mode,const char *keys,unsigned fail
     u8g2_SetupBuffer(&display.u8g2,frame,60,u8g2_ll_hvline_vertical_top_lsb,U8G2_R2);
     solar_os_gfx_init(&gfx,&display.u8g2);
     status=(solar_os_display_submission_status_t){0};
-    physical=cleanups=redraws=0;output_len=0;time_us=0;failure_at=failure;gate_keys=keys;claimed=false;stuck_busy=false;
+    physical=cleanups=redraws=0;output_len=0;time_us=0;failure_at=failure;gate_keys=keys;claimed=false;stuck_busy=false;gate_waiting=false;
     continuous_fast=optical && !strcmp(mode,"fast");
-    char *args[]={"display","test","display0","writer-quality",(char*)wave,(char*)mode,"optical"};
+    char count[8],interval[8];snprintf(count,sizeof(count),"%u",video_following);snprintf(interval,sizeof(interval),"%u",video_interval);
+    char *args[]={"display","test","display0","writer-quality",(char*)wave,(char*)mode,video_mode?count:"optical",interval};
     solar_os_shell_io_t io={0};
-    solar_os_writer_quality_command(&io,optical?7:6,args);
+    solar_os_writer_quality_command(&io,video_mode?8:optical?7:6,args);
     const char *outdir=getenv("WQ_OUTPUT_DIR");
-    if (outdir && !failure && keys[0]!='q') {
-        char path[512];snprintf(path,sizeof(path),"%s/%s-%s%s.log",outdir,wave,mode,optical?"-optical":"");
+    if (outdir && !failure && keys[0]!='q' && !expect_abort) {
+        char path[512];
+        if (video_mode) snprintf(path,sizeof(path),"%s/baseline-video-%u-%u.log",outdir,video_following,video_interval);
+        else snprintf(path,sizeof(path),"%s/%s-%s%s.log",outdir,wave,mode,optical?"-optical":"");
         FILE *f=fopen(path,"w");assert(f);fwrite(output,1,output_len,f);fclose(f);
     }
     assert(!writer_state && !claimed && !display.trial_observer);
@@ -205,6 +220,15 @@ static void run(const char *wave,const char *mode,const char *keys,unsigned fail
     if (redraws!=1 || cleanups<2) fprintf(stderr,"%s\n",output);
     assert(redraws==1 && physical<=10 && cleanups>=2);
     assert(strstr(output,"healthy=1 restored=1"));
+    if (expect_abort) {assert(physical==3 && strstr(output,"aborted=1"));return;}
+    if (video_mode) {
+        assert(physical==video_following+1 && status.replaced==0);
+        assert(strstr(output,"WQ mask which=group") && strstr(output,"group_change=0"));
+        assert(strstr(output,"WQ point name=T0") && strstr(output,"WQ point name=T1"));
+        long long n=field(strstr(output,"WQ roi "),"first=");
+        assert(n>=200 && n<=400); /* central actual Writer source-to-XY */
+        return;
+    }
     if (keys[0]!='q') {
         if (!strstr(output,"inputs=10 renders=10")) fprintf(stderr,"%s\n",output);
         assert(strstr(output,"inputs=10 renders=10"));
@@ -244,10 +268,30 @@ int main(void)
     memcpy(previous,shadow,sizeof(previous));command_count=0;
     assert(epd_ssd1677_present_snapshot(&display,frame,sizeof(frame))==ESP_ERR_INVALID_STATE);
     assert(!command_count && !display.snapshot && !memcmp(previous,shadow,sizeof(previous)) && budget.overflow);
+    budget.budget=6;budget.starts=6;budget.overflow=false;
+    assert(epd_ssd1677_present_snapshot(&display,frame,sizeof(frame))==ESP_ERR_INVALID_STATE);
+    assert(!command_count && !display.snapshot && !memcmp(previous,shadow,sizeof(previous)) && budget.overflow);
     display.trial_observer=NULL;display.trial_observer_context=NULL;
+    {
+        solar_os_shell_io_t io={0};
+        char *bad[]={"display","test","display0","writer-quality","baseline","video","0","200"};
+        const unsigned before=physical;
+        solar_os_writer_quality_command(&io,8,bad);
+        bad[6]="10";solar_os_writer_quality_command(&io,8,bad);
+        bad[6]="5";bad[7]="179";solar_os_writer_quality_command(&io,8,bad);
+        bad[7]="500";bad[4]="dose";solar_os_writer_quality_command(&io,8,bad);
+        assert(physical==before && !claimed && !writer_state);
+    }
     run("baseline","slow","q",0,false);run("baseline","slow","gg",3,false);
     run("baseline","fast","gg",3,true);
     test_sparse_observer_matches_full_audit();
+    video_mode=true;
+    video_following=5;run("baseline","video","gggg",0,true);
+    video_following=9;run("baseline","video","gggg",0,true);
+    video_following=5;video_interval=500;run("baseline","video","gggg",0,true);
+    run("baseline","video","gg",3,true);
+    expect_abort=true;abort_after=3;run("baseline","video","ggg",0,true);expect_abort=false;
+    video_mode=false;
     puts("writer_quality_test: PASS (real editing/raster, planes, pacing, replacement, cap, abort/fault)");
     return 0;
 }

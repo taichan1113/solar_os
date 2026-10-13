@@ -41,14 +41,18 @@ static uint32_t wq_roi_hash(const uint8_t *frame, wq_roi_t roi)
 }
 
 static void wq_roi_audit(wq_trace_t *q, wq_physical_t *r, const uint8_t *frame,
-                         wq_roi_t roi, const uint8_t *mask, bool first)
+                         wq_roi_t roi, const uint8_t *mask, unsigned which)
 {
     const int top=479-(roi.y+roi.h-1), bottom=479-roi.y;
     for (int band=top/8;band<=bottom/8;band++)
         for (int x=800-roi.x-roi.w;x<800-roi.x;x++) {
             const size_t i=(size_t)band*800+(size_t)x;
             const unsigned a=q->driver->shadow[i], b=frame[i], m=mask[i];
-            if (first) {
+            if (which==2) {
+                r->group_changed+=(unsigned)__builtin_popcount((a^b)&m);
+                r->group_00+=(unsigned)__builtin_popcount(~(a|b)&m);
+                r->group_11+=(unsigned)__builtin_popcount(a&b&m);
+            } else if (which==1) {
                 r->first_changed+=(unsigned)__builtin_popcount((a^b)&m);
                 r->first_00+=(unsigned)__builtin_popcount(~(a|b)&m);
             } else {
@@ -94,11 +98,22 @@ static void writer_quality_render_end(solar_os_gfx_t *gfx, uint64_t *generation,
         q->overflow=true; *error=ESP_ERR_INVALID_STATE; return;
     }
     const wq_roi_t first={WRITER_MARGIN_X+x,WRITER_HEADER_H+WRITER_MARGIN_Y+y,end_x-x,h};
+    wq_roi_t group=first;
+    if (q->video) {
+        if (!solar_os_doc_layout_source_to_xy(&writer.layout,q->initial_length+WQ_FORMATION_CHARS,
+                                             &end_x,&end_y,NULL) || end_y!=y || end_x<=x) {
+            q->overflow=true; *error=ESP_ERR_INVALID_STATE; return;
+        }
+        group.w=end_x-x;
+    }
     if (!q->renders) {
         q->first=first; wq_mask(q->first_mask,first);
-        q->signature=(wq_roi_t){first.x,first.y,first.w*(int)WQ_LIMIT,first.h};
+        if (q->video) { q->group=group; wq_mask(q->group_mask,group); }
+        q->signature=(wq_roi_t){first.x,first.y,
+            first.w*(int)(q->video ? WQ_FORMATION_CHARS+q->following : WQ_LIMIT),first.h};
     }
-    else if (memcmp(&first,&q->first,sizeof(first))) {
+    else if (memcmp(&first,&q->first,sizeof(first)) ||
+             (q->video && memcmp(&group,&q->group,sizeof(group)))) {
         q->overflow=true; *error=ESP_ERR_INVALID_STATE; return;
     }
     if (q->optical) {
@@ -123,7 +138,7 @@ static esp_err_t wq_observer(void *context, const uint8_t *frame, bool end, esp_
     wq_trace_t *q=context;
     if (!q->armed) return ESP_OK;
     if (end) {
-        if (!q->starts || q->starts>WQ_LIMIT) return ESP_ERR_INVALID_STATE;
+        if (!q->starts || q->starts>wq_budget(q)) return ESP_ERR_INVALID_STATE;
         wq_physical_t *r=&q->physical[q->starts-1];
         r->end=esp_timer_get_time(); r->error=error; r->timing=q->driver->timing;
         if (error==ESP_OK && (r->timing.writes!=2 || r->timing.activations!=1 ||
@@ -133,7 +148,7 @@ static esp_err_t wq_observer(void *context, const uint8_t *frame, bool end, esp_
         q->completed_at=r->end;
         return ESP_OK;
     }
-    if (q->starts>=WQ_LIMIT) { q->overflow=true; return ESP_ERR_INVALID_STATE; }
+    if (q->starts>=wq_budget(q)) { q->overflow=true; return ESP_ERR_INVALID_STATE; }
     wq_physical_t *r=&q->physical[q->starts++];
     const int64_t observer_start=esp_timer_get_time();
     const uint8_t *old=q->driver->shadow;
@@ -142,6 +157,10 @@ static esp_err_t wq_observer(void *context, const uint8_t *frame, bool end, esp_
         r->hash=wq_roi_hash(frame,q->signature);
         wq_roi_audit(q,r,frame,q->fixed,q->fixed_mask,false);
         wq_roi_audit(q,r,frame,q->first,q->first_mask,true);
+        if (q->video) wq_roi_audit(q,r,frame,q->group,q->group_mask,2);
+        if (q->video && (r->fixed_changed || (q->starts>1 && (r->first_changed || r->group_changed)))) {
+            q->overflow=true;return ESP_ERR_INVALID_STATE; /* no activation of a moved target */
+        }
     } else for (size_t i=0; i<48000; ++i) {
         const unsigned a=old[i],b=frame[i],diff=a^b;
         const unsigned fm=q->fixed_mask[i], am=q->first_mask[i];
@@ -176,13 +195,15 @@ static esp_err_t wq_observer(void *context, const uint8_t *frame, bool end, esp_
  * outside any input burst. Rows are MSB-first, ideal binary pixels, not photos. */
 static bool wq_capture_black_masks(wq_trace_t *q)
 {
-    if (q->fixed.w>256 || q->fixed.h>30 || q->first.w>16 || q->first.h>22) return false;
-    for (unsigned which=0;which<2;which++) {
-        wq_roi_t roi=which?q->first:q->fixed;
+    if (q->fixed.w>256 || q->fixed.h>30 || q->first.w>16 || q->first.h>22 ||
+        (q->video && (q->group.w>256 || q->group.h>22))) return false;
+    for (unsigned which=0;which<(q->video?3U:2U);which++) {
+        wq_roi_t roi=which==2?q->group:which?q->first:q->fixed;
         for (int y=0;y<roi.h;y++) for (int x=0;x<roi.w;x++) {
             unsigned nx=799U-(unsigned)(roi.x+x), ny=479U-(unsigned)(roi.y+y);
             if (!(q->driver->shadow[(ny/8)*800+nx]&(1U<<(ny%8)))) {
-                if (which) q->first_black_mask[y][x/8]|=(uint8_t)(1U<<(7-x%8));
+                if (which==2) q->group_black_mask[y][x/8]|=(uint8_t)(1U<<(7-x%8));
+                else if (which) q->first_black_mask[y][x/8]|=(uint8_t)(1U<<(7-x%8));
                 else q->fixed_black_mask[y][x/8]|=(uint8_t)(1U<<(7-x%8));
             }
         }
@@ -203,21 +224,75 @@ static void wq_point(solar_os_shell_io_t *io,wq_trace_t *q,const char *name)
 
 static bool wq_gate(solar_os_shell_io_t *io, wq_trace_t *q, const char *stage)
 {
+    q->at_gate=true;
     solar_os_shell_io_printf(io,"WQ gate=%s inputs=%u renders=%u starts=%u g=next q=abort\n",
                             stage,q->inputs,q->renders,q->starts);
     solar_os_shell_io_flush(io);
     for (;;) {
         uint8_t key=0; size_t n=0;
         esp_err_t err=solar_os_port_read(&io->port,&key,1,0,&n);
-        if (err!=ESP_OK && err!=ESP_ERR_TIMEOUT) return false;
+        if (err!=ESP_OK && err!=ESP_ERR_TIMEOUT) { q->at_gate=false;q->aborted=true;return false; }
         if (n && (key=='g' || key=='q' || key==27 || key==3 || key==0x1d)) {
             solar_os_shell_io_printf(io,"WQ observation stage=%s ack_us=%lld since_complete_us=%lld key=%u\n",
                 stage,(long long)esp_timer_get_time(),
                 (long long)(q->completed_at ? esp_timer_get_time()-q->completed_at : 0),key);
-            return key=='g';
+            q->at_gate=false;q->aborted=key!='g';return key=='g';
         }
         vTaskDelay(pdMS_TO_TICKS(20));
     }
+}
+
+static bool wq_video_cancel(solar_os_shell_io_t *io,wq_trace_t *q)
+{
+    uint8_t key=0;size_t n=0;
+    esp_err_t err=solar_os_port_read(&io->port,&key,1,0,&n);
+    if ((err!=ESP_OK && err!=ESP_ERR_TIMEOUT) ||
+        (n && (key=='q' || key==27 || key==3 || key==0x1d))) q->aborted=true;
+    return q->aborted;
+}
+
+static esp_err_t wq_drain(wq_trace_t *q);
+
+/* One actual Writer raster per completed step. Initial repeated glyphs are
+ * CHAR events coalesced before the ordinary 40ms Tick, not a driver drawing.
+ * Pacing estimates launch overhead from the previous raster; actual physical
+ * start intervals in the journal decide whether conditions were matched. */
+static esp_err_t wq_video_segment(solar_os_shell_io_t *io,solar_os_context_t *ctx,wq_trace_t *q,bool initial)
+{
+    const unsigned steps=initial?1U:q->following;
+    for (unsigned step=0;step<steps;step++) {
+        if (wq_video_cancel(io,q)) return ESP_OK;
+        if (step) {
+            const wq_physical_t *last=&q->physical[q->starts-1];
+            const wq_frame_t *f=&q->frame[q->renders-1];
+            const int64_t launch=40000+last->start-f->render_start;
+            const int64_t send_at=last->start+(int64_t)q->interval_ms*1000-launch;
+            while (esp_timer_get_time()<send_at) {
+                if (wq_video_cancel(io,q)) return ESP_OK;
+                vTaskDelay(1);
+            }
+        }
+        const unsigned before=q->starts;
+        const unsigned chars=initial?WQ_FORMATION_CHARS:1U;
+        for (unsigned i=0;i<chars;i++) {
+            q->input[q->inputs].sent=esp_timer_get_time();
+            const solar_os_event_t e={.type=SOLAR_OS_EVENT_CHAR,.data.ch=wq_expected_char(q)};
+            if (!writer_event(ctx,&e)) return ESP_ERR_INVALID_STATE;
+        }
+        const int64_t tick=esp_timer_get_time()+40000;
+        while (esp_timer_get_time()<tick) {
+            if (wq_video_cancel(io,q)) {writer.render_pending=false;return ESP_OK;}
+            vTaskDelay(1);
+        }
+        const solar_os_event_t e={.type=SOLAR_OS_EVENT_TICK,.data.tick_ms=(uint32_t)(esp_timer_get_time()/1000)};
+        writer_event(ctx,&e);
+        if (writer.display_error || q->overflow) return ESP_ERR_INVALID_STATE;
+        esp_err_t err=wq_drain(q);
+        if (err!=ESP_OK) return err;
+        if (q->starts!=before+1 || q->renders!=q->starts ||
+            q->physical[q->starts-1].error) return ESP_ERR_INVALID_STATE;
+    }
+    return ESP_OK;
 }
 
 static esp_err_t wq_drain(wq_trace_t *q)
@@ -275,12 +350,17 @@ static void wq_dump(solar_os_shell_io_t *io, wq_trace_t *q,
         after.started-before->started,after.completed-before->completed,after.physical-before->physical,q->overflow);
     solar_os_shell_io_printf(io,"WQ roi fixed=%d,%d,%d,%d first=%d,%d,%d,%d rotation=R2\n",
         q->fixed.x,q->fixed.y,q->fixed.w,q->fixed.h,q->first.x,q->first.y,q->first.w,q->first.h);
-    if (q->optical) for (unsigned which=0;which<2;which++) {
-        const wq_roi_t roi=which?q->first:q->fixed;
+    if (q->video) {
+        solar_os_shell_io_printf(io,"WQ plan following=%u budget=%u formation=%u interval_ms=%u aborted=%u\n",
+            q->following,wq_budget(q),WQ_FORMATION_CHARS,q->interval_ms,q->aborted);
+        solar_os_shell_io_printf(io,"WQ group roi=%d,%d,%d,%d\n",q->group.x,q->group.y,q->group.w,q->group.h);
+    }
+    if (q->optical) for (unsigned which=0;which<(q->video?3U:2U);which++) {
+        const wq_roi_t roi=which==2?q->group:which?q->first:q->fixed;
         for (int y=0;y<roi.h;y++) {
-            char hex[65]; const uint8_t *mask=which?q->first_black_mask[y]:q->fixed_black_mask[y];
+            char hex[65]; const uint8_t *mask=which==2?q->group_black_mask[y]:which?q->first_black_mask[y]:q->fixed_black_mask[y];
             for (int x=0;x<(roi.w+7)/8;x++) snprintf(hex+2*x,3,"%02x",mask[x]);
-            solar_os_shell_io_printf(io,"WQ mask which=%s row=%d black=%s\n",which?"first":"fixed",y,hex);
+            solar_os_shell_io_printf(io,"WQ mask which=%s row=%d black=%s\n",which==2?"group":which?"first":"fixed",y,hex);
         }
     }
     for (unsigned i=0;i<q->inputs;i++) {
@@ -317,19 +397,34 @@ static void wq_dump(solar_os_shell_io_t *io, wq_trace_t *q,
             (long long)(t->ready_us[0]-t->activate_us[0]),(long long)(t->convert_us[0]+t->convert_us[1]),
             (long long)(t->spi_us[0]+t->spi_us[1]),t->writes,t->activations,q->driver->actual_spi_hz);
         if (q->optical) solar_os_shell_io_printf(io,"WQ scope ordinal=%u roi_only=1 global_changes=unmeasured global_bounds=unmeasured\n",i+1);
+        if (q->video) solar_os_shell_io_printf(io,"WQ retained ordinal=%u group_change=%u group00=%u group11=%u\n",
+            i+1,r->group_changed,r->group_00,r->group_11);
     }
 }
 
 void solar_os_writer_quality_command(solar_os_shell_io_t *io, int argc, char **argv)
 {
     static const char owner[]="shell:writer-quality";
-    const bool optical=argc==7 && !strcmp(argv[6],"optical");
-    if ((argc!=6 && !optical) || strcmp(argv[2],"display0") || strcmp(argv[3],"writer-quality") ||
+    const bool video=argc==8 && !strcmp(argv[5],"video");
+    const bool optical=video || (argc==7 && !strcmp(argv[6],"optical"));
+    char *tail=NULL;
+    unsigned following=0,interval_ms=0;
+    if (video) {
+        unsigned long n=strtoul(argv[6],&tail,10);
+        if (*tail || n<1 || n>9) goto usage;
+        following=(unsigned)n;
+        n=strtoul(argv[7],&tail,10);
+        if (*tail || n<180 || n>2000) goto usage;
+        interval_ms=(unsigned)n;
+    }
+    if ((argc!=6 && !optical) || argc<6 || strcmp(argv[2],"display0") || strcmp(argv[3],"writer-quality") ||
         (strcmp(argv[4],"baseline") && strcmp(argv[4],"dose")) ||
         (optical && strcmp(argv[4],"baseline")) ||
-        (strcmp(argv[5],"slow") && strcmp(argv[5],"fast")) ||
+        (!video && strcmp(argv[5],"slow") && strcmp(argv[5],"fast")) ||
         solar_os_shell_io_kind(io)!=SOLAR_OS_SHELL_IO_KIND_PORT) {
-        solar_os_shell_io_writeln(io,"usage (serial): display test display0 writer-quality baseline|dose slow|fast [optical (baseline only)]"); return;
+usage:
+        solar_os_shell_io_writeln(io,"usage (serial): display test display0 writer-quality baseline|dose slow|fast [optical (baseline only)]");
+        solar_os_shell_io_writeln(io,"video: display test display0 writer-quality baseline video <following 1..9> <interval_ms 180..2000>");return;
     }
     solar_os_display_target_t target;
     if (writer_state || !solar_os_display_find_target(argv[2],&target) || !target.ready ||
@@ -357,10 +452,12 @@ void solar_os_writer_quality_command(solar_os_shell_io_t *io, int argc, char **a
     solar_os_display_submission_status_t before={0};
     bool healthy=false,started=false,configured=false;
     if (!q || !ctx) { err=ESP_ERR_NO_MEM; goto done; }
-    q->driver=d; q->optical=optical;
-    q->fixed_mask=solar_os_memory_calloc(1,96000,SOLAR_OS_MEMORY_EXTERNAL_REQUIRED,"writer-quality-masks");
+    q->driver=d; q->optical=optical;q->video=video;
+    q->following=following;q->interval_ms=interval_ms;q->budget=video?1+following:WQ_LIMIT;
+    q->fixed_mask=solar_os_memory_calloc(1,video?144000:96000,SOLAR_OS_MEMORY_EXTERNAL_REQUIRED,"writer-quality-masks");
     if (!q->fixed_mask) { err=ESP_ERR_NO_MEM; goto done; }
     q->first_mask=q->fixed_mask+48000;
+    if (video) q->group_mask=q->fixed_mask+96000;
     err=wq_drain(q); if (err!=ESP_OK) goto done;
     healthy=true; configured=true;
     (void)solar_os_log_set_level(SOLAR_OS_LOG_LEVEL_INFO); /* no per-input UART logs */
@@ -375,6 +472,8 @@ void solar_os_writer_quality_command(solar_os_shell_io_t *io, int argc, char **a
     q->completed_at=esp_timer_get_time();
     solar_os_shell_io_printf(io,"WQ begin waveform=%s mode=%s text=abcdefghij zoom=4 spi=40000000 path=tile tick_ms=40 fast_interval_ms=60 max_fast=10 storage=none\n",argv[4],argv[5]);
     if (optical) solar_os_shell_io_writeln(io,"WQ protocol continuous=1 observer=roi hash_scope=typing-roi global_changes=unmeasured settle_us=2000000");
+    if (video) solar_os_shell_io_printf(io,"WQ video following=%u formation=%u interval_ms=%u max_fast=%u baseline_only=1\n",
+        following,WQ_FORMATION_CHARS,interval_ms,q->budget);
     if (!wq_gate(io,q,"white")) goto done;
     solar_os_context_init(ctx,NULL,gfx);
     solar_os_context_set_output_handler(ctx,writer_quality_output_marker,q);
@@ -386,6 +485,13 @@ void solar_os_writer_quality_command(solar_os_shell_io_t *io, int argc, char **a
     if (err==ESP_OK) err=wq_drain(q);
     if (err!=ESP_OK) { healthy=false; goto done; }
     q->fixed=(wq_roi_t){WRITER_MARGIN_X,WRITER_HEADER_H+WRITER_MARGIN_Y,250,30};
+    if (video) {
+        int x=0,y=0,h=0;
+        if (!solar_os_doc_layout_source_to_xy(&writer.layout,q->initial_length-14,&x,&y,&h)) {
+            err=ESP_ERR_INVALID_STATE;healthy=false;goto done;
+        }
+        q->fixed=(wq_roi_t){WRITER_MARGIN_X+x,WRITER_HEADER_H+WRITER_MARGIN_Y+y,120,h};
+    }
     wq_mask(q->fixed_mask,q->fixed);
     q->completed_at=esp_timer_get_time();
     if (!wq_gate(io,q,"reference")) goto done;
@@ -396,13 +502,21 @@ void solar_os_writer_quality_command(solar_os_shell_io_t *io, int argc, char **a
     d->trial_observer_context=q; d->trial_observer=wq_observer; q->armed=true;
     const unsigned stops[]={1,4,7,10}; const char *stages[]={"first","plus3","plus6","final"};
     for (unsigned i=0;i<(optical?2U:4U);i++) {
-        err=wq_segment(ctx,q,optical?(i?10U:1U):stops[i],!strcmp(argv[5],"slow") || i==0);
+        err=video ? wq_video_segment(io,ctx,q,!i) :
+            wq_segment(ctx,q,optical?(i?10U:1U):stops[i],!strcmp(argv[5],"slow") || i==0);
         if (err!=ESP_OK) { healthy=false; break; }
+        if (q->aborted) break;
         if (optical) {
             if (!i && !wq_capture_black_masks(q)) {err=ESP_ERR_INVALID_STATE;healthy=false;break;}
             wq_point(io,q,i?"T1":"T0");
         }
         if (!wq_gate(io,q,optical?(i?"final":"first"):stages[i])) break;
+    }
+    if (video && !q->aborted && err==ESP_OK) {
+        solar_os_display_submission_status_t after={0};
+        (void)solar_os_display_submission_status(target.u8g2,&after);
+        if (q->starts!=q->budget || q->renders!=q->budget || q->inputs!=WQ_FORMATION_CHARS+following ||
+            after.replaced!=before.replaced) {err=ESP_ERR_INVALID_STATE;healthy=false;}
     }
     if (q->armed) wq_dump(io,q,&before);
 done:

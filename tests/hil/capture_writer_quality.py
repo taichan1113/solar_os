@@ -40,15 +40,21 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--port", required=True)
     p.add_argument("--waveform", choices=("baseline", "dose"), required=True)
-    p.add_argument("--mode", choices=("slow", "fast"), required=True)
+    p.add_argument("--mode", choices=("slow", "fast", "video"), required=True)
+    p.add_argument("--following",type=int,choices=range(1,10))
+    p.add_argument("--interval-ms",type=int,default=200)
+    p.add_argument("--video-cue",action="store_true",help="Audible T0/T1 sync markers recorded in the video audio; no display update")
     p.add_argument("--optical", action="store_true", help="Baseline continuous T0/T1, no intermediate gates")
     p.add_argument("--photo-cue", action="store_true", help="Windows audible cue at completed+2s T0/T1")
     for name in ("log", "control", "status"):
         p.add_argument("--" + name, type=Path, required=True)
     a = p.parse_args()
     if a.optical and a.waveform != "baseline": p.error("optical starts with baseline only")
+    if a.mode=='video' and (a.waveform!='baseline' or a.following is None or not 180<=a.interval_ms<=2000):
+        p.error('video requires baseline, following 1..9 and interval 180..2000ms')
+    if a.mode!='video' and (a.following is not None or a.video_cue):p.error('video options require video mode')
     if a.photo_cue and not a.optical: p.error("photo cue requires optical mode")
-    if a.photo_cue:
+    if a.photo_cue or a.video_cue:
         import winsound
     if a.log.exists() or a.control.exists():
         raise SystemExit("use new capture paths")
@@ -57,10 +63,12 @@ def main():
     port.dtr = port.rts = False
     port.open()
     state = dict(waveform=a.waveform, mode=a.mode, gate=None, fault=False, done=False)
+    if a.mode=='video':state.update(following=a.following,interval_ms=a.interval_ms,
+                                   requested_utc=datetime.now(timezone.utc).isoformat())
     offset = 0
     buffered = b""
     with port, a.log.open("xb") as log:
-        suffix=" optical" if a.optical else ""
+        suffix=f" {a.following} {a.interval_ms}" if a.mode=='video' else " optical" if a.optical else ""
         port.write(f"display test display0 writer-quality {a.waveform} {a.mode}{suffix}\r".encode("ascii"))
         deadline = time.monotonic() + 1800
         while time.monotonic() < deadline:
@@ -73,10 +81,13 @@ def main():
                     raw, buffered = buffered.split(b"\n", 1)
                     line=raw.decode("utf-8", "replace")
                     parse_line(state,line)
-                    if a.photo_cue and "WQ point " in line:
+                    if (a.photo_cue or a.video_cue) and "WQ point " in line:
                         name="T0" if "name=T0 " in line else "T1"
                         state['points'][name]['cue_utc']=datetime.now(timezone.utc).isoformat()
+                        state['points'][name]['cue_monotonic_ns']=time.monotonic_ns()
                         winsound.Beep(880 if name=='T0' else 1100,200)
+                        state['points'][name]['cue_end_utc']=datetime.now(timezone.utc).isoformat()
+                        state['points'][name]['mapping_caveat']='UART receive/beep scheduling delay; video audio marker onset must be measured'
                 if state.get("ended") and b"user@sol:/" in buffered:
                     state["done"] = True
                 a.status.write_text(json.dumps(state, indent=2), encoding="utf-8")
