@@ -14,6 +14,7 @@ static struct solar_os_gfx display = {800,480};
 static size_t allocations, allocation_number, fail_at;
 static bool leased, manual_on, other_pointer, fail_enable;
 static unsigned submits, synchronous_presents;
+static esp_err_t submit_error;
 static char directory[100];
 
 size_t strlcpy(char *d,const char *s,size_t n)
@@ -60,7 +61,7 @@ void solar_os_gfx_bitmap(solar_os_gfx_t *g,int x,int y,int w,int h,const uint8_t
 void solar_os_gfx_bitmap_2bpp(solar_os_gfx_t *g,int x,int y,int w,int h,const uint8_t *b,size_t n,const solar_os_gfx_color_t p[4])
 {(void)n;(void)p;solar_os_gfx_bitmap(g,x,y,w,h,b);}
 void solar_os_gfx_present(solar_os_gfx_t *g){(void)g;synchronous_presents++;}
-esp_err_t solar_os_gfx_submit(solar_os_gfx_t *g,uint64_t *n){(void)g;(void)n;submits++;return ESP_OK;}
+esp_err_t solar_os_gfx_submit(solar_os_gfx_t *g,uint64_t *n){(void)g;if(n)*n=submits+1;submits++;return submit_error;}
 
 esp_err_t solar_os_storage_resolve_path(const char *p,char *out,size_t n)
 {return strlcpy(out,p,n)<n?ESP_OK:ESP_ERR_INVALID_SIZE;}
@@ -94,7 +95,7 @@ static solar_os_context_t begin(unsigned failure)
 {
     assert(!allocations && !leased);
     sketch_state_storage=calloc(1,sizeof(sketch_state_t)); assert(sketch_state_storage);
-    allocation_number=0;fail_at=failure;submits=synchronous_presents=0;
+    allocation_number=0;fail_at=failure;submits=synchronous_presents=0;submit_error=ESP_OK;
     return (solar_os_context_t){.gfx=&display,.argc=1};
 }
 static void end(solar_os_context_t *c)
@@ -152,6 +153,21 @@ int main(void)
     FILE *f=fopen(gif_path,"wb");assert(f && fwrite(gif,1,sizeof(gif),f)==sizeof(gif));assert(!fclose(f));
     assert(sketch_load_image(gif_path,false)==ESP_OK && sketch.dirty && !sketch.path[0]);
     manual_on=true;end(&c);assert(manual_on);
+    /* A failed RELEASE submit leaves the logical Canvas intact but the
+     * current implementation clears render_pending. Do not count it as a
+     * visible final frame or silently retry a latched display fault. */
+    manual_on=false;c=begin(0);assert(sketch_start(&c)==ESP_OK);
+    pointer(&c,SOLAR_OS_INPUT_POINTER_PRESS,100,100);tick(&c);
+    pointer(&c,SOLAR_OS_INPUT_POINTER_MOVE,130,100);
+    pointer(&c,SOLAR_OS_INPUT_POINTER_RELEASE,130,100);
+    const unsigned before_failed_submit=submits;
+    submit_error=ESP_FAIL;tick(&c);
+    assert(submits==before_failed_submit+1 && !sketch.render_pending);
+    assert(solar_os_sketch_canvas_get(&sketch.canvas,130-l.canvas_x,100-l.canvas_y)==3);
+    submit_error=ESP_OK;tick(&c);assert(submits==before_failed_submit+1);
+    sketch_suspend(&c);sketch_resume(&c);
+    assert(submits==before_failed_submit+2);
+    end(&c);
     manual_on=false;c=begin(0);c.argc=2;strcpy(c.argv[1],first);assert(sketch_start(&c)==ESP_OK && leased && !sketch.dirty);end(&c);
     assert(unlink(first)==0 && unlink(second)==0 && unlink(gif_path)==0 && rmdir(directory)==0);
     puts("sketch lifecycle, coalescing, color PNG save/open/import: PASS");return 0;

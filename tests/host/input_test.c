@@ -728,6 +728,26 @@ int main(void)
                pointer_read.source == pointer_source_2 && pointer_read.x == (int16_t)i);
     }
     assert(solar_os_input_read_pointer_events(&pointer_read, 1) == 0);
+    /* A saturated FIFO rejects both MOVE and RELEASE; it does not make
+     * room for a release. The FT6336 source must retry a failed sample. */
+    mouse_event.action = SOLAR_OS_INPUT_POINTER_MOVE;
+    for (size_t i = 0; i < 32; ++i) {
+        mouse_event.x = (int16_t)i;
+        assert(solar_os_input_write_pointer(pointer_source_2, &mouse_event) == ESP_OK);
+    }
+    assert(solar_os_input_write_pointer(pointer_source_2, &mouse_event) == ESP_ERR_NO_MEM);
+    mouse_event.action = SOLAR_OS_INPUT_POINTER_RELEASE;
+    mouse_event.buttons = 0;
+    assert(solar_os_input_write_pointer(pointer_source_2, &mouse_event) == ESP_ERR_NO_MEM);
+    for (size_t i = 0; i < 32; ++i) {
+        assert(solar_os_input_read_pointer_events(&pointer_read, 1) == 1);
+        assert(pointer_read.action == SOLAR_OS_INPUT_POINTER_MOVE &&
+               pointer_read.x == (int16_t)i);
+    }
+    assert(solar_os_input_write_pointer(pointer_source_2, &mouse_event) == ESP_OK);
+    assert(solar_os_input_read_pointer_events(&pointer_read, 1) == 1 &&
+           pointer_read.action == SOLAR_OS_INPUT_POINTER_RELEASE);
+    assert(solar_os_input_read_pointer_events(&pointer_read, 1) == 0);
     solar_os_input_source_close(pointer_source);
     assert(solar_os_input_read_pointer_events(&pointer_read, 1) == 0);
     assert(pointer_queue_frees == 0);

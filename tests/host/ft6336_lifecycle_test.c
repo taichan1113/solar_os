@@ -5,8 +5,9 @@
 #include "../../src/services/solar_os_ft6336.c"
 
 static bool input_ready, power_high, reset_high, irq_off;
-static bool fail_i2c, fail_reset, fail_task, fail_stop;
-static unsigned i2c_reads, tasks, stops, releases;
+static bool fail_i2c, fail_reset, fail_task, fail_stop, fail_pointer;
+static unsigned i2c_reads, tasks, stops, releases, pointer_writes;
+static solar_os_input_pointer_event_t last_pointer;
 static uint8_t report[6];
 static char sequence[128];
 static size_t seq_len;
@@ -57,7 +58,7 @@ esp_err_t solar_os_input_source_set_ready(solar_os_input_source_t s,bool ready)
 esp_err_t solar_os_input_pointer_source_quiesce(solar_os_input_source_t s)
 { assert(s==1 && !input_ready); releases++;return ESP_OK; }
 esp_err_t solar_os_input_write_pointer(solar_os_input_source_t s,const solar_os_input_pointer_event_t *e)
-{ assert(s==1 && input_ready && !strcmp(e->target,"display0"));return ESP_OK; }
+{ assert(s==1 && input_ready && !strcmp(e->target,"display0"));pointer_writes++;last_pointer=*e;return fail_pointer?ESP_ERR_NO_MEM:ESP_OK; }
 esp_err_t solar_os_bus_i2c_read_reg(const char *bus,uint8_t addr,uint8_t reg,uint8_t *out,size_t n)
 {
     assert(!strcmp(bus,"i2c0") && addr==0x38 && power_high && reset_high);i2c_reads++;record('B');
@@ -116,6 +117,23 @@ int main(void)
     fail_task=true;
     assert(solar_os_ft6336_set_enabled("touch0",true)==ESP_ERR_NO_MEM && !power_high && !input_ready);fail_task=false;
     assert(solar_os_ft6336_set_enabled("touch0",true)==ESP_OK);
+    /* Boundary coordinate, duplicate sample, rapid MOVE sequence and failed
+     * RELEASE retry all exercise the real service's action state machine. */
+    report[0]=1;report[1]=1;report[2]=0xdf;report[3]=3;report[4]=0x1f;
+    unsigned writes_before=pointer_writes;
+    poll_device(&touch);
+    assert(pointer_writes==writes_before+1 && last_pointer.action==SOLAR_OS_INPUT_POINTER_PRESS);
+    assert(last_pointer.x==479 && last_pointer.y==799);
+    poll_device(&touch);assert(pointer_writes==writes_before+1);
+    for(unsigned x=478;x>=458;x--) {
+        report[1]=(uint8_t)(x>>8);report[2]=(uint8_t)x;
+        poll_device(&touch);
+        assert(last_pointer.action==SOLAR_OS_INPUT_POINTER_MOVE && last_pointer.x==(int16_t)x);
+    }
+    assert(pointer_writes==writes_before+22);
+    report[0]=0;fail_pointer=true;poll_device(&touch);
+    assert(touch.pressed && last_pointer.action==SOLAR_OS_INPUT_POINTER_RELEASE);
+    fail_pointer=false;poll_device(&touch);assert(!touch.pressed);
     assert(solar_os_ft6336_detach("touch0")==ESP_OK);
     solar_os_ft6336_device_t legacy={0};
     assert(parse_bindings(bindings,6,&legacy)==ESP_OK && legacy.requested && !legacy.managed_power);

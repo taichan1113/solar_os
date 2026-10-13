@@ -1,4 +1,8 @@
 #include "solar_os_ssd1677.h"
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+#include "solar_os_sketch_trace.h"
+#include "esp_timer.h"
+#endif
 
 #include <stdbool.h>
 #include <string.h>
@@ -66,8 +70,31 @@ static esp_err_t execute_frame(void *context, const uint8_t *frame, size_t size,
 {
     solar_os_ssd1677_device_t *device = context;
     const int64_t previous = device->driver.timing.end_us;
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    const int64_t start = esp_timer_get_time();
+#endif
     const esp_err_t err = epd_ssd1677_present_snapshot(&device->driver, frame, size);
     *physical = err == ESP_OK && device->driver.timing.end_us != previous;
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    solar_os_sketch_trace_record(SKTRACE_SSD, 0, 0, 0,
+        (int32_t)(esp_timer_get_time() - start), err);
+    if (*physical) {
+        const epd_ssd1677_timing_t *timing = &device->driver.timing;
+        int64_t convert_us = 0, spi_us = 0, busy_us = 0;
+        for (unsigned i = 0; i < timing->writes; i++) {
+            convert_us += timing->convert_us[i];
+            spi_us += timing->spi_us[i];
+        }
+        for (unsigned i = 0; i < timing->activations; i++)
+            busy_us += timing->ready_us[i] - timing->activate_us[i];
+        solar_os_sketch_trace_record(SKTRACE_SSD_CONVERT, 0, 0, 0,
+            (int32_t)convert_us, err);
+        solar_os_sketch_trace_record(SKTRACE_SSD_SPI, 0, 0, 0,
+            (int32_t)spi_us, err);
+        solar_os_sketch_trace_record(SKTRACE_SSD_BUSY, 0, 0, 0,
+            (int32_t)busy_us, err);
+    }
+#endif
     return err;
 }
 

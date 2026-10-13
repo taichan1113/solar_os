@@ -19,6 +19,11 @@
 #include "solar_os_board.h"
 #include "solar_os_config.h"
 #include "solar_os_log.h"
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+#include "solar_os_sketch_trace.h"
+#include "esp_timer.h"
+static uint32_t sketch_canvas_version;
+#endif
 #if defined(SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE) && SOLAR_OS_PACKAGE_SERVICE_EXPANSION
 #include "solar_os_expansion.h"
 #endif
@@ -627,15 +632,27 @@ static void sketch_render_canvas(solar_os_gfx_t *gfx,
                                      render_canvas->height),
                                  sketch_colors);
     } else {
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+        const int64_t xbm_start = esp_timer_get_time();
+#endif
         if (!solar_os_sketch_canvas_render_xbm(
                 render_canvas, sketch.canvas_bitmap,
                 sketch.canvas_bitmap_size)) {
             return;
         }
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+        solar_os_sketch_trace_record(SKTRACE_XBM, 0, sketch_canvas_version,
+            0, (int32_t)(esp_timer_get_time() - xbm_start), 0);
+        const int64_t bitmap_start = esp_timer_get_time();
+#endif
         solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
         solar_os_gfx_bitmap(gfx, layout->canvas_x, layout->canvas_y,
                             layout->canvas_width, layout->canvas_height,
                             sketch.canvas_bitmap);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+        solar_os_sketch_trace_record(SKTRACE_BITMAP, 0, sketch_canvas_version,
+            0, (int32_t)(esp_timer_get_time() - bitmap_start), 0);
+#endif
     }
 }
 
@@ -730,8 +747,14 @@ static void sketch_render(solar_os_context_t *ctx)
         return;
     }
     const sketch_layout_t layout = sketch_layout(gfx);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    solar_os_sketch_trace_record(SKTRACE_RENDER, 0, sketch_canvas_version, 0, 0, 0);
+#endif
     solar_os_gfx_clear(gfx, SOLAR_OS_GFX_COLOR_WHITE);
     sketch_render_canvas(gfx, &layout);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    const int64_t ui_start = esp_timer_get_time();
+#endif
 
     const int menu_width = layout.canvas_x - 4;
     const int menu_step = menu_width + 2;
@@ -861,7 +884,17 @@ static void sketch_render(solar_os_context_t *ctx)
     /* The existing immutable latest-frame executor owns submitted snapshots.
      * Pointer operations still modify every logical segment; ticks coalesce
      * presentation, including the final RELEASE. Do not block on E-paper BUSY. */
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    solar_os_sketch_trace_record(SKTRACE_UI, 0, sketch_canvas_version, 0,
+        (int32_t)(esp_timer_get_time() - ui_start), 0);
+    uint64_t generation = 0;
+    const int64_t submit_start = esp_timer_get_time();
+    const esp_err_t err = solar_os_gfx_submit(gfx, &generation);
+    solar_os_sketch_trace_record(SKTRACE_SUBMIT, 0, sketch_canvas_version,
+        generation, (int32_t)(esp_timer_get_time() - submit_start), err);
+#else
     const esp_err_t err = solar_os_gfx_submit(gfx, NULL);
+#endif
     if (err != ESP_OK) SOLAR_OS_LOGE("sketch", "display submit failed: %s", esp_err_to_name(err));
 #else
     solar_os_gfx_present(gfx);
@@ -956,15 +989,26 @@ static void sketch_canvas_pointer(const sketch_layout_t *layout,
         sketch.preview_x = x;
         sketch.preview_y = y;
         if (sketch_is_brush_tool()) {
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+            const int64_t canvas_start = esp_timer_get_time();
+#endif
             solar_os_sketch_canvas_line(&sketch.canvas, x, y, x, y,
                                         sketch_brush_color(),
                                         sketch_brush_pattern(),
                                         sketch.weight);
             sketch.dirty = true;
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+            solar_os_sketch_trace_record(SKTRACE_CANVAS,
+                solar_os_sketch_trace_current(), ++sketch_canvas_version,
+                0, (int32_t)(esp_timer_get_time() - canvas_start), 0);
+#endif
         }
         sketch.render_pending = true;
     } else if (pointer->action == SOLAR_OS_INPUT_POINTER_MOVE &&
                sketch.drawing && sketch_is_brush_tool() && inside) {
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+        const int64_t canvas_start = esp_timer_get_time();
+#endif
         solar_os_sketch_canvas_line(&sketch.canvas, sketch.stroke_x,
                                     sketch.stroke_y, x, y,
                                     sketch_brush_color(),
@@ -972,6 +1016,11 @@ static void sketch_canvas_pointer(const sketch_layout_t *layout,
         sketch.stroke_x = x;
         sketch.stroke_y = y;
         sketch.dirty = true;
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+        solar_os_sketch_trace_record(SKTRACE_CANVAS,
+            solar_os_sketch_trace_current(), ++sketch_canvas_version,
+            0, (int32_t)(esp_timer_get_time() - canvas_start), 0);
+#endif
         sketch.render_pending = true;
     } else if (pointer->action == SOLAR_OS_INPUT_POINTER_MOVE &&
                sketch.drawing && sketch_is_shape_tool()) {
@@ -983,12 +1032,20 @@ static void sketch_canvas_pointer(const sketch_layout_t *layout,
     } else if (pointer->action == SOLAR_OS_INPUT_POINTER_RELEASE &&
                sketch.drawing) {
         if (sketch_is_shape_tool()) {
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+            const int64_t canvas_start = esp_timer_get_time();
+#endif
             const int end_x = x < 0 ? 0 :
                 (x >= layout->canvas_width ? layout->canvas_width - 1 : x);
             const int end_y = y < 0 ? 0 :
                 (y >= layout->canvas_height ? layout->canvas_height - 1 : y);
             sketch_draw_shape(&sketch.canvas, end_x, end_y);
             sketch.dirty = true;
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+            solar_os_sketch_trace_record(SKTRACE_CANVAS,
+                solar_os_sketch_trace_current(), ++sketch_canvas_version,
+                0, (int32_t)(esp_timer_get_time() - canvas_start), 0);
+#endif
         }
         sketch.drawing = false;
         sketch.render_pending = true;
@@ -1236,6 +1293,9 @@ static esp_err_t sketch_start(solar_os_context_t *ctx)
         return ESP_ERR_NO_MEM;
     }
     solar_os_sketch_canvas_clear(&sketch.canvas, 0U);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    sketch_canvas_version = 0;
+#endif
     sketch.tool = SKETCH_TOOL_FREEHAND;
     sketch.color = 3U;
     sketch.weight = 2U;
@@ -1299,6 +1359,9 @@ static void sketch_stop(solar_os_context_t *ctx)
 
 static void sketch_suspend(solar_os_context_t *ctx)
 {
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    solar_os_sketch_trace_record(SKTRACE_SUSPEND, 0, sketch_canvas_version, 0, 0, 0);
+#endif
     sketch.drawing = false;
     sketch_pointer_release();
     sketch.suspended = true;
@@ -1307,6 +1370,9 @@ static void sketch_suspend(solar_os_context_t *ctx)
 
 static void sketch_resume(solar_os_context_t *ctx)
 {
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    solar_os_sketch_trace_record(SKTRACE_RESUME, 0, sketch_canvas_version, 0, 0, 0);
+#endif
     sketch_pointer_acquire();
     if (sketch.modal == SKETCH_MODAL_NO_POINTER && sketch_has_pointer())
         sketch.modal = SKETCH_MODAL_NONE;
@@ -1336,7 +1402,16 @@ static bool sketch_event(solar_os_context_t *ctx,
         return false;
     }
     if (event->type == SOLAR_OS_EVENT_POINTER) {
-        return sketch_pointer_event(ctx, &event->data.pointer);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+        const int64_t event_start = esp_timer_get_time();
+#endif
+        const bool handled = sketch_pointer_event(ctx, &event->data.pointer);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+        solar_os_sketch_trace_record(SKTRACE_EVENT,
+            solar_os_sketch_trace_current(), sketch_canvas_version, 0,
+            (int32_t)(esp_timer_get_time() - event_start), event->data.pointer.action);
+#endif
+        return handled;
     }
     if (event->type == SOLAR_OS_EVENT_CHAR) {
         return sketch_char_event(ctx, (uint8_t)event->data.ch);

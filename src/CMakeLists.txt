@@ -442,6 +442,12 @@ list(APPEND SOLAR_OS_SRCS ${SOLAR_OS_BOARD_SRCS})
 list(APPEND SOLAR_OS_REQUIRES ${SOLAR_OS_BOARD_REQUIRES})
 
 list(APPEND SOLAR_OS_SRCS ${SOLAR_OS_PACKAGE_SRCS})
+if(SOLAR_OS_BOARD_ID STREQUAL "m5paper_mono" AND
+        "$ENV{SOLAR_OS_SKETCH_LATENCY_TRIAL}" STREQUAL "1")
+    list(APPEND SOLAR_OS_SRCS
+        "services/solar_os_sketch_trace.c"
+        "services/solar_os_sketch_trace_core.c")
+endif()
 if(SOLAR_OS_PACKAGE_SERVICE_BLE AND "$ENV{SOLAR_OS_BLE_SECURITY_TRACE}" STREQUAL "1")
     list(APPEND SOLAR_OS_SRCS "services/solar_os_ble_security_trace.c")
 endif()
@@ -520,6 +526,10 @@ endif()
 # Temporary opt-in waveform laboratory; normal builds retain the M5GFX LUT.
 if("$ENV{SOLAR_OS_SSD1677_WAVEFORM_TRIAL}" STREQUAL "1")
     target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_SSD1677_WAVEFORM_TRIAL=1)
+endif()
+if(SOLAR_OS_BOARD_ID STREQUAL "m5paper_mono" AND
+        "$ENV{SOLAR_OS_SKETCH_LATENCY_TRIAL}" STREQUAL "1")
+    target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_SKETCH_LATENCY_TRIAL=1)
 endif()
 
 if(SOLAR_OS_PACKAGE_SERVICE_MESHCORE)

@@ -6,6 +6,10 @@
 
 #include "esp_check.h"
 #include "ft6336.h"
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+#include "solar_os_sketch_trace.h"
+#include "esp_timer.h"
+#endif
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "solar_os_display.h"
@@ -309,7 +313,17 @@ static void poll_device(solar_os_ft6336_device_t *device)
     }
 
     ft6336_sample_t sample;
-    if (ft6336_read(&sample) != ESP_OK) {
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    const int64_t read_start = esp_timer_get_time();
+#endif
+    const esp_err_t read_err = ft6336_read(&sample);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    const int32_t read_us = (int32_t)(esp_timer_get_time() - read_start);
+    if (read_err != ESP_OK || sample.touched || device->pressed)
+        solar_os_sketch_trace_record(SKTRACE_READ, 0, 0, 0,
+            read_us, read_err);
+#endif
+    if (read_err != ESP_OK) {
         return;
     }
 
@@ -371,7 +385,18 @@ static void poll_device(solar_os_ft6336_device_t *device)
     strlcpy(event.target,
             SOLAR_OS_DISPLAY_PRIMARY_TARGET,
             sizeof(event.target));
-    if (solar_os_input_write_pointer(device->input_source, &event) == ESP_OK) {
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    uint32_t stroke = 0;
+    const uint32_t point = solar_os_sketch_trace_new_point(
+        action == SOLAR_OS_INPUT_POINTER_PRESS, &stroke);
+    solar_os_sketch_trace_record(SKTRACE_SAMPLE, point, stroke, 0,
+        (int32_t)sample.x, (int32_t)sample.y);
+    const esp_err_t push_err = solar_os_input_write_pointer_traced(
+        device->input_source, &event, point);
+#else
+    const esp_err_t push_err = solar_os_input_write_pointer(device->input_source, &event);
+#endif
+    if (push_err == ESP_OK) {
         device->pressed = sample.touched;
         device->pointer_id = event.pointer_id;
         device->x = next_x;

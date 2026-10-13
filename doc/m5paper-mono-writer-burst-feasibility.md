@@ -64,17 +64,17 @@ python3 -m unittest tests.test_writer_burst tests.test_writer_feasibility -v
 
 Writer の CHAR/Tick 統合を Sketch に転用しない。Sketch の入力単位は押下、移動、離上で、**届いた移動点を論理 Canvas の連続線分へ反映すること**と、途中画面をどの頻度で E-paper に提出するかを分けて扱う。
 
-現行経路は `GT911` worker の約10ms poll → I2C の現時点座標・回転 → pointer FIFO（容量32、満杯時は書込失敗）→ main loop の8件ずつの dispatch → Sketch の PRESS/MOVE/RELEASE → Canvas line/shape → 40ms App Tick → Canvas の全域 XBM 変換と GFX/UI描画 → `solar_os_gfx_submit` → active＋最新 pending の非同期 executor → SSD1677。main loop は入力を Tick 前後にも読み出す。**観測前の移動経路**（10msサンプル間）は復元できない。一方、成功裏に届けられた Pen MOVE は前回点からの線分として Canvas に保持されるため、表示用 pending の置換をそのまま論理線分欠落とは呼べない。shape の MOVE は preview、RELEASE で確定する。FIFO 満杯時と RELEASE の最終提出を別々に追跡する必要がある。現在の `sketch_render()` は submit エラー後も `render_pending` を消すため、fault 時の可視最終状態も未検証の観測項目とする。
+PaperMonoの現行経路は **FT6336G** worker の約10ms poll → I2C の現時点座標・回転 → pointer FIFO（容量32、満杯時は書込失敗）→ main loop の8件ずつの dispatch → Sketch の PRESS/MOVE/RELEASE → Canvas line/shape → 40ms App Tick → Canvas の全域 XBM 変換と GFX/UI描画 → `solar_os_gfx_submit` → active＋最新 pending の非同期 executor → SSD1677。以前の版で GT911 と書いたのは別機種の実装を混同した誤りであり、PaperMono の board manifest は `pointer_ft6336` と `touch0`/`ft6336` を指定している。main loop は入力を Tick 前後にも読み出す。**観測前の移動経路**（10msサンプル間）は復元できない。一方、成功裏に届けられた Pen MOVE は前回点からの線分として Canvas に保持されるため、表示用 pending の置換をそのまま論理線分欠落とは呼べない。shape の MOVE は preview、RELEASE で確定する。FIFO 満杯時と RELEASE の最終提出を別々に追跡する必要がある。現在の `sketch_render()` は submit エラー後も `render_pending` を消すため、fault 時の可視最終状態も未検証の観測項目とする。
 
 過去の Sketch 実機では指と線の位置が合い、追従に多少のラグがあった。既報の約0.916～1.128秒の更新は `refresh=partial` の一時ログであり、現在の `fastest`・Pen 終端遅延に当てはめない。混合操作での最大 session tick 約405msと期限超過189回も Pen 単独の因果値ではない。Canvas 変換、全画面 UI 再描画、submit 待ち、Driver、光学変化の内訳はまだ未測定である。
 
-次段階の測定設計は、同じ一本の stroke ID と点 sequence を入口から最終画面まで維持する。GT911 poll 完了、FIFO投入可否・水位、main dispatch、Sketch の点受信/Canvas version、各 Tick の開始終了、XBM変換・全画面UI描画、submit世代と snapshot hash、pending置換、worker開始/終了、Driver SPI/BUSY、動画の実表示時刻を記録する。PRESS直後の先頭線分、連続 MOVE、短い停止、RELEASE の最終線分を別に測り、点の**取得損失**と表示 frame の**意図した省略**を混同しない。最終 Canvas と保存/再読込の内容一致、Shell切替、停止・復帰、fault/queue full も独立に検証する。USBログだけで光学的追従性や薄まりを PASS としない。
+次段階の測定設計は、同じ一本の stroke ID と点 sequence を入口から最終画面まで維持する。FT6336G poll 完了、FIFO投入可否・水位、main dispatch、Sketch の点受信/Canvas version、各 Tick の開始終了、XBM変換・全画面UI描画、submit世代と snapshot hash、pending置換、worker開始/終了、Driver SPI/BUSY、動画の実表示時刻を記録する。PRESS直後の先頭線分、連続 MOVE、短い停止、RELEASE の最終線分を別に測り、点の**取得損失**と表示 frame の**意図した省略**を混同しない。最終 Canvas と保存/再読込の内容一致、Shell切替、停止・復帰、fault/queue full も独立に検証する。USBログだけで光学的追従性や薄まりを PASS としない。
 
 測定前の改善仮説は最大3種類に限る。(1) 全Canvas変換/UI描画の CPU 時間を減らす、(2) pointer FIFO の飽和・取りこぼしを防ぎつつ全 MOVE/RELEASE を論理 Canvas に残す、(3) 中間表示の submit を抑えて先頭と離上後の最終 frame を優先する。まず計測で主因を定め、実装層と閾値を選ぶ。SSD1677 波形や Driver を先に変更しない。
 
 ### 次タスク用プロンプト案
 
-> PaperMono Sketch の Pen 描画追従を対象に、GT911 poll から論理 Canvas、描画 Tick、非同期表示、SSD1677 完了、動画上の出現までを同一 stroke/point/snapshot ID で計測してください。先に Host で PRESS/MOVE/RELEASE の順序・FIFO満杯・pending置換・最終 Canvas 保持を検証し、実機操作が必要になる段階ではデータ保持と application-only 書込条件を確認してください。入力点欠落と中間 frame 省略を別指標にし、先頭線分と RELEASE 最終線分の遅延、Canvas raster/UI/submit/Driver の各時間、queue 水位、目視の追従・濃さを記録してください。測定で支配要因を確かめるまでは最適化を実装せず、候補は3案以内で GO/NO-GO を示してください。Writer の burst 方針や SSD1677 波形を Sketch へ転用しないでください。
+> PaperMono Sketch の Pen 描画追従を対象に、FT6336G poll から論理 Canvas、描画 Tick、非同期表示、SSD1677 完了、動画上の出現までを同一 stroke/point/snapshot ID で計測してください。先に Host で PRESS/MOVE/RELEASE の順序・FIFO満杯・pending置換・最終 Canvas 保持を検証し、実機操作が必要になる段階ではデータ保持と application-only 書込条件を確認してください。入力点欠落と中間 frame 省略を別指標にし、先頭線分と RELEASE 最終線分の遅延、Canvas raster/UI/submit/Driver の各時間、queue 水位、目視の追従・濃さを記録してください。測定で支配要因を確かめるまでは最適化を実装せず、候補は3案以内で GO/NO-GO を示してください。Writer の burst 方針や SSD1677 波形を Sketch へ転用しないでください。
 
 ## 検証と状態
 

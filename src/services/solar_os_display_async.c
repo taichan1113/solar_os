@@ -1,4 +1,7 @@
 #include "solar_os_display_async.h"
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+#include "solar_os_sketch_trace.h"
+#endif
 #include <inttypes.h>
 #include <string.h>
 #include "esp_heap_caps.h"
@@ -82,6 +85,10 @@ static void worker(void *arg)
         if (maintenance) a->status.maintenance_started++; else a->status.started++;
         const solar_os_display_async_execute_t execute = maintenance ? a->maintenance : a->execute;
         unlock(a);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+        if (!maintenance) solar_os_sketch_trace_record(SKTRACE_WORKER_START,
+            0, 0, id, 0, 0);
+#endif
         const bool perf = solar_os_perf_enabled();
         if (perf && !maintenance) SOLAR_OS_LOGD("display_async", "gen=%" PRIu64 " WORKER_START t=%" PRId64, id, esp_timer_get_time());
         bool physical = false;
@@ -108,6 +115,10 @@ static void worker(void *arg)
         }
         a->active_slot = -1;
         unlock(a);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+        if (!maintenance) solar_os_sketch_trace_record(SKTRACE_WORKER_END,
+            0, 0, id, err, physical);
+#endif
         if (perf && !maintenance) SOLAR_OS_LOGD("display_async", "gen=%" PRIu64 " WORKER_END t=%" PRId64 " err=%d physical=%u", id, end, err, physical);
         if (err != ESP_OK) SOLAR_OS_LOGE("display_async", "refresh failed: %d; pending discarded, submissions latched", err);
     }
@@ -170,6 +181,10 @@ esp_err_t solar_os_display_async_submit(solar_os_display_async_t *a, const uint8
     const unsigned outstanding = a->status.busy ? 2 : 1;
     if (outstanding > a->status.peak_outstanding) a->status.peak_outstanding = outstanding;
     unlock(a);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    if (replaced) solar_os_sketch_trace_record(SKTRACE_REPLACE,
+        0, 0, generation, (int32_t)replaced, 0);
+#endif
     if (id) *id = generation;
     if (perf) SOLAR_OS_LOGD("display_async", "gen=%" PRIu64 " SNAPSHOT_SUBMIT t=%" PRId64 " copied_us=%" PRId64 " replaced=%" PRIu64,
                           generation, start, esp_timer_get_time() - start, replaced);

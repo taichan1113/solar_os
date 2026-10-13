@@ -16,6 +16,10 @@
 #define INPUT_SOURCE_MAX 8U
 #define INPUT_QUEUE_MAX 64U
 #define INPUT_POINTER_QUEUE_MAX 32U
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+#include "solar_os_sketch_trace.h"
+static uint32_t input_pointer_trace_points[INPUT_POINTER_QUEUE_MAX];
+#endif
 #define INPUT_AXIS_QUEUE_MAX 32U
 #define INPUT_GESTURE_QUEUE_MAX 32U
 #define INPUT_GESTURE_OBSERVER_MAX 4U
@@ -427,7 +431,8 @@ static bool input_queue_push_locked(const solar_os_input_key_event_t *event)
     return true;
 }
 
-static bool input_pointer_queue_push_locked(const solar_os_input_pointer_event_t *event)
+static bool input_pointer_queue_push_locked(const solar_os_input_pointer_event_t *event,
+                                            uint32_t point)
 {
     if (event == NULL || input_pointer_queue == NULL ||
         input_pointer_queue_count >= INPUT_POINTER_QUEUE_MAX) {
@@ -436,6 +441,11 @@ static bool input_pointer_queue_push_locked(const solar_os_input_pointer_event_t
     const size_t index =
         (input_pointer_queue_head + input_pointer_queue_count) % INPUT_POINTER_QUEUE_MAX;
     input_pointer_queue[index] = *event;
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    input_pointer_trace_points[index] = point;
+#else
+    (void)point;
+#endif
     input_pointer_queue_count++;
     return true;
 }
@@ -887,9 +897,14 @@ esp_err_t solar_os_input_pointer_source_quiesce(solar_os_input_source_t source)
     const size_t count = input_pointer_queue_count;
     for (size_t i = 0; i < count; i++) {
         solar_os_input_pointer_event_t event = input_pointer_queue[input_pointer_queue_head];
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+        const uint32_t point = input_pointer_trace_points[input_pointer_queue_head];
+#else
+        const uint32_t point = 0;
+#endif
         input_pointer_queue_head = (input_pointer_queue_head + 1U) % INPUT_POINTER_QUEUE_MAX;
         input_pointer_queue_count--;
-        if (event.source != source) (void)input_pointer_queue_push_locked(&event);
+        if (event.source != source) (void)input_pointer_queue_push_locked(&event, point);
     }
     input_source_diagnostics_state_t *diag = &input_diagnostics[source - 1U];
     if (diag->has_pointer && diag->last_pointer.event.buttons != 0) {
@@ -1179,11 +1194,16 @@ void solar_os_input_source_close(solar_os_input_source_t source)
     for (size_t i = 0; i < pointer_event_count; i++) {
         const solar_os_input_pointer_event_t event =
             input_pointer_queue[input_pointer_queue_head];
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+        const uint32_t point = input_pointer_trace_points[input_pointer_queue_head];
+#else
+        const uint32_t point = 0;
+#endif
         input_pointer_queue_head =
             (input_pointer_queue_head + 1U) % INPUT_POINTER_QUEUE_MAX;
         input_pointer_queue_count--;
         if (event.source != source) {
-            (void)input_pointer_queue_push_locked(&event);
+            (void)input_pointer_queue_push_locked(&event, point);
         }
     }
     if (input_pointer_queue_count == 0) {
@@ -1437,8 +1457,9 @@ esp_err_t solar_os_input_write_char(solar_os_input_source_t source, char ch)
     return result;
 }
 
-esp_err_t solar_os_input_write_pointer(solar_os_input_source_t source,
-                                       const solar_os_input_pointer_event_t *event)
+static esp_err_t input_write_pointer(solar_os_input_source_t source,
+                                    const solar_os_input_pointer_event_t *event,
+                                    uint32_t point)
 {
     if (event == NULL || event->mode > SOLAR_OS_INPUT_POINTER_RELATIVE ||
         event->action > SOLAR_OS_INPUT_POINTER_RELEASE ||
@@ -1447,6 +1468,11 @@ esp_err_t solar_os_input_write_pointer(solar_os_input_source_t source,
     }
 
     esp_err_t result = ESP_OK;
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    size_t trace_depth = 0;
+#else
+    (void)point;
+#endif
     portENTER_CRITICAL(&input_lock);
     if (!input_source_valid_locked(source) ||
         (event->mode == SOLAR_OS_INPUT_POINTER_ABSOLUTE &&
@@ -1465,7 +1491,7 @@ esp_err_t solar_os_input_write_pointer(solar_os_input_source_t source,
         solar_os_input_pointer_event_t queued = raw;
         input_apply_calibration_locked(diagnostics, &queued);
         queued.source = source;
-        if (!input_pointer_queue_push_locked(&queued)) {
+        if (!input_pointer_queue_push_locked(&queued, point)) {
             result = ESP_ERR_NO_MEM;
         } else {
             input_increment_counter(&diagnostics->pointer_events);
@@ -1477,9 +1503,26 @@ esp_err_t solar_os_input_write_pointer(solar_os_input_source_t source,
             diagnostics->last_pointer.raw_delta_y = raw.delta_y;
         }
     }
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    trace_depth = input_pointer_queue_count;
+#endif
     portEXIT_CRITICAL(&input_lock);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    if (point) solar_os_sketch_trace_record(SKTRACE_PUSH, point, 0, 0,
+        event->action, result == ESP_OK ? (int32_t)trace_depth : -(int32_t)result);
+#endif
     return result;
 }
+
+esp_err_t solar_os_input_write_pointer(solar_os_input_source_t source,
+                                       const solar_os_input_pointer_event_t *event)
+{ return input_write_pointer(source, event, 0); }
+
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+esp_err_t solar_os_input_write_pointer_traced(solar_os_input_source_t source,
+    const solar_os_input_pointer_event_t *event, uint32_t point)
+{ return input_write_pointer(source, event, point); }
+#endif
 
 esp_err_t solar_os_input_pointer_apply_orientation(
     solar_os_input_pointer_event_t *event,
@@ -1822,8 +1865,8 @@ size_t solar_os_input_read_events(solar_os_input_key_event_t *events, size_t eve
     return count;
 }
 
-size_t solar_os_input_read_pointer_events(solar_os_input_pointer_event_t *events,
-                                          size_t event_count)
+static size_t input_read_pointer_events(solar_os_input_pointer_event_t *events,
+                                       uint32_t *points, size_t event_count)
 {
     if (events == NULL || event_count == 0) {
         return 0;
@@ -1833,13 +1876,21 @@ size_t solar_os_input_read_pointer_events(solar_os_input_pointer_event_t *events
     size_t count = 0;
     for (size_t i = 0; i < INPUT_SOURCE_MAX && count < event_count; i++) {
         if (input_pending_release_valid[i]) {
-            events[count++] = input_pending_releases[i];
+            events[count] = input_pending_releases[i];
+            if (points) points[count] = 0; /* synthetic release from quiesce */
+            count++;
             input_pending_release_valid[i] = false;
         }
     }
     while (input_pointer_queue != NULL && count < event_count &&
            input_pointer_queue_count > 0) {
-        events[count++] = input_pointer_queue[input_pointer_queue_head];
+        events[count] = input_pointer_queue[input_pointer_queue_head];
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+        if (points) points[count] = input_pointer_trace_points[input_pointer_queue_head];
+#else
+        if (points) points[count] = 0;
+#endif
+        count++;
         input_pointer_queue_head =
             (input_pointer_queue_head + 1U) % INPUT_POINTER_QUEUE_MAX;
         input_pointer_queue_count--;
@@ -1848,8 +1899,23 @@ size_t solar_os_input_read_pointer_events(solar_os_input_pointer_event_t *events
         input_pointer_queue_head = 0;
     }
     portEXIT_CRITICAL(&input_lock);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    if (points) for (size_t i = 0; i < count; ++i)
+        if (points[i]) solar_os_sketch_trace_record(SKTRACE_POP, points[i],
+            0, 0, events[i].action, 0);
+#endif
     return count;
 }
+
+size_t solar_os_input_read_pointer_events(solar_os_input_pointer_event_t *events,
+                                          size_t event_count)
+{ return input_read_pointer_events(events, NULL, event_count); }
+
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+size_t solar_os_input_read_pointer_events_traced(
+    solar_os_input_pointer_event_t *events, uint32_t *points, size_t count)
+{ return input_read_pointer_events(events, points, count); }
+#endif
 
 size_t solar_os_input_read_axis_events(solar_os_input_axis_event_t *events,
                                        size_t event_count)

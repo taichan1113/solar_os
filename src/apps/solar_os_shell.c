@@ -53,6 +53,9 @@
 #include "solar_os_gpio.h"
 #include "solar_os_identity.h"
 #include "solar_os_input.h"
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+#include "solar_os_sketch_trace.h"
+#endif
 #if SOLAR_OS_PACKAGE_APP_INBOX
 #include "solar_os_inbox.h"
 #endif
@@ -502,6 +505,9 @@ static void cmd_sessions(solar_os_context_t *ctx, int argc, char **argv);
 static void cmd_session(solar_os_context_t *ctx, int argc, char **argv);
 static void cmd_fg(solar_os_context_t *ctx, int argc, char **argv);
 static void cmd_close(solar_os_context_t *ctx, int argc, char **argv);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+static void cmd_sketchtrace(solar_os_context_t *ctx, int argc, char **argv);
+#endif
 static bool shell_execute_line(solar_os_context_t *ctx,
                                const char *line,
                                bool add_history,
@@ -527,6 +533,9 @@ static const shell_command_t shell_builtin_commands[] = {
     {"fg", "resume a display app session", cmd_fg},
     {"close", "close a session", cmd_close},
     {"version", "show SolarOS version", solar_os_shell_cmd_version},
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    {"sketchtrace", "trial Sketch latency journal", cmd_sketchtrace},
+#endif
     {"pkg", "show or install packages", solar_os_shell_cmd_pkg},
 #if SOLAR_OS_PACKAGE_SERVICE_NATIVE_MODULES
     {"load", "run a native ELF module", solar_os_shell_cmd_load},
@@ -3839,6 +3848,57 @@ static void cmd_commands(solar_os_context_t *ctx, int argc, char **argv)
         solar_os_shell_io_printf(io, " - %s\n", shell_builtin_commands[i].summary);
     }
 }
+
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+static void cmd_sketchtrace(solar_os_context_t *ctx, int argc, char **argv)
+{
+    solar_os_shell_io_t *io = shell_io(ctx);
+    if (argc == 2 && strcmp(argv[1], "start") == 0) {
+        const esp_err_t err = solar_os_sketch_trace_start();
+        solar_os_shell_io_printf(io, "sketchtrace start: %s\n",
+            err == ESP_OK ? "OK" : esp_err_to_name(err));
+        return;
+    }
+    if (argc == 2 && strcmp(argv[1], "stop") == 0)
+        solar_os_sketch_trace_stop();
+    if (argc == 2 && (strcmp(argv[1], "stop") == 0 ||
+                      strcmp(argv[1], "status") == 0)) {
+        solar_os_shell_io_printf(io,
+            "SKTRACE_META,%u,%u,%u,%" PRIu64 ",%u\n",
+            solar_os_sketch_trace_active() ? 1U : 0U,
+            (unsigned)solar_os_sketch_trace_count(),
+            solar_os_sketch_trace_overflow(),
+            solar_os_sketch_trace_observer_us(),
+            solar_os_sketch_trace_observer_max_us());
+        return;
+    }
+    if ((argc == 3 || argc == 4) && strcmp(argv[1], "dump") == 0 &&
+        !solar_os_sketch_trace_active()) {
+        char *end = NULL;
+        const unsigned long start = strtoul(argv[2], &end, 10);
+        if (end == argv[2] || *end != '\0') goto usage;
+        unsigned long count = 128;
+        if (argc == 4) {
+            count = strtoul(argv[3], &end, 10);
+            if (end == argv[3] || *end != '\0' || count == 0 || count > 128)
+                goto usage;
+        }
+        const size_t total = solar_os_sketch_trace_count();
+        for (size_t i = (size_t)start; i < total && i - (size_t)start < count; ++i) {
+            solar_os_sketch_trace_row_t row;
+            if (!solar_os_sketch_trace_row(i, &row)) break;
+            solar_os_shell_io_printf(io,
+                "SKTRACE,%u,%" PRId64 ",%u,%u,%u,%" PRIu64 ",%" PRId32 ",%" PRId32 "\n",
+                (unsigned)i, row.time_us, (unsigned)row.kind, row.point,
+                row.version, row.generation, row.a, row.b);
+        }
+        return;
+    }
+usage:
+    solar_os_shell_io_writeln(io,
+        "usage: sketchtrace start|stop|status|dump <offset> [1..128]; stop before dump");
+}
+#endif
 
 static void cmd_echo(solar_os_context_t *ctx, int argc, char **argv)
 {

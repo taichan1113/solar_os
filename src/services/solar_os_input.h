@@ -285,6 +285,13 @@ esp_err_t solar_os_input_write_key_tap(solar_os_input_source_t source,
 esp_err_t solar_os_input_write_char(solar_os_input_source_t source, char ch);
 esp_err_t solar_os_input_write_pointer(solar_os_input_source_t source,
                                        const solar_os_input_pointer_event_t *event);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+/* Trial-only queue sidecar; the pointer event ABI and normal API are unchanged. */
+esp_err_t solar_os_input_write_pointer_traced(solar_os_input_source_t source,
+    const solar_os_input_pointer_event_t *event, uint32_t point);
+size_t solar_os_input_read_pointer_events_traced(
+    solar_os_input_pointer_event_t *events, uint32_t *points, size_t count);
+#endif
 esp_err_t solar_os_input_pointer_apply_orientation(
     solar_os_input_pointer_event_t *event,
     uint16_t width,

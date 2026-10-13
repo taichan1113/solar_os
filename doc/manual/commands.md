@@ -233,6 +233,7 @@ job for periodic polling.
 | Command | Usage | Description |
 | --- | --- | --- |
 | `version` | `version` | Print the SolarOS version and firmware flavor. |
+| `sketchtrace` | `sketchtrace start\|stop\|status`; `sketchtrace dump <offset> [1..128]` | PaperMono Sketch latency trial only: capture a bounded RAM journal, stop recording, then export numbered CSV rows. Absent from normal firmware. |
 | `pkg` | `pkg` | Open the native-module package manager. |
 | `pkg` | `pkg system` | Print compiled package groups and build units. |
 | `pkg` | `pkg available` | Verify the signed native-module catalog and print its compact module list. |

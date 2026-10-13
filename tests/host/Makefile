@@ -38,6 +38,10 @@ TARGETS += rtc_rx8130ce_test
 TARGETS += ft6336_lifecycle_test
 TARGETS += status_led_provider_test
 TARGETS += sketch_lifecycle_test sketch_scale140_lifecycle_test
+TARGETS += sketch_trace_core_test
+
+sketch_trace_core_test: sketch_trace_core_test.c $(ROOT)/src/services/solar_os_sketch_trace_core.c
+	$(CC) $(CFLAGS) -I$(ROOT)/src/services $^ -o $@
 TARGETS += sketch_legacy_lifecycle_test
 
 sketch_legacy_lifecycle_test: sketch_legacy_lifecycle_test.c sketch_lifecycle_test.c $(ROOT)/src/apps/solar_os_sketch.c $(ROOT)/src/apps/solar_os_sketch_canvas.c
@@ -971,6 +975,7 @@ test: $(TARGETS)
 	./writer_files_test
 	./sketch_canvas_test
 	./sketch_lifecycle_test
+	./sketch_trace_core_test
 	./sketch_scale140_lifecycle_test
 	./sketch_legacy_lifecycle_test
 	./launcher_layout_test

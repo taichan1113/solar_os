@@ -46,6 +46,9 @@
 #include "solar_os_gfx_internal.h"
 #include "solar_os_fonts.h"
 #include "solar_os_input.h"
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+#include "solar_os_sketch_trace.h"
+#endif
 #include "solar_os_input_actions.h"
 #if SOLAR_OS_PACKAGE_SERVICE_INBOX
 #include "solar_os_inbox.h"
@@ -1558,11 +1561,28 @@ static void dispatch_input_sources(void)
         }
     }
     solar_os_input_pointer_event_t pointer_events[8];
-    while ((count = solar_os_input_read_pointer_events(
-                pointer_events,
-                sizeof(pointer_events) / sizeof(pointer_events[0]))) > 0) {
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    uint32_t trace_points[8];
+#endif
+    for (;;) {
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+        count = solar_os_input_read_pointer_events_traced(pointer_events,
+            trace_points, sizeof(pointer_events) / sizeof(pointer_events[0]));
+#else
+        count = solar_os_input_read_pointer_events(pointer_events,
+            sizeof(pointer_events) / sizeof(pointer_events[0]));
+#endif
+        if (count == 0) break;
         for (size_t i = 0; i < count; i++) {
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+            solar_os_sketch_trace_set_current(trace_points[i]);
+            if (trace_points[i]) solar_os_sketch_trace_record(SKTRACE_DISPATCH,
+                trace_points[i], 0, 0, pointer_events[i].action, discard);
+#endif
             if (!discard) dispatch_input_pointer(&pointer_events[i]);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+            solar_os_sketch_trace_set_current(0);
+#endif
         }
     }
     solar_os_input_axis_event_t axis_events[8];
