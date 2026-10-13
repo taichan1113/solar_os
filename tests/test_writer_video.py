@@ -11,9 +11,23 @@ hil=Path(__file__).parent/'hil'
 sys.path.insert(0,str(hil))
 import analyze_writer_quality as journal
 import measure_writer_video as video
+import writer_video_audio as audio
 
 
 class VideoTests(unittest.TestCase):
+    def test_audio_candidates_require_unique_ordered_recorded_cues(self):
+        import math
+        rate=8000
+        samples=[0]*rate
+        for frequency in (880,1100):
+            samples.extend(round(2000*math.sin(2*math.pi*frequency*i/rate)) for i in range(1600))
+            samples.extend([0]*rate)
+        cues=audio.find_cues(samples)
+        self.assertEqual([r['point'] for r in cues],['T0','T1'])
+        self.assertAlmostEqual(cues[0]['video_time_s'],1,delta=.06)
+        self.assertAlmostEqual(cues[1]['video_time_s'],2.2,delta=.06)
+        self.assertEqual(audio.find_cues([0]*rate),[])
+
     def analysis(self):
         return dict(rows={'point':[dict(name='T0',ready_us=3000000,completed_us=1000000),
                                    dict(name='T1',ready_us=6000000,completed_us=4000000)]})
@@ -84,6 +98,39 @@ class VideoTests(unittest.TestCase):
             self.assertAlmostEqual(pts,.6)
             with self.assertRaises(ValueError):video.extract_frame(movie,3,root/'missing.png',exe)
             with self.assertRaises(ValueError):video.extract_frame(movie,.5,root/'frame.png',exe)
+
+    def test_full_video_pipeline_uses_immutable_host_masks(self):
+        try:exe=video.ffmpeg_path()
+        except ValueError:self.skipTest('FFmpeg not supplied')
+        source=os.environ.get('WQ_VIDEO_HOST_DIR')
+        if not source:self.skipTest('actual Writer video Host logs not supplied')
+        from PIL import Image
+        analysis=journal.analyze((Path(source)/'baseline-video-5-200.log').read_text())
+        self.assertTrue(analysis['valid'])
+        analysis['rows']['point']=[dict(name='T0',completed_us=1000000,ready_us=3000000),
+                                 dict(name='T1',completed_us=3000000,ready_us=5000000)]
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);image=Image.new('L',(800,480),220)
+            for mask in analysis['black_masks'].values():
+                for x,y in video.optical.black_coordinates(mask):image.putpixel((x,y),40)
+            image.save(root/'source.png')
+            video.ffmpeg_run(exe,['-loop','1','-i',root/'source.png','-t','6','-r','10',
+                                 '-c:v','ffv1',root/'sample.mkv'])
+            (root/'analysis.json').write_text(json.dumps(analysis))
+            (root/'sync.json').write_text(json.dumps(dict(markers=[dict(point='T0',video_time_s=3),
+                                                                  dict(point='T1',video_time_s=5)])))
+            corners=[[0,0],[800,0],[800,480],[0,480]]
+            (root/'corners.json').write_text(json.dumps(dict(T0=corners,T1=corners)))
+            run=subprocess.run([sys.executable,'-B',str(hil/'measure_writer_video.py'),
+                '--ffmpeg',exe,'--video',str(root/'sample.mkv'),'--analysis',str(root/'analysis.json'),
+                '--sync',str(root/'sync.json'),'--corners',str(root/'corners.json'),
+                '--output-dir',str(root/'result')],capture_output=True,text=True)
+            self.assertEqual(run.returncode,0,run.stderr+run.stdout)
+            result=json.loads((root/'result/result.json').read_text())
+            self.assertEqual(len(result['frames']),6)
+            self.assertEqual(result['frames'][0]['regions']['group']['black_pixels'],940)
+            self.assertAlmostEqual(result['regions']['group']['R'],1)
+            self.assertTrue(result['uncertainties']) # Uncalibrated sync stays explicit.
 
     def test_missing_original_does_not_create_density_output(self):
         try:exe=video.ffmpeg_path()

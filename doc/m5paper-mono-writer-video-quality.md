@@ -32,7 +32,9 @@ trial: 3,436,816 bytes、SHA256 `bba838c9cac85aa4a43f4ca0e8d7f25cdb55d09ba835316
 
 production: 3,421,632 bytes、SHA256 `777e39cd9f6727151e002cf151969fe271fae3f85b81747e616b4d96725ede29`。
 
-PC解析の最終調整後は対象Pythonテストを再実行する。実機flashの結果は実施後追記する。
+PC解析の最終調整後、video対象8テストが成功。実動画の抽出→四隅射影→独立参照の位置合わせ→940画素group測定を、Hostマスクから作ったlossless動画で通して検証した。音声の880/1100Hz候補検出も検証。欠落・複数候補時には同期を推測しない。
+
+実機flash: COM39、ESP32-S3、MAC `28:84:85:44:79:68`。現行アプリSHA256 `586b360b5487d7e2cdb439aa0b2070a46079d1cbfe5a140bfac1ea49c775e840` とpartition table、OTA選択を照合した。ota_0（0x10000）だけにtrialを書き込み、全NVS／FAT／otadata／PHYの前後バイト比較が一致。Shell起動、version、refresh=fastest、ShellのみのsessionsをUSBから確認。証拠は `.research/writer-video-quality/flash-20261013-155840/summary.json`。書き込みに伴う再起動でRAM設定は初期化されるが、boot waveform・保存設定は変更していない。
 
 ## 予備動画（追加fast更新0回）
 
