@@ -1,6 +1,6 @@
 # PaperMono Writer 動画による更新履歴比較
 
-Branch: `experiment/papermono-writer-video-quality`。実装・自動検証・予備動画の確認を完了。A1/A2/B1/B2はまだ実施していない。
+Branch: `experiment/papermono-writer-video-quality`。実装・自動検証・予備動画の確認を完了。最初のA1を実施し、ユーザーのカメラ環境変更希望により別の再A1を準備中。A2/B1/B2は未実施。
 
 ## 実装
 
@@ -16,6 +16,8 @@ display test display0 writer-quality baseline video 5 200
 
 white/reference/T0/T1で停止する。T0/T1は完了+2秒の通知とPC音（880/1100Hz、200ms）で動画音声と対応づける。測定フレームは完了後0.5/1/1.5秒と事前指定し、各時刻以降の最初の実PTSを使う。中間の撮影操作は不要。動画停止・ユーザー確認後にだけ終了gateを進め、既存OTP cleanupとShell再描画を行う。
 
+再A1以降ではcaptureの `--video-auto-following` を使用する。ユーザーが1バッチの開始と参照画面を確認した後、T0完了+2秒通知／PC合図音が済み、初回20CHAR・物理1回・faultなしを確認してT0 gateだけを1度進める。T1の終了gateは手動のまま。複数バッチの自動実行は行わない。これによりT0時点の回答待ち時間をそろえる。最初のA1はT0回答待ちがあり、初回→次回の開始間隔88.24秒だったため、再A1と同一条件の定量結果として混ぜない。
+
 PC解析はFFmpegとPillowを利用する。元動画を上書きしない。四隅の射影と独立OTP参照による位置合わせを全ROIに適用し、同じ初回黒マスクを使う。C=(W-B)/W、R=C_T1/C_T0、中央値・範囲・MAD・白背景変動を記録する。フレームは相関した観測であり独立試行や信頼区間にしない。カメラ補正、圧縮、同期遅延が残るため探索的比較とする。
 
 変更はWriterのtrialコードとHost/Python診断に限定。通常Writer保存、production scheduler、Driver/LUT/VCOM/SPI/tile/async、UI、各platform service、boot waveformは変更していない。productionから新しいvideo診断文字列が除外されていることを確認した。
@@ -23,7 +25,7 @@ PC解析はFFmpegとPillowを利用する。元動画を上書きしない。四
 ## 自動検証
 
 - 全Host: 137実行成功。最終Writer品質fixtureも成功。
-- 全Python: 611テスト成功、4件skip。FFmpeg・実Writer Hostログを指定してvideoテストを実行。
+- 全Python: 最終613テスト成功、4件skip。FFmpeg・実Writer Hostログを指定してvideoテストを実行。
 - 実Writer Hostで後続5/200ms、9/200ms、5/500msを検証。物理回数6/10/6、replacement 0、初回group 940画素、後続不変、開始間隔を確認。
 - 不正引数、物理上限6/10、途中abort、driver fault、journal欠落・改変を拒否。
 - FFmpegの実PTS抽出、既存出力保護、原動画欠落、同期不整合、白背景変動の検出を検証。
@@ -45,6 +47,12 @@ iPhone 12 mini、H.264、3840×2160、回転後2160×3840、公称30fps、15.67�
 事前に20/50/80%を指定し、実PTS 3.166667／7.866667／12.566667秒を抽出。中央領域と白背景は写っており文字が判読できる。大きな画角移動は見られない。論理座標(350,240,200,140)の白背景中央値は3点とも約162（8bit階調）、空間MADは1.0／1.0／1.27。これは3時点の静止Shellの確認であり、露出固定の保証やWriter濃度測定ではない。左端近辺より中央ROIを用いる。
 
 判定: 最初の限定試験を開始できる。数値濃度・保持率は未測定。
+
+## 最初のA1（カメラ環境変更前）
+
+実Writer経路で25CHAR、render／物理更新6回、replacement 0。後続5回内の開始間隔は201.992〜202.103ms、中央値約202.05ms。Driver p50 112.074ms、observer p50 0.785ms。初回Driverは451.005ms（cold更新を別途記録）、後続は約112ms。固定589黒／2051白、group940黒／3460白、最初47黒は後続全回で不変、保持00／11一致。journal検証成功、終了err=0／healthy=1／restored=1。
+
+ユーザー目視: T0正常、PC音は聞こえなかった。T1で録画終了、濃さはほぼ変わらない、背景正常。元動画は未提供。カメラ環境を変更して同じ更新条件でやり直す希望を受けたため、原試行は履歴・目視のみの記録として保持する。C／R／同期は未測定。rawは `.research/writer-video-quality/A1/`。
 
 ## 実機比較の予定と判定
 

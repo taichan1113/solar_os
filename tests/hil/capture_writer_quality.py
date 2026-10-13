@@ -35,6 +35,13 @@ def allowed_control(state, command):
         {"white", "reference", "first", "plus3", "plus6", "final"} and not state.get("fault"))
 
 
+def ready_for_video_following(state):
+    return (state.get('mode')=='video' and state.get('gate')=='first' and
+            state.get('starts')==1 and state.get('inputs')==20 and
+            'T0' in state.get('points',{}) and not state.get('fault') and
+            not state.get('auto_following_sent'))
+
+
 def main():
     import serial
     p = argparse.ArgumentParser(description=__doc__)
@@ -44,6 +51,7 @@ def main():
     p.add_argument("--following",type=int,choices=range(1,10))
     p.add_argument("--interval-ms",type=int,default=200)
     p.add_argument("--video-cue",action="store_true",help="Audible T0/T1 sync markers recorded in the video audio; no display update")
+    p.add_argument("--video-auto-following",action="store_true",help="ONE authorized batch: advance T0 gate after the completed+2s point; final gate remains manual")
     p.add_argument("--optical", action="store_true", help="Baseline continuous T0/T1, no intermediate gates")
     p.add_argument("--photo-cue", action="store_true", help="Windows audible cue at completed+2s T0/T1")
     for name in ("log", "control", "status"):
@@ -52,7 +60,7 @@ def main():
     if a.optical and a.waveform != "baseline": p.error("optical starts with baseline only")
     if a.mode=='video' and (a.waveform!='baseline' or a.following is None or not 180<=a.interval_ms<=2000):
         p.error('video requires baseline, following 1..9 and interval 180..2000ms')
-    if a.mode!='video' and (a.following is not None or a.video_cue):p.error('video options require video mode')
+    if a.mode!='video' and (a.following is not None or a.video_cue or a.video_auto_following):p.error('video options require video mode')
     if a.photo_cue and not a.optical: p.error("photo cue requires optical mode")
     if a.photo_cue or a.video_cue:
         import winsound
@@ -63,7 +71,7 @@ def main():
     port.dtr = port.rts = False
     port.open()
     state = dict(waveform=a.waveform, mode=a.mode, gate=None, fault=False, done=False)
-    if a.mode=='video':state.update(following=a.following,interval_ms=a.interval_ms,
+    if a.mode=='video':state.update(following=a.following,interval_ms=a.interval_ms,auto_following=a.video_auto_following,
                                    requested_utc=datetime.now(timezone.utc).isoformat())
     offset = 0
     buffered = b""
@@ -90,6 +98,11 @@ def main():
                         state['points'][name]['mapping_caveat']='UART receive/beep scheduling delay; video audio marker onset must be measured'
                 if state.get("ended") and b"user@sol:/" in buffered:
                     state["done"] = True
+                a.status.write_text(json.dumps(state, indent=2), encoding="utf-8")
+            if a.video_auto_following and ready_for_video_following(state):
+                port.write(b'g')
+                state.update(gate=None,auto_following_sent=True,
+                    auto_following_utc=datetime.now(timezone.utc).isoformat())
                 a.status.write_text(json.dumps(state, indent=2), encoding="utf-8")
             if a.control.exists():
                 control = a.control.read_bytes()

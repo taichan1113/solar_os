@@ -12,9 +12,18 @@ sys.path.insert(0,str(hil))
 import analyze_writer_quality as journal
 import measure_writer_video as video
 import writer_video_audio as audio
+import capture_writer_quality as capture
 
 
 class VideoTests(unittest.TestCase):
+    def test_following_auto_gate_never_starts_another_batch_or_cleanup(self):
+        state=dict(mode='video',gate='first',starts=1,inputs=20,points={'T0':{}},fault=False)
+        self.assertTrue(capture.ready_for_video_following(state))
+        for key,value in (('gate','final'),('gate','reference'),('mode','slow'),
+                          ('starts',2),('inputs',19),('points',{}),('fault',True),
+                          ('auto_following_sent',True)):
+            self.assertFalse(capture.ready_for_video_following({**state,key:value}))
+
     def test_audio_candidates_require_unique_ordered_recorded_cues(self):
         import math
         rate=8000
