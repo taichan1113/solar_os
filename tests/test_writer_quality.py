@@ -34,6 +34,25 @@ def sample(mode="slow", merged=False):
 
 
 class WriterQualityTests(unittest.TestCase):
+    def test_continuous_host_journal_points_masks_and_no_middle_gates(self):
+        # An actual Host capture may be supplied by the caller, so check the
+        # analyzer against real Writer raster rather than a second fake raster.
+        import os
+        root=os.environ.get('WQ_OPTICAL_HOST_DIR')
+        if not root: self.skipTest('actual Writer optical fixture logs not supplied')
+        for mode in ('slow','fast'):
+            text=(Path(root)/f'baseline-{mode}-optical.log').read_text()
+            result=analysis.analyze(text)
+            self.assertTrue(result['valid'],result['errors'])
+            self.assertEqual(result['protocol'],'continuous-optical')
+            self.assertEqual([p['name'] for p in result['rows']['point']],['T0','T1'])
+            self.assertEqual(result['black_masks']['first']['black_pixels'],47)
+            for bad in (text.replace('name=T1','name=T0'),
+                        text.replace('ready_us=','ready_us=0 ignored=',1),
+                        text.replace('WQ mask which=first row=0','WQ mask which=first row=99'),
+                        text.replace('stage=final','stage=plus3')):
+                self.assertFalse(analysis.analyze(bad)['valid'])
+
     def test_truncated_uart_records_fail_without_inventing_timing(self):
         bad=sample().replace("total_us=112000 ", "").replace("\nWQ physical", "WQ physical")
         result=analysis.analyze(bad)

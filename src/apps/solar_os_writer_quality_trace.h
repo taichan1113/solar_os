@@ -7,6 +7,7 @@
 
 #define WQ_LIMIT 10U
 #define WQ_FAST_INTERVAL_US 60000
+#define WQ_OPTICAL_SETTLE_US 2000000
 typedef struct { int x, y, w, h; } wq_roi_t;
 typedef struct {
     unsigned seq, ch, length;
@@ -29,10 +30,11 @@ typedef struct {
 typedef struct {
     epd_ssd1677_t *driver;
     unsigned inputs, renders, starts;
-    bool armed, overflow;
+    bool armed, overflow, optical;
     size_t initial_length;
-    wq_roi_t fixed, first;
+    wq_roi_t fixed, first, signature;
     uint8_t *fixed_mask, *first_mask;
+    uint8_t fixed_black_mask[30][32], first_black_mask[22][2];
     int64_t doc_start, doc_end, completed_at;
     wq_input_t input[WQ_LIMIT];
     wq_frame_t frame[WQ_LIMIT];

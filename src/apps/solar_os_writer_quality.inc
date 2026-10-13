@@ -25,6 +25,40 @@ static uint32_t wq_hash(const uint8_t *p, size_t n)
     return h;
 }
 
+/* Optical mode scans only the typing strip for snapshot identity, plus the
+ * fixed/first ROIs for transitions. No full-frame scan in the worker. */
+static uint32_t wq_roi_hash(const uint8_t *frame, wq_roi_t roi)
+{
+    uint32_t h=UINT32_C(2166136261);
+    const int top=479-(roi.y+roi.h-1), bottom=479-roi.y;
+    for (int band=top/8;band<=bottom/8;band++) {
+        unsigned mask=0;
+        for (int bit=0;bit<8;bit++) if (band*8+bit>=top && band*8+bit<=bottom) mask|=1U<<bit;
+        for (int x=800-roi.x-roi.w;x<800-roi.x;x++)
+            h=(h ^ (frame[band*800+x]&mask))*UINT32_C(16777619);
+    }
+    return h;
+}
+
+static void wq_roi_audit(wq_trace_t *q, wq_physical_t *r, const uint8_t *frame,
+                         wq_roi_t roi, const uint8_t *mask, bool first)
+{
+    const int top=479-(roi.y+roi.h-1), bottom=479-roi.y;
+    for (int band=top/8;band<=bottom/8;band++)
+        for (int x=800-roi.x-roi.w;x<800-roi.x;x++) {
+            const size_t i=(size_t)band*800+(size_t)x;
+            const unsigned a=q->driver->shadow[i], b=frame[i], m=mask[i];
+            if (first) {
+                r->first_changed+=(unsigned)__builtin_popcount((a^b)&m);
+                r->first_00+=(unsigned)__builtin_popcount(~(a|b)&m);
+            } else {
+                r->fixed_changed+=(unsigned)__builtin_popcount((a^b)&m);
+                r->fixed_00+=(unsigned)__builtin_popcount(~(a|b)&m);
+                r->fixed_11+=(unsigned)__builtin_popcount(a&b&m);
+            }
+        }
+}
+
 /* Validated R2 U8g2, native 800x480 VLSB. Masks use actual native coordinates,
  * not linear/XBM addressing; hardware tile output is tested independently. */
 static void wq_mask(uint8_t *mask, wq_roi_t r)
@@ -60,11 +94,23 @@ static void writer_quality_render_end(solar_os_gfx_t *gfx, uint64_t *generation,
         q->overflow=true; *error=ESP_ERR_INVALID_STATE; return;
     }
     const wq_roi_t first={WRITER_MARGIN_X+x,WRITER_HEADER_H+WRITER_MARGIN_Y+y,end_x-x,h};
-    if (!q->renders) { q->first=first; wq_mask(q->first_mask,first); }
+    if (!q->renders) {
+        q->first=first; wq_mask(q->first_mask,first);
+        q->signature=(wq_roi_t){first.x,first.y,first.w*(int)WQ_LIMIT,first.h};
+    }
     else if (memcmp(&first,&q->first,sizeof(first))) {
         q->overflow=true; *error=ESP_ERR_INVALID_STATE; return;
     }
-    r->hash=wq_hash(q->driver->buffer,q->driver->buffer_size);
+    if (q->optical) {
+        int tail_x=0,tail_y=0;
+        if (!solar_os_doc_layout_source_to_xy(&writer.layout,r->length,&tail_x,&tail_y,NULL) ||
+            tail_y!=y || WRITER_MARGIN_X+tail_x>q->signature.x+q->signature.w ||
+            q->signature.x+q->signature.w>800) {
+            q->overflow=true; *error=ESP_ERR_INVALID_STATE; return;
+        }
+    }
+    r->hash=q->optical ? wq_roi_hash(q->driver->buffer,q->signature) :
+                        wq_hash(q->driver->buffer,q->driver->buffer_size);
     ++q->renders; /* reservation precedes submission, including active/pending */
     r->submit_start=esp_timer_get_time();
     *error=solar_os_gfx_submit(gfx,generation);
@@ -92,7 +138,11 @@ static esp_err_t wq_observer(void *context, const uint8_t *frame, bool end, esp_
     const int64_t observer_start=esp_timer_get_time();
     const uint8_t *old=q->driver->shadow;
     r->hash=UINT32_C(2166136261); r->x0=800; r->y0=480; r->x1=r->y1=-1;
-    for (size_t i=0; i<48000; ++i) {
+    if (q->optical) {
+        r->hash=wq_roi_hash(frame,q->signature);
+        wq_roi_audit(q,r,frame,q->fixed,q->fixed_mask,false);
+        wq_roi_audit(q,r,frame,q->first,q->first_mask,true);
+    } else for (size_t i=0; i<48000; ++i) {
         const unsigned a=old[i],b=frame[i],diff=a^b;
         const unsigned fm=q->fixed_mask[i], am=q->first_mask[i];
         r->hash=(r->hash ^ b)*UINT32_C(16777619);
@@ -120,6 +170,35 @@ static esp_err_t wq_observer(void *context, const uint8_t *frame, bool end, esp_
     r->observer_us=esp_timer_get_time()-observer_start;
     r->start=esp_timer_get_time(); /* driver call follows; overhead reported */
     return ESP_OK;
+}
+
+/* Capture the same logical black-pixel masks after the first completed a,
+ * outside any input burst. Rows are MSB-first, ideal binary pixels, not photos. */
+static bool wq_capture_black_masks(wq_trace_t *q)
+{
+    if (q->fixed.w>256 || q->fixed.h>30 || q->first.w>16 || q->first.h>22) return false;
+    for (unsigned which=0;which<2;which++) {
+        wq_roi_t roi=which?q->first:q->fixed;
+        for (int y=0;y<roi.h;y++) for (int x=0;x<roi.w;x++) {
+            unsigned nx=799U-(unsigned)(roi.x+x), ny=479U-(unsigned)(roi.y+y);
+            if (!(q->driver->shadow[(ny/8)*800+nx]&(1U<<(ny%8)))) {
+                if (which) q->first_black_mask[y][x/8]|=(uint8_t)(1U<<(7-x%8));
+                else q->fixed_black_mask[y][x/8]|=(uint8_t)(1U<<(7-x%8));
+            }
+        }
+    }
+    return true;
+}
+
+static void wq_point(solar_os_shell_io_t *io,wq_trace_t *q,const char *name)
+{
+    while (esp_timer_get_time()-q->completed_at<WQ_OPTICAL_SETTLE_US) vTaskDelay(1);
+    const wq_physical_t *r=&q->physical[q->starts-1];
+    uint64_t gen=0;
+    for (unsigned i=0;i<q->renders;i++) if (q->frame[i].hash==r->hash) gen=q->frame[i].generation;
+    solar_os_shell_io_printf(io,"WQ point name=%s gen=%llu chars=%u completed_us=%lld ready_us=%lld settle_us=%d\n",
+        name,(unsigned long long)gen,q->inputs,(long long)q->completed_at,
+        (long long)esp_timer_get_time(),WQ_OPTICAL_SETTLE_US);
 }
 
 static bool wq_gate(solar_os_shell_io_t *io, wq_trace_t *q, const char *stage)
@@ -196,6 +275,14 @@ static void wq_dump(solar_os_shell_io_t *io, wq_trace_t *q,
         after.started-before->started,after.completed-before->completed,after.physical-before->physical,q->overflow);
     solar_os_shell_io_printf(io,"WQ roi fixed=%d,%d,%d,%d first=%d,%d,%d,%d rotation=R2\n",
         q->fixed.x,q->fixed.y,q->fixed.w,q->fixed.h,q->first.x,q->first.y,q->first.w,q->first.h);
+    if (q->optical) for (unsigned which=0;which<2;which++) {
+        const wq_roi_t roi=which?q->first:q->fixed;
+        for (int y=0;y<roi.h;y++) {
+            char hex[65]; const uint8_t *mask=which?q->first_black_mask[y]:q->fixed_black_mask[y];
+            for (int x=0;x<(roi.w+7)/8;x++) snprintf(hex+2*x,3,"%02x",mask[x]);
+            solar_os_shell_io_printf(io,"WQ mask which=%s row=%d black=%s\n",which?"first":"fixed",y,hex);
+        }
+    }
     for (unsigned i=0;i<q->inputs;i++) {
         const wq_input_t *r=&q->input[i];
         solar_os_shell_io_printf(io,"WQ input seq=%u ch=%u len=%u sent=%lld accepted=%lld mutated=%lld request=%lld\n",
@@ -221,24 +308,28 @@ static void wq_dump(solar_os_shell_io_t *io, wq_trace_t *q,
         }
         solar_os_shell_io_printf(io,"WQ physical ordinal=%u gen=%llu chars=%u hash=%08lx start=%lld end=%lld err=%d ",
             i+1,(unsigned long long)gen,chars,(unsigned long)r->hash,(long long)r->start,(long long)r->end,r->error);
-        solar_os_shell_io_printf(io,"changes=%u bounds=%d,%d,%d,%d fixed_change=%u fixed00=%u fixed11=%u ",
-            r->changed,r->x0,r->y0,r->x1,r->y1,r->fixed_changed,r->fixed_00,r->fixed_11);
+        if (q->optical) solar_os_shell_io_write(io,"changes=unmeasured bounds=unmeasured ");
+        else solar_os_shell_io_printf(io,"changes=%u bounds=%d,%d,%d,%d ",r->changed,r->x0,r->y0,r->x1,r->y1);
+        solar_os_shell_io_printf(io,"fixed_change=%u fixed00=%u fixed11=%u ",r->fixed_changed,r->fixed_00,r->fixed_11);
         solar_os_shell_io_printf(io,"first_change=%u first00=%u first_following=%u observer_us=%lld total_us=%lld ",
             r->first_changed,r->first_00,i,(long long)r->observer_us,(long long)(t->end_us-t->start_us));
         solar_os_shell_io_printf(io,"busy_us=%lld convert_us=%lld spi_us=%lld writes=%u activations=%u spi_hz=%d path=tile\n",
             (long long)(t->ready_us[0]-t->activate_us[0]),(long long)(t->convert_us[0]+t->convert_us[1]),
             (long long)(t->spi_us[0]+t->spi_us[1]),t->writes,t->activations,q->driver->actual_spi_hz);
+        if (q->optical) solar_os_shell_io_printf(io,"WQ scope ordinal=%u roi_only=1 global_changes=unmeasured global_bounds=unmeasured\n",i+1);
     }
 }
 
 void solar_os_writer_quality_command(solar_os_shell_io_t *io, int argc, char **argv)
 {
     static const char owner[]="shell:writer-quality";
-    if (argc!=6 || strcmp(argv[2],"display0") || strcmp(argv[3],"writer-quality") ||
+    const bool optical=argc==7 && !strcmp(argv[6],"optical");
+    if ((argc!=6 && !optical) || strcmp(argv[2],"display0") || strcmp(argv[3],"writer-quality") ||
         (strcmp(argv[4],"baseline") && strcmp(argv[4],"dose")) ||
+        (optical && strcmp(argv[4],"baseline")) ||
         (strcmp(argv[5],"slow") && strcmp(argv[5],"fast")) ||
         solar_os_shell_io_kind(io)!=SOLAR_OS_SHELL_IO_KIND_PORT) {
-        solar_os_shell_io_writeln(io,"usage (serial): display test display0 writer-quality baseline|dose slow|fast"); return;
+        solar_os_shell_io_writeln(io,"usage (serial): display test display0 writer-quality baseline|dose slow|fast [optical (baseline only)]"); return;
     }
     solar_os_display_target_t target;
     if (writer_state || !solar_os_display_find_target(argv[2],&target) || !target.ready ||
@@ -266,7 +357,7 @@ void solar_os_writer_quality_command(solar_os_shell_io_t *io, int argc, char **a
     solar_os_display_submission_status_t before={0};
     bool healthy=false,started=false,configured=false;
     if (!q || !ctx) { err=ESP_ERR_NO_MEM; goto done; }
-    q->driver=d;
+    q->driver=d; q->optical=optical;
     q->fixed_mask=solar_os_memory_calloc(1,96000,SOLAR_OS_MEMORY_EXTERNAL_REQUIRED,"writer-quality-masks");
     if (!q->fixed_mask) { err=ESP_ERR_NO_MEM; goto done; }
     q->first_mask=q->fixed_mask+48000;
@@ -283,6 +374,7 @@ void solar_os_writer_quality_command(solar_os_shell_io_t *io, int argc, char **a
     if (err!=ESP_OK) { healthy=false; goto done; }
     q->completed_at=esp_timer_get_time();
     solar_os_shell_io_printf(io,"WQ begin waveform=%s mode=%s text=abcdefghij zoom=4 spi=40000000 path=tile tick_ms=40 fast_interval_ms=60 max_fast=10 storage=none\n",argv[4],argv[5]);
+    if (optical) solar_os_shell_io_writeln(io,"WQ protocol continuous=1 observer=roi hash_scope=typing-roi global_changes=unmeasured settle_us=2000000");
     if (!wq_gate(io,q,"white")) goto done;
     solar_os_context_init(ctx,NULL,gfx);
     solar_os_context_set_output_handler(ctx,writer_quality_output_marker,q);
@@ -303,10 +395,14 @@ void solar_os_writer_quality_command(solar_os_shell_io_t *io, int argc, char **a
     (void)solar_os_display_submission_status(target.u8g2,&before);
     d->trial_observer_context=q; d->trial_observer=wq_observer; q->armed=true;
     const unsigned stops[]={1,4,7,10}; const char *stages[]={"first","plus3","plus6","final"};
-    for (unsigned i=0;i<4;i++) {
-        err=wq_segment(ctx,q,stops[i],!strcmp(argv[5],"slow") || i==0);
+    for (unsigned i=0;i<(optical?2U:4U);i++) {
+        err=wq_segment(ctx,q,optical?(i?10U:1U):stops[i],!strcmp(argv[5],"slow") || i==0);
         if (err!=ESP_OK) { healthy=false; break; }
-        if (!wq_gate(io,q,stages[i])) break;
+        if (optical) {
+            if (!i && !wq_capture_black_masks(q)) {err=ESP_ERR_INVALID_STATE;healthy=false;break;}
+            wq_point(io,q,i?"T1":"T0");
+        }
+        if (!wq_gate(io,q,optical?(i?"final":"first"):stages[i])) break;
     }
     if (q->armed) wq_dump(io,q,&before);
 done:
