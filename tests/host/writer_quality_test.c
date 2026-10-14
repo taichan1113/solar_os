@@ -330,8 +330,40 @@ static void test_sparse_observer_matches_full_audit(void)
     assert(b->fixed_changed>0 && b->first_changed>0); /* detects unexpected white/black transitions */
     free(masks);
 }
+static void test_cursor_boundary_requests(void)
+{
+    assert(!writer_state);
+    writer_state = calloc(1, sizeof(writer_state_t));
+    assert(writer_state);
+    solar_os_writer_buffer_init(&writer.buffer);
+    assert(solar_os_writer_buffer_set(&writer.buffer, "abc", 3) == ESP_OK);
+    writer.selection_anchor = SIZE_MAX;
+    writer.cursor_visible = true;
+    unsigned requests = 0;
+    for (unsigned i = 0; i < 8; ++i) {
+        writer_set_cursor(0, false); /* Left at start: no visible change. */
+        requests += writer.render_pending;
+        writer.render_pending = writer.layout_pending = false;
+    }
+    printf("writer-boundary: events=8 draw-requests=%u\n", requests);
+    assert(requests == 0);
+    writer_set_cursor(1, false);
+    assert(writer.render_pending && writer.layout_pending && writer.cursor == 1);
+    writer.render_pending = writer.layout_pending = false;
+    writer.selection_anchor = 0;
+    writer_set_cursor(1, false); /* Same cursor, visible selection removed. */
+    assert(writer.render_pending && writer.selection_anchor == SIZE_MAX);
+    writer.render_pending = writer.layout_pending = false;
+    writer.cursor_visible = false;
+    writer_set_cursor(1, false); /* Blink wake still needs a redraw. */
+    assert(writer.render_pending && writer.cursor_visible);
+    solar_os_writer_buffer_free(&writer.buffer);
+    free(writer_state);
+    writer_state = NULL;
+}
 int main(void)
 {
+    test_cursor_boundary_requests();
     run("baseline","slow","gggggg",0,false);run("dose","slow","gggggg",0,false);
     run("baseline","fast","gggggg",0,false);run("dose","fast","gggggg",0,false);
     run("baseline","slow","gggg",0,true);run("baseline","fast","gggg",0,true);

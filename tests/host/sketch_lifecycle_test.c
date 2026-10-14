@@ -122,6 +122,18 @@ int main(void)
     other_pointer=fail_enable=false;c=begin(0);assert(sketch_start(&c)==ESP_OK && leased && sketch.modal==SKETCH_MODAL_NONE);
     assert(submits==1 && !synchronous_presents);
     sketch_layout_t l=sketch_layout(c.gfx);assert(l.canvas_x==64 && l.canvas_width==736 && l.canvas_height==392);
+    {
+        solar_os_event_t same_tool={.type=SOLAR_OS_EVENT_CHAR,.data.ch='p'};
+        const unsigned before=submits;
+        assert(sketch_event(&c,&same_tool));tick(&c);
+        printf("sketch-reselect: events=1 draw-requests=%u\n",submits-before);
+        assert(submits==before && sketch.tool==SKETCH_TOOL_FREEHAND);
+        pointer(&c,SOLAR_OS_INPUT_POINTER_PRESS,10,l.canvas_y+l.canvas_height/8+5);
+        tick(&c);assert(submits==before); /* Same tool through sidebar. */
+        const int swatch=(l.screen_width-8)/8;
+        pointer(&c,SOLAR_OS_INPUT_POINTER_PRESS,3+3*swatch+2,l.canvas_y+l.canvas_height+5);
+        tick(&c);assert(submits==before && sketch.color==3); /* Same swatch. */
+    }
 #if SOLAR_OS_BOARD_UI_SCALE_PERCENT == 140
     const sketch_button_symbol_layout_t symbol = sketch_draw_button_symbol_frame(c.gfx, 2, 2, 60, 49, "Import", false);
     assert(symbol.y == 5); /* 54 px label stays visible below its 16 px icon. */
@@ -135,6 +147,18 @@ int main(void)
     assert(submits==1);tick(&c);assert(submits==2);
     pointer(&c,SOLAR_OS_INPUT_POINTER_RELEASE,200,100);tick(&c);assert(submits==3 && !sketch.drawing);
     for(int x=100;x<=200;x++)assert(solar_os_sketch_canvas_get(&sketch.canvas,x-l.canvas_x,100-l.canvas_y)==3);
+    {
+        solar_os_event_t line_tool={.type=SOLAR_OS_EVENT_CHAR,.data.ch='l'};
+        assert(sketch_event(&c,&line_tool));tick(&c);
+        pointer(&c,SOLAR_OS_INPUT_POINTER_PRESS,220,140);tick(&c);
+        const unsigned before=submits;
+        pointer(&c,SOLAR_OS_INPUT_POINTER_MOVE,220,140);tick(&c);
+        assert(submits==before); /* Unchanged shape preview. */
+        pointer(&c,SOLAR_OS_INPUT_POINTER_MOVE,250,140);tick(&c);
+        assert(submits==before+1); /* Changed preview remains visible. */
+        pointer(&c,SOLAR_OS_INPUT_POINTER_RELEASE,250,140);tick(&c);
+        assert(submits==before+2 && !sketch.drawing);
+    }
     solar_os_sketch_canvas_set(&sketch.canvas,10,10,1,0);
     solar_os_sketch_canvas_set(&sketch.canvas,11,10,2,0);
     sketch_suspend(&c);assert(!leased && sketch.suspended && allocations==3);

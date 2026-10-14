@@ -1024,10 +1024,13 @@ static void sketch_canvas_pointer(const sketch_layout_t *layout,
         sketch.render_pending = true;
     } else if (pointer->action == SOLAR_OS_INPUT_POINTER_MOVE &&
                sketch.drawing && sketch_is_shape_tool()) {
-        sketch.preview_x = x < 0 ? 0 :
+        const int preview_x = x < 0 ? 0 :
             (x >= layout->canvas_width ? layout->canvas_width - 1 : x);
-        sketch.preview_y = y < 0 ? 0 :
+        const int preview_y = y < 0 ? 0 :
             (y >= layout->canvas_height ? layout->canvas_height - 1 : y);
+        if (preview_x == sketch.preview_x && preview_y == sketch.preview_y) return;
+        sketch.preview_x = preview_x;
+        sketch.preview_y = preview_y;
         sketch.render_pending = true;
     } else if (pointer->action == SOLAR_OS_INPUT_POINTER_RELEASE &&
                sketch.drawing) {
@@ -1082,7 +1085,9 @@ static void sketch_toolbar_pointer(const sketch_layout_t *layout)
                 (sketch.weight == 2U ? 4U :
                  (sketch.weight == 4U ? 8U : 1U));
         } else if (row >= 1 && row <= SKETCH_TOOL_COUNT) {
-            sketch.tool = (sketch_tool_t)(row - 1);
+            const sketch_tool_t tool = (sketch_tool_t)(row - 1);
+            if (sketch.tool == tool) return;
+            sketch.tool = tool;
         } else if (row >= 7) {
             solar_os_sketch_canvas_clear(&sketch.canvas, 0U);
             sketch.dirty = true;
@@ -1094,9 +1099,13 @@ static void sketch_toolbar_pointer(const sketch_layout_t *layout)
         int swatch = (layout->screen_width - 8) / 8;
         int index = swatch > 0 ? (x - 3) / swatch : 0;
         if (index >= 0 && index < 4) {
+            if (sketch.color == (uint8_t)index) return;
             sketch.color = (uint8_t)index;
         } else if (index >= 4 && index < 8) {
+            if (sketch.pattern == (uint8_t)(index - 4)) return;
             sketch.pattern = (uint8_t)(index - 4);
+        } else {
+            return;
         }
         sketch.render_pending = true;
     }
@@ -1225,21 +1234,27 @@ static bool sketch_char_event(solar_os_context_t *ctx, uint8_t ch)
     } else if (ch == 'i' || ch == 'I') {
         sketch_browser_open(SKETCH_MODAL_IMPORT);
     } else if (ch == 'p' || ch == 'P' || ch == 'f' || ch == 'F') {
+        if (sketch.tool == SKETCH_TOOL_FREEHAND) return true;
         sketch.tool = SKETCH_TOOL_FREEHAND;
         sketch.render_pending = true;
     } else if (ch == 'l' || ch == 'L') {
+        if (sketch.tool == SKETCH_TOOL_LINE) return true;
         sketch.tool = SKETCH_TOOL_LINE;
         sketch.render_pending = true;
     } else if (ch == 'r' || ch == 'R') {
+        if (sketch.tool == SKETCH_TOOL_RECTANGLE) return true;
         sketch.tool = SKETCH_TOOL_RECTANGLE;
         sketch.render_pending = true;
     } else if (ch == 'e' || ch == 'E') {
+        if (sketch.tool == SKETCH_TOOL_ELLIPSE) return true;
         sketch.tool = SKETCH_TOOL_ELLIPSE;
         sketch.render_pending = true;
     } else if (ch == 'b' || ch == 'B') {
+        if (sketch.tool == SKETCH_TOOL_FILL) return true;
         sketch.tool = SKETCH_TOOL_FILL;
         sketch.render_pending = true;
     } else if (ch == 'x' || ch == 'X') {
+        if (sketch.tool == SKETCH_TOOL_ERASER) return true;
         sketch.tool = SKETCH_TOOL_ERASER;
         sketch.render_pending = true;
     } else if (ch == 'c' || ch == 'C') {

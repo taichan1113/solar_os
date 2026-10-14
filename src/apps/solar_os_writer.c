@@ -449,6 +449,9 @@ static size_t writer_line_end(size_t offset)
 
 static void writer_set_cursor(size_t cursor, bool select)
 {
+    const size_t old_cursor = writer.cursor;
+    size_t old_start = 0, old_end = 0;
+    const bool old_selection = writer_selection(&old_start, &old_end);
     const size_t len = solar_os_writer_buffer_length(&writer.buffer);
     if (cursor > len) {
         cursor = len;
@@ -462,6 +465,12 @@ static void writer_set_cursor(size_t cursor, bool select)
     }
     writer.cursor = cursor;
     writer_wake_cursor();
+    size_t new_start = 0, new_end = 0;
+    const bool new_selection = writer_selection(&new_start, &new_end);
+    if (old_cursor == writer.cursor && old_selection == new_selection &&
+        (!old_selection || (old_start == new_start && old_end == new_end))) {
+        return; /* Boundary key or empty selection: the raster is unchanged. */
+    }
     writer.layout_pending = true;
     writer.render_pending = true;
 }
