@@ -27,6 +27,8 @@ TARGETS += input_action_match_test gesture_completion_test
 TARGETS += epd_ssd1677_test epd_uc8179_test uc8179_expansion_test epd_uc8279_test uc8279_expansion_test
 TARGETS += epd_ssd1677_waveform_trial_test
 TARGETS += epd_ssd1677_dirty_hold_test
+TARGETS += epd_ssd1677_spi_clock_normal_test epd_ssd1677_spi_clock_20_test
+TARGETS += epd_ssd1677_spi_clock_dirty_normal_test epd_ssd1677_spi_clock_dirty_20_test
 TARGETS += quality_ab_test
 TARGETS += writer_quality_test
 TARGETS += frontlight_pwm_test epd_xteink_identify_test x4pro_expansion_test
@@ -244,6 +246,14 @@ epd_ssd1677_dirty_hold_test: epd_ssd1677_dirty_hold_test.c epd_ssd1677_test.c $(
 	$(CC) $(CFLAGS) -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 -ffunction-sections -fdata-sections \
 		-Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib \
 		epd_ssd1677_dirty_hold_test.c -Wl,--gc-sections -o $@
+
+epd_ssd1677_spi_clock_normal_test epd_ssd1677_spi_clock_20_test epd_ssd1677_spi_clock_dirty_normal_test epd_ssd1677_spi_clock_dirty_20_test: \
+		epd_ssd1677_spi_clock_test.c epd_ssd1677_test.c $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677.h $(ROOT)/src/drivers/epd_ssd1677_reference.inc \
+		$(wildcard epd_stubs/*.h epd_stubs/driver/*.h epd_stubs/freertos/*.h)
+	$(CC) $(CFLAGS) $(if $(findstring _20_test,$@),-DSOLAR_OS_SSD1677_SPI20_TRIAL=1,) \
+		$(if $(findstring _dirty_,$@),-DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1,) -ffunction-sections -fdata-sections \
+		-Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib \
+		epd_ssd1677_spi_clock_test.c -Wl,--gc-sections -o $@
 
 epd_ssd1677_waveform_trial_test: epd_ssd1677_test.c $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677.h $(ROOT)/src/drivers/epd_ssd1677_reference.inc $(ROOT)/src/drivers/epd_ssd1677_waveform_trial.inc \
 	$(wildcard epd_stubs/*.h epd_stubs/driver/*.h epd_stubs/freertos/*.h)

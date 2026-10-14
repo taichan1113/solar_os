@@ -83,6 +83,11 @@ static epd_ssd1677_t *ssd1677_from_u8x8(u8x8_t *u8x8)
                              offsetof(u8g2_t, u8x8));
 }
 
+static int ssd1677_default_fastest_spi_hz(void)
+{
+    return SOLAR_OS_SSD1677_SPI20_TRIAL ? 20000000 : 40000000;
+}
+
 static esp_err_t ssd1677_poll(epd_ssd1677_t *display, spi_transaction_t *transaction)
 {
     const int requested = display->transport_spi_hz;
@@ -829,9 +834,8 @@ esp_err_t epd_ssd1677_init(epd_ssd1677_t *display,
 #endif
     display->configured_spi_hz = config->spi_clock_hz;
     display->transport_spi_hz = config->spi_clock_hz;
-    /* Qualified with the same waveform at 10/20/40MHz, then 110 updates and
-     * Writer input at 40MHz. OTP still uses the configured board clock. */
-    display->fastest_spi_hz = 40000000;
+    /* OTP and other refresh modes still use the configured board clock. */
+    display->fastest_spi_hz = ssd1677_default_fastest_spi_hz();
     display->typing_frame_ms = 250;
     display->typing_cleanup_budget = 128;
     display->typing_idle_ms = 30000;
@@ -1066,12 +1070,18 @@ const char *epd_ssd1677_controller_mode(const epd_ssd1677_t *display)
 
 const char *epd_ssd1677_controller_mode_values(const epd_ssd1677_t *display)
 {
+#if SOLAR_OS_SSD1677_SPI20_TRIAL
+#define SSD1677_SPI_MHZ_VALUES "spi-mhz=<10,20>"
+#else
+#define SSD1677_SPI_MHZ_VALUES "spi-mhz=<10,20,40>"
+#endif
     if (display != NULL && display->papermono_otp)
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
-        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> fastest-waveform=<baseline,dose,hold> (EXPERIMENTAL; DC/lifetime unverified) spi-mhz=<10,20,40> fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
+        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> fastest-waveform=<baseline,dose,hold> (EXPERIMENTAL; DC/lifetime unverified) " SSD1677_SPI_MHZ_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
 #else
-        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> spi-mhz=<10,20,40> fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
+        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> " SSD1677_SPI_MHZ_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
 #endif
+#undef SSD1677_SPI_MHZ_VALUES
     return "refresh=<auto,partial,full>";
 }
 
@@ -1112,6 +1122,9 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
         }
         if (strcmp(mode, "spi-mhz=10") == 0 || strcmp(mode, "spi-mhz=20") == 0 ||
             strcmp(mode, "spi-mhz=40") == 0) {
+#if SOLAR_OS_SSD1677_SPI20_TRIAL
+            if (strcmp(mode, "spi-mhz=40") == 0) return ESP_ERR_INVALID_ARG;
+#endif
             display->fastest_spi_hz = mode[8] == '4' ? 40000000 : mode[8] == '2' ? 20000000 : 10000000;
             return ESP_OK; /* Applied at the next fastest transaction boundary. */
         }
