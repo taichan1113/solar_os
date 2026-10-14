@@ -457,12 +457,13 @@ static esp_err_t ssd1677_activate(epd_ssd1677_t *display)
 }
 
 static esp_err_t ssd1677_papermono_write(epd_ssd1677_t *display, uint8_t command,
-                                       const ssd1677_window_t *window, bool invert)
+                                        const uint8_t *source,
+                                        const ssd1677_window_t *window, bool invert)
 {
     epd_ssd1677_timing_t *t = &display->timing;
     const unsigned i = t->writes++;
     t->write_start_us[i] = esp_timer_get_time();
-    const esp_err_t err = ssd1677_write_plane(display, command, ssd1677_frame(display), window, invert);
+    const esp_err_t err = ssd1677_write_plane(display, command, source, window, invert);
     t->write_end_us[i] = esp_timer_get_time();
     return err;
 }
@@ -492,12 +493,37 @@ static esp_err_t ssd1677_papermono_refresh(epd_ssd1677_t *display)
     display->cleanup_pending = false;
     const bool baseline = display->papermono_baseline_valid && display->powered &&
                           display->shadow_valid && display->shadow != NULL;
+    #if SOLAR_OS_SSD1677_HYBRID_TRIAL
+    const bool hybrid = display->refresh_mode == EPD_SSD1677_REFRESH_HYBRID;
+    const bool quality = hybrid && display->hybrid_quality_pending;
+    if (quality && (!baseline ||
+        memcmp(ssd1677_frame(display), display->shadow, display->buffer_size) != 0))
+        return ESP_ERR_INVALID_STATE; /* Never replay an obsolete snapshot. */
+    const bool hybrid_limit = hybrid && display->hybrid_max_updates &&
+                              display->hybrid_fast_updates >= display->hybrid_max_updates;
+    #endif
     if (!cleanup && baseline &&
+    #if SOLAR_OS_SSD1677_HYBRID_TRIAL
+        !quality &&
+    #endif
         memcmp(ssd1677_frame(display), display->shadow, display->buffer_size) == 0) return ESP_OK;
     if (!cleanup && baseline &&
         (display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST ||
-         display->refresh_mode == EPD_SSD1677_REFRESH_TYPING))
-        return ssd1677_reference_refresh(display);
+         display->refresh_mode == EPD_SSD1677_REFRESH_TYPING
+    #if SOLAR_OS_SSD1677_HYBRID_TRIAL
+         || (hybrid && !quality && !hybrid_limit)
+    #endif
+         )) {
+    #if SOLAR_OS_SSD1677_HYBRID_TRIAL
+        const int64_t previous_end = display->timing.end_us;
+    #endif
+        const esp_err_t fast_err = ssd1677_reference_refresh(display);
+    #if SOLAR_OS_SSD1677_HYBRID_TRIAL
+        if (hybrid && fast_err == ESP_OK && display->timing.end_us != previous_end &&
+            display->hybrid_fast_updates != UINT32_MAX) display->hybrid_fast_updates++;
+    #endif
+        return fast_err;
+    }
     display->transport_spi_hz = display->configured_spi_hz;
     const bool partial = baseline && !cleanup &&
                          display->refresh_mode != EPD_SSD1677_REFRESH_FULL &&
@@ -522,18 +548,26 @@ static esp_err_t ssd1677_papermono_refresh(epd_ssd1677_t *display)
         if (err == ESP_OK) err = ssd1677_wait_ready(display);
         if (err == ESP_OK) err = ssd1677_cmd_data(display, 0x3c, &border, 1);
         if (err == ESP_OK) err = ssd1677_cmd_data(display, 0x11, &entry, 1);
-        if (err == ESP_OK) err = ssd1677_papermono_write(display, 0x24, &window, false);
+    #if SOLAR_OS_SSD1677_HYBRID_TRIAL
+        if (err == ESP_OK && hybrid && display->reference_awake) {
+            /* The custom-LUT path leaves 0x26 at the previous frame. Set both
+             * explicit RAM faces before entering the OTP Mode-2 sequence. */
+            const uint8_t *old = quality ? ssd1677_frame(display) : display->shadow;
+            err = ssd1677_papermono_write(display, 0x26, old, &window, false);
+        }
+    #endif
+        if (err == ESP_OK) err = ssd1677_papermono_write(display, 0x24, ssd1677_frame(display), &window, false);
         if (err == ESP_OK) err = ssd1677_cmd_data(display, 0x21, &control, 1);
         if (err == ESP_OK) err = ssd1677_cmd_data(display, 0x22, &fast, 1);
         if (err == ESP_OK) err = ssd1677_papermono_activate(display);
     } else {
         err = ssd1677_controller_init(display);
         if (err == ESP_OK) err = ssd1677_cmd_data(display, 0x22, &sync, 1);
-        if (err == ESP_OK) err = ssd1677_papermono_write(display, 0x24, &window, true);
+        if (err == ESP_OK) err = ssd1677_papermono_write(display, 0x24, ssd1677_frame(display), &window, true);
         if (err == ESP_OK) err = ssd1677_papermono_activate(display);
         if (err == ESP_OK) err = ssd1677_cmd_data(display, 0x22, &full, 1);
-        if (err == ESP_OK) err = ssd1677_papermono_write(display, 0x26, &window, false);
-        if (err == ESP_OK) err = ssd1677_papermono_write(display, 0x24, &window, false);
+        if (err == ESP_OK) err = ssd1677_papermono_write(display, 0x26, ssd1677_frame(display), &window, false);
+        if (err == ESP_OK) err = ssd1677_papermono_write(display, 0x24, ssd1677_frame(display), &window, false);
         if (err == ESP_OK) err = ssd1677_papermono_activate(display);
     }
     if (err == ESP_OK) err = ssd1677_cmd_data(display, 0x10, &sleep, 1);
@@ -543,6 +577,9 @@ static esp_err_t ssd1677_papermono_refresh(epd_ssd1677_t *display)
         display->shadow_valid = true;
         display->papermono_baseline_valid = true;
         display->partial_refresh_active = partial;
+    #if SOLAR_OS_SSD1677_HYBRID_TRIAL
+        if (hybrid) display->hybrid_fast_updates = 0;
+    #endif
     } else {
         display->faulted = true;
         display->shadow_valid = false;
@@ -571,6 +608,9 @@ static esp_err_t ssd1677_papermono_refresh(epd_ssd1677_t *display)
         }
     }
     display->controller_ready = false;
+    #if SOLAR_OS_SSD1677_HYBRID_TRIAL
+    if (hybrid) display->reference_awake = false;
+    #endif
     return err;
 }
 
@@ -819,10 +859,14 @@ esp_err_t epd_ssd1677_init(epd_ssd1677_t *display,
     display->transport_spi_hz = config->spi_clock_hz;
     /* Qualified with the same waveform at 10/20/40MHz, then 110 updates and
      * Writer input at 40MHz. OTP still uses the configured board clock. */
-    display->fastest_spi_hz = 40000000;
+    display->fastest_spi_hz = SOLAR_OS_SSD1677_SPI20_TRIAL ? 20000000 : 40000000;
     display->typing_frame_ms = 250;
     display->typing_cleanup_budget = 128;
     display->typing_idle_ms = 30000;
+#if SOLAR_OS_SSD1677_HYBRID_TRIAL
+    display->hybrid_idle_ms = 1200;
+    display->hybrid_max_updates = 6; /* Trial ceiling, not a panel safety rating. */
+#endif
     /* PaperMono AUTO: full baseline, then OTP full-frame fast differential.
      * Physical acceptance and manual cleanup policy: doc/m5paper-mono-refresh.md. */
     display->spi_host = config->spi_host;
@@ -969,6 +1013,19 @@ esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *display, const uint8_t *fr
     return err;
 }
 
+#if SOLAR_OS_SSD1677_HYBRID_TRIAL
+esp_err_t epd_ssd1677_present_quality_snapshot(epd_ssd1677_t *display,
+                                               const uint8_t *frame, size_t size)
+{
+    if (!display || display->refresh_mode != EPD_SSD1677_REFRESH_HYBRID)
+        return ESP_ERR_INVALID_STATE;
+    display->hybrid_quality_pending = true;
+    const esp_err_t err = epd_ssd1677_present_snapshot(display, frame, size);
+    display->hybrid_quality_pending = false;
+    return err;
+}
+#endif
+
 esp_err_t epd_ssd1677_set_power_save(epd_ssd1677_t *display, bool enabled)
 {
     if (!display) return ESP_ERR_INVALID_ARG;
@@ -1029,6 +1086,9 @@ static const char *ssd1677_controller_mode_unlocked(const epd_ssd1677_t *display
     switch (display->refresh_mode) {
     case EPD_SSD1677_REFRESH_FASTEST: return "refresh=fastest";
     case EPD_SSD1677_REFRESH_TYPING: return "refresh=typing";
+#if SOLAR_OS_SSD1677_HYBRID_TRIAL
+    case EPD_SSD1677_REFRESH_HYBRID: return "refresh=hybrid";
+#endif
     case EPD_SSD1677_REFRESH_PARTIAL: return "refresh=partial";
     case EPD_SSD1677_REFRESH_FULL: return "refresh=full";
     case EPD_SSD1677_REFRESH_AUTO:
@@ -1048,12 +1108,22 @@ const char *epd_ssd1677_controller_mode(const epd_ssd1677_t *display)
 
 const char *epd_ssd1677_controller_mode_values(const epd_ssd1677_t *display)
 {
-    if (display != NULL && display->papermono_otp)
-#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
-        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> fastest-waveform=<baseline,dose,hold> (EXPERIMENTAL; DC/lifetime unverified) spi-mhz=<10,20,40> fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
+#if SOLAR_OS_SSD1677_SPI20_TRIAL
+#define SSD1677_SPI_VALUES "spi-mhz=<10,20>"
 #else
-        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> spi-mhz=<10,20,40> fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
+#define SSD1677_SPI_VALUES "spi-mhz=<10,20,40>"
 #endif
+    if (display != NULL && display->papermono_otp)
+#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL && SOLAR_OS_SSD1677_HYBRID_TRIAL
+        return "refresh=<auto,partial,full,cleanup,fastest,typing,hybrid> timing=<on,off> fastest-waveform=<baseline,dose,hold> hybrid-idle-ms=<500..30000> hybrid-max-updates=<1..10> " SSD1677_SPI_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
+#elif SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> fastest-waveform=<baseline,dose,hold> (EXPERIMENTAL; DC/lifetime unverified) " SSD1677_SPI_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
+#elif SOLAR_OS_SSD1677_HYBRID_TRIAL
+        return "refresh=<auto,partial,full,cleanup,fastest,typing,hybrid> timing=<on,off> hybrid-idle-ms=<500..30000> hybrid-max-updates=<1..10> " SSD1677_SPI_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
+#else
+        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> " SSD1677_SPI_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
+#endif
+#undef SSD1677_SPI_VALUES
     return "refresh=<auto,partial,full>";
 }
 
@@ -1062,6 +1132,25 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
 {
     if (display == NULL || mode == NULL) return ESP_ERR_INVALID_ARG;
     if (display->papermono_otp) {
+#if SOLAR_OS_SSD1677_HYBRID_TRIAL
+        const struct { const char *key; uint32_t *field; unsigned min, max; } hybrid_options[] = {
+            {"hybrid-idle-ms=", &display->hybrid_idle_ms, 500, 30000},
+            {"hybrid-max-updates=", &display->hybrid_max_updates, 1, 10},
+        };
+        for (unsigned i = 0; i < sizeof(hybrid_options)/sizeof(hybrid_options[0]); ++i) {
+            const size_t n = strlen(hybrid_options[i].key);
+            if (strncmp(mode, hybrid_options[i].key, n) != 0) continue;
+            const char *value = mode + n;
+            if (!*value || strlen(value) > 5) return ESP_ERR_INVALID_ARG;
+            for (const char *p = value; *p; ++p)
+                if (*p < '0' || *p > '9') return ESP_ERR_INVALID_ARG;
+            const unsigned long v = strtoul(value, NULL, 10);
+            if (v < hybrid_options[i].min || v > hybrid_options[i].max)
+                return ESP_ERR_INVALID_ARG;
+            *hybrid_options[i].field = (uint32_t)v;
+            return ESP_OK;
+        }
+#endif
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
         if (strncmp(mode, "fastest-waveform=", 17) == 0) {
             const char *value = mode + 17;
@@ -1094,6 +1183,9 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
         }
         if (strcmp(mode, "spi-mhz=10") == 0 || strcmp(mode, "spi-mhz=20") == 0 ||
             strcmp(mode, "spi-mhz=40") == 0) {
+#if SOLAR_OS_SSD1677_SPI20_TRIAL
+            if (strcmp(mode, "spi-mhz=40") == 0) return ESP_ERR_INVALID_ARG;
+#endif
             display->fastest_spi_hz = mode[8] == '4' ? 40000000 : mode[8] == '2' ? 20000000 : 10000000;
             return ESP_OK; /* Applied at the next fastest transaction boundary. */
         }
@@ -1119,6 +1211,10 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
         display->refresh_mode = EPD_SSD1677_REFRESH_FASTEST;
     } else if (display->papermono_otp && strcmp(mode,"refresh=typing") == 0) {
         display->refresh_mode = EPD_SSD1677_REFRESH_TYPING;
+#if SOLAR_OS_SSD1677_HYBRID_TRIAL
+    } else if (display->papermono_otp && strcmp(mode,"refresh=hybrid") == 0) {
+        display->refresh_mode = EPD_SSD1677_REFRESH_HYBRID;
+#endif
     } else if (strcmp(mode, "refresh=auto") == 0) {
         display->refresh_mode = EPD_SSD1677_REFRESH_AUTO;
     } else if (strcmp(mode, "refresh=partial") == 0) {
@@ -1128,11 +1224,25 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
     } else {
         return ESP_ERR_INVALID_ARG;
     }
-    if ((previous_mode == EPD_SSD1677_REFRESH_FASTEST || previous_mode == EPD_SSD1677_REFRESH_TYPING) !=
-        (display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST || display->refresh_mode == EPD_SSD1677_REFRESH_TYPING)) {
+    const bool previous_fast = previous_mode == EPD_SSD1677_REFRESH_FASTEST ||
+        previous_mode == EPD_SSD1677_REFRESH_TYPING
+#if SOLAR_OS_SSD1677_HYBRID_TRIAL
+        || previous_mode == EPD_SSD1677_REFRESH_HYBRID
+#endif
+        ;
+    const bool new_fast = display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST ||
+        display->refresh_mode == EPD_SSD1677_REFRESH_TYPING
+#if SOLAR_OS_SSD1677_HYBRID_TRIAL
+        || display->refresh_mode == EPD_SSD1677_REFRESH_HYBRID
+#endif
+        ;
+    if (previous_fast != new_fast) {
         display->papermono_baseline_valid = false;
         display->reference_awake = false;
     }
+#if SOLAR_OS_SSD1677_HYBRID_TRIAL
+    if (previous_mode != display->refresh_mode) display->hybrid_fast_updates = 0;
+#endif
     return ESP_OK;
 }
 

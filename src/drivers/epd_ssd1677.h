@@ -12,6 +12,12 @@
 #ifndef SOLAR_OS_SSD1677_WAVEFORM_TRIAL
 #define SOLAR_OS_SSD1677_WAVEFORM_TRIAL 0
 #endif
+#ifndef SOLAR_OS_SSD1677_HYBRID_TRIAL
+#define SOLAR_OS_SSD1677_HYBRID_TRIAL 0
+#endif
+#ifndef SOLAR_OS_SSD1677_SPI20_TRIAL
+#define SOLAR_OS_SSD1677_SPI20_TRIAL 0
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,6 +29,9 @@ typedef enum {
     EPD_SSD1677_REFRESH_FULL,
     EPD_SSD1677_REFRESH_FASTEST, /* opt-in host LUT, PaperMono only */
     EPD_SSD1677_REFRESH_TYPING, /* same LUT; paced executor + idle cleanup */
+#if SOLAR_OS_SSD1677_HYBRID_TRIAL
+    EPD_SSD1677_REFRESH_HYBRID, /* fastest, then one OTP partial at idle */
+#endif
 } epd_ssd1677_refresh_mode_t;
 
 typedef enum {
@@ -111,6 +120,10 @@ typedef struct {
     /* Independent of the host shadow: valid only with continuously powered RAM. */
     bool papermono_baseline_valid;
     bool cleanup_pending;
+#if SOLAR_OS_SSD1677_HYBRID_TRIAL
+    bool hybrid_quality_pending;
+    uint32_t hybrid_idle_ms, hybrid_max_updates, hybrid_fast_updates;
+#endif
     bool timing_enabled;
     bool reference_awake; /* fastest Mode 2, analog power retained */
     bool fastest_tiles;
@@ -133,6 +146,10 @@ esp_err_t epd_ssd1677_resume(epd_ssd1677_t *display);
 esp_err_t epd_ssd1677_set_power_save(epd_ssd1677_t *display, bool enabled);
 /* Executor owns hardware exclusively for this call. No U8g2 state is read. */
 esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *, const uint8_t *, size_t);
+#if SOLAR_OS_SSD1677_HYBRID_TRIAL
+/* Worker-only: explicitly activate one same-frame OTP partial update. */
+esp_err_t epd_ssd1677_present_quality_snapshot(epd_ssd1677_t *, const uint8_t *, size_t);
+#endif
 void epd_ssd1677_deinit(epd_ssd1677_t *display);
 u8g2_t *epd_ssd1677_get_u8g2(epd_ssd1677_t *display);
 const char *epd_ssd1677_controller_mode(const epd_ssd1677_t *display);

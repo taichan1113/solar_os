@@ -106,6 +106,22 @@ static esp_err_t execute_idle_cleanup(void *context, const uint8_t *frame, size_
     return execute_frame(context, frame, size, physical);
 }
 
+#if SOLAR_OS_SSD1677_HYBRID_TRIAL
+static esp_err_t execute_idle_hybrid(void *context, const uint8_t *frame, size_t size, bool *physical)
+{
+    solar_os_ssd1677_device_t *device = context;
+    if (device->driver.hybrid_fast_updates == 0) {
+        *physical = false; /* The update ceiling already used OTP partial. */
+        return ESP_OK;
+    }
+    const int64_t previous = device->driver.timing.end_us;
+    const esp_err_t err = epd_ssd1677_present_quality_snapshot(&device->driver, frame, size);
+    *physical = err == ESP_OK && device->driver.timing.end_us != previous;
+    ESP_LOGI(TAG, "hybrid idle OTP partial err=%d physical=%u", (int)err, (unsigned)*physical);
+    return err;
+}
+#endif
+
 static void begin_operation(void *context, epd_ssd1677_operation_t op)
 {
     solar_os_ssd1677_device_t *device = context;
@@ -118,11 +134,20 @@ static void end_operation(void *context, epd_ssd1677_operation_t op, esp_err_t e
     solar_os_ssd1677_device_t *device = context;
     if (op == EPD_SSD1677_OP_MODE && err == ESP_OK) {
         const bool typing = device->driver.refresh_mode == EPD_SSD1677_REFRESH_TYPING;
+#if SOLAR_OS_SSD1677_HYBRID_TRIAL
+        const bool hybrid = device->driver.refresh_mode == EPD_SSD1677_REFRESH_HYBRID;
+        solar_os_display_async_policy(device->executor,
+            typing ? device->driver.typing_frame_ms : 0,
+            hybrid ? device->driver.hybrid_idle_ms : (typing ? device->driver.typing_idle_ms : 0),
+            hybrid ? 1 : (typing ? device->driver.typing_cleanup_budget : 0),
+            hybrid ? execute_idle_hybrid : (typing ? execute_idle_cleanup : NULL));
+#else
         solar_os_display_async_policy(device->executor,
             typing ? device->driver.typing_frame_ms : 0,
             typing ? device->driver.typing_idle_ms : 0,
             typing ? device->driver.typing_cleanup_budget : 0,
             typing ? execute_idle_cleanup : NULL);
+#endif
     }
     int suspended = -1;
     if (err == ESP_OK && op == EPD_SSD1677_OP_SLEEP) suspended = 1;

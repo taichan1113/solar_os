@@ -98,6 +98,12 @@ vga_mode = _selected_vga_mode()
 waveform_trial = os.environ.get("SOLAR_OS_SSD1677_WAVEFORM_TRIAL", "0")
 if waveform_trial not in ("0", "1"):
     raise SystemExit("SOLAR_OS_SSD1677_WAVEFORM_TRIAL must be 0 or 1")
+hybrid_trial = os.environ.get("SOLAR_OS_SSD1677_HYBRID_TRIAL", "0")
+if hybrid_trial not in ("0", "1"):
+    raise SystemExit("SOLAR_OS_SSD1677_HYBRID_TRIAL must be 0 or 1")
+spi20_trial = os.environ.get("SOLAR_OS_SSD1677_SPI20_TRIAL", "0")
+if spi20_trial not in ("0", "1"):
+    raise SystemExit("SOLAR_OS_SSD1677_SPI20_TRIAL must be 0 or 1")
 
 # ESP-IDF runs component discovery in child CMake processes that do not always
 # inherit PlatformIO's CMake cache arguments. Export the resolved selection so
@@ -191,6 +197,8 @@ stamp = (
     f"cvbs={cvbs_mode}\n"
     f"vga={vga_mode}\n"
     f"ssd1677_waveform_trial={waveform_trial}\n"
+    f"ssd1677_hybrid_trial={hybrid_trial}\n"
+    f"ssd1677_spi20_trial={spi20_trial}\n"
 )
 for tracked_file in tracked_files:
     stat = tracked_file.stat()

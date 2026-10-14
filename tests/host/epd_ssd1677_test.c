@@ -672,6 +672,82 @@ static void test_typing_mode(void)
     assert(typing.papermono_baseline_valid && typing.reference_awake);
 }
 
+#if SOLAR_OS_SSD1677_HYBRID_TRIAL
+static size_t captured_spi_bytes(void)
+{
+    size_t bytes = command_count;
+    for (size_t i = 0; i < command_count; ++i) bytes += commands[i].length;
+    return bytes;
+}
+
+static void test_hybrid_trial(void)
+{
+    epd_ssd1677_t d = make_display();
+    assert(epd_ssd1677_set_controller_mode(&d,"refresh=hybrid") == ESP_ERR_INVALID_ARG);
+    d.papermono_otp = true;
+    d.fastest_spi_hz = 20000000;
+    d.configured_spi_hz = 20000000;
+    d.hybrid_max_updates = 6;
+    assert(epd_ssd1677_set_controller_mode(&d,"refresh=hybrid") == ESP_OK);
+    assert(epd_ssd1677_set_controller_mode(&d,"hybrid-idle-ms=1200") == ESP_OK);
+    assert(epd_ssd1677_set_controller_mode(&d,"hybrid-max-updates=1") == ESP_OK);
+    assert(epd_ssd1677_set_controller_mode(&d,"hybrid-max-updates=11") == ESP_ERR_INVALID_ARG);
+    assert(epd_ssd1677_set_controller_mode(&d,"hybrid-idle-ms=499") == ESP_ERR_INVALID_ARG);
+    assert(ssd1677_refresh(&d) == ESP_OK); /* visible OTP full baseline */
+    frame[0] ^= 1; command_count = 0;
+    assert(ssd1677_refresh(&d) == ESP_OK);
+    expect_data(0x22,(uint8_t[]){0xcc},1);
+    const size_t fast_bytes = captured_spi_bytes();
+    assert(d.hybrid_fast_updates == 1 && d.reference_awake);
+    const uint8_t completed = shadow[0];
+    command_count = 0;
+    assert(epd_ssd1677_present_quality_snapshot(&d, frame, sizeof(frame)) == ESP_OK);
+    expect_data(0x22,(uint8_t[]){0xff},1);
+    const size_t quality_bytes = captured_spi_bytes();
+    assert(find_command(0x26,0)->length == 48000);
+    assert(find_command(0x24,0)->length == 48000);
+    assert(find_command(0x26,0)->data[0] == find_command(0x24,0)->data[0]);
+    assert(shadow[0] == completed && !d.reference_awake && d.hybrid_fast_updates == 0);
+    printf("hybrid host: fastest=%zu SPI bytes, idle OTP partial=%zu SPI bytes\n",
+           fast_bytes, quality_bytes);
+    assert(d.shadow_valid && d.papermono_baseline_valid);
+    command_count = 0; frame[1] ^= 1;
+    assert(ssd1677_refresh(&d) == ESP_OK);
+    expect_data(0x22,(uint8_t[]){0xcc},1); /* cold after OTP sleep */
+    assert(d.hybrid_fast_updates == 1);
+    command_count = 0; frame[2] ^= 1;
+    assert(ssd1677_refresh(&d) == ESP_OK); /* trial ceiling: changed OTP partial */
+    expect_data(0x22,(uint8_t[]){0xff},1);
+    assert(find_command(0x26,0)->length == 48000);
+    assert(!d.reference_awake && d.hybrid_fast_updates == 0);
+    command_count = 0;
+    assert(ssd1677_refresh(&d) == ESP_OK && command_count == 0);
+    frame[3] ^= 1;
+    assert(epd_ssd1677_present_quality_snapshot(&d, frame, sizeof(frame)) == ESP_ERR_INVALID_STATE);
+    assert(command_count == 0 && d.shadow_valid);
+    assert(epd_ssd1677_set_controller_mode(&d,"refresh=partial") == ESP_OK);
+    assert(!d.papermono_baseline_valid);
+
+    d = make_display(); d.papermono_otp = true; d.fastest_spi_hz = 20000000;
+    d.hybrid_max_updates = 6;
+    assert(epd_ssd1677_set_controller_mode(&d,"refresh=hybrid") == ESP_OK);
+    assert(ssd1677_refresh(&d) == ESP_OK);
+    frame[0] ^= 1;
+    assert(ssd1677_refresh(&d) == ESP_OK);
+    fail_command = 0x26; command_count = 0;
+    assert(epd_ssd1677_present_quality_snapshot(&d, frame, sizeof(frame)) != ESP_OK);
+    assert(d.faulted && !d.shadow_valid && !d.papermono_baseline_valid);
+    assert(shadow[0] == frame[0]); /* no promotion on failure */
+}
+#else
+static void test_hybrid_trial(void)
+{
+    epd_ssd1677_t d = make_display(); d.papermono_otp = true;
+    assert(epd_ssd1677_set_controller_mode(&d,"refresh=hybrid") == ESP_ERR_INVALID_ARG);
+    assert(!strstr(epd_ssd1677_controller_mode_values(&d),"hybrid"));
+}
+#endif
+
 /* Decode the actual table, including repeat and skipped phases (SSD1677 6.6).
  * Counts are waveform frames, not milliseconds or evidence of DC balance. */
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
@@ -815,6 +891,7 @@ int main(void)
     test_fastest_conversion_equivalence();
     test_fastest_snapshot_ownership();
     test_typing_mode();
+    test_hybrid_trial();
     test_waveform_trials();
     puts("epd_ssd1677_test: PASS");
     return 0;
