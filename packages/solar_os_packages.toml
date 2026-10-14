@@ -2063,6 +2063,7 @@ sources = [
   "drivers/ft6336.c",
   "services/solar_os_ft6336.c",
   "services/solar_os_ft6336_driver.c",
+  "shell/solar_os_shell_touchraw.c",
 ]
 requires = ["esp_driver_gpio"]
 capabilities = ["i2c", "gpio"]

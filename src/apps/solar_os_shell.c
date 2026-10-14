@@ -575,6 +575,9 @@ static const shell_command_t shell_builtin_commands[] = {
     {"daq", "capture data streams", solar_os_shell_cmd_daq},
 #endif
     {"log", "show SolarOS logs", solar_os_shell_cmd_log},
+#if SOLAR_OS_PACKAGE_DRIVER_FT6336
+    {"touchraw", "USB-only bounded touch frame diagnostic", solar_os_shell_cmd_touchraw},
+#endif
 #if SOLAR_OS_PACKAGE_APP_AGENT
     {"agent", "native LLM agent", solar_os_shell_cmd_agent},
 #endif

@@ -9,6 +9,22 @@ packages_any = []
 +++
 # SolarOS Shell Commands
 
+## FT6336 Raw Frame Diagnostic (USB Shell only)
+
+| Command | Usage | Description |
+| --- | --- | --- |
+| `touchraw` | `touchraw start` | Start a bounded 30-second raw capture on an already enabled FT6336 source. Clear the previous journal first. |
+| `touchraw` | `touchraw status` | Show mode, stop reason, frame/error counters and journal occupancy. |
+| `touchraw` | `touchraw stop` | Request stop; legacy pointer input waits for a healthy all-up read. |
+| `touchraw` | `touchraw dump` | Dump the stopped journal through USB only. Active capture is rejected. |
+| `touchraw` | `touchraw clear` | Explicitly clear a stopped journal. The all-up gate is preserved. |
+
+This diagnostic uses the existing touch worker, does not deliver new Touch
+Frame events, and does not draw diagnostics on the EPD. USB disconnection,
+source shutdown, three consecutive I2C errors, timeout or journal overflow
+stop capture. Data survives source disable/suspend/detach in RAM until clear
+or reboot. It does not change the source's requested enable state.
+
 This document covers built-in shell commands. Foreground applications are
 documented separately in [apps.md](apps.md). Command availability depends on the
 compiled firmware flavor and board capabilities; `commands` shows the commands in

@@ -6,9 +6,12 @@
 
 #include "esp_check.h"
 #include "ft6336.h"
+#include "esp_timer.h"
+#include "solar_os_cdc.h"
+#include "solar_os_memory.h"
+#include "solar_os_ft6336_raw.h"
 #if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
 #include "solar_os_sketch_trace.h"
-#include "esp_timer.h"
 #endif
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -55,6 +58,8 @@ static const char *TAG = "ft6336";
 static solar_os_ft6336_device_t touch;
 
 static void ft6336_worker(void *arg);
+
+#include "solar_os_ft6336_raw.inc"
 
 static esp_err_t parse_bindings(const solar_os_expansion_binding_t *bindings,
                                 size_t binding_count,
@@ -173,6 +178,7 @@ static esp_err_t stop_device(void)
                                      SOLAR_OS_TASK_STOP_WAIT_MS)) return ESP_ERR_TIMEOUT;
         touch.worker_task = NULL;
     }
+    raw_finish(TOUCHRAW_END_SOURCE);
     esp_err_t err = solar_os_input_pointer_source_quiesce(touch.input_source);
     touch.pressed = false;
     ft6336_deinit();
@@ -208,7 +214,10 @@ static esp_err_t start_device(void)
         ft6336_init_with_reset(touch.i2c_bus, touch.address, touch.irq_pin,
                                external_reset, &touch.reset_line) :
         ft6336_init(touch.i2c_bus, touch.address, touch.reset_pin, touch.irq_pin);
-    if (err == ESP_OK) err = solar_os_input_source_set_ready(touch.input_source, true);
+    solar_os_touchraw_status_t diagnostic;
+    solar_os_ft6336_raw_status(&diagnostic);
+    if (err == ESP_OK) err = solar_os_input_source_set_ready(touch.input_source,
+        diagnostic.mode != TOUCHRAW_WAIT_RELEASE);
     if (err == ESP_OK) {
         touch.stop_requested = touch.worker_done = false;
         touch.ready = true;
@@ -311,6 +320,7 @@ static void poll_device(solar_os_ft6336_device_t *device)
     if (device == NULL || !device->ready || device->stop_requested) {
         return;
     }
+    if (raw_poll(device)) return;
 
     ft6336_sample_t sample;
 #if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
@@ -411,6 +421,7 @@ static void ft6336_worker(void *arg)
         poll_device(device);
         (void)ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(FT6336_POLL_MS));
     }
+    raw_finish(TOUCHRAW_END_SOURCE);
     device->worker_done = true;
     solar_os_task_delete_internal(NULL);
 }

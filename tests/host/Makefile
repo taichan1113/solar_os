@@ -63,6 +63,8 @@ input_touch_core_test: input_touch_core_test.c $(ROOT)/src/services/solar_os_inp
 	$(CC) $(CFLAGS) -I$(ROOT)/src/services $(filter %.c,$^) -o $@
 TARGETS += rtc_rx8130ce_test
 TARGETS += ft6336_lifecycle_test
+TARGETS += ft6336_raw_test
+TARGETS += ft6336_raw_shell_test
 TARGETS += status_led_provider_test
 TARGETS += sketch_lifecycle_test sketch_scale140_lifecycle_test
 TARGETS += sketch_trace_core_test
@@ -91,8 +93,15 @@ sketch_scale140_lifecycle_test: sketch_lifecycle_test.c $(ROOT)/src/apps/solar_o
 status_led_provider_test: status_led_provider_test.c $(ROOT)/src/services/solar_os_status_led.c
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -Iexpansion_stubs -Igpio_controller_stubs -I. -I$(ROOT)/src/services -I$(ROOT)/src/drivers -o $@ $^
 
-ft6336_lifecycle_test: ft6336_lifecycle_test.c $(ROOT)/src/services/solar_os_ft6336.c $(ROOT)/src/drivers/ft6336.c $(ROOT)/src/drivers/ft6336.h $(ROOT)/src/drivers/ft6336_frame.c $(ROOT)/src/drivers/ft6336_frame.h
+ft6336_raw_test: ft6336_raw_test.c ft6336_lifecycle_test.c $(ROOT)/src/services/solar_os_ft6336.c $(ROOT)/src/services/solar_os_ft6336_raw.inc $(ROOT)/src/services/solar_os_ft6336_raw.h $(ROOT)/src/drivers/ft6336.c $(ROOT)/src/drivers/ft6336_frame.c
+
+ft6336_lifecycle_test: ft6336_lifecycle_test.c $(ROOT)/src/services/solar_os_ft6336.c $(ROOT)/src/services/solar_os_ft6336_raw.inc $(ROOT)/src/services/solar_os_ft6336_raw.h $(ROOT)/src/drivers/ft6336.c $(ROOT)/src/drivers/ft6336.h $(ROOT)/src/drivers/ft6336_frame.c $(ROOT)/src/drivers/ft6336_frame.h
+
+ft6336_lifecycle_test ft6336_raw_test:
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -include compat.h -Itouch_stubs -Iasync_stubs -Irtc_stubs -Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/src/drivers -o $@ $< $(ROOT)/src/drivers/ft6336.c $(ROOT)/src/drivers/ft6336_frame.c
+
+ft6336_raw_shell_test: ft6336_raw_shell_test.c ft6336_lifecycle_test.c $(ROOT)/src/services/solar_os_ft6336.c $(ROOT)/src/services/solar_os_ft6336_raw.inc $(ROOT)/src/services/solar_os_ft6336_raw.h $(ROOT)/src/shell/solar_os_shell_touchraw.c $(ROOT)/src/drivers/ft6336.c $(ROOT)/src/drivers/ft6336_frame.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -include compat.h -Itouch_stubs -Iasync_stubs -Irtc_stubs -Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/src/drivers -I$(ROOT)/src/shell -o $@ $< $(ROOT)/src/drivers/ft6336.c $(ROOT)/src/drivers/ft6336_frame.c
 
 rtc_rx8130ce_test: rtc_rx8130ce_test.c $(ROOT)/src/drivers/rtc_rx8130ce.c $(ROOT)/src/services/solar_os_rx8130ce.c $(ROOT)/src/services/solar_os_rtc.c $(ROOT)/src/services/solar_os_time.c
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -ffunction-sections -fdata-sections -include compat.h -Irtc_stubs -I. -I$(ROOT)/src/services -I$(ROOT)/src/drivers -Wl,--gc-sections -o $@ $^
