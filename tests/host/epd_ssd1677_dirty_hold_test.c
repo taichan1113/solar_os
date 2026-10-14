@@ -16,6 +16,9 @@ typedef struct {
     uint8_t red_known[SSD1677_PANEL_ROW_BYTES * SSD1677_HEIGHT];
     unsigned xs, xe, ys, ye, cx, cy;
     unsigned activations;
+    uint8_t update_ctrl2;
+    unsigned mode2_face; /* Logical activation parity, not a physical RAM bank. */
+    unsigned mode2_face_visits[2];
     size_t classes[4]; /* old/new: BB, BW, WB, WW */
 } controller_ram_t;
 
@@ -78,6 +81,11 @@ static transfer_t controller_apply(controller_ram_t *m, epd_ssd1677_t *d)
         case 0x12:
             memset(m->bw_known, 0, sizeof(m->bw_known));
             memset(m->red_known, 0, sizeof(m->red_known));
+            m->mode2_face = 0;
+            break;
+        case 0x22:
+            assert(c->length == 1);
+            m->update_ctrl2 = c->data[0];
             break;
         case 0x44:
             assert(c->length == 4);
@@ -108,6 +116,8 @@ static transfer_t controller_apply(controller_ram_t *m, epd_ssd1677_t *d)
             controller_write(m, c);
             break;
         case 0x20:
+            assert((m->update_ctrl2 & 0x0cU) == 0x0cU);
+            ++m->mode2_face_visits[m->mode2_face];
             ++result.activations;
             ++m->activations;
             for (size_t i = 0; i < sizeof(target); ++i) {
@@ -121,6 +131,10 @@ static transfer_t controller_apply(controller_ram_t *m, epd_ssd1677_t *d)
                 }
             }
             memcpy(m->visible, m->bw, sizeof(m->visible));
+            /* M5GFX tracks this face across Mode-2 activations. The model
+             * deliberately leaves the command-addressed 0x24/0x26 RAM
+             * contents unchanged here; actual silicon retention is unproven. */
+            m->mode2_face ^= 1U;
             break;
         default: break;
         }
@@ -207,6 +221,7 @@ static transfer_t run_series(bool trial)
     command_count = 0;
     assert(ssd1677_refresh(&d) == ESP_OK && command_count == 0); /* No-change frame. */
     assert(m->activations == total.activations && total.activations == 10);
+    assert(m->mode2_face_visits[0] == 5 && m->mode2_face_visits[1] == 5);
     for (unsigned i = 0; i < 4; ++i) assert(m->classes[i] > 0);
     free(m);
     return total;
