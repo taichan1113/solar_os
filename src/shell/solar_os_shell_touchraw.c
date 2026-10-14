@@ -4,12 +4,26 @@
 #include "solar_os_cdc.h"
 #include "solar_os_port_shell.h"
 #include <inttypes.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 
+/* The shared Shell printf truncates at 191 bytes. Diagnostic lines can be
+ * longer: format only during status/dump, then use the length-aware writer. */
+static esp_err_t raw_printf(solar_os_shell_io_t *io, const char *format, ...)
+{
+    char buffer[768];
+    va_list args;
+    va_start(args, format);
+    const int length = vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+    if (length < 0 || (size_t)length >= sizeof(buffer)) return ESP_FAIL;
+    return solar_os_shell_io_write_len(io, buffer, (size_t)length);
+}
+
 static esp_err_t print_status(solar_os_shell_io_t *io, const solar_os_touchraw_status_t *s)
 {
-    return solar_os_shell_io_printf(io,
+    return raw_printf(io,
         "TOUCHRAW status mode=%u end=%u reads=%" PRIu32 " stored=%" PRIu32
         " dropped=%" PRIu32 " failures=%" PRIu32 " max_consecutive=%" PRIu32
         " capacity=%u record_bytes=%u logger_total_us=%" PRIu64 " logger_max_us=%" PRIu32
@@ -48,7 +62,7 @@ static void dump(solar_os_shell_io_t *io)
             snprintf(hex + j * 2U, 3U, "%02x", r.raw[j]);
         ft6336_frame_t f = {0};
         if (r.error == ESP_OK) ft6336_frame_decode(r.raw, sizeof(r.raw), &f);
-        err = solar_os_shell_io_printf(io,
+        err = raw_printf(io,
             "TOUCHRAW sample seq=%" PRIu32 " start=%" PRId64 " end=%" PRId64
             " duration=%" PRId64 " interval=%" PRId64 " error=%" PRId32
             " measured=%u raw=%s result=%u reasons=%" PRIu32
