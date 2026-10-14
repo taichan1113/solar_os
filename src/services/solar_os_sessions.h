@@ -62,6 +62,10 @@ void solar_os_sessions_mark_foreground_dirty(void);
 esp_err_t solar_os_sessions_set_ui_scale(unsigned percent);
 
 void solar_os_sessions_dispatch_foreground_event(const solar_os_event_t *event);
+/* Main task publishes active touch recipients, then dispatches fixed-token frames. */
+void solar_os_sessions_refresh_touch_consumers(void);
+void solar_os_sessions_quiesce_touch_consumers(void);
+bool solar_os_sessions_dispatch_touch_frame(const solar_os_input_touch_frame_t *frame);
 bool solar_os_sessions_dispatch_input_event(const solar_os_event_t *event);
 const solar_os_app_t *solar_os_sessions_input_app(void);
 uint32_t solar_os_sessions_requested_tick_interval_ms(void);

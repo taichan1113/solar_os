@@ -35,6 +35,26 @@ TARGETS += axp2101_service_test
 TARGETS += m5papermono_power_test
 TARGETS += ft6336_test
 TARGETS += ft6336_frame_test input_touch_core_test
+TARGETS += input_touch_service_test
+TARGETS += input_touch_adapter_test
+TARGETS += sketch_touch_projection_test
+INPUT_TOUCH_HEADERS := $(ROOT)/src/solar_os.h $(ROOT)/src/services/solar_os_input.h $(ROOT)/src/services/solar_os_input_touch_core.h $(ROOT)/src/services/solar_os_sessions_touch.h $(ROOT)/src/drivers/ft6336_frame.h
+input_touch_service_test input_touch_adapter_test sketch_touch_projection_test input_test: $(INPUT_TOUCH_HEADERS)
+input_test: $(ROOT)/src/services/solar_os_input_touch.inc $(ROOT)/src/services/solar_os_input_touch_core.c $(ROOT)/src/drivers/ft6336_frame.c
+
+sketch_touch_projection_test: sketch_touch_projection_test.c sketch_lifecycle_test.c $(ROOT)/src/apps/solar_os_sketch.c $(ROOT)/src/apps/solar_os_sketch_canvas.c $(ROOT)/src/services/solar_os_sessions_touch.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -DSOLAR_OS_PACKAGE_SERVICE_EXPANSION=1 \
+		-DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' -DSOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT=1 \
+		-include compat.h -I. -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/src/apps \
+		-I$(ROOT)/components/stb_image/include $< $(ROOT)/src/apps/solar_os_sketch_canvas.c $(ROOT)/src/services/solar_os_sessions_touch.c -lm -o $@
+
+input_touch_adapter_test: input_touch_adapter_test.c input_touch_service_test.c input_test.c $(ROOT)/src/services/solar_os_input.c $(ROOT)/src/services/solar_os_input_touch.inc $(ROOT)/src/services/solar_os_sessions_touch_adapter.inc $(ROOT)/src/services/solar_os_sessions_touch.c $(ROOT)/src/services/solar_os_input_touch_core.c $(ROOT)/src/drivers/ft6336_frame.c $(ROOT)/src/services/solar_os_keys.c
+	$(CC) $(CFLAGS) -include compat.h -I. -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/components/u8g2/src/clib \
+		$(filter-out input_test.c input_touch_service_test.c $(ROOT)/src/services/solar_os_input.c,$(filter %.c,$^)) -o $@
+
+input_touch_service_test: input_touch_service_test.c input_test.c $(ROOT)/src/services/solar_os_input.c $(ROOT)/src/services/solar_os_input_touch.inc $(ROOT)/src/services/solar_os_sessions_touch.c $(ROOT)/src/services/solar_os_input_touch_core.c $(ROOT)/src/drivers/ft6336_frame.c $(ROOT)/src/services/solar_os_keys.c
+	$(CC) $(CFLAGS) -include compat.h -I. -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/components/u8g2/src/clib \
+		$(filter-out input_test.c $(ROOT)/src/services/solar_os_input.c,$(filter %.c,$^)) -o $@
 
 ft6336_frame_test: ft6336_frame_test.c $(ROOT)/src/drivers/ft6336_frame.c $(ROOT)/src/drivers/ft6336_frame.h
 	$(CC) $(CFLAGS) -I$(ROOT)/src/drivers $(filter %.c,$^) -o $@
@@ -569,7 +589,7 @@ keys_test: keys_test.c $(ROOT)/src/services/solar_os_keys.c $(ROOT)/src/services
 input_test: input_test.c $(ROOT)/src/services/solar_os_input.c $(ROOT)/src/services/solar_os_input.h $(ROOT)/src/services/solar_os_keys.c $(ROOT)/src/services/solar_os_keys.h $(ROOT)/src/services/solar_os_memory.h esp_timer.h nvs.h freertos/FreeRTOS.h
 	$(CC) $(CFLAGS) -include compat.h -I. -I$(ROOT)/src -I$(ROOT)/src/services \
 		input_test.c $(ROOT)/src/services/solar_os_input.c \
-		$(ROOT)/src/services/solar_os_keys.c -o $@
+		$(ROOT)/src/services/solar_os_keys.c $(ROOT)/src/services/solar_os_input_touch_core.c $(ROOT)/src/drivers/ft6336_frame.c -o $@
 
 input_action_match_test: input_action_match_test.c $(ROOT)/src/services/solar_os_input_action_match.c $(ROOT)/src/services/solar_os_input_action_match.h $(ROOT)/src/services/solar_os_input_actions.h
 	$(CC) $(CFLAGS) -I. -I$(ROOT)/src/services \
@@ -1089,6 +1109,9 @@ test: $(TARGETS)
 	./ft6336_test
 	./ft6336_frame_test
 	./input_touch_core_test
+	./input_touch_service_test
+	./input_touch_adapter_test
+	./sketch_touch_projection_test
 	./rtc_rx8130ce_test
 	./ft6336_lifecycle_test
 	./status_led_provider_test

@@ -766,6 +766,9 @@ sources = [
   "services/solar_os_gfx_icons.c",
   "services/solar_os_identity.c",
   "services/solar_os_input.c",
+  "drivers/ft6336_frame.c",
+  "services/solar_os_input_touch_core.c",
+  "services/solar_os_sessions_touch.c",
   "services/solar_os_input_action_match.c",
   "services/solar_os_input_actions.c",
   "services/solar_os_input_composition.c",
@@ -2058,7 +2061,6 @@ expansion_drivers = ["solar_os_ft6336_expansion_driver"]
 depends = ["service_expansion"]
 sources = [
   "drivers/ft6336.c",
-  "drivers/ft6336_frame.c",
   "services/solar_os_ft6336.c",
   "services/solar_os_ft6336_driver.c",
 ]

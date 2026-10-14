@@ -1,4 +1,5 @@
 #include "solar_os_sessions.h"
+#include "solar_os_sessions_touch.h"
 #include "solar_os_ui_scale.h"
 
 #include <stdio.h>
@@ -47,6 +48,7 @@ typedef struct {
     bool graphics_active;
     bool terminal_redraw_requested;
     uint8_t id;
+    uint64_t touch_lifetime;
     uint8_t return_session_id;
     int argc;
     uint32_t argv_hash;
@@ -79,6 +81,7 @@ typedef struct {
     void *user;
     const solar_os_app_t *foreground_app;
     bool foreground_app_claimed;
+    uint64_t legacy_touch_lifetime;
     solar_os_tui_t *legacy_tui;
     solar_os_session_entry_t sessions[SOLAR_OS_SESSION_MAX];
     solar_os_session_entry_t *foreground_session;
@@ -131,6 +134,9 @@ static EXT_RAM_BSS_ATTR solar_os_session_state_t session_state;
 static portMUX_TYPE input_focus_lock = portMUX_INITIALIZER_UNLOCKED;
 static QueueHandle_t session_operation_queue;
 static TaskHandle_t session_scheduler_task;
+static uint64_t session_touch_lifetime_serial;
+static uint64_t session_touch_new_lifetime(void)
+{ return session_touch_lifetime_serial == UINT64_MAX ? 0 : ++session_touch_lifetime_serial; }
 
 static solar_os_session_entry_t *session_return_shell(
     const solar_os_session_entry_t *session);
@@ -171,6 +177,8 @@ static bool app_is_shell_inline(const solar_os_app_t *app)
 
 static void session_store_input_focus(const char *target_name)
 {
+    const char *next = target_name != NULL ? target_name : "";
+    if (strcmp(session_state.input_target, next)) solar_os_sessions_touch_unbind_all();
     portENTER_CRITICAL(&input_focus_lock);
     strlcpy(session_state.input_target,
             target_name != NULL ? target_name : "",
@@ -702,6 +710,7 @@ static solar_os_session_entry_t *ensure_shell_session(void)
     if (!session->used) {
         memset(session, 0, sizeof(*session));
         session->used = true;
+        session->touch_lifetime = session_touch_new_lifetime();
         session->id = 0;
         session->app = solar_os_shell_app();
         session->app_class = session->app->app_class;
@@ -800,6 +809,7 @@ static solar_os_session_entry_t *session_alloc_from(const solar_os_app_t *app, s
         solar_os_session_entry_t *session = &session_state.sessions[i];
         memset(session, 0, sizeof(*session));
         session->reserved = true;
+        session->touch_lifetime = session_touch_new_lifetime();
         session->id = (uint8_t)i;
         session->app = app;
         session->app_class = app->app_class;
@@ -1276,6 +1286,7 @@ static void show_session_overlay(const solar_os_session_entry_t *session,
 
 static void stop_legacy_foreground(void)
 {
+    solar_os_sessions_touch_unbind(UINT8_MAX);
     if (session_state.foreground_app != NULL) {
         SOLAR_OS_LOGI(TAG, "stop app: %s", app_display_name(session_state.foreground_app));
         solar_os_app_stop(session_state.foreground_app, session_state.ctx);
@@ -1293,6 +1304,7 @@ static void suspend_foreground_session(void)
     }
 
     solar_os_session_entry_t *session = session_state.foreground_session;
+    solar_os_sessions_touch_unbind(session->id);
     session_prepare_context(session);
     if (session->app != NULL && session->app->suspend != NULL) {
         session->app->suspend(session_state.ctx);
@@ -1454,6 +1466,7 @@ static void suspend_detached_session(solar_os_session_entry_t *session)
     if (session == NULL || session->suspended) {
         return;
     }
+    solar_os_sessions_touch_unbind(session->id);
 
     solar_os_session_context_snapshot_t previous = {0};
     session_context_capture(&previous);
@@ -1594,6 +1607,7 @@ static bool switch_to_app(const solar_os_app_t *app)
     solar_os_context_set_graphics_active(session_state.ctx, false);
     session_state.foreground_session = NULL;
     session_state.foreground_app = app;
+    session_state.legacy_touch_lifetime = session_touch_new_lifetime();
     session_state.foreground_app_claimed = new_app_claimed;
     if (session_state.foreground_app->start == NULL &&
         session_state.foreground_app->state_size == 0U) {
@@ -1643,6 +1657,7 @@ static bool close_session(solar_os_session_entry_t *session, bool preserve_conte
     if (!session_is_closable(session)) {
         return false;
     }
+    solar_os_sessions_touch_unbind(session->id);
 
     const bool was_foreground = session == session_state.foreground_session;
     const uint8_t closing_id = session->id;
@@ -2197,6 +2212,7 @@ esp_err_t solar_os_sessions_init(solar_os_context_t *ctx,
         }
     }
 
+    solar_os_sessions_touch_unbind_all();
     memset(&session_state, 0, sizeof(session_state));
     session_scheduler_task = xTaskGetCurrentTaskHandle();
     session_state.ctx = ctx;
@@ -2943,6 +2959,8 @@ void solar_os_sessions_mark_foreground_dirty(void)
     }
 }
 
+#include "solar_os_sessions_touch_adapter.inc"
+
 void solar_os_sessions_dispatch_foreground_event(const solar_os_event_t *event)
 {
     if (event == NULL) {
@@ -3224,6 +3242,7 @@ uint32_t solar_os_sessions_requested_tick_interval_ms(void)
 
 void solar_os_sessions_dispatch_resume(uint32_t now_ms)
 {
+    solar_os_sessions_touch_unbind_all();
     const solar_os_event_t event = {
         .type = SOLAR_OS_EVENT_RESUME,
         .data.tick_ms = now_ms,

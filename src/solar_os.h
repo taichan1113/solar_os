@@ -34,6 +34,7 @@ typedef esp_err_t (*solar_os_context_output_fn)(const char *text,
 #define SOLAR_OS_APP_FLAG_AXIS_EVENTS (1U << 4)
 /* Receive recognized touchless and touch gesture events. */
 #define SOLAR_OS_APP_FLAG_GESTURE_EVENTS (1U << 5)
+#define SOLAR_OS_APP_FLAG_TOUCH_FRAMES (1U << 6)
 
 /*
  * Foreground-app mutable state is cold by default: the shared app lifecycle
@@ -109,8 +110,14 @@ typedef enum {
     SOLAR_OS_EVENT_GESTURE,
     SOLAR_OS_EVENT_TICK,
     SOLAR_OS_EVENT_RESUME,
+    SOLAR_OS_EVENT_TOUCH_FRAME,
+    /* Legacy pointer consumers receive cancellation separately from RELEASE. */
+    SOLAR_OS_EVENT_TOUCH_CANCEL,
 } solar_os_event_type_t;
 
+/* Touch frames are borrowed for the synchronous callback; retaining apps copy
+ * the frame value. Keep legacy event size/data offset on 32/64-bit hosts. */
+#pragma pack(push, 4)
 typedef struct {
     solar_os_event_type_t type;
     union {
@@ -119,9 +126,11 @@ typedef struct {
         solar_os_input_pointer_event_t pointer;
         solar_os_input_axis_event_t axis;
         solar_os_input_gesture_event_t gesture;
+        const solar_os_input_touch_frame_t *touch_frame;
         uint32_t tick_ms;
     } data;
 } solar_os_event_t;
+#pragma pack(pop)
 
 struct solar_os_app {
     const char *name;

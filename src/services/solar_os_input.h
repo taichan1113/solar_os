@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "esp_err.h"
+#include "solar_os_input_touch_core.h"
 
 #define SOLAR_OS_INPUT_SOURCE_INVALID 0U
 #define SOLAR_OS_INPUT_SOURCE_NAME_MAX 16U
@@ -23,6 +24,7 @@
 #define SOLAR_OS_INPUT_CAP_SCROLL (1U << 4)
 #define SOLAR_OS_INPUT_CAP_AXIS_EVENTS (1U << 5)
 #define SOLAR_OS_INPUT_CAP_GESTURE_EVENTS (1U << 6)
+#define SOLAR_OS_INPUT_CAP_TOUCH_FRAMES (1U << 7)
 
 #define SOLAR_OS_INPUT_GESTURE_FLAG_EDGE (1U << 0)
 #define SOLAR_OS_INPUT_GESTURE_FLAG_DOUBLE (1U << 1)
@@ -123,6 +125,64 @@ typedef struct {
     /* Empty routes through input focus; a name routes to that display session. */
     char target[SOLAR_OS_INPUT_POINTER_TARGET_MAX];
 } solar_os_input_pointer_event_t;
+
+#define SOLAR_OS_INPUT_TOUCH_QUEUE_MAX 32U
+#define SOLAR_OS_INPUT_TOUCH_CONSUMER_MAX 8U
+typedef enum { SOLAR_OS_INPUT_TOUCH_SAMPLE, SOLAR_OS_INPUT_TOUCH_CANCEL } solar_os_input_touch_state_t;
+typedef enum {
+    SOLAR_OS_INPUT_TOUCH_CANCEL_NONE,
+    SOLAR_OS_INPUT_TOUCH_CANCEL_FRAME,
+    SOLAR_OS_INPUT_TOUCH_CANCEL_OVERFLOW,
+    SOLAR_OS_INPUT_TOUCH_CANCEL_LIFECYCLE,
+    SOLAR_OS_INPUT_TOUCH_CANCEL_SEQUENCE,
+    SOLAR_OS_INPUT_TOUCH_CANCEL_READ_FAILURE,
+} solar_os_input_touch_cancel_reason_t;
+
+/* Captured before acquisition. Values are boot-local, never persisted. */
+typedef struct {
+    solar_os_input_source_t source;
+    uint8_t recipient;
+    uint64_t epoch, generation, next_sequence;
+    char target[SOLAR_OS_INPUT_POINTER_TARGET_MAX];
+} solar_os_input_touch_ticket_t;
+
+typedef struct {
+    solar_os_input_source_t source;
+    uint8_t recipient;
+    solar_os_input_touch_state_t state;
+    solar_os_input_touch_cancel_reason_t cancel_reason;
+    uint64_t epoch, generation, sequence, timestamp_us;
+    char target[SOLAR_OS_INPUT_POINTER_TARGET_MAX];
+    solar_os_touch_snapshot_t snapshot; /* Complete, ID-sorted, calibrated coordinates. */
+} solar_os_input_touch_frame_t;
+
+typedef struct {
+    uint64_t enqueued, delivered, overflow, cancel, stale_discard;
+    size_t high_watermark, queued;
+} solar_os_input_touch_stats_t;
+
+/* Registration/retirement and draining are application-task owned. No callbacks
+ * run under the Input lock. Retire only after cancelling/draining while the app
+ * is alive; retirement without an app discards control events safely. */
+esp_err_t solar_os_input_touch_consumer_register(uint8_t recipient, const char *target,
+                                                uint64_t *generation);
+void solar_os_input_touch_consumer_cancel(uint64_t generation);
+void solar_os_input_touch_consumer_unregister(uint64_t generation);
+esp_err_t solar_os_input_touch_capture(solar_os_input_source_t source, const char *target,
+                                       solar_os_input_touch_ticket_t *ticket);
+/* raw == NULL is acquisition failure. ESP_OK may mean suppressed by the all-up
+ * gate. Sequence must equal ticket.next_sequence; timestamp is monotonic. */
+esp_err_t solar_os_input_write_touch_frame(const solar_os_input_touch_ticket_t *ticket,
+    uint64_t sequence, uint64_t timestamp_us, const ft6336_frame_t *raw);
+/* One frame at a time, priority CANCEL first. Every successful read must be
+ * validated at dispatch and finished even if recipient has gone away. */
+bool solar_os_input_read_touch_frame(solar_os_input_touch_frame_t *frame);
+bool solar_os_input_read_touch_cancel(uint64_t generation, solar_os_input_touch_frame_t *frame);
+bool solar_os_input_touch_frame_valid(const solar_os_input_touch_frame_t *frame);
+void solar_os_input_touch_finish(const solar_os_input_touch_frame_t *frame, bool delivered);
+void solar_os_input_touch_stats(solar_os_input_touch_stats_t *stats);
+esp_err_t solar_os_input_touch_apply_orientation(solar_os_input_touch_frame_t *frame,
+    uint16_t width, uint16_t height, uint16_t orientation_degrees);
 
 /* A single exclusive filter may consume display-oriented pointer events. */
 typedef bool (*solar_os_input_pointer_filter_t)(

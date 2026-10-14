@@ -519,6 +519,7 @@ static esp_err_t set_peripherals_suspended(bool suspended)
 
 static void enter_suspend(const char *reason)
 {
+    solar_os_sessions_quiesce_touch_consumers();
     if (!board_has(SOLAR_OS_BOARD_CAP_KEY)) {
         SOLAR_OS_LOGW(TAG, "%s: suspend needs a KEY resume source", reason);
         return;
@@ -740,6 +741,7 @@ static bool wait_key_rtc_released_stable(uint32_t stable_ms, uint32_t timeout_ms
 
 static void enter_sleep(const char *reason, bool deep_sleep)
 {
+    solar_os_sessions_quiesce_touch_consumers();
     if (!board_has(SOLAR_OS_BOARD_CAP_KEY)) {
         SOLAR_OS_LOGW(TAG,
                       "%s: %s needs a KEY wake source",
@@ -1548,6 +1550,7 @@ static void poll_local_input_sources(void)
 static void dispatch_input_sources(void)
 {
     poll_local_input_sources();
+    solar_os_sessions_refresh_touch_consumers();
     bool discard=false;
 #if SOLAR_OS_PACKAGE_APP_WRITER && defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     discard=solar_os_writer_quality_active();
@@ -1583,6 +1586,20 @@ static void dispatch_input_sources(void)
 #if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
             solar_os_sketch_trace_set_current(0);
 #endif
+        }
+    }
+    /* Resolve the recipient registry after key/pointer callbacks may have changed
+     * focus. Touch frames retain their captured generation; never retarget them. */
+    solar_os_sessions_refresh_touch_consumers();
+    solar_os_input_touch_frame_t touch_frame;
+    for (size_t budget = 0; budget < SOLAR_OS_INPUT_TOUCH_QUEUE_MAX + 8U &&
+         solar_os_input_read_touch_frame(&touch_frame); ++budget) {
+        const bool delivered = !discard && solar_os_sessions_dispatch_touch_frame(&touch_frame);
+        solar_os_input_touch_finish(&touch_frame, delivered);
+        if (delivered) {
+            if (touch_frame.state == SOLAR_OS_INPUT_TOUCH_SAMPLE && touch_frame.snapshot.count)
+                solar_os_power_note_activity(millis_u32());
+            process_app_requests();
         }
     }
     solar_os_input_axis_event_t axis_events[8];

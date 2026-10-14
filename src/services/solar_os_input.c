@@ -575,6 +575,8 @@ static esp_err_t input_load_layout_namespace(const char *namespace_name,
     return err;
 }
 
+#include "solar_os_input_touch.inc"
+
 esp_err_t solar_os_input_init(void)
 {
     uint16_t rate_cps = INPUT_REPEAT_RATE_DEFAULT;
@@ -619,6 +621,9 @@ esp_err_t solar_os_input_init(void)
         input_keyboard_layout = (solar_os_input_keyboard_layout_t)layout_value;
     }
     input_pointer_filter = NULL;
+    for (size_t i = 0; i < INPUT_SOURCE_MAX; ++i)
+        if (input_touch_sources[i].generation)
+            input_touch_invalidate_locked(i, SOLAR_OS_INPUT_TOUCH_CANCEL_LIFECYCLE);
     input_pointer_filter_context = NULL;
     memset(input_gesture_observers, 0, sizeof(input_gesture_observers));
     portEXIT_CRITICAL(&input_lock);
@@ -649,6 +654,8 @@ static esp_err_t input_source_open_locked(const char *name,
                 input_sources[i].capabilities != capabilities) {
                 return ESP_ERR_INVALID_STATE;
             }
+            if (!ready && input_touch_sources[i].generation)
+                input_touch_invalidate_locked(i, SOLAR_OS_INPUT_TOUCH_CANCEL_LIFECYCLE);
             input_sources[i].ready = ready;
             *source = (solar_os_input_source_t)(i + 1U);
             return ESP_OK;
@@ -864,6 +871,8 @@ esp_err_t solar_os_input_source_set_ready(solar_os_input_source_t source,
     if (!input_source_valid_locked(source)) {
         result = ESP_ERR_INVALID_ARG;
     } else {
+        if (!ready && input_touch_sources[source - 1U].generation)
+            input_touch_invalidate_locked(source - 1U, SOLAR_OS_INPUT_TOUCH_CANCEL_LIFECYCLE);
         input_sources[source - 1U].ready = ready;
     }
     portEXIT_CRITICAL(&input_lock);
@@ -894,6 +903,8 @@ esp_err_t solar_os_input_pointer_source_quiesce(solar_os_input_source_t source)
         return ESP_ERR_INVALID_STATE;
     }
     input_sources[source - 1U].ready = false;
+    if (input_touch_sources[source - 1U].generation)
+        input_touch_invalidate_locked(source - 1U, SOLAR_OS_INPUT_TOUCH_CANCEL_LIFECYCLE);
     const size_t count = input_pointer_queue_count;
     for (size_t i = 0; i < count; i++) {
         solar_os_input_pointer_event_t event = input_pointer_queue[input_pointer_queue_head];
@@ -1178,6 +1189,10 @@ void solar_os_input_source_close(solar_os_input_source_t source)
     }
 
     input_pending_release_valid[source - 1U] = false;
+    if (input_touch_sources[source - 1U].generation) {
+        input_touch_invalidate_locked(source - 1U, SOLAR_OS_INPUT_TOUCH_CANCEL_LIFECYCLE);
+        input_touch_sources[source - 1U].generation = 0;
+    }
 
     solar_os_input_key_event_t retained[INPUT_QUEUE_MAX];
     size_t kept = 0;
@@ -1481,7 +1496,8 @@ static esp_err_t input_write_pointer(solar_os_input_source_t source,
         (event->mode == SOLAR_OS_INPUT_POINTER_RELATIVE &&
          (input_sources[source - 1U].capabilities &
           SOLAR_OS_INPUT_CAP_POINTER_RELATIVE) == 0) ||
-        input_pointer_queue == NULL || !input_sources[source - 1U].ready) {
+        input_pointer_queue == NULL || !input_sources[source - 1U].ready ||
+        (input_sources[source - 1U].capabilities & SOLAR_OS_INPUT_CAP_TOUCH_FRAMES)) {
         result = ESP_ERR_INVALID_STATE;
     } else {
         input_source_diagnostics_state_t *diagnostics =
