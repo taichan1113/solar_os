@@ -111,6 +111,47 @@ static esp_err_t ssd1677_write_bands(epd_ssd1677_t *d, uint8_t command,
     return ESP_OK;
 }
 
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+/* The input remains SolarOS tile-major; only the addressed controller rows
+ * are transposed and transmitted. This never touches pixels outside w. */
+static esp_err_t ssd1677_write_tile_window(epd_ssd1677_t *d, uint8_t command,
+                                           const uint8_t *source,
+                                           const ssd1677_window_t *w, unsigned phase)
+{
+    if (!d || !d->band_buffer || !source || !w ||
+        w->x_start_byte > w->x_end_byte || w->x_end_byte >= SSD1677_PANEL_ROW_BYTES ||
+        w->y_start > w->y_end || w->y_end >= SSD1677_HEIGHT || phase >= 3U)
+        return ESP_ERR_INVALID_ARG;
+    const size_t row_bytes = w->x_end_byte - w->x_start_byte + 1U;
+    ESP_RETURN_ON_ERROR(ssd1677_set_partial_window(d, w), TAG, "dirty RAM address failed");
+    ESP_RETURN_ON_ERROR(ssd1677_cmd(d, command), TAG, "dirty RAM write failed");
+    ESP_RETURN_ON_ERROR(gpio_set_level((gpio_num_t)d->dc_pin, 1), TAG, "dirty D/C failed");
+    for (unsigned tile_y = w->y_start / 8U; tile_y <= w->y_end / 8U; ++tile_y) {
+        const int64_t convert_start = esp_timer_get_time();
+        const uint8_t *tile_row = source + tile_y * SSD1677_BUFFER_ROW_BYTES;
+        for (unsigned byte = w->x_start_byte; byte <= w->x_end_byte; ++byte) {
+            ssd1677_transpose_tile(tile_row + byte * 8U,
+                                   d->band_buffer + byte - w->x_start_byte,
+                                   row_bytes);
+        }
+        const int64_t convert_end = esp_timer_get_time();
+        if (tile_y == w->y_start / 8U) d->timing.convert_start_us[phase] = convert_start;
+        d->timing.convert_end_us[phase] = convert_end;
+        d->timing.convert_us[phase] += convert_end - convert_start;
+        const unsigned first = tile_y * 8U < w->y_start ? w->y_start - tile_y * 8U : 0U;
+        const unsigned last = tile_y * 8U + 7U > w->y_end ? w->y_end - tile_y * 8U : 7U;
+        spi_transaction_t transaction = {
+            .length = (last - first + 1U) * row_bytes * 8U,
+            .tx_buffer = d->band_buffer + first * row_bytes,
+        };
+        const esp_err_t err = ssd1677_poll(d, &transaction);
+        d->timing.spi_us[phase] += esp_timer_get_time() - convert_end;
+        ESP_RETURN_ON_ERROR(err, TAG, "dirty transmit failed");
+    }
+    return ESP_OK;
+}
+#endif
+
 static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
 {
     const int64_t start = esp_timer_get_time();
@@ -124,6 +165,13 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     d->timing = (epd_ssd1677_timing_t){.start_us=start, .partial=true, .diff_us=diff_end-start};
     d->papermono_baseline_valid = false;
     const bool cold = !d->reference_awake;
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+    const bool trial = d->dirty_hold_trial &&
+                       d->refresh_mode == EPD_SSD1677_REFRESH_FASTEST &&
+                       d->fastest_tiles && d->band_buffer != NULL;
+    const bool narrow = trial && !cold && d->dirty_hold_ram_synced;
+    d->dirty_hold_ram_synced = false; /* Unknown until post-activation sync succeeds. */
+#endif
     const char *waveform_name;
     const uint8_t *lut = ssd1677_selected_lut(d, &waveform_name);
     esp_err_t err = ESP_OK;
@@ -133,12 +181,25 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         const uint8_t booster[] = {0xae,0xc7,0xc3,0xc0,0x40};
         if (err == ESP_OK) err = ssd1677_cmd_data(d,0x0c,booster,sizeof(booster));
     }
-    for (unsigned i=0; i<2 && err==ESP_OK; ++i) {
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+    const unsigned pre_writes = narrow ? 1U : 2U;
+#else
+    const unsigned pre_writes = 2U;
+#endif
+    for (unsigned i=0; i<pre_writes && err==ESP_OK; ++i) {
         d->timing.writes++;
         d->timing.write_start_us[i] = esp_timer_get_time();
         const uint8_t *source = i ? d->shadow : ssd1677_frame(d);
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+        /* A synchronized RED plane already holds the old image. The cold or
+         * unsynchronized entry writes both full planes before activation. */
+        err = narrow ? ssd1677_write_tile_window(d, 0x24, source, &dirty, i) :
+              d->fastest_tiles ? ssd1677_write_bands(d, i ? 0x26 : 0x24, source, i) :
+                                 ssd1677_write_plane(d, i ? 0x26 : 0x24, source, &full, false);
+#else
         err = d->fastest_tiles ? ssd1677_write_bands(d, i ? 0x26 : 0x24, source, i) :
                                 ssd1677_write_plane(d, i ? 0x26 : 0x24, source, &full, false);
+#endif
         d->timing.write_end_us[i] = esp_timer_get_time();
     }
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x32,lut,105);
@@ -164,6 +225,18 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         }
         d->timing.ready_us[0]=esp_timer_get_time();
     }
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+    if (err == ESP_OK && trial) {
+        const unsigned i = d->timing.writes++;
+        d->timing.write_start_us[i] = esp_timer_get_time();
+        /* Without this step the old/new transition remains in RED RAM and
+         * would be re-applied outside the next dirty rectangle. */
+        err = narrow ? ssd1677_write_tile_window(d, 0x26, ssd1677_frame(d), &dirty, i) :
+                       ssd1677_write_bands(d, 0x26, ssd1677_frame(d), i);
+        d->timing.write_end_us[i] = esp_timer_get_time();
+        if (err == ESP_OK) d->dirty_hold_ram_synced = true;
+    }
+#endif
     if (err == ESP_OK) {
         const int64_t promote_start = esp_timer_get_time();
         memcpy(d->shadow,ssd1677_frame(d),d->buffer_size);

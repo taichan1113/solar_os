@@ -279,6 +279,9 @@ static esp_err_t ssd1677_controller_init(epd_ssd1677_t *display)
 {
     display->reference_awake = false;
     display->papermono_baseline_valid = false;
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+    display->dirty_hold_ram_synced = false;
+#endif
     if (display->faulted) return ESP_ERR_INVALID_STATE;
     ESP_RETURN_ON_ERROR(ssd1677_set_power(display, true), TAG, "panel power-on failed");
     ESP_RETURN_ON_ERROR(ssd1677_hardware_reset(display), TAG, "hardware reset failed");
@@ -498,6 +501,9 @@ static esp_err_t ssd1677_papermono_refresh(epd_ssd1677_t *display)
         (display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST ||
          display->refresh_mode == EPD_SSD1677_REFRESH_TYPING))
         return ssd1677_reference_refresh(display);
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+    display->dirty_hold_ram_synced = false;
+#endif
     display->transport_spi_hz = display->configured_spi_hz;
     const bool partial = baseline && !cleanup &&
                          display->refresh_mode != EPD_SSD1677_REFRESH_FULL &&
@@ -660,6 +666,9 @@ static esp_err_t ssd1677_sleep(epd_ssd1677_t *display)
     const bool fastest_powered = display->reference_awake;
     display->papermono_baseline_valid = false;
     display->reference_awake = false;
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+    display->dirty_hold_ram_synced = false;
+#endif
     if (display->papermono_otp) display->shadow_valid = false;
     if (display->controller_ready) {
         if (fastest_powered) {
@@ -815,6 +824,9 @@ esp_err_t epd_ssd1677_init(epd_ssd1677_t *display,
     display->set_reset = config->set_reset;
     display->reset_context = config->reset_context;
     display->papermono_otp = config->papermono_otp;
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+    display->dirty_hold_trial = config->papermono_otp;
+#endif
     display->configured_spi_hz = config->spi_clock_hz;
     display->transport_spi_hz = config->spi_clock_hz;
     /* Qualified with the same waveform at 10/20/40MHz, then 110 updates and
@@ -928,6 +940,9 @@ static esp_err_t ssd1677_resume_unlocked(epd_ssd1677_t *display)
     }
     display->papermono_baseline_valid = false;
     display->shadow_valid = false;
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+    display->dirty_hold_ram_synced = false;
+#endif
     esp_err_t err = ssd1677_configure_pins(display);
     if (err == ESP_OK) err = ssd1677_controller_init(display);
     display->last_error = err;
@@ -1016,6 +1031,9 @@ void epd_ssd1677_deinit(epd_ssd1677_t *display)
     display->line_buffer_size = 0;
     display->controller_ready = false;
     display->shadow_valid = false;
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+    display->dirty_hold_ram_synced = false;
+#endif
 }
 
 u8g2_t *epd_ssd1677_get_u8g2(epd_ssd1677_t *display)
@@ -1132,6 +1150,9 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
         (display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST || display->refresh_mode == EPD_SSD1677_REFRESH_TYPING)) {
         display->papermono_baseline_valid = false;
         display->reference_awake = false;
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+        display->dirty_hold_ram_synced = false;
+#endif
     }
     return ESP_OK;
 }

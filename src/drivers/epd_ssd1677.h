@@ -13,6 +13,11 @@
 #define SOLAR_OS_SSD1677_WAVEFORM_TRIAL 0
 #endif
 
+/* RAM-write-only experiment. Normal firmware always uses the full-RAM path. */
+#ifndef SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+#define SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL 0
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -113,6 +118,10 @@ typedef struct {
     bool cleanup_pending;
     bool timing_enabled;
     bool reference_awake; /* fastest Mode 2, analog power retained */
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+    bool dirty_hold_trial; /* Host opt-in; no production UI or persistence. */
+    bool dirty_hold_ram_synced; /* Both controller RAM planes equal shadow. */
+#endif
     bool fastest_tiles;
     epd_ssd1677_waveform_trial_t waveform_trial; /* volatile; baseline at init */
     int configured_spi_hz, transport_spi_hz, applied_spi_hz, actual_spi_hz;
