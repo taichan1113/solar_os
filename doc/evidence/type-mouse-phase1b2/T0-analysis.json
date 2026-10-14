@@ -1,0 +1,98 @@
+{
+  "stored": 244,
+  "dropped": 0,
+  "status": {
+    "mode": "0",
+    "end": "1",
+    "reads": "244",
+    "stored": "244",
+    "dropped": "0",
+    "failures": "0",
+    "max_consecutive": "0",
+    "capacity": "4096",
+    "record_bytes": "48",
+    "logger_total_us": "2331",
+    "logger_max_us": "225",
+    "results": "0,244,0",
+    "counts": "244,0,0,0",
+    "flags": "488,0,0,0",
+    "reported_flags": "0,0,0,0",
+    "sentinel": "0",
+    "reported_sentinel": "0",
+    "duplicates": "0"
+  },
+  "counts": {
+    "0": 244
+  },
+  "decoder_results": {
+    "1": 244
+  },
+  "reported_flags": {},
+  "all_slot_flags": {
+    "0": 488
+  },
+  "reported_up_counts": {},
+  "all_slot_up_counts": {},
+  "id_histogram": {},
+  "sentinel_all_slots": 0,
+  "reported_sentinel": 0,
+  "duplicate_id_frames": 0,
+  "adjacent_two_slot_swaps": 0,
+  "unused_slot_examples": [
+    {
+      "contact": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "samples": 488
+    }
+  ],
+  "coordinate_ranges_by_id": {},
+  "read_duration": {
+    "samples": 244,
+    "p50_us": 2434.5,
+    "p95_us": 2550,
+    "max_us": 65635,
+    "p95_sample_warning": false
+  },
+  "read_start_interval": {
+    "samples": 243,
+    "p50_us": 11999,
+    "p95_us": 12082,
+    "max_us": 76557,
+    "p95_sample_warning": false
+  },
+  "i2c_failures": 0,
+  "max_consecutive_failures": 0,
+  "transitions": [
+    {
+      "sequence": 1,
+      "start_us": 127680122,
+      "count": 0,
+      "raw": "000000000000000000000000ff",
+      "contacts": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    }
+  ],
+  "coherence": "raw series requires case-specific review; burst does not prove controller latch"
+}

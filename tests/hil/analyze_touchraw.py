@@ -1,5 +1,6 @@
 """Validate and summarize stopped USB touchraw dumps, without device access."""
 import argparse
+import gzip
 from collections import Counter
 import json
 import math
@@ -145,7 +146,12 @@ def main():
     parser.add_argument("dump", type=Path)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    result = analyze(args.dump.read_text(encoding="utf-8", errors="replace"))
+    if args.dump.suffix == ".gz":
+        with gzip.open(args.dump, "rt", encoding="utf-8", errors="replace") as stream:
+            source = stream.read()
+    else:
+        source = args.dump.read_text(encoding="utf-8", errors="replace")
+    result = analyze(source)
     encoded = json.dumps(result, indent=2, ensure_ascii=False)
     if args.output:
         args.output.write_text(encoded + "\n", encoding="utf-8")

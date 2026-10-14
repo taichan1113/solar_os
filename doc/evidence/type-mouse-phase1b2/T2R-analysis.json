@@ -1,0 +1,612 @@
+{
+  "stored": 2508,
+  "dropped": 0,
+  "status": {
+    "mode": "0",
+    "end": "2",
+    "reads": "2508",
+    "stored": "2508",
+    "dropped": "0",
+    "failures": "0",
+    "max_consecutive": "0",
+    "capacity": "4096",
+    "record_bytes": "48",
+    "logger_total_us": "19817",
+    "logger_max_us": "104",
+    "results": "1,2507,0",
+    "counts": "2403,1,103,1",
+    "flags": "4,2405,205,2402",
+    "reported_flags": "2,1,205,1",
+    "sentinel": "2402",
+    "reported_sentinel": "1",
+    "duplicates": "0"
+  },
+  "counts": {
+    "0": 2403,
+    "15": 1,
+    "2": 103,
+    "1": 1
+  },
+  "decoder_results": {
+    "1": 2507,
+    "0": 1
+  },
+  "reported_flags": {
+    "1": 1,
+    "3": 1,
+    "0": 2,
+    "2": 205
+  },
+  "all_slot_flags": {
+    "1": 2405,
+    "3": 2402,
+    "0": 4,
+    "2": 205
+  },
+  "reported_up_counts": {
+    "15": 1
+  },
+  "all_slot_up_counts": {
+    "0": 2403,
+    "15": 1,
+    "1": 1
+  },
+  "id_histogram": {
+    "1": 104,
+    "15": 1,
+    "0": 104
+  },
+  "sentinel_all_slots": 2402,
+  "reported_sentinel": 1,
+  "duplicate_id_frames": 0,
+  "adjacent_two_slot_swaps": 6,
+  "unused_slot_examples": [
+    {
+      "contact": [
+        15,
+        4095,
+        4095,
+        3
+      ],
+      "samples": 2401
+    },
+    {
+      "contact": [
+        0,
+        193,
+        323,
+        1
+      ],
+      "samples": 1250
+    },
+    {
+      "contact": [
+        1,
+        164,
+        349,
+        1
+      ],
+      "samples": 1151
+    },
+    {
+      "contact": [
+        4,
+        64,
+        64,
+        1
+      ],
+      "samples": 2
+    },
+    {
+      "contact": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "samples": 2
+    },
+    {
+      "contact": [
+        1,
+        243,
+        574,
+        1
+      ],
+      "samples": 1
+    }
+  ],
+  "coordinate_ranges_by_id": {
+    "1": {
+      "x": [
+        164,
+        243
+      ],
+      "y": [
+        349,
+        574
+      ]
+    },
+    "15": {
+      "x": [
+        4095,
+        4095
+      ],
+      "y": [
+        4095,
+        4095
+      ]
+    },
+    "0": {
+      "x": [
+        193,
+        193
+      ],
+      "y": [
+        323,
+        323
+      ]
+    }
+  },
+  "read_duration": {
+    "samples": 2508,
+    "p50_us": 2442.0,
+    "p95_us": 2525,
+    "max_us": 66510,
+    "p95_sample_warning": false
+  },
+  "read_start_interval": {
+    "samples": 2507,
+    "p50_us": 11999,
+    "p95_us": 12035,
+    "max_us": 77550,
+    "p95_sample_warning": false
+  },
+  "i2c_failures": 0,
+  "max_consecutive_failures": 0,
+  "transitions": [
+    {
+      "sequence": 1,
+      "start_us": 479286126,
+      "count": 0,
+      "raw": "0040a4115d0000ffffffffffff",
+      "contacts": [
+        [
+          1,
+          164,
+          349,
+          1,
+          0,
+          0
+        ],
+        [
+          15,
+          4095,
+          4095,
+          3,
+          0,
+          0
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    },
+    {
+      "sequence": 784,
+      "start_us": 488779366,
+      "count": 15,
+      "raw": "ff40a4115d0000ffffffffffff",
+      "contacts": [
+        [
+          1,
+          164,
+          349,
+          1,
+          1,
+          1
+        ],
+        [
+          15,
+          4095,
+          4095,
+          3,
+          1,
+          0
+        ]
+      ],
+      "result": 0,
+      "reasons": 116
+    },
+    {
+      "sequence": 785,
+      "start_us": 488792058,
+      "count": 0,
+      "raw": "0040a4115d0000ffffffffffff",
+      "contacts": [
+        [
+          1,
+          164,
+          349,
+          1,
+          0,
+          0
+        ],
+        [
+          15,
+          4095,
+          4095,
+          3,
+          0,
+          0
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    },
+    {
+      "sequence": 807,
+      "start_us": 489047087,
+      "count": 0,
+      "raw": "00404040404040404040404040",
+      "contacts": [
+        [
+          4,
+          64,
+          64,
+          1,
+          0,
+          0
+        ],
+        [
+          4,
+          64,
+          64,
+          1,
+          0,
+          0
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    },
+    {
+      "sequence": 808,
+      "start_us": 489059066,
+      "count": 0,
+      "raw": "0040a4115d0000ffffffffffff",
+      "contacts": [
+        [
+          1,
+          164,
+          349,
+          1,
+          0,
+          0
+        ],
+        [
+          15,
+          4095,
+          4095,
+          3,
+          0,
+          0
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    },
+    {
+      "sequence": 861,
+      "start_us": 489695089,
+      "count": 0,
+      "raw": "00000000000000000000000000",
+      "contacts": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    },
+    {
+      "sequence": 862,
+      "start_us": 489707090,
+      "count": 0,
+      "raw": "0040a4115d0000ffffffffffff",
+      "contacts": [
+        [
+          1,
+          164,
+          349,
+          1,
+          0,
+          0
+        ],
+        [
+          15,
+          4095,
+          4095,
+          3,
+          0,
+          0
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    },
+    {
+      "sequence": 1155,
+      "start_us": 493189060,
+      "count": 2,
+      "raw": "0200c10143000000f3123e00ff",
+      "contacts": [
+        [
+          0,
+          193,
+          323,
+          0,
+          1,
+          1
+        ],
+        [
+          1,
+          243,
+          574,
+          0,
+          1,
+          1
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    },
+    {
+      "sequence": 1156,
+      "start_us": 493201067,
+      "count": 2,
+      "raw": "0280c10143000080f3123e00ff",
+      "contacts": [
+        [
+          0,
+          193,
+          323,
+          2,
+          1,
+          1
+        ],
+        [
+          1,
+          243,
+          574,
+          2,
+          1,
+          1
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    },
+    {
+      "sequence": 1206,
+      "start_us": 493801062,
+      "count": 2,
+      "raw": "0280f3123e000080c1014300ff",
+      "contacts": [
+        [
+          1,
+          243,
+          574,
+          2,
+          1,
+          1
+        ],
+        [
+          0,
+          193,
+          323,
+          2,
+          1,
+          1
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    },
+    {
+      "sequence": 1224,
+      "start_us": 494011061,
+      "count": 2,
+      "raw": "0280c10143000080f3123e00ff",
+      "contacts": [
+        [
+          0,
+          193,
+          323,
+          2,
+          1,
+          1
+        ],
+        [
+          1,
+          243,
+          574,
+          2,
+          1,
+          1
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    },
+    {
+      "sequence": 1230,
+      "start_us": 494080064,
+      "count": 2,
+      "raw": "0280f3123e000080c1014300ff",
+      "contacts": [
+        [
+          1,
+          243,
+          574,
+          2,
+          1,
+          1
+        ],
+        [
+          0,
+          193,
+          323,
+          2,
+          1,
+          1
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    },
+    {
+      "sequence": 1231,
+      "start_us": 494092056,
+      "count": 2,
+      "raw": "0280c10143000080f3123e00ff",
+      "contacts": [
+        [
+          0,
+          193,
+          323,
+          2,
+          1,
+          1
+        ],
+        [
+          1,
+          243,
+          574,
+          2,
+          1,
+          1
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    },
+    {
+      "sequence": 1237,
+      "start_us": 494164063,
+      "count": 2,
+      "raw": "0280f3123e000080c1014300ff",
+      "contacts": [
+        [
+          1,
+          243,
+          574,
+          2,
+          1,
+          1
+        ],
+        [
+          0,
+          193,
+          323,
+          2,
+          1,
+          1
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    },
+    {
+      "sequence": 1256,
+      "start_us": 494392063,
+      "count": 2,
+      "raw": "0280c10143000080f3123e00ff",
+      "contacts": [
+        [
+          0,
+          193,
+          323,
+          2,
+          1,
+          1
+        ],
+        [
+          1,
+          243,
+          574,
+          2,
+          1,
+          1
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    },
+    {
+      "sequence": 1258,
+      "start_us": 494416069,
+      "count": 1,
+      "raw": "0180c10143000040f3123e00ff",
+      "contacts": [
+        [
+          0,
+          193,
+          323,
+          2,
+          1,
+          1
+        ],
+        [
+          1,
+          243,
+          574,
+          1,
+          0,
+          0
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    },
+    {
+      "sequence": 1259,
+      "start_us": 494428062,
+      "count": 0,
+      "raw": "0040c101430000ffffffffffff",
+      "contacts": [
+        [
+          0,
+          193,
+          323,
+          1,
+          0,
+          0
+        ],
+        [
+          15,
+          4095,
+          4095,
+          3,
+          0,
+          0
+        ]
+      ],
+      "result": 1,
+      "reasons": 0
+    }
+  ],
+  "coherence": "raw series requires case-specific review; burst does not prove controller latch"
+}
