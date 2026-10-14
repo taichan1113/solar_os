@@ -20,6 +20,7 @@ static bool fail_external_reset;
 static int fail_command = -1;
 static bool busy_on_activation;
 static bool fail_plane_data;
+static bool fail_spi_override;
 static int fail_plane_after_bytes = -1;
 static int fail_plane_command = 0x24;
 static int64_t time_us;
@@ -60,6 +61,7 @@ esp_err_t gpio_set_level(gpio_num_t pin, uint32_t level)
 esp_err_t spi_device_polling_transmit(spi_device_handle_t device, spi_transaction_t *transaction)
 {
     assert(device != NULL);
+    if (fail_spi_override && transaction->override_freq_hz) return ESP_FAIL;
     if (transaction->override_freq_hz) actual_spi_hz = (int)transaction->override_freq_hz;
     time_us += spi_delay_us;
     const uint8_t *data = transaction->flags & SPI_TRANS_USE_TXDATA ?
@@ -101,6 +103,7 @@ static epd_ssd1677_t make_display(void)
     fail_command = -1;
     busy_on_activation = false;
     fail_plane_data = false;
+    fail_spi_override = false;
     fail_plane_after_bytes = -1;
     return (epd_ssd1677_t) {
         .spi = (void *)1, .buffer = frame, .shadow = shadow, .line_buffer = line,

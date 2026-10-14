@@ -83,6 +83,11 @@ static epd_ssd1677_t *ssd1677_from_u8x8(u8x8_t *u8x8)
                              offsetof(u8g2_t, u8x8));
 }
 
+static int ssd1677_default_fastest_spi_hz(void)
+{
+    return SOLAR_OS_SSD1677_SPI20_TRIAL ? 20000000 : 40000000;
+}
+
 static esp_err_t ssd1677_poll(epd_ssd1677_t *display, spi_transaction_t *transaction)
 {
     const int requested = display->transport_spi_hz;
@@ -869,9 +874,8 @@ esp_err_t epd_ssd1677_init(epd_ssd1677_t *display,
 #endif
     display->configured_spi_hz = config->spi_clock_hz;
     display->transport_spi_hz = config->spi_clock_hz;
-    /* Qualified with the same waveform at 10/20/40MHz, then 110 updates and
-     * Writer input at 40MHz. OTP still uses the configured board clock. */
-    display->fastest_spi_hz = SOLAR_OS_SSD1677_SPI20_TRIAL ? 20000000 : 40000000;
+    /* OTP and other refresh modes still use the configured board clock. */
+    display->fastest_spi_hz = ssd1677_default_fastest_spi_hz();
     display->typing_frame_ms = 250;
     display->typing_cleanup_budget = 128;
     display->typing_idle_ms = 30000;

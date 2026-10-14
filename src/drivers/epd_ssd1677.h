@@ -24,6 +24,11 @@
 #define SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL 0
 #endif
 
+/* Opt-in SPI clock trial; normal fastest builds retain their 40 MHz default. */
+#ifndef SOLAR_OS_SSD1677_SPI20_TRIAL
+#define SOLAR_OS_SSD1677_SPI20_TRIAL 0
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

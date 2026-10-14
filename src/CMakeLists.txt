@@ -532,6 +532,11 @@ if(SOLAR_OS_BOARD_ID STREQUAL "m5paper_mono" AND
         "$ENV{SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL}" STREQUAL "1")
     target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1)
 endif()
+# Keep the 20 MHz trial independent of the Dirty HOLD experiment.
+if(SOLAR_OS_BOARD_ID STREQUAL "m5paper_mono" AND
+        "$ENV{SOLAR_OS_SSD1677_SPI20_TRIAL}" STREQUAL "1")
+    target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_SSD1677_SPI20_TRIAL=1)
+endif()
 if(SOLAR_OS_BOARD_ID STREQUAL "m5paper_mono" AND
         "$ENV{SOLAR_OS_SSD1677_HYBRID_TRIAL}" STREQUAL "1")
     target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_SSD1677_HYBRID_TRIAL=1)

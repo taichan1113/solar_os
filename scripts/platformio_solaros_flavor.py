@@ -104,6 +104,9 @@ if hybrid_trial not in ("0", "1"):
 spi20_trial = os.environ.get("SOLAR_OS_SSD1677_SPI20_TRIAL", "0")
 if spi20_trial not in ("0", "1"):
     raise SystemExit("SOLAR_OS_SSD1677_SPI20_TRIAL must be 0 or 1")
+dirty_hold_trial = os.environ.get("SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL", "0")
+if dirty_hold_trial not in ("0", "1"):
+    raise SystemExit("SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL must be 0 or 1")
 
 # ESP-IDF runs component discovery in child CMake processes that do not always
 # inherit PlatformIO's CMake cache arguments. Export the resolved selection so
@@ -198,6 +201,7 @@ stamp = (
     f"vga={vga_mode}\n"
     f"ssd1677_waveform_trial={waveform_trial}\n"
     f"ssd1677_hybrid_trial={hybrid_trial}\n"
+    f"ssd1677_dirty_hold_trial={dirty_hold_trial}\n"
     f"ssd1677_spi20_trial={spi20_trial}\n"
 )
 for tracked_file in tracked_files:
