@@ -20,6 +20,8 @@ static bool fail_external_reset;
 static int fail_command = -1;
 static bool busy_on_activation;
 static bool fail_plane_data;
+static int fail_plane_after_bytes = -1;
+static int fail_plane_command = 0x24;
 static int64_t time_us;
 static int64_t spi_delay_us;
 static uint8_t frame[SSD1677_BUFFER_BYTES], shadow[SSD1677_BUFFER_BYTES];
@@ -74,6 +76,8 @@ esp_err_t spi_device_polling_transmit(spi_device_handle_t device, spi_transactio
         captured_command_t *command = &commands[command_count - 1U];
         if (fail_plane_data && command->command == 0x24 && command->length >= 100)
             return ESP_FAIL;
+        if (command->command == fail_plane_command && fail_plane_after_bytes >= 0 &&
+            command->length >= (size_t)fail_plane_after_bytes) return ESP_FAIL;
         assert(command->length + length <= sizeof(command->data));
         memcpy(command->data + command->length, data, length);
         command->length += length;
@@ -97,6 +101,7 @@ static epd_ssd1677_t make_display(void)
     fail_command = -1;
     busy_on_activation = false;
     fail_plane_data = false;
+    fail_plane_after_bytes = -1;
     return (epd_ssd1677_t) {
         .spi = (void *)1, .buffer = frame, .shadow = shadow, .line_buffer = line,
         .buffer_size = sizeof(frame), .shadow_size = sizeof(shadow),
