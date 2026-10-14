@@ -34,6 +34,13 @@ TARGETS += sdmmc_expansion_test
 TARGETS += axp2101_service_test
 TARGETS += m5papermono_power_test
 TARGETS += ft6336_test
+TARGETS += ft6336_frame_test input_touch_core_test
+
+ft6336_frame_test: ft6336_frame_test.c $(ROOT)/src/drivers/ft6336_frame.c $(ROOT)/src/drivers/ft6336_frame.h
+	$(CC) $(CFLAGS) -I$(ROOT)/src/drivers $(filter %.c,$^) -o $@
+
+input_touch_core_test: input_touch_core_test.c $(ROOT)/src/services/solar_os_input_touch_core.c $(ROOT)/src/services/solar_os_input_touch_core.h $(ROOT)/src/drivers/ft6336_frame.c $(ROOT)/src/drivers/ft6336_frame.h
+	$(CC) $(CFLAGS) -I$(ROOT)/src/services $(filter %.c,$^) -o $@
 TARGETS += rtc_rx8130ce_test
 TARGETS += ft6336_lifecycle_test
 TARGETS += status_led_provider_test
@@ -64,14 +71,14 @@ sketch_scale140_lifecycle_test: sketch_lifecycle_test.c $(ROOT)/src/apps/solar_o
 status_led_provider_test: status_led_provider_test.c $(ROOT)/src/services/solar_os_status_led.c
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -Iexpansion_stubs -Igpio_controller_stubs -I. -I$(ROOT)/src/services -I$(ROOT)/src/drivers -o $@ $^
 
-ft6336_lifecycle_test: ft6336_lifecycle_test.c $(ROOT)/src/services/solar_os_ft6336.c $(ROOT)/src/drivers/ft6336.c
-	$(CC) $(CFLAGS) -D_GNU_SOURCE -include compat.h -Itouch_stubs -Iasync_stubs -Irtc_stubs -Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/src/drivers -o $@ $< $(ROOT)/src/drivers/ft6336.c
+ft6336_lifecycle_test: ft6336_lifecycle_test.c $(ROOT)/src/services/solar_os_ft6336.c $(ROOT)/src/drivers/ft6336.c $(ROOT)/src/drivers/ft6336.h $(ROOT)/src/drivers/ft6336_frame.c $(ROOT)/src/drivers/ft6336_frame.h
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -include compat.h -Itouch_stubs -Iasync_stubs -Irtc_stubs -Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/src/drivers -o $@ $< $(ROOT)/src/drivers/ft6336.c $(ROOT)/src/drivers/ft6336_frame.c
 
 rtc_rx8130ce_test: rtc_rx8130ce_test.c $(ROOT)/src/drivers/rtc_rx8130ce.c $(ROOT)/src/services/solar_os_rx8130ce.c $(ROOT)/src/services/solar_os_rtc.c $(ROOT)/src/services/solar_os_time.c
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -ffunction-sections -fdata-sections -include compat.h -Irtc_stubs -I. -I$(ROOT)/src/services -I$(ROOT)/src/drivers -Wl,--gc-sections -o $@ $^
 
-ft6336_test: ft6336_test.c $(ROOT)/src/drivers/ft6336.c $(ROOT)/src/drivers/ft6336.h
-	$(CC) $(CFLAGS) -include compat.h -Irtc_stubs -Iepd_stubs -I. -o $@ $<
+ft6336_test: ft6336_test.c $(ROOT)/src/drivers/ft6336.c $(ROOT)/src/drivers/ft6336.h $(ROOT)/src/drivers/ft6336_frame.c $(ROOT)/src/drivers/ft6336_frame.h
+	$(CC) $(CFLAGS) -include compat.h -Irtc_stubs -Iepd_stubs -I. -o $@ $< $(ROOT)/src/drivers/ft6336_frame.c
 
 m5papermono_power_test: m5papermono_power_test.c $(ROOT)/src/services/solar_os_m5papermono_power.c
 	$(CC) $(CFLAGS) -include compat.h -Irtc_stubs -Iexpansion_stubs -I. \
@@ -1080,6 +1087,8 @@ test: $(TARGETS)
 	./quality_ab_test
 	./m5papermono_power_test
 	./ft6336_test
+	./ft6336_frame_test
+	./input_touch_core_test
 	./rtc_rx8130ce_test
 	./ft6336_lifecycle_test
 	./status_led_provider_test

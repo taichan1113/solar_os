@@ -110,6 +110,20 @@ esp_err_t ft6336_read(ft6336_sample_t *sample)
     return ESP_OK;
 }
 
+esp_err_t ft6336_read_frame(ft6336_frame_t *frame)
+{
+    if (frame == NULL) return ESP_ERR_INVALID_ARG;
+    if (!ft6336_ready) return ESP_ERR_INVALID_STATE;
+    uint8_t data[FT6336_FRAME_BYTES] = {0};
+    ESP_RETURN_ON_ERROR(solar_os_bus_i2c_read_reg(ft6336_i2c_bus,
+                                                 ft6336_address,
+                                                 FT6336_REG_TOUCH_STATUS,
+                                                 data, sizeof(data)),
+                        TAG, "touch frame read failed");
+    ft6336_frame_decode(data, sizeof(data), frame);
+    return ESP_OK;
+}
+
 void ft6336_deinit(void)
 {
     ft6336_ready = false;
