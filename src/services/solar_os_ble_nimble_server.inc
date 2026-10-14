@@ -1146,6 +1146,27 @@ static esp_err_t server_hid_execute(uint32_t owner,
         if (result == ESP_OK) peripheral->mouse_buttons = buttons;
         return result;
     }
+    if (r->op == SOLAR_OS_BLE_HID_OP_MOUSE_REPORT) {
+        const uint8_t valid = SOLAR_OS_HID_MOUSE_LEFT | SOLAR_OS_HID_MOUSE_RIGHT |
+            SOLAR_OS_HID_MOUSE_MIDDLE | SOLAR_OS_HID_MOUSE_BACK |
+            SOLAR_OS_HID_MOUSE_FORWARD;
+        if (r->button & ~valid) return ESP_ERR_INVALID_ARG;
+        int32_t dx = r->x, dy = r->y, wheel = r->wheel, pan = r->pan;
+        do {
+            const int8_t x = dx > 127 ? 127 : dx < -127 ? -127 : (int8_t)dx;
+            const int8_t y = dy > 127 ? 127 : dy < -127 ? -127 : (int8_t)dy;
+            const int8_t w = wheel > 127 ? 127 : wheel < -127 ? -127 : (int8_t)wheel;
+            const int8_t h = pan > 127 ? 127 : pan < -127 ? -127 : (int8_t)pan;
+            const uint8_t report[5] = {r->button, (uint8_t)x, (uint8_t)y,
+                (uint8_t)w, (uint8_t)h};
+            const esp_err_t result = server_hid_send(peripheral->hid_mouse,
+                report, sizeof(report));
+            if (result != ESP_OK) return result;
+            peripheral->mouse_buttons = r->button;
+            dx -= x; dy -= y; wheel -= w; pan -= h;
+        } while (dx || dy || wheel || pan);
+        return ESP_OK;
+    }
     if (r->op == SOLAR_OS_BLE_HID_OP_MOUSE_MOVE) {
         int64_t x = r->x, y = r->y;
         if (x > 32767) x = 32767;

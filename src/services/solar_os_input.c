@@ -825,7 +825,8 @@ esp_err_t solar_os_input_touch_source_open(const char *name,
     return solar_os_input_source_open_typed(
         name,
         SOLAR_OS_INPUT_SOURCE_TOUCH,
-        SOLAR_OS_INPUT_CAP_POINTER_ABSOLUTE | SOLAR_OS_INPUT_CAP_POINTER_BUTTONS,
+        SOLAR_OS_INPUT_CAP_POINTER_ABSOLUTE | SOLAR_OS_INPUT_CAP_POINTER_BUTTONS |
+            SOLAR_OS_INPUT_CAP_TOUCH_FRAMES,
         true,
         source);
 }
@@ -894,7 +895,8 @@ esp_err_t solar_os_input_keyboard_source_set_ready(solar_os_input_source_t sourc
     return result;
 }
 
-esp_err_t solar_os_input_pointer_source_quiesce(solar_os_input_source_t source)
+static esp_err_t input_pointer_source_clear(solar_os_input_source_t source,
+                                            bool disable_source)
 {
     portENTER_CRITICAL(&input_lock);
     if (!input_source_valid_locked(source) || input_pointer_queue == NULL ||
@@ -902,8 +904,8 @@ esp_err_t solar_os_input_pointer_source_quiesce(solar_os_input_source_t source)
         portEXIT_CRITICAL(&input_lock);
         return ESP_ERR_INVALID_STATE;
     }
-    input_sources[source - 1U].ready = false;
-    if (input_touch_sources[source - 1U].generation)
+    if (disable_source) input_sources[source - 1U].ready = false;
+    if (disable_source && input_touch_sources[source - 1U].generation)
         input_touch_invalidate_locked(source - 1U, SOLAR_OS_INPUT_TOUCH_CANCEL_LIFECYCLE);
     const size_t count = input_pointer_queue_count;
     for (size_t i = 0; i < count; i++) {
@@ -933,6 +935,12 @@ esp_err_t solar_os_input_pointer_source_quiesce(solar_os_input_source_t source)
     portEXIT_CRITICAL(&input_lock);
     return ESP_OK;
 }
+
+esp_err_t solar_os_input_pointer_source_quiesce(solar_os_input_source_t source)
+{ return input_pointer_source_clear(source, true); }
+
+esp_err_t solar_os_input_pointer_source_clear_legacy(solar_os_input_source_t source)
+{ return input_pointer_source_clear(source, false); }
 
 size_t solar_os_input_keyboard_count(void)
 {
@@ -1497,7 +1505,7 @@ static esp_err_t input_write_pointer(solar_os_input_source_t source,
          (input_sources[source - 1U].capabilities &
           SOLAR_OS_INPUT_CAP_POINTER_RELATIVE) == 0) ||
         input_pointer_queue == NULL || !input_sources[source - 1U].ready ||
-        (input_sources[source - 1U].capabilities & SOLAR_OS_INPUT_CAP_TOUCH_FRAMES)) {
+        input_touch_sources[source - 1U].generation != 0) {
         result = ESP_ERR_INVALID_STATE;
     } else {
         input_source_diagnostics_state_t *diagnostics =

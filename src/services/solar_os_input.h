@@ -303,6 +303,9 @@ esp_err_t solar_os_input_source_set_ready(solar_os_input_source_t source,
 /* Reject subsequent writes, discard queued pointer samples from this source,
  * and enqueue a release if its last accepted sample held any buttons. */
 esp_err_t solar_os_input_pointer_source_quiesce(solar_os_input_source_t source);
+/* Drop legacy pointer samples and release its held button while keeping the
+ * source ready for a newly captured complete touch frame. */
+esp_err_t solar_os_input_pointer_source_clear_legacy(solar_os_input_source_t source);
 esp_err_t solar_os_input_keyboard_source_set_ready(solar_os_input_source_t source,
                                                    bool ready);
 size_t solar_os_input_keyboard_count(void);

@@ -301,6 +301,15 @@ int main(void)
     const int before_mouse=fake.notify_calls;
     hid=(solar_os_ble_hid_request_t){.op=SOLAR_OS_BLE_HID_OP_MOUSE_MOVE,.x=200,.y=-200};
     assert(execute_hid(77,&hid)==ESP_OK && fake.notify_calls==before_mouse+2);
+    const int before_full_mouse=fake.notify_calls;
+    hid=(solar_os_ble_hid_request_t){.op=SOLAR_OS_BLE_HID_OP_MOUSE_REPORT,
+        .button=SOLAR_OS_HID_MOUSE_LEFT,.x=200,.wheel=-140,.pan=7};
+    assert(execute_hid(77,&hid)==ESP_OK && fake.notify_calls==before_full_mouse+2);
+    assert(fake.written_len==5 && fake.written[0]==SOLAR_OS_HID_MOUSE_LEFT &&
+        fake.written[1]==73 && fake.written[3]==(uint8_t)-13 &&
+        peripheral->mouse_buttons==SOLAR_OS_HID_MOUSE_LEFT);
+    hid=(solar_os_ble_hid_request_t){.op=SOLAR_OS_BLE_HID_OP_MOUSE_REPORT};
+    assert(execute_hid(77,&hid)==ESP_OK && !peripheral->mouse_buttons);
     hid=(solar_os_ble_hid_request_t){.op=SOLAR_OS_BLE_HID_OP_GAMEPAD_AXIS,
         .axis=0,.value=INT16_MAX};
     assert(execute_hid(77,&hid)==ESP_OK);

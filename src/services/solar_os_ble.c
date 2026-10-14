@@ -413,7 +413,7 @@ static esp_err_t ble_hid_request(solar_os_ble_session_t session,
                                  solar_os_ble_hid_request_t *request)
 {
     if (!request || request->op < SOLAR_OS_BLE_HID_OP_START ||
-        request->op > SOLAR_OS_BLE_HID_OP_PAIR ||
+        request->op > SOLAR_OS_BLE_HID_OP_MOUSE_REPORT ||
         !memchr(request->name, 0, sizeof(request->name))) {
         return ESP_ERR_INVALID_ARG;
     }
@@ -538,6 +538,16 @@ esp_err_t solar_os_ble_hid_mouse_button(solar_os_ble_session_t session,
         .op = SOLAR_OS_BLE_HID_OP_MOUSE_BUTTON,
         .button = button,
         .pressed = pressed,
+    };
+    return ble_hid_request(session, &request);
+}
+
+esp_err_t solar_os_ble_hid_mouse_report(solar_os_ble_session_t session,
+    uint8_t buttons, int16_t dx, int16_t dy, int16_t wheel, int16_t pan)
+{
+    solar_os_ble_hid_request_t request = {
+        .op = SOLAR_OS_BLE_HID_OP_MOUSE_REPORT,
+        .button = buttons, .x = dx, .y = dy, .wheel = wheel, .pan = pan,
     };
     return ble_hid_request(session, &request);
 }

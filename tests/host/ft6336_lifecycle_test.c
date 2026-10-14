@@ -13,6 +13,8 @@ static const solar_os_port_handle_t diag_owner = {.index=0,.token=1};
 static int64_t fake_us;
 static unsigned read6, read13;
 static unsigned i2c_reads, tasks, stops, releases, pointer_writes;
+static bool frame_capture_enabled;
+static unsigned frame_writes;
 static solar_os_input_pointer_event_t last_pointer;
 static uint8_t report[13];
 static char sequence[128];
@@ -71,6 +73,17 @@ esp_err_t solar_os_input_source_set_ready(solar_os_input_source_t s,bool ready)
 { assert(s==1);input_ready=ready;record(ready?'I':'i');return ESP_OK; }
 esp_err_t solar_os_input_pointer_source_quiesce(solar_os_input_source_t s)
 { assert(s==1 && !input_ready); releases++;return fail_quiesce?ESP_FAIL:ESP_OK; }
+esp_err_t solar_os_input_pointer_source_clear_legacy(solar_os_input_source_t s)
+{ assert(s==1 && input_ready); releases++; return fail_quiesce?ESP_FAIL:ESP_OK; }
+esp_err_t solar_os_input_touch_capture(solar_os_input_source_t s,const char *target,
+    solar_os_input_touch_ticket_t *ticket)
+{ assert(s==1 && !strcmp(target,"display0") && ticket);
+  if (!frame_capture_enabled) return ESP_ERR_NOT_FOUND;
+  assert(input_ready); ticket->next_sequence=frame_writes+1; return ESP_OK; }
+esp_err_t solar_os_input_write_touch_frame(const solar_os_input_touch_ticket_t *ticket,
+    uint64_t sequence,uint64_t timestamp_us,const ft6336_frame_t *raw)
+{ assert(frame_capture_enabled && input_ready && ticket && sequence==ticket->next_sequence);
+  (void)timestamp_us; assert(raw && raw->reported_count==2); frame_writes++; return ESP_OK; }
 esp_err_t solar_os_input_write_pointer(solar_os_input_source_t s,const solar_os_input_pointer_event_t *e)
 { assert(s==1 && input_ready && !strcmp(e->target,"display0"));pointer_writes++;last_pointer=*e;return fail_pointer?ESP_ERR_NO_MEM:ESP_OK; }
 esp_err_t solar_os_bus_i2c_read_reg(const char *bus,uint8_t addr,uint8_t reg,uint8_t *out,size_t n)
@@ -152,6 +165,19 @@ int main(void)
     report[0]=0;fail_pointer=true;poll_device(&touch);
     assert(touch.pressed && last_pointer.action==SOLAR_OS_INPUT_POINTER_RELEASE);
     fail_pointer=false;poll_device(&touch);assert(!touch.pressed);
+    frame_capture_enabled=true;
+    memcpy(report,(uint8_t[]){2,0x80,50,0x10,60,5,6,0x81,70,0x20,80,11,12},13);
+    ft6336_frame_t decoded_frame={0};
+    assert(ft6336_read_frame(&decoded_frame)==ESP_OK && decoded_frame.reported_count==2);
+    writes_before=pointer_writes;
+    unsigned frames_before=frame_writes;
+    poll_device(&touch);
+    assert(input_ready && touch.frame_mode && frame_writes==frames_before+1 &&
+           pointer_writes==writes_before);
+    report[0]=0;
+    frame_capture_enabled=false;
+    poll_device(&touch);
+    assert(input_ready && !touch.frame_mode);
     assert(solar_os_ft6336_detach("touch0")==ESP_OK);
     solar_os_ft6336_device_t legacy={0};
     assert(parse_bindings(bindings,6,&legacy)==ESP_OK && legacy.requested && !legacy.managed_power);

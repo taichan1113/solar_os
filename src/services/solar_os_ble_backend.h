@@ -54,6 +54,7 @@ typedef enum {
     SOLAR_OS_BLE_HID_OP_GAMEPAD_HAT,
     SOLAR_OS_BLE_HID_OP_GAMEPAD_SEND,
     SOLAR_OS_BLE_HID_OP_PAIR,
+    SOLAR_OS_BLE_HID_OP_MOUSE_REPORT,
 } solar_os_ble_hid_operation_t;
 
 typedef struct {
@@ -63,6 +64,8 @@ typedef struct {
     size_t key_count;
     int32_t x;
     int32_t y;
+    int16_t wheel;
+    int16_t pan;
     int16_t value;
     int axis;
     uint8_t button;

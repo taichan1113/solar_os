@@ -1884,6 +1884,25 @@ can take longer. Buffers remain bounded, and `SEEKING` indicates preparation;
 stopping or closing playback cancels the work. Positions beyond the end are
 clamped to the last video frame.
 
+## typemouse
+
+Touch keyboard and BLE mouse for PaperMono. Opens the 42-key Type layout and
+advertises as `SolarOS TypeMouse` to a PC. Touch `Mouse` to switch to the
+touchpad; touch `Type` to return. In Mouse mode, one-finger movement moves the
+pointer, a short tap clicks, a double tap with the second touch held and moved
+drags, and two fingers scroll. The app
+releases HID keys and buttons when switching modes, suspending, or closing.
+
+Usage:
+
+```text
+typemouse
+```
+
+Controls: `M` changes modes, `P` starts explicit pairing mode, and `Esc` or
+the on-screen Exit button closes the app. Pairing mode replaces the next
+connecting peer's stored bond; use it only when pairing a new PC.
+
 ## sketch
 
 Pointer-driven graphical paint application. Its layout follows classic desktop

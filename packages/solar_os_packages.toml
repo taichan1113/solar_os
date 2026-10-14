@@ -462,6 +462,11 @@ label = "Sketch"
 category = "Media"
 members = ["app_sketch"]
 
+[groups.type_mouse]
+label = "Type/Mouse"
+category = "System"
+members = ["app_type_mouse"]
+
 [groups.invaders]
 label = "Invaders"
 category = "Games"
@@ -2398,6 +2403,15 @@ sources = [
   "apps/solar_os_sketch_canvas.c",
 ]
 capabilities = ["gfx"]
+
+[packages.app_type_mouse]
+label = "app.type-mouse"
+depends = ["service_ble", "driver_ft6336"]
+sources = [
+  "apps/solar_os_type_mouse.c",
+  "apps/solar_os_type_mouse_engine.cpp",
+]
+capabilities = ["gfx", "ble"]
 
 [packages.app_invaders]
 label = "app.invaders"

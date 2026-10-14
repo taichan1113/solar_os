@@ -91,6 +91,10 @@ esp_err_t solar_os_ble_hid_mouse_move(solar_os_ble_session_t session,
 esp_err_t solar_os_ble_hid_mouse_button(solar_os_ble_session_t session,
                                         uint8_t button,
                                         bool pressed);
+/* Submit one complete mouse report. Buttons are the desired state; motion and
+ * both wheel axes are signed relative deltas. */
+esp_err_t solar_os_ble_hid_mouse_report(solar_os_ble_session_t session,
+    uint8_t buttons, int16_t dx, int16_t dy, int16_t wheel, int16_t pan);
 esp_err_t solar_os_ble_hid_gamepad_axis(solar_os_ble_session_t session,
                                         int axis,
                                         int16_t value);

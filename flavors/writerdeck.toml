@@ -61,6 +61,7 @@ writer = true
 notes = true
 image_viewer = true
 sketch = true
+type_mouse = true
 python = true
 playground = true
 battery_adc = true

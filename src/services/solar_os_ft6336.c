@@ -33,6 +33,7 @@ typedef struct {
     bool managed_power;
     bool off_complete;
     bool pressed;
+    bool frame_mode;
     volatile bool stop_requested;
     volatile bool worker_done;
     char name[SOLAR_OS_EXPANSION_DEVICE_NAME_MAX];
@@ -181,6 +182,7 @@ static esp_err_t stop_device(void)
     raw_finish(TOUCHRAW_END_SOURCE);
     esp_err_t err = solar_os_input_pointer_source_quiesce(touch.input_source);
     touch.pressed = false;
+    touch.frame_mode = false;
     ft6336_deinit();
     if (touch.managed_power) {
         const esp_err_t irq = ft6336_disable_irq(touch.irq_pin);
@@ -321,6 +323,28 @@ static void poll_device(solar_os_ft6336_device_t *device)
         return;
     }
     if (raw_poll(device)) return;
+
+    solar_os_input_touch_ticket_t ticket;
+    if (solar_os_input_touch_capture(device->input_source,
+            SOLAR_OS_DISPLAY_PRIMARY_TARGET, &ticket) == ESP_OK) {
+        if (!device->frame_mode) {
+            /* A former legacy press must be released before complete frames
+             * become the sole input path for this display. */
+            if (solar_os_input_pointer_source_clear_legacy(device->input_source)
+                != ESP_OK) return;
+            device->pressed = false;
+            device->frame_mode = true;
+        }
+        ft6336_frame_t frame = {0};
+        const esp_err_t read_err = ft6336_read_frame(&frame);
+        (void)solar_os_input_write_touch_frame(&ticket, ticket.next_sequence,
+            (uint64_t)esp_timer_get_time(), read_err == ESP_OK ? &frame : NULL);
+        return;
+    }
+    if (device->frame_mode) {
+        device->frame_mode = false;
+        device->pressed = false;
+    }
 
     ft6336_sample_t sample;
 #if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL

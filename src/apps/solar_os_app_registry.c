@@ -152,6 +152,9 @@
 #if SOLAR_OS_PACKAGE_APP_SKETCH
 #include "solar_os_sketch.h"
 #endif
+#if SOLAR_OS_PACKAGE_APP_TYPE_MOUSE
+#include "solar_os_type_mouse.h"
+#endif
 
 #define APP_ENTRY(app_name, app_summary, app_ptr, app_caps, app_usage, app_min, app_max) \
     {.name = app_name, .summary = app_summary, .app = app_ptr, .capabilities = app_caps, \
@@ -303,6 +306,11 @@ static const solar_os_app_registry_entry_t registered_apps[] = {
 #endif
 #if SOLAR_OS_PACKAGE_APP_SKETCH
     APP_FILE_ENTRY("sketch", "pointer-driven paint application", &solar_os_sketch_app, SOLAR_OS_APP_CAP_GRAPHICS | SOLAR_OS_APP_CAP_DISPLAY, "sketch [file.png]", 1, 2, ".png"),
+#endif
+#if SOLAR_OS_PACKAGE_APP_TYPE_MOUSE
+    APP_ENTRY("typemouse", "touch keyboard and BLE mouse", &solar_os_type_mouse_app,
+        SOLAR_OS_APP_CAP_GRAPHICS | SOLAR_OS_APP_CAP_DISPLAY,
+        "typemouse", 1, 1),
 #endif
     {0},
 };
