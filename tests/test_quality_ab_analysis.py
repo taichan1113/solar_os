@@ -19,8 +19,8 @@ def batch(kind="A", waveform="baseline"):
     if kind=="B": frame("initial-otp",0,1,100)
     else: frame("initial-fast",1,1,100)
     for step in range(1, 11 if kind=="B" else 10):
-        lines.append(f"AB invariant step={step} fixed_black_00=1 fixed_white_11=1 fixed_bits=5000 outside_changes=0 changed_pixels=256")
-        frame("marker",step if kind=="B" else step+1,int(kind=="B" and step==1),256)
+        lines.append(f"AB invariant step={step} fixed_black_00=1 fixed_white_11=1 fixed_bits=5000 outside_changes=0 changed_pixels=512")
+        frame("marker",step if kind=="B" else step+1,int(kind=="B" and step==1),512)
     lines.append("AB finished fast_count=10: inspect before cleanup")
     lines.append("AB end err=0 fast_count=10 healthy=1")
     frame("exit-cleanup",0,0,0)
@@ -46,7 +46,7 @@ class ABAnalysisTests(unittest.TestCase):
     def test_invariant_error_not_pass(self):
         for old,new in (("fixed_black_00=1","fixed_black_00=0"),
                         ("outside_changes=0","outside_changes=1"),
-                        ("changed_pixels=256","changed_pixels=255")):
+                        ("changed_pixels=512","changed_pixels=511")):
             self.assertFalse(analyze(batch().replace(old,new))["valid"])
 
     def test_uncompleted_fault_or_wrong_waveform_not_pass(self):

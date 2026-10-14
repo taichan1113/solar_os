@@ -97,7 +97,7 @@ static esp_err_t solar_os_display_submit(u8g2_t *g, int mode, uint64_t *id)
         return last_error;
     }
     assert(!memcmp(shadow, immutable, sizeof(shadow)) && fixture.snapshot==NULL);
-    if (fixture.timing.partial) {
+    if (fixture.timing.activations==1 && fixture.timing.writes==2) {
         ++fast_updates;
         const captured_command_t *now=find_command(0x24,0), *old=find_command(0x26,0);
         assert(now->length==48000 && old->length==48000);
@@ -106,15 +106,22 @@ static esp_err_t solar_os_display_submit(u8g2_t *g, int mode, uint64_t *id)
             const unsigned pos=y*100+x/8, bit=7-x%8;
             const unsigned a=(old->data[pos]>>bit)&1, b=(now->data[pos]>>bit)&1;
             /* Independent scalar address mapping, not the driver's transpose. */
-            assert(a==native_bit(previous,x,y) && b==native_bit(immutable,x,y));
-            if (a!=b) { changes++; if (fast_updates>1 || submitted>2) assert(x>=400 && x<416 && y>=160 && y<176); }
+            const unsigned expected=fixture.timing.partial ? native_bit(immutable,x,y) :
+                                                       !native_bit(immutable,x,y);
+            assert(b==expected);
+            assert(a==(fixture.timing.partial ? native_bit(previous,x,y) : b));
+            if (!fixture.timing.partial) continue; /* absolute fast recovery */
+            const bool in_marker = ((x>=400 && x<416) || (x>=512 && x<528)) && y>=160 && y<176;
+            if (a!=b) { changes++; if (fast_updates>1 || submitted>2) assert(in_marker); }
             if (fast_updates>1 || submitted>2) {
                 if (!native_bit(initial,x,y)) assert(a==0 && b==0); /* all fixed black: class 00 */
-                else if (!(x>=400 && x<416 && y>=160 && y<176)) assert(a==1 && b==1);
+                else if (!in_marker) assert(a==1 && b==1);
             }
         }
-        if (fast_updates>1 || submitted>2) assert(changes==256);
-        else assert(changes>256); /* A's initial blackening */
+        if (fixture.timing.partial) {
+            if (fast_updates>1 || submitted>2) assert(changes==512);
+            else assert(changes>512); /* A's initial blackening */
+        } else assert(changes==0);
     } else {
         ++otp_updates;
         assert(fixture.timing.activations==2); /* actual OTP full, not RAM-only setup */
@@ -160,6 +167,9 @@ int main(void)
         assert(strstr(output,"AB finished fast_count=10") && strstr(output,"fixed_black_00=1"));
         assert(!strstr(output,"outside_changes=1"));
     }
+    setup(); keys="ggggggggggq"; run("ab-a","fast6");
+    assert(fast_updates==10 && otp_updates==2 && fixture.fastest_recover_interval==0);
+    assert(strstr(output,"AB finished fast_count=10"));
     setup(); quality_ab_image(&fixture.u8g2); memcpy(initial,frame,sizeof(frame));
     const uint32_t hash=quality_ab_image_hash(frame,sizeof(frame));
     u8g2_SetClipWindow(&fixture.u8g2, 0, 0, 20, 20);

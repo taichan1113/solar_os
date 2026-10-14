@@ -787,6 +787,42 @@ static void test_waveform_trials(void)
         }
     }
 }
+static void test_fastest_recovery(void)
+{
+    epd_ssd1677_t d=make_display(); d.papermono_otp=true;
+    d.band_buffer=band; d.fastest_tiles=true; d.fastest_spi_hz=40000000;
+    assert(epd_ssd1677_set_controller_mode(&d,"refresh=fastest")==ESP_OK);
+    assert(ssd1677_refresh(&d)==ESP_OK); /* OTP baseline */
+    assert(epd_ssd1677_set_controller_mode(&d,"fastest-recover=6")==ESP_OK);
+    for (unsigned n=1; n<=6; ++n) {
+        frame[n]^=1; command_count=0;
+        assert(ssd1677_refresh(&d)==ESP_OK);
+        const captured_command_t *now=find_command(0x24,0);
+        const captured_command_t *old=find_command(0x26,0);
+        assert(now->length==48000 && old->length==48000);
+        if (n<6) {
+            expect_data(0x32,ssd1677_reference_lut,105);
+            assert(d.timing.partial && d.fastest_since_recovery==n);
+            assert(memcmp(now->data,old->data,48000)!=0);
+        } else {
+            expect_data(0x32,ssd1677_official_fast_lut,105);
+            assert(!d.timing.partial && d.fastest_since_recovery==0);
+            assert(memcmp(now->data,old->data,48000)==0);
+            /* M5GFX's absolute Mode-2 path transmits both planes inverted.
+             * Unchanged white must therefore be zero on the wire. */
+            assert(now->data[1]==0 && now->data[100]==0);
+            assert(old->data[1]==0 && old->data[100]==0);
+        }
+        assert(d.shadow_valid && !memcmp(shadow,frame,sizeof(frame)));
+    }
+    frame[7]^=1; command_count=0;
+    assert(ssd1677_refresh(&d)==ESP_OK);
+    expect_data(0x32,ssd1677_reference_lut,105);
+    assert(d.fastest_since_recovery==1);
+    assert(epd_ssd1677_set_controller_mode(&d,"fastest-recover=off")==ESP_OK);
+    assert(d.fastest_recover_interval==0 && d.fastest_since_recovery==0);
+    assert(epd_ssd1677_set_controller_mode(&d,"fastest-recover=7")==ESP_ERR_INVALID_ARG);
+}
 #else
 static void test_waveform_trials(void)
 {
@@ -795,6 +831,11 @@ static void test_waveform_trials(void)
     assert(epd_ssd1677_set_controller_mode(&d,"fastest-waveform=dose")==ESP_ERR_INVALID_ARG);
     assert(epd_ssd1677_set_controller_mode(&d,"fastest-waveform=hold")==ESP_ERR_INVALID_ARG);
     assert(!strstr(epd_ssd1677_controller_mode_values(&d),"fastest-waveform"));
+}
+static void test_fastest_recovery(void)
+{
+    epd_ssd1677_t d=make_display(); d.papermono_otp=true;
+    assert(epd_ssd1677_set_controller_mode(&d,"fastest-recover=6")==ESP_ERR_INVALID_ARG);
 }
 #endif
 
@@ -816,6 +857,7 @@ int main(void)
     test_fastest_snapshot_ownership();
     test_typing_mode();
     test_waveform_trials();
+    test_fastest_recovery();
     puts("epd_ssd1677_test: PASS");
     return 0;
 }

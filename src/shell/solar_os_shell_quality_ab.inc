@@ -26,6 +26,7 @@ static void quality_ab_image(u8g2_t *g)
     u8g2_SetDrawColor(g, 0);
     u8g2_DrawBox(g, marker.x - 80, marker.y, 48, 48); /* near black */
     u8g2_DrawBox(g, 32, marker.y, 48, 48);            /* far black */
+    u8g2_DrawBox(g, marker.x + 48, marker.y, 24, 24); /* fixed black inside dirty bounds */
     u8g2_SetFont(g, u8g2_font_solar_os_default_r_20_tf);
     u8g2_SetFontMode(g, 1);
     u8g2_SetFontPosBaseline(g);
@@ -41,6 +42,7 @@ static void quality_ab_draw_marker(u8g2_t *g, unsigned ordinal)
     const quality_ab_roi_t r = quality_ab_marker(g);
     u8g2_SetDrawColor(g, ordinal % 2 ? 0 : 1);
     u8g2_DrawBox(g, r.x, r.y, r.w, r.h);
+    u8g2_DrawBox(g, r.x + 112, r.y, r.w, r.h);
 }
 
 static unsigned quality_ab_changes(const uint8_t *old, const uint8_t *now, size_t n)
@@ -117,10 +119,11 @@ static void display_cmd_quality_ab(solar_os_shell_io_t *io, int argc, char **arg
 {
     static const char owner[] = "shell:quality-ab";
     if (argc != 5 || (strcmp(argv[3], "ab-a") && strcmp(argv[3], "ab-b")) ||
-        (strcmp(argv[4], "baseline") && strcmp(argv[4], "dose")) ||
+        (strcmp(argv[4], "baseline") && strcmp(argv[4], "dose") &&
+         strcmp(argv[4], "fast6") && strcmp(argv[4], "fast10")) ||
         solar_os_shell_io_kind(io) != SOLAR_OS_SHELL_IO_KIND_PORT) {
         solar_os_shell_io_writeln(io,
-            "usage (serial shell): display test display0 ab-a|ab-b baseline|dose");
+            "usage (serial shell): display test display0 ab-a|ab-b baseline|dose|fast6|fast10");
         return;
     }
     solar_os_display_target_t target;
@@ -154,6 +157,7 @@ static void display_cmd_quality_ab(solar_os_shell_io_t *io, int argc, char **arg
     const bool original_timing = d->timing_enabled;
     const epd_ssd1677_refresh_mode_t original_refresh = d->refresh_mode;
     const epd_ssd1677_waveform_trial_t original_waveform = d->waveform_trial;
+    const uint8_t original_recover_interval = d->fastest_recover_interval;
     const bool retention = !strcmp(argv[3], "ab-b");
     unsigned fast_count = 0;
     if (!masks) { err = ESP_ERR_NO_MEM; goto done; }
@@ -170,8 +174,10 @@ static void display_cmd_quality_ab(solar_os_shell_io_t *io, int argc, char **arg
         "font=default-r-20 max_fast=10 spacing_ms=500\n", retention ? "B" : "A", argv[4]);
     solar_os_shell_io_printf(io,
         "AB ROI marker=%u,%u,%u,%u near_black=%u,%u,48,48 far_black=32,%u,48,48 "
+        "inside_black=%u,%u,24,24 second_marker=%u,%u,16,16 "
         "white=32,216,48,24 text=32,32,600,64 thin=32,240,736,1 thick=32,264,736,3\n",
-        marker.x, marker.y, marker.w, marker.h, marker.x - 80, marker.y, marker.y);
+        marker.x, marker.y, marker.w, marker.h, marker.x - 80, marker.y, marker.y,
+        marker.x + 48, marker.y, marker.x + 112, marker.y);
     quality_ab_white(target.u8g2);
     err = solar_os_display_set_controller_mode(target.name, "refresh=cleanup");
     if (err == ESP_OK) err = quality_ab_present(io, &target, d, "white", 0, false);
@@ -188,8 +194,15 @@ static void display_cmd_quality_ab(solar_os_shell_io_t *io, int argc, char **arg
         if (!quality_ab_gate(io, "initial-otp")) goto done;
     }
     char mode[40];
-    snprintf(mode, sizeof(mode), "fastest-waveform=%s", argv[4]);
+    snprintf(mode, sizeof(mode), "fastest-waveform=%s",
+             !strcmp(argv[4], "dose") ? "dose" : "baseline");
     err = solar_os_display_set_controller_mode(target.name, mode);
+    if (err == ESP_OK) {
+        snprintf(mode, sizeof(mode), "fastest-recover=%s",
+                 !strcmp(argv[4], "fast6") ? "6" :
+                 !strcmp(argv[4], "fast10") ? "10" : "off");
+        err = solar_os_display_set_controller_mode(target.name, mode);
+    }
     if (err != ESP_OK) goto done;
     if (!retention) {
         err = quality_ab_present(io, &target, d, "initial-fast", ++fast_count, true);
@@ -210,7 +223,7 @@ static void display_cmd_quality_ab(solar_os_shell_io_t *io, int argc, char **arg
         if (fixed_black[i] & marker_mask[i]) { err = ESP_ERR_INVALID_STATE; goto done; }
         marker_bits += (unsigned)__builtin_popcount((unsigned)marker_mask[i]);
     }
-    if (marker_bits != 256) { err = ESP_ERR_INVALID_STATE; goto done; }
+    if (marker_bits != 512) { err = ESP_ERR_INVALID_STATE; goto done; }
     for (unsigned step = 1; fast_count < 10; ++step) {
         quality_ab_draw_marker(target.u8g2, step);
         unsigned changed = 0, fixed_bits = 0, outside = 0;
@@ -228,7 +241,7 @@ static void display_cmd_quality_ab(solar_os_shell_io_t *io, int argc, char **arg
         solar_os_shell_io_printf(io,
             "AB invariant step=%u fixed_black_00=%u fixed_white_11=%u fixed_bits=%u outside_changes=%u "
             "changed_pixels=%u\n", step, black_ok, white_ok, fixed_bits, outside, changed);
-        if (!black_ok || !white_ok || outside || changed != 256) { err = ESP_ERR_INVALID_STATE; goto done; }
+        if (!black_ok || !white_ok || outside || changed != 512) { err = ESP_ERR_INVALID_STATE; goto done; }
         err = quality_ab_present(io, &target, d, "marker", ++fast_count, true);
         if (err != ESP_OK) { healthy = false; goto done; }
         vTaskDelay(pdMS_TO_TICKS(500));
@@ -249,6 +262,10 @@ done:
         char restore[40];
         const char *names[] = {"baseline", "dose", "hold"};
         snprintf(restore, sizeof(restore), "fastest-waveform=%s", names[original_waveform]);
+        (void)solar_os_display_set_controller_mode(target.name, restore);
+        snprintf(restore, sizeof(restore), "fastest-recover=%s",
+                 original_recover_interval == 6 ? "6" :
+                 original_recover_interval == 10 ? "10" : "off");
         (void)solar_os_display_set_controller_mode(target.name, restore);
         const char *refresh[] = {"refresh=auto", "refresh=partial", "refresh=full", "refresh=fastest", "refresh=typing"};
         (void)solar_os_display_set_controller_mode(target.name, refresh[original_refresh]);

@@ -115,6 +115,8 @@ typedef struct {
     bool reference_awake; /* fastest Mode 2, analog power retained */
     bool fastest_tiles;
     epd_ssd1677_waveform_trial_t waveform_trial; /* volatile; baseline at init */
+    uint8_t fastest_recover_interval; /* trial only; zero keeps legacy fastest */
+    uint8_t fastest_since_recovery;
     int configured_spi_hz, transport_spi_hz, applied_spi_hz, actual_spi_hz;
     int fastest_spi_hz;
     uint32_t typing_frame_ms, typing_cleanup_budget, typing_idle_ms;

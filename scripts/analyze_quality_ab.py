@@ -23,7 +23,7 @@ def analyze(text):
     if len(begins) != 1:
         raise ValueError("exactly one AB begin is required")
     meta = fields(begins[0])
-    if meta.get("batch") not in ("A", "B") or meta.get("waveform") not in ("baseline", "dose"):
+    if meta.get("batch") not in ("A", "B") or meta.get("waveform") not in ("baseline", "dose", "fast6", "fast10"):
         raise ValueError("unknown batch/waveform")
     problems, rows, invariants = [], [], []
     for key, expected in (("width", "800"), ("height", "480"), ("spi_khz", "40000"),
@@ -54,12 +54,15 @@ def analyze(text):
                     if row["total_us"] < 0 or not 0 <= row["busy_us"] <= row["total_us"]:
                         problems.append("invalid duration")
                     if row["phase"] in ("initial-fast", "marker"):
+                        interval = {"fast6": 6, "fast10": 10}.get(meta["waveform"])
+                        expected_waveform = ("official-fast" if interval and row["ordinal"] % interval == 0
+                                             else "baseline" if interval else meta["waveform"])
                         ref = analyze_ref("\n".join(segment))
                         row["ref"] = ref
                         raw = "\n".join(segment)
                         phase_info = re.search(r"REF phases ([^\r\n]*)", raw)
                         labels = fields(phase_info[1]) if phase_info else {}
-                        if (labels.get("waveform") != meta["waveform"] or
+                        if (labels.get("waveform") != expected_waveform or
                             labels.get("spi_khz") != "40000" or labels.get("path") != "tile"):
                             problems.append("cold/warm REF metadata mismatch")
                         bounds = re.search(r"REF err=[^\r\n]*region=(\d+,\d+,\d+,\d+)", raw)
@@ -68,7 +71,7 @@ def analyze(text):
                             ref["incomplete"] or ref["malformed"]):
                             problems.append("missing/invalid physical REF record")
                         for group in ref["driver_groups"]:
-                            if (group["waveform"] != meta["waveform"] or
+                            if (group["waveform"] != expected_waveform or
                                 group["spi_khz"] != 40000 or group["path"] != "tile"):
                                 problems.append("waveform/clock/path mismatch")
                             row["region"] = group["region"]
@@ -87,7 +90,7 @@ def analyze(text):
                         "fixed_bits", "outside_changes", "changed_pixels")}
                     invariants.append(v)
                     if (v["fixed_black_00"] != 1 or v["fixed_white_11"] != 1 or
-                        v["fixed_bits"] <= 0 or v["outside_changes"] or v["changed_pixels"] != 256):
+                        v["fixed_bits"] <= 0 or v["outside_changes"] or v["changed_pixels"] != 512):
                         problems.append("fixed ROI / changed pixels invariant failed")
                 except (KeyError, ValueError) as error:
                     problems.append(str(error))
@@ -115,7 +118,7 @@ def analyze(text):
         problems.append("marker / invariant count mismatch")
     if [v["step"] for v in invariants] != list(range(1, expected + 1)):
         problems.append("invalid marker step sequence")
-    if any(r["changed_pixels"] != 256 for r in markers):
+    if any(r["changed_pixels"] != 512 for r in markers):
         problems.append("marker changed-pixel mismatch")
     if len({r.get("region") for r in warm}) != 1 or not warm:
         problems.append("unlike/missing warm dirty bounds")
@@ -130,6 +133,8 @@ def analyze(text):
                   optical_quantitative="not measured by serial logs", p95="exploratory, n<20")
     result["warm_stats"] = {k: stats([r[k] for r in warm]) for k in
                             ("total_us", "busy_us", "convert_us", "spi_us")}
+    result["recovery"] = [r for r in fast if any(g.get("waveform") == "official-fast"
+                                                    for g in r.get("ref", {}).get("driver_groups", []))]
     if roi is None:
         result["valid"] = False
         result["problems"].append("missing ROI metadata")

@@ -543,6 +543,7 @@ static esp_err_t ssd1677_papermono_refresh(epd_ssd1677_t *display)
         display->shadow_valid = true;
         display->papermono_baseline_valid = true;
         display->partial_refresh_active = partial;
+        display->fastest_since_recovery = 0;
     } else {
         display->faulted = true;
         display->shadow_valid = false;
@@ -1050,7 +1051,7 @@ const char *epd_ssd1677_controller_mode_values(const epd_ssd1677_t *display)
 {
     if (display != NULL && display->papermono_otp)
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
-        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> fastest-waveform=<baseline,dose,hold> (EXPERIMENTAL; DC/lifetime unverified) spi-mhz=<10,20,40> fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
+        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> fastest-waveform=<baseline,dose,hold> fastest-recover=<off,6,10> (EXPERIMENTAL) spi-mhz=<10,20,40> fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
 #else
         return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> spi-mhz=<10,20,40> fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
 #endif
@@ -1063,6 +1064,14 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
     if (display == NULL || mode == NULL) return ESP_ERR_INVALID_ARG;
     if (display->papermono_otp) {
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+        if (strcmp(mode, "fastest-recover=off") == 0 ||
+            strcmp(mode, "fastest-recover=6") == 0 ||
+            strcmp(mode, "fastest-recover=10") == 0) {
+            display->fastest_recover_interval = strcmp(mode, "fastest-recover=off") == 0 ? 0 :
+                                                strcmp(mode, "fastest-recover=6") == 0 ? 6 : 10;
+            display->fastest_since_recovery = 0;
+            return ESP_OK;
+        }
         if (strncmp(mode, "fastest-waveform=", 17) == 0) {
             const char *value = mode + 17;
             if (strcmp(value, "baseline") == 0)
@@ -1132,6 +1141,7 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
         (display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST || display->refresh_mode == EPD_SSD1677_REFRESH_TYPING)) {
         display->papermono_baseline_valid = false;
         display->reference_awake = false;
+        display->fastest_since_recovery = 0;
     }
     return ESP_OK;
 }

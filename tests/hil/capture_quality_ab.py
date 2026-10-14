@@ -16,7 +16,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--port", required=True)
     p.add_argument("--batch", choices=("A", "B"), required=True)
-    p.add_argument("--waveform", choices=("baseline", "dose"), required=True)
+    p.add_argument("--waveform", choices=("baseline", "dose", "fast6", "fast10"), required=True)
     p.add_argument("--log", type=Path, required=True)
     p.add_argument("--control", type=Path, required=True)
     p.add_argument("--status", type=Path, required=True)

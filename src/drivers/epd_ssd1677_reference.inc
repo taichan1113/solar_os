@@ -22,6 +22,20 @@ static const uint8_t ssd1677_reference_lut[110] = {
 
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
 #include "epd_ssd1677_waveform_trial.inc"
+/* M5GFX Panel_SSD1677.inl epd_fast, MIT (see epd_ssd1677_reference.LICENSE).
+ * Absolute Mode-2 waveform: both RAM planes hold the destination mono image. */
+static const uint8_t ssd1677_official_fast_lut[110] = {
+    0x55,0x55,0x55,0x55,0x55,0x5a,0xaa,0xaa,0,0,
+    0xaa,0x95,0x55,0x55,0x55,0x5a,0x82,0xac,0,0,
+    0xaa,0xa5,0x55,0x55,0x55,0x5a,0xac,0,0,0,
+    0xaa,0xaa,0xaa,0xaa,0x55,0x55,0x55,0x50,0,0,
+    0,0,0,0,0,0,0,0,0,0,
+    1,1,1,1,0, 1,1,1,1,0, 1,1,1,1,0, 1,1,1,1,0,
+    2,2,2,2,0, 2,2,2,2,0, 2,2,2,2,0, 2,2,2,2,0,
+    0,0,0,0,0, 0,0,0,0,0,
+    0x8f,0x8f,0x8f,0x8f,0x8f,
+    0x17,0x41,0xa8,0x32,0x30,
+};
 #endif
 
 static const uint8_t *ssd1677_selected_lut(const epd_ssd1677_t *d, const char **name)
@@ -84,7 +98,7 @@ static bool ssd1677_find_change_bytes(const epd_ssd1677_t *d, ssd1677_window_t *
 }
 
 static esp_err_t ssd1677_write_bands(epd_ssd1677_t *d, uint8_t command,
-                                   const uint8_t *source, unsigned phase)
+                                   const uint8_t *source, unsigned phase, bool invert)
 {
     const ssd1677_window_t full = {0, SSD1677_PANEL_ROW_BYTES-1, 0, SSD1677_HEIGHT-1};
     ESP_RETURN_ON_ERROR(ssd1677_set_partial_window(d, &full), TAG, "band RAM address failed");
@@ -99,6 +113,9 @@ static esp_err_t ssd1677_write_bands(epd_ssd1677_t *d, uint8_t command,
                                       d->band_buffer+row*SSD1677_PANEL_ROW_BYTES+byte,
                                       SSD1677_PANEL_ROW_BYTES);
         }
+        if (invert)
+            for (unsigned byte = 0; byte < SSD1677_BAND_BYTES; ++byte)
+                d->band_buffer[byte] = (uint8_t)~d->band_buffer[byte];
         const int64_t convert_end = esp_timer_get_time();
         if (y == 0) d->timing.convert_start_us[phase] = convert_start;
         d->timing.convert_end_us[phase] = convert_end;
@@ -126,6 +143,18 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     const bool cold = !d->reference_awake;
     const char *waveform_name;
     const uint8_t *lut = ssd1677_selected_lut(d, &waveform_name);
+#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+    const bool recover = d->refresh_mode == EPD_SSD1677_REFRESH_FASTEST &&
+        d->fastest_recover_interval != 0 &&
+        d->fastest_since_recovery >= d->fastest_recover_interval - 1U;
+    if (recover) {
+        lut = ssd1677_official_fast_lut;
+        waveform_name = "official-fast";
+        d->timing.partial = false;
+    }
+#else
+    const bool recover = false;
+#endif
     esp_err_t err = ESP_OK;
     if (cold) {
         /* Reset electronic state, not the optical completed-shadow baseline. */
@@ -136,9 +165,9 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     for (unsigned i=0; i<2 && err==ESP_OK; ++i) {
         d->timing.writes++;
         d->timing.write_start_us[i] = esp_timer_get_time();
-        const uint8_t *source = i ? d->shadow : ssd1677_frame(d);
-        err = d->fastest_tiles ? ssd1677_write_bands(d, i ? 0x26 : 0x24, source, i) :
-                                ssd1677_write_plane(d, i ? 0x26 : 0x24, source, &full, false);
+        const uint8_t *source = i && !recover ? d->shadow : ssd1677_frame(d);
+        err = d->fastest_tiles ? ssd1677_write_bands(d, i ? 0x26 : 0x24, source, i, recover) :
+                                ssd1677_write_plane(d, i ? 0x26 : 0x24, source, &full, recover);
         d->timing.write_end_us[i] = esp_timer_get_time();
     }
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x32,lut,105);
@@ -173,6 +202,8 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         d->reference_awake=true;
         d->controller_ready=true;
         d->partial_refresh_active=true;
+        d->fastest_since_recovery = recover ? 0 :
+            (d->fastest_since_recovery < UINT8_MAX ? d->fastest_since_recovery + 1U : UINT8_MAX);
     } else {
         d->reference_awake=false;
         d->controller_ready=false;
