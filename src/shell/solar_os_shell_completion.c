@@ -25,6 +25,52 @@ bool solar_os_shell_completion_needs_trailing_space(const char *match)
     return match[strlen(match) - 1U] != '=';
 }
 
+void solar_os_shell_completion_emit_mode_values(
+    const char *values,
+    solar_os_shell_completion_emitter_t emit,
+    void *context)
+{
+    if (values == NULL || emit == NULL) return;
+
+    for (const char *cursor = values; *cursor != '\0';) {
+        while (isspace((unsigned char)*cursor)) cursor++;
+        if (*cursor == '\0') break;
+        const char *end = cursor;
+        while (*end != '\0' && !isspace((unsigned char)*end)) end++;
+
+        const char *equals = memchr(cursor, '=', (size_t)(end - cursor));
+        if (equals != NULL && equals != cursor) {
+            const char *options = equals + 1;
+            const size_t key_len = (size_t)(options - cursor);
+            if (options < end && *options == '<' && end[-1] == '>' &&
+                memchr(options + 1, ',', (size_t)(end - options - 2)) != NULL) {
+                const char *item = options + 1;
+                for (const char *part = item; part < end; part++) {
+                    if (*part != ',' && *part != '>') continue;
+                    const size_t item_len = (size_t)(part - item);
+                    char candidate[192];
+                    if (item_len != 0 && key_len + item_len < sizeof(candidate)) {
+                        memcpy(candidate, cursor, key_len);
+                        memcpy(candidate + key_len, item, item_len);
+                        candidate[key_len + item_len] = '\0';
+                        emit(candidate, context);
+                    }
+                    item = part + 1;
+                }
+            } else {
+                const size_t len = (size_t)(end - cursor);
+                char candidate[192];
+                if (len < sizeof(candidate)) {
+                    memcpy(candidate, cursor, len);
+                    candidate[len] = '\0';
+                    emit(candidate, context);
+                }
+            }
+        }
+        cursor = end;
+    }
+}
+
 bool solar_os_shell_completion_parse(const char *input,
                                      size_t input_len,
                                      char *tokens,

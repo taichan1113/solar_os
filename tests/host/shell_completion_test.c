@@ -48,8 +48,46 @@ static void assert_token_round_trip(const char *token, const char *expected_enco
     assert(strcmp(argv[1], token) == 0);
 }
 
+typedef struct {
+    char candidates[24][64];
+    size_t count;
+} mode_candidates_t;
+
+static void capture_mode_candidate(const char *candidate, void *context)
+{
+    mode_candidates_t *matches = context;
+    assert(matches->count < 24 && strlen(candidate) < sizeof(matches->candidates[0]));
+    strcpy(matches->candidates[matches->count++], candidate);
+}
+
+static void test_display_mode_candidates(void)
+{
+    mode_candidates_t matches = {0};
+    solar_os_shell_completion_emit_mode_values(
+        "refresh=<auto,partial,full,cleanup,fastest,typing,hybrid> "
+        "timing=<on,off> hybrid-idle-ms=<500..30000> "
+        "fastest-path=<scalar,tile> typing-cleanup-updates=<0..4096>",
+        capture_mode_candidate, &matches);
+    static const char * const expected[] = {
+        "refresh=auto", "refresh=partial", "refresh=full", "refresh=cleanup",
+        "refresh=fastest", "refresh=typing", "refresh=hybrid", "timing=on",
+        "timing=off", "hybrid-idle-ms=<500..30000>",
+        "fastest-path=scalar", "fastest-path=tile",
+        "typing-cleanup-updates=<0..4096>",
+    };
+    assert(matches.count == sizeof(expected) / sizeof(expected[0]));
+    for (size_t i = 0; i < matches.count; i++) {
+        assert(strcmp(matches.candidates[i], expected[i]) == 0);
+        assert(strlen(matches.candidates[i]) < 56); /* 140% terminal width */
+    }
+    assert(solar_os_shell_completion_common_prefix(matches.candidates[0],
+                                                   matches.candidates[1]) ==
+           strlen("refresh="));
+}
+
 int main(void)
 {
+    test_display_mode_candidates();
     assert(solar_os_shell_completion_common_prefix("", "radio") == 0U);
     assert(solar_os_shell_completion_common_prefix("radio", "radio") == 5U);
     assert(solar_os_shell_completion_common_prefix("radio", "ramfs") == 2U);

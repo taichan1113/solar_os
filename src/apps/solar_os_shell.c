@@ -6565,79 +6565,38 @@ static void shell_completion_emit_gesture_bind_arguments(
         state);
 }
 
-static bool shell_completion_display_mode_seen(char values[][32],
-                                               size_t count,
-                                               const char *value)
+typedef struct {
+    shell_completion_match_t *state;
+    char emitted[24][64];
+    size_t emitted_count;
+} shell_completion_display_modes_t;
+
+static void shell_completion_emit_display_mode_value(const char *value,
+                                                     void *context)
 {
-    if (value == NULL) {
-        return true;
+    shell_completion_display_modes_t *modes = context;
+    for (size_t i = 0; i < modes->emitted_count; i++) {
+        if (strcmp(modes->emitted[i], value) == 0) return;
     }
-    for (size_t i = 0; i < count; i++) {
-        if (strcmp(values[i], value) == 0) {
-            return true;
-        }
+    if (modes->emitted_count < SHELL_ARRAY_COUNT(modes->emitted) &&
+        strlen(value) < sizeof(modes->emitted[0])) {
+        strlcpy(modes->emitted[modes->emitted_count++], value,
+                sizeof(modes->emitted[0]));
     }
-    return false;
-}
-
-static void shell_completion_emit_display_mode_values(shell_completion_match_t *state,
-                                                      const char *values,
-                                                      char emitted[][32],
-                                                      size_t *emitted_count,
-                                                      size_t emitted_max)
-{
-    if (values == NULL || emitted == NULL || emitted_count == NULL) {
-        return;
-    }
-
-    const char *cursor = values;
-    while (*cursor != '\0') {
-        while (*cursor == ' ') {
-            cursor++;
-        }
-        if (*cursor == '\0') {
-            break;
-        }
-
-        char value[32];
-        size_t len = 0;
-        while (cursor[len] != '\0' && cursor[len] != ' ' && len + 1 < sizeof(value)) {
-            value[len] = cursor[len];
-            len++;
-        }
-        value[len] = '\0';
-        while (cursor[len] != '\0' && cursor[len] != ' ') {
-            len++;
-        }
-        cursor += len;
-
-        if (value[0] == '\0' ||
-            shell_completion_display_mode_seen(emitted, *emitted_count, value)) {
-            continue;
-        }
-        if (*emitted_count < emitted_max) {
-            strlcpy(emitted[*emitted_count], value, sizeof(emitted[*emitted_count]));
-            (*emitted_count)++;
-        }
-        shell_completion_emit(state, value);
-    }
+    shell_completion_emit(modes->state, value);
 }
 
 static void shell_completion_emit_display_modes(shell_completion_match_t *state,
                                                 const char * const *tokens,
                                                 size_t token_count)
 {
-    char emitted[16][32];
-    size_t emitted_count = 0;
+    shell_completion_display_modes_t modes = {.state = state};
 
     if (token_count >= 3 && tokens[2] != NULL) {
         const char *values = NULL;
         if (solar_os_display_get_controller_mode(tokens[2], NULL, &values) == ESP_OK) {
-            shell_completion_emit_display_mode_values(state,
-                                                      values,
-                                                      emitted,
-                                                      &emitted_count,
-                                                      SHELL_ARRAY_COUNT(emitted));
+            solar_os_shell_completion_emit_mode_values(
+                values, shell_completion_emit_display_mode_value, &modes);
         }
         return;
     }
@@ -6648,11 +6607,8 @@ static void shell_completion_emit_display_modes(shell_completion_match_t *state,
         const char *values = NULL;
         if (solar_os_display_get_target(i, &target) &&
             solar_os_display_get_controller_mode(target.name, NULL, &values) == ESP_OK) {
-            shell_completion_emit_display_mode_values(state,
-                                                      values,
-                                                      emitted,
-                                                      &emitted_count,
-                                                      SHELL_ARRAY_COUNT(emitted));
+            solar_os_shell_completion_emit_mode_values(
+                values, shell_completion_emit_display_mode_value, &modes);
         }
     }
 }
