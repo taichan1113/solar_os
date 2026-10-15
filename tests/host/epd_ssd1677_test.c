@@ -588,6 +588,57 @@ static void test_fastest_conversion_equivalence(void)
     assert(ssd1677_refresh(&d)==ESP_OK && d.actual_spi_hz==10000000 && !d.timing.partial);
 }
 
+static void test_fastest_path_spi_equivalence(void)
+{
+    /* Compare the complete warm-update command stream, not just the
+     * transposition helper. Fixed black plus additions and erasures exercise
+     * all four old/new pixel classes while keeping the same optical history. */
+    for (unsigned scenario = 0; scenario < 3; ++scenario) {
+        captured_command_t *scalar = NULL;
+        size_t scalar_count = 0;
+        for (unsigned path = 0; path < 2; ++path) {
+            epd_ssd1677_t d = make_display();
+            d.papermono_otp = true;
+            d.refresh_mode = EPD_SSD1677_REFRESH_FASTEST;
+            d.fastest_tiles = path != 0;
+            d.band_buffer = band;
+            d.fastest_spi_hz = 40000000;
+            d.shadow_valid = true;
+            d.papermono_baseline_valid = true;
+            d.reference_awake = true;
+            d.powered = true;
+            memset(shadow, 0xff, sizeof(shadow));
+            shadow[24] = 0x00; /* unchanged black */
+            memcpy(frame, shadow, sizeof(frame));
+            if (scenario == 0) frame[25] &= 0xfe;
+            if (scenario == 1) { frame[24] = 0x01; frame[800 + 34] &= 0x7f; }
+            if (scenario == 2) {
+                for (size_t i = 0; i < sizeof(frame); i += 97) {
+                    shadow[i] = (uint8_t)(i >> 3);
+                    frame[i] = (uint8_t)~shadow[i];
+                }
+            }
+            assert(ssd1677_refresh(&d) == ESP_OK);
+            assert(d.timing.writes == 2 && d.timing.activations == 1);
+            if (path == 0) {
+                scalar_count = command_count;
+                scalar = malloc(scalar_count * sizeof(*scalar));
+                assert(scalar);
+                memcpy(scalar, commands, scalar_count * sizeof(*scalar));
+            } else {
+                assert(command_count == scalar_count);
+                for (size_t i = 0; i < scalar_count; ++i) {
+                    assert(commands[i].command == scalar[i].command);
+                    assert(commands[i].length == scalar[i].length);
+                    assert(!memcmp(commands[i].data, scalar[i].data,
+                                   commands[i].length));
+                }
+            }
+        }
+        free(scalar);
+    }
+}
+
 static void test_fastest_snapshot_ownership(void)
 {
     epd_ssd1677_t d=make_display(); d.papermono_otp=true; d.band_buffer=band;
@@ -889,6 +940,7 @@ int main(void)
     test_reference_completed_snapshots();
     test_reference_power_off_failure();
     test_fastest_conversion_equivalence();
+    test_fastest_path_spi_equivalence();
     test_fastest_snapshot_ownership();
     test_typing_mode();
     test_hybrid_trial();
