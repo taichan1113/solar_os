@@ -117,10 +117,15 @@ int main(void)
     assert(ctx.requested_app==&solar_os_type_mouse_app &&
            launch_policy==SOLAR_OS_LAUNCH_CHILD_RETURN && launcher.touch_handoff);
     const unsigned before_handoff_releases = releases;
+    const solar_os_event_t cancel={.type=SOLAR_OS_EVENT_TOUCH_CANCEL};
+    assert(launcher_event(&ctx,&cancel) && launcher.touch_canceling);
     launcher_suspend(&ctx);
-    assert(leased && launcher.touch_lease && !launcher.touch_handoff &&
+    assert(leased && launcher.touch_lease && launcher.touch_handoff &&
            releases==before_handoff_releases);
-    launcher.suspended=false;
+    launcher_resume(&ctx); /* touch adapter's balanced CANCEL callback */
+    assert(leased && !launcher.touch_canceling && launcher.touch_handoff);
+    launcher_suspend(&ctx); /* actual child transition must not power-cycle */
+    assert(leased && launcher.touch_handoff && releases==before_handoff_releases);
     const unsigned before_resume_acquires = acquires;
     assert(launcher_touch_acquire()==ESP_OK && leased &&
            acquires==before_resume_acquires && releases==before_handoff_releases);
@@ -132,6 +137,9 @@ int main(void)
     assert(fwrite(launcher_default_config,1,sizeof(launcher_default_config)-1,f)==sizeof(launcher_default_config)-1); fclose(f);
     memset(&state,0,sizeof(state)); ctx=(solar_os_context_t){.gfx=&display};
     assert(launcher_start(&ctx)==ESP_OK && leased && launcher.config.item_count==7);
+    launcher.touch_handoff=true;
+    launcher_suspend(&ctx); assert(leased);
+    launcher_resume(&ctx); assert(leased && !launcher.touch_handoff);
     launcher_suspend(&ctx); assert(!leased);
     launcher_resume(&ctx); assert(leased && !launcher.suspended && launcher.config.item_count==7);
     launcher_stop(&ctx); assert(!leased && writes==0);

@@ -62,6 +62,7 @@ typedef struct {
     bool suspended;
     bool touch_lease;
     bool touch_handoff;
+    bool touch_canceling;
     bool render_pending;
     char config_path[SOLAR_OS_STORAGE_PATH_MAX];
 } launcher_state_t;
@@ -702,16 +703,22 @@ static void launcher_suspend(solar_os_context_t *ctx)
 {
     launcher.suspended = true;
     launcher.pointer_relative = false;
-    /* TypeMouse acquires the same touch device after this callback. Keeping
-     * our lease prevents a rapid power cycle during the handoff. */
-    if (!launcher.touch_handoff) launcher_touch_release();
-    launcher.touch_handoff = false;
+    /* A touch CANCEL invokes a balanced suspend/resume before the real child
+     * transition. Keep power through both callbacks and the TypeMouse start. */
+    if (!launcher.touch_canceling && !launcher.touch_handoff)
+        launcher_touch_release();
     solar_os_context_set_graphics_active(ctx, false);
 }
 
 static void launcher_resume(solar_os_context_t *ctx)
 {
     launcher.suspended = false;
+    if (launcher.touch_canceling) {
+        launcher.touch_canceling = false;
+        solar_os_context_set_graphics_active(ctx, true);
+        return;
+    }
+    launcher.touch_handoff = false;
     const esp_err_t err = launcher_load_config();
     if (err != ESP_OK) {
         launcher_finish_error(ctx, "config reload failed", err);
@@ -815,6 +822,10 @@ static bool launcher_event(solar_os_context_t *ctx,
     }
     if (event->type == SOLAR_OS_EVENT_POINTER) {
         return launcher_pointer_event(ctx, &event->data.pointer);
+    }
+    if (event->type == SOLAR_OS_EVENT_TOUCH_CANCEL) {
+        launcher.touch_canceling = true;
+        return true;
     }
     if (event->type == SOLAR_OS_EVENT_CHAR) {
         return launcher_char_event(ctx, (uint8_t)event->data.ch);
