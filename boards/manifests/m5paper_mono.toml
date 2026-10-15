@@ -46,7 +46,8 @@ SOLAR_OS_BOARD_PIN_KEY = "GPIO_NUM_2"
 SOLAR_OS_BOARD_KEY_ACTIVE_LEVEL = "0"
 SOLAR_OS_BOARD_KEY_PULL_UP = "1"
 SOLAR_OS_BOARD_KEY_PULL_DOWN = "0"
-SOLAR_OS_BOARD_BUTTONS = '{{.pin = GPIO_NUM_3, .name = "KEY2", .key = SOLAR_OS_KEY_ENTER, .active_low = true, .emit_on_release = true, .pull = SOLAR_OS_BUTTON_PULL_UP}}'
+# KEY2 / Button B: release before 1.2 s = Enter; release after = Esc.
+SOLAR_OS_BOARD_BUTTONS = '{{.pin = GPIO_NUM_3, .name = "KEY2", .key = SOLAR_OS_KEY_ENTER, .active_low = true, .emit_on_release = true, .long_press_key = SOLAR_OS_KEY_ESCAPE, .long_press_ms = 1200U, .pull = SOLAR_OS_BUTTON_PULL_UP}}'
 # E-paper updates remain blocking even with OTP fast; keep idle blink disabled.
 SOLAR_OS_BOARD_WRITER_CURSOR_BLINK = "0"
 [runtime]

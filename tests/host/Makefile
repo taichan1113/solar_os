@@ -13,6 +13,11 @@ MANUAL_GENERATED_HEADER := $(MANUAL_GENERATED_DIR)/solar_os_manual_data.h
 TARGETS += type_mouse_engine_test type_mouse_lifecycle_test
 CJSON_DIR ?= $(HOME)/.platformio/packages/framework-espidf/components/json/cJSON
 TARGETS += files_layout_test
+TARGETS += button_long_press_test
+button_long_press_test: button_long_press_test.c $(ROOT)/src/services/solar_os_buttons.c
+	$(CC) $(CFLAGS) -include button_long_press_board.h -Igpio_controller_stubs -I. \
+		-I$(ROOT)/src/services $^ -o $@
+
 files_layout_test: files_layout_test.c $(ROOT)/src/apps/solar_os_files.c
 	# Existing bounded ZIP/delete prompts deliberately truncate long filenames.
 	$(CC) $(CFLAGS) -Wno-format-truncation -D_GNU_SOURCE -include compat.h -ffunction-sections -fdata-sections \

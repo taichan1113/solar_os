@@ -66,7 +66,7 @@ integer GPIO values remain accepted by manifests and the runtime CLI.
 | EPD rails | PYG3 enable, PYG5 reset | `power="ioe0:2"`, `reset="ioe0:4"` |
 | Display | Native controller 800×480, U8g2 R3 portrait base, terminal +270 -> landscape 800×480 | OTP full monochrome only |
 | Touch | FT6336G 0x38, IRQ4, PYG6 reset, PYG13 enable | Existing FT6336 with GPIO-line adapter |
-| Buttons | GPIO2 KEY1 -> system KEY (power / BLE); GPIO3 KEY2 -> Enter on release; active low, pull-up | Existing system KEY and button services |
+| Buttons | GPIO2 KEY1 -> system KEY (power / BLE); GPIO3 KEY2/Button B -> Enter on release before 1.2 s, Esc on release after 1.2 s; active low, pull-up | Existing system KEY and button services |
 | USB | GPIO19/20 USB Serial/JTAG; monitor 115200 | Existing CDC driver |
 | Charger bus mux | PYG11 held low, PWM3 disabled | Internal to power adapter; cannot be driven by clients |
 | microSD | CMD12/CLK13/D0=11/D1=10/D2=9/D3=8, PYG14 enable | Reserved, not enabled |

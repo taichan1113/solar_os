@@ -20,6 +20,7 @@ typedef struct {
     bool last_raw_pressed;
     bool stable_pressed;
     uint32_t raw_changed_ms;
+    uint32_t stable_pressed_ms;
     uint32_t raw_transitions;
     uint32_t stable_transitions;
     uint32_t suppressed_releases;
@@ -94,11 +95,13 @@ esp_err_t solar_os_buttons_init(void)
         }
 
         const bool pressed = button_raw_pressed(def);
+        const uint32_t now_ms = buttons_millis();
         button_states[i] = (button_state_t) {
             .initialized = true,
             .last_raw_pressed = pressed,
             .stable_pressed = pressed,
-            .raw_changed_ms = buttons_millis(),
+            .raw_changed_ms = now_ms,
+            .stable_pressed_ms = now_ms,
         };
     }
 
@@ -138,6 +141,7 @@ void solar_os_buttons_poll(void)
                 .last_raw_pressed = pressed,
                 .stable_pressed = pressed,
                 .raw_changed_ms = now_ms,
+                .stable_pressed_ms = now_ms,
             };
             continue;
         }
@@ -156,6 +160,9 @@ void solar_os_buttons_poll(void)
 
         state->stable_pressed = pressed;
         state->stable_transitions++;
+        if (pressed) {
+            state->stable_pressed_ms = now_ms;
+        }
         if (def->key == 0) {
             continue;
         }
@@ -170,8 +177,14 @@ void solar_os_buttons_poll(void)
                     state->suppressed_releases++;
                     continue;
                 }
+                const bool long_press = def->long_press_key != 0U &&
+                    def->long_press_ms != 0U &&
+                    (uint32_t)(now_ms - state->stable_pressed_ms) >=
+                        def->long_press_ms;
+                const uint8_t key = long_press ? def->long_press_key :
+                    solar_os_input_composition_apply(def->key);
                 (void)solar_os_input_write_char(buttons_input_source,
-                    (char)solar_os_input_composition_apply(def->key));
+                                                (char)key);
             }
             continue;
         }

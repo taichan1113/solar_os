@@ -76,6 +76,9 @@ class BoardManifestTest(unittest.TestCase):
                 self.assertIn("GPIO_NUM_3", buttons)
                 self.assertIn("SOLAR_OS_KEY_ENTER", buttons)
                 self.assertIn(".emit_on_release = true", buttons)
+                if name == "m5paper_mono":
+                    self.assertIn(".long_press_key = SOLAR_OS_KEY_ESCAPE", buttons)
+                    self.assertIn(".long_press_ms = 1200U", buttons)
                 cmake = generate_cmake(board, self.drivers)
                 self.assertIn("set(SOLAR_OS_BOARD_HAS_KEY ON)", cmake)
 

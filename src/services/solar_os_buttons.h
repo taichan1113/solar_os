@@ -19,6 +19,9 @@ typedef struct {
     uint8_t key;
     bool active_low;
     bool emit_on_release;
+    /* Optional alternate key emitted on release after a long hold. */
+    uint8_t long_press_key;
+    uint16_t long_press_ms;
     solar_os_button_pull_t pull;
     /* For directional rollers, reject a short horizontal impulse immediately
      * after a vertical movement. Zero leaves normal button behavior intact. */
