@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
 
 struct Reports {
     unsigned count = 0;
@@ -25,6 +26,10 @@ int main() {
     Reports reports;
     auto *engine = solar_os_type_mouse_engine_create(send_report, &reports);
     assert(engine);
+    assert(!std::strcmp(solar_os_type_mouse_engine_tap_label(engine, 13), "A"));
+    assert(!std::strcmp(solar_os_type_mouse_engine_hold_label(24), "Shift"));
+    assert(!std::strcmp(solar_os_type_mouse_engine_hold_label(37), "Sym"));
+    assert(!std::strcmp(solar_os_type_mouse_engine_layer_label(engine), "Base"));
     solar_os_type_mouse_keys_t keys{};
     auto a = point(0, 13);
     auto same_a = point(1, 13);
@@ -49,6 +54,7 @@ int main() {
     auto b = point(5, 29);
     solar_os_type_mouse_engine_type(engine, &shift, 1, 60, &keys);
     assert(keys.modifiers & 0x02);
+    assert(solar_os_type_mouse_engine_held_modifiers(engine) & 0x02);
     solar_os_type_mouse_point_t shifted[] = {b, shift}; // Slot order swaps.
     solar_os_type_mouse_engine_type(engine, shifted, 2, 80, &keys);
     assert(keys.keys[0] == 0x05 && (keys.modifiers & 0x02));
@@ -58,9 +64,18 @@ int main() {
     solar_os_type_mouse_engine_type(engine, nullptr, 0, 120, &keys);
     assert(keys.modifiers == 0 && keys.keys[0] == 0);
 
+    auto alt = point(12, 39);
+    solar_os_type_mouse_engine_type(engine, &alt, 1, 120, &keys);
+    assert(solar_os_type_mouse_engine_held_modifiers(engine) & 0x04);
+    solar_os_type_mouse_engine_type(engine, nullptr, 0, 120, &keys);
+
     auto sym = point(6, 37);
     auto symbol_l = point(7, 21);
     solar_os_type_mouse_engine_type(engine, &sym, 1, 121, &keys);
+    assert(solar_os_type_mouse_engine_layer(engine) == 1);
+    assert(!std::strcmp(solar_os_type_mouse_engine_layer_label(engine), "Sym"));
+    assert(!std::strcmp(solar_os_type_mouse_engine_tap_label(engine, 21), "]"));
+    assert(!std::strcmp(solar_os_type_mouse_engine_tap_label(engine, 27), "C"));
     solar_os_type_mouse_point_t symbol_pair[] = {sym, symbol_l};
     solar_os_type_mouse_engine_type(engine, symbol_pair, 2, 122, &keys);
     assert(keys.keys[0] == 0x32); // JIS mapping for ].
@@ -69,6 +84,8 @@ int main() {
     auto nav = point(8, 38);
     auto j = point(9, 19);
     solar_os_type_mouse_engine_type(engine, &nav, 1, 124, &keys);
+    assert(!std::strcmp(solar_os_type_mouse_engine_tap_label(engine, 19), "Left"));
+    assert(!std::strcmp(solar_os_type_mouse_engine_layer_label(engine), "Nav"));
     solar_os_type_mouse_point_t nav_pair[] = {nav, j};
     solar_os_type_mouse_engine_type(engine, nav_pair, 2, 125, &keys);
     assert(keys.keys[0] == 0x50); // Left arrow.
@@ -77,6 +94,8 @@ int main() {
     auto fn = point(10, 0);
     auto e = point(11, 3);
     solar_os_type_mouse_engine_type(engine, &fn, 1, 127, &keys);
+    assert(!std::strcmp(solar_os_type_mouse_engine_tap_label(engine, 3), "F3"));
+    assert(!std::strcmp(solar_os_type_mouse_engine_layer_label(engine), "Fn"));
     solar_os_type_mouse_point_t function_pair[] = {fn, e};
     solar_os_type_mouse_engine_type(engine, function_pair, 2, 128, &keys);
     assert(keys.keys[0] == 0x3C); // F3.

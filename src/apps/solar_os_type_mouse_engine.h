@@ -35,6 +35,14 @@ void solar_os_type_mouse_engine_mouse(solar_os_type_mouse_engine_t *engine,
     uint32_t sequence, uint32_t ms);
 int solar_os_type_mouse_engine_hit(int x, int y);
 const char *solar_os_type_mouse_engine_label(int position);
+const char *solar_os_type_mouse_engine_tap_label(
+    const solar_os_type_mouse_engine_t *engine, int position);
+const char *solar_os_type_mouse_engine_hold_label(int position);
+uint8_t solar_os_type_mouse_engine_layer(const solar_os_type_mouse_engine_t *engine);
+const char *solar_os_type_mouse_engine_layer_label(
+    const solar_os_type_mouse_engine_t *engine);
+uint8_t solar_os_type_mouse_engine_held_modifiers(
+    const solar_os_type_mouse_engine_t *engine);
 bool solar_os_type_mouse_engine_rect(int position, int *x, int *y,
     int *width, int *height);
 

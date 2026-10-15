@@ -110,6 +110,60 @@ static TypeAction action_for(int position, uint8_t layers)
         TypeActionKind::Disabled, 0};
 }
 
+extern "C" uint8_t solar_os_type_mouse_engine_layer(
+    const solar_os_type_mouse_engine_t *engine)
+{
+    const uint8_t layers = engine ? active_layers(engine) : 0;
+    for (int layer = 3; layer >= 1; --layer)
+        if (layers & (1U << layer)) return (uint8_t)layer;
+    return 0;
+}
+
+extern "C" const char *solar_os_type_mouse_engine_layer_label(
+    const solar_os_type_mouse_engine_t *engine)
+{
+    const uint8_t layer = solar_os_type_mouse_engine_layer(engine);
+    if (!layer) return "Base";
+    for (const TypeAction &action : kTypeHoldActions)
+        if (action.kind == TypeActionKind::Layer && action.layer == layer)
+            return action.label;
+    return "Base";
+}
+
+extern "C" const char *solar_os_type_mouse_engine_tap_label(
+    const solar_os_type_mouse_engine_t *engine, int position)
+{
+    if (position < 0 || position >= 42) return "";
+    const uint8_t layers = engine ? active_layers(engine) : 0;
+    const TypeAction action = action_for(position, layers);
+    if (position == 41) return kTypeKeys[position].label;
+    return action.kind == TypeActionKind::Disabled ? "" : action.label;
+}
+
+extern "C" const char *solar_os_type_mouse_engine_hold_label(int position)
+{
+    if (position < 0 || position >= 42) return "";
+    const TypeAction &action = kTypeHoldActions[position];
+    return action.kind == TypeActionKind::Layer ||
+        action.kind == TypeActionKind::Modifier ? action.label : "";
+}
+
+extern "C" uint8_t solar_os_type_mouse_engine_held_modifiers(
+    const solar_os_type_mouse_engine_t *engine)
+{
+    if (!engine) return 0;
+    uint8_t modifiers = 0;
+    for (const TypeContact &contact : engine->contacts) {
+        if (!contact.active) continue;
+        if (contact.hold &&
+            kTypeHoldActions[contact.position].kind == TypeActionKind::Modifier)
+            modifiers |= kTypeHoldActions[contact.position].modifiers;
+        else if (!contact.hold && contact.action.kind == TypeActionKind::Modifier)
+            modifiers |= contact.action.modifiers;
+    }
+    return modifiers;
+}
+
 static void jp_map(uint8_t &usage, uint8_t &modifiers)
 {
     for (const TypeJpMapping &mapping : kTypeJpMappings)

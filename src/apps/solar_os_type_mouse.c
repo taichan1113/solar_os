@@ -18,6 +18,7 @@ typedef struct {
     uint8_t header_id, mouse_buttons;
     uint32_t mouse_sequence;
     uint8_t last_modifiers, last_keys[6];
+    uint8_t displayed_layer, displayed_modifiers;
     uint32_t last_status_ms, passkey;
 } type_mouse_state_t;
 
@@ -76,6 +77,51 @@ static bool type_mouse_send(void *context, const solar_os_type_mouse_mouse_t *re
     return err == ESP_OK;
 }
 
+static void type_mouse_draw_key(solar_os_gfx_t *gfx, int position)
+{
+    int x, y, width, height;
+    if (!solar_os_type_mouse_engine_rect(position, &x, &y, &width, &height)) return;
+    solar_os_gfx_rect(gfx, x, y, width, height);
+    const char *tap = solar_os_type_mouse_engine_tap_label(tm.engine, position);
+    const char *hold = solar_os_type_mouse_engine_hold_label(position);
+    solar_os_gfx_set_font_native(gfx, SOLAR_OS_GFX_FONT_BOLD_20);
+    if (solar_os_gfx_text_width(gfx, tap) > (size_t)(width - 8))
+        solar_os_gfx_set_font_native(gfx, SOLAR_OS_GFX_FONT_BOLD_16);
+    if (solar_os_gfx_text_width(gfx, tap) > (size_t)(width - 8))
+        solar_os_gfx_set_font_native(gfx, SOLAR_OS_GFX_FONT_BOLD_12);
+    const int tap_width = (int)solar_os_gfx_text_width(gfx, tap);
+    solar_os_gfx_text(gfx, x + (width - tap_width) / 2,
+        y + (hold[0] ? height / 2 + 2 : height / 2 + 7), tap);
+    if (hold[0]) {
+        solar_os_gfx_set_font_native(gfx, SOLAR_OS_GFX_FONT_MONO_12);
+        solar_os_gfx_text(gfx, x + 4, y + height - 5, hold);
+    }
+}
+
+static void type_mouse_draw_guide(solar_os_gfx_t *gfx, int x, int y,
+    const char *title, const char *first, const char *second, unsigned icon)
+{
+    solar_os_gfx_rect(gfx, x, y, 370, 112);
+    const int cx = x + 43, cy = y + 55;
+    solar_os_gfx_circle(gfx, cx, cy, 13);
+    if (icon == 0 || icon == 2) {
+        solar_os_gfx_line(gfx, cx + 19, cy, cx + 39, cy);
+        solar_os_gfx_line(gfx, cx + 39, cy, cx + 31, cy - 7);
+        solar_os_gfx_line(gfx, cx + 39, cy, cx + 31, cy + 7);
+    } else if (icon == 1) {
+        solar_os_gfx_circle(gfx, cx, cy, 22);
+    } else {
+        solar_os_gfx_circle(gfx, cx + 24, cy, 13);
+        solar_os_gfx_line(gfx, cx + 12, cy - 18, cx + 12, cy - 34);
+        solar_os_gfx_line(gfx, cx + 12, cy + 18, cx + 12, cy + 34);
+    }
+    solar_os_gfx_set_font_native(gfx, SOLAR_OS_GFX_FONT_BOLD_20);
+    solar_os_gfx_text(gfx, x + 88, y + 33, title);
+    solar_os_gfx_set_font_native(gfx, SOLAR_OS_GFX_FONT_MONO_16);
+    solar_os_gfx_text(gfx, x + 88, y + 65, first);
+    solar_os_gfx_text(gfx, x + 88, y + 91, second);
+}
+
 static void type_mouse_render(solar_os_context_t *ctx)
 {
     solar_os_gfx_t *gfx = solar_os_context_gfx(ctx);
@@ -96,18 +142,29 @@ static void type_mouse_render(solar_os_context_t *ctx)
     if (tm.mouse) {
         solar_os_gfx_rect(gfx, 18, 85, 165, 62);
         solar_os_gfx_text(gfx, 42, 124, "Type");
-        solar_os_gfx_text(gfx, 20, 200, "Move 1 finger / Tap to click");
-        solar_os_gfx_text(gfx, 20, 245, "Double tap, hold 2nd + move to drag");
-        solar_os_gfx_text(gfx, 20, 290, "2 fingers to scroll");
+        type_mouse_draw_guide(gfx, 18, 164, "Pointer",
+            "1 finger move", "", 0);
+        type_mouse_draw_guide(gfx, 412, 164, "Click",
+            "Tap / double tap", "2-finger tap: right", 1);
+        type_mouse_draw_guide(gfx, 18, 294, "Drag",
+            "Tap, tap-hold", "then move + release", 2);
+        type_mouse_draw_guide(gfx, 412, 294, "Scroll",
+            "2 fingers up/down", "or left/right", 3);
     } else {
-        for (int i = 0; i < 42; ++i) {
-            int x, y, width, height;
-            if (!solar_os_type_mouse_engine_rect(i, &x, &y, &width, &height)) continue;
-            solar_os_gfx_rect(gfx, x, y, width, height);
-            const char *label = solar_os_type_mouse_engine_label(i);
-            solar_os_gfx_text(gfx, x+4, y+height/2+6, label);
-        }
-        solar_os_gfx_text(gfx, 18, 459, "Tap Mouse to switch. Hold Sym/Nav/Fn for layers.");
+        tm.displayed_layer = solar_os_type_mouse_engine_layer(tm.engine);
+        tm.displayed_modifiers = solar_os_type_mouse_engine_held_modifiers(tm.engine);
+        char state[80];
+        snprintf(state, sizeof(state), "Layer: %s%s%s%s",
+            solar_os_type_mouse_engine_layer_label(tm.engine),
+            tm.displayed_modifiers & 0x02U ? "  Shift" : "",
+            tm.displayed_modifiers & 0x01U ? "  Ctrl" : "",
+            tm.displayed_modifiers & 0x04U ? "  Alt" : "");
+        solar_os_gfx_rect(gfx, 12, 83, 520, 47);
+        solar_os_gfx_set_font_native(gfx, SOLAR_OS_GFX_FONT_BOLD_20);
+        solar_os_gfx_text(gfx, 18, 113, state);
+        for (int i = 0; i < 42; ++i) type_mouse_draw_key(gfx, i);
+        solar_os_gfx_set_font_native(gfx, SOLAR_OS_GFX_FONT_MONO_16);
+        solar_os_gfx_text(gfx, 18, 455, "Large: tap   Small: hold   Mouse: switch mode");
     }
     (void)solar_os_gfx_submit(gfx, NULL);
 }
@@ -181,9 +238,11 @@ static void type_mouse_frame(solar_os_context_t *ctx,
 {
     if (!frame || !type_mouse_storage || !tm.engine || tm.suspended) return;
     if (frame->state == SOLAR_OS_INPUT_TOUCH_CANCEL) {
+        const bool had_state = tm.displayed_layer || tm.displayed_modifiers;
         type_mouse_release();
         solar_os_type_mouse_engine_cancel(tm.engine);
         tm.header_armed = false;
+        if (had_state && !tm.mouse) type_mouse_render(ctx);
         return;
     }
     solar_os_type_mouse_point_t points[2] = {{0}};
@@ -224,7 +283,13 @@ static void type_mouse_frame(solar_os_context_t *ctx,
         solar_os_type_mouse_keys_t keys = {0};
         solar_os_type_mouse_engine_type(tm.engine, points, count, ms, &keys);
         if (keys.switch_mouse) type_mouse_mode(ctx, true);
-        else type_mouse_keys_send(&keys);
+        else {
+            type_mouse_keys_send(&keys);
+            if (tm.displayed_layer != solar_os_type_mouse_engine_layer(tm.engine) ||
+                tm.displayed_modifiers !=
+                    solar_os_type_mouse_engine_held_modifiers(tm.engine))
+                type_mouse_render(ctx);
+        }
     }
 }
 
