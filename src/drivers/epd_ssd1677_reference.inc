@@ -117,7 +117,13 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     ssd1677_window_t dirty;
     const bool changed = d->fastest_tiles ? ssd1677_find_change_bytes(d, &dirty) :
                                            ssd1677_find_change_window(d, &dirty);
+#if SOLAR_OS_SSD1677_FIXED_BLACK_TRIAL
+    const bool force_identical = d->trial_force_identical_fastest;
+    d->trial_force_identical_fastest = false;
+    if (!changed && !force_identical) return ESP_OK;
+#else
     if (!changed) return ESP_OK;
+#endif
     const int64_t diff_end = esp_timer_get_time();
     d->transport_spi_hz = d->fastest_spi_hz;
     const ssd1677_window_t full = {0, SSD1677_PANEL_ROW_BYTES-1, 0, SSD1677_HEIGHT-1};
@@ -152,6 +158,9 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         d->timing.activations=1;
         d->timing.activate_us[0]=esp_timer_get_time();
         err=ssd1677_cmd(d,0x20);
+#if SOLAR_OS_SSD1677_FIXED_BLACK_TRIAL
+        if (err == ESP_OK) d->trial_fast_0x20_count++;
+#endif
         if (err == ESP_OK) {
             /* At least one RTOS tick: avoid mistaking pre-assertion LOW for done.
              * Reference's guard is 2ms; SolarOS tick may be 10ms. */

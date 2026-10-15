@@ -874,6 +874,44 @@ static void test_waveform_trials(void)
 }
 #endif
 
+#if SOLAR_OS_SSD1677_FIXED_BLACK_TRIAL
+static void test_forced_identical_fastest(void)
+{
+    epd_ssd1677_t d = make_display();
+    d.papermono_otp = true;
+    d.band_buffer = band;
+    d.fastest_tiles = true;
+    d.fastest_spi_hz = 20000000;
+    d.configured_spi_hz = 20000000;
+    assert(epd_ssd1677_set_controller_mode(&d, "refresh=fastest") == ESP_OK);
+    assert(ssd1677_refresh(&d) == ESP_OK); /* common OTP full */
+    frame[0] &= 0xfe; /* first changed update, leaving fixed black */
+    command_count = 0;
+    assert(ssd1677_refresh(&d) == ESP_OK);
+    assert(d.trial_fast_0x20_count == 1);
+    command_count = 0;
+    assert(ssd1677_refresh(&d) == ESP_OK && command_count == 0);
+    for (unsigned step = 1; step <= 6; ++step) {
+        command_count = 0;
+        d.trial_force_identical_fastest = true;
+        assert(ssd1677_refresh(&d) == ESP_OK);
+        assert(!d.trial_force_identical_fastest && d.trial_fast_0x20_count == step + 1);
+        unsigned activations = 0;
+        for (size_t i = 0; i < command_count; ++i)
+            if (commands[i].command == 0x20) activations++;
+        assert(activations == 1 && d.timing.activations == 1);
+        const captured_command_t *now = find_command(0x24, 0);
+        const captured_command_t *old = find_command(0x26, 0);
+        assert(now->length == 48000 && old->length == 48000);
+        assert(!memcmp(now->data, old->data, 48000));
+        expect_data(0x32, ssd1677_reference_lut, 105);
+        assert(d.actual_spi_hz == 20000000 && !memcmp(frame, shadow, sizeof(frame)));
+    }
+    command_count = 0;
+    assert(ssd1677_refresh(&d) == ESP_OK && command_count == 0);
+}
+#endif
+
 int main(void)
 {
     test_initial_full();
@@ -893,6 +931,9 @@ int main(void)
     test_typing_mode();
     test_hybrid_trial();
     test_waveform_trials();
+#if SOLAR_OS_SSD1677_FIXED_BLACK_TRIAL
+    test_forced_identical_fastest();
+#endif
     puts("epd_ssd1677_test: PASS");
     return 0;
 }

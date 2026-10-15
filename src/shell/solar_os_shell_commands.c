@@ -278,6 +278,9 @@ static void display_print_usage(solar_os_shell_io_t *term)
     solar_os_shell_io_writeln(term, "  display [list]");
     solar_os_shell_io_writeln(term, "  display layouts");
     solar_os_shell_io_writeln(term, "  display test <target> [white|black|half|box-left|box-right|corners|fine]");
+#if defined(SOLAR_OS_SSD1677_FIXED_BLACK_TRIAL) && SOLAR_OS_SSD1677_FIXED_BLACK_TRIAL
+    solar_os_shell_io_writeln(term, "  display test display0 fixed-black A|B|C (serial only; 6 steps)");
+#endif
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     solar_os_shell_io_writeln(term, "  display test display0 ab-a|ab-b baseline|dose (serial, operator-stepped)");
 #endif
@@ -643,10 +646,20 @@ static void display_draw_test_pattern(u8g2_t *u8g2, const char *name)
 #include "solar_os_shell_quality_ab.inc"
 #include "solar_os_writer.h"
 #endif
+#if defined(SOLAR_OS_SSD1677_FIXED_BLACK_TRIAL) && SOLAR_OS_SSD1677_FIXED_BLACK_TRIAL
+#include "solar_os_shell_fixed_black_trial.inc"
+#endif
 
 static void display_cmd_test(solar_os_shell_io_t *term, int argc, char **argv)
 {
     static const char owner[] = "shell:display-test";
+
+#if defined(SOLAR_OS_SSD1677_FIXED_BLACK_TRIAL) && SOLAR_OS_SSD1677_FIXED_BLACK_TRIAL
+    if (argc >= 4 && strcmp(argv[3], "fixed-black") == 0) {
+        display_cmd_fixed_black_trial(term, argc, argv);
+        return;
+    }
+#endif
 
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     if (argc >= 4 && strcmp(argv[3], "writer-quality") == 0) {

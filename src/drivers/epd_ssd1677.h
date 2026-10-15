@@ -18,6 +18,12 @@
 #ifndef SOLAR_OS_SSD1677_SPI20_TRIAL
 #define SOLAR_OS_SSD1677_SPI20_TRIAL 0
 #endif
+#ifndef SOLAR_OS_SSD1677_FIXED_BLACK_TRIAL
+#define SOLAR_OS_SSD1677_FIXED_BLACK_TRIAL 0
+#endif
+#if SOLAR_OS_SSD1677_FIXED_BLACK_TRIAL
+#include <stdatomic.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -120,6 +126,10 @@ typedef struct {
     /* Independent of the host shadow: valid only with continuously powered RAM. */
     bool papermono_baseline_valid;
     bool cleanup_pending;
+#if SOLAR_OS_SSD1677_FIXED_BLACK_TRIAL
+    atomic_bool trial_force_identical_fastest; /* one submit only; never normal Writer */
+    uint32_t trial_fast_0x20_count;
+#endif
 #if SOLAR_OS_SSD1677_HYBRID_TRIAL
     bool hybrid_quality_pending;
     uint32_t hybrid_idle_ms, hybrid_max_updates, hybrid_fast_updates;

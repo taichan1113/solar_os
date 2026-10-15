@@ -506,6 +506,9 @@ static esp_err_t ssd1677_papermono_refresh(epd_ssd1677_t *display)
     #if SOLAR_OS_SSD1677_HYBRID_TRIAL
         !quality &&
     #endif
+#if SOLAR_OS_SSD1677_FIXED_BLACK_TRIAL
+        !display->trial_force_identical_fastest &&
+#endif
         memcmp(ssd1677_frame(display), display->shadow, display->buffer_size) == 0) return ESP_OK;
     if (!cleanup && baseline &&
         (display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST ||
