@@ -2013,7 +2013,12 @@ void app_main(void)
 
     if (terminal != NULL) {
 #if defined(SOLAR_OS_BOARD_M5PAPER_MONO) && SOLAR_OS_PACKAGE_APP_LAUNCHER
-        const bool launcher_started = solar_os_sessions_switch_to_app(&solar_os_launcher_app);
+        /* The shell startup script creates USB Shell and applies persistent
+         * display settings. Its built-in session also supplies Launcher's
+         * display target for touch routing. */
+        const bool shell_started = solar_os_sessions_switch_to_app(solar_os_shell_app());
+        const bool launcher_started = shell_started &&
+            solar_os_sessions_switch_to_app(&solar_os_launcher_app);
         ESP_LOGI(TAG, "boot milestone: launcher switch=%s", launcher_started ? "ok" : "failed");
         if (!launcher_started) {
             (void)solar_os_sessions_switch_to_app(solar_os_shell_app());
