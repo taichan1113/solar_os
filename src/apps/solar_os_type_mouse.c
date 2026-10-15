@@ -4,6 +4,7 @@
 #include <string.h>
 #include "solar_os_type_mouse_engine.h"
 #include "solar_os_ble.h"
+#include "solar_os_board.h"
 #include "solar_os_config.h"
 #include "solar_os_expansion.h"
 #include "solar_os_gfx.h"
@@ -43,12 +44,15 @@ static void type_mouse_keyboard_cache_clear(void)
     memset(tm.last_keys, 0, sizeof(tm.last_keys));
 }
 
-static void type_mouse_touch_acquire(void)
+static esp_err_t type_mouse_touch_acquire(void)
 {
 #if defined(SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE) && SOLAR_OS_PACKAGE_SERVICE_EXPANSION
-    if (solar_os_expansion_enable_acquire(SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE,
-            type_mouse_storage) == ESP_OK) tm.touch_lease = true;
+    const esp_err_t err = solar_os_expansion_enable_acquire(
+        SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE, type_mouse_storage);
+    if (err != ESP_OK) return err;
+    tm.touch_lease = true;
 #endif
+    return ESP_OK;
 }
 
 static void type_mouse_touch_release(void)
@@ -322,8 +326,9 @@ static esp_err_t type_mouse_start(solar_os_context_t *ctx)
     memset(type_mouse_storage, 0, sizeof(type_mouse_state_t));
     tm.engine = solar_os_type_mouse_engine_create(type_mouse_send, type_mouse_storage);
     if (!tm.engine) return ESP_ERR_NO_MEM;
-    type_mouse_touch_acquire();
-    esp_err_t err = type_mouse_ble_start();
+    esp_err_t err = type_mouse_touch_acquire();
+    if (err != ESP_OK) { type_mouse_cleanup(); return err; }
+    err = type_mouse_ble_start();
     if (err != ESP_OK) { type_mouse_cleanup(); return err; }
     solar_os_context_set_graphics_active(ctx, true);
     type_mouse_render(ctx);
@@ -344,7 +349,10 @@ static void type_mouse_suspend(solar_os_context_t *ctx)
 static void type_mouse_resume(solar_os_context_t *ctx)
 {
     tm.suspended = false;
-    type_mouse_touch_acquire();
+    if (type_mouse_touch_acquire() != ESP_OK) {
+        solar_os_context_finish(ctx, 1, "touch enable failed");
+        return;
+    }
     solar_os_context_set_graphics_active(ctx, true);
     type_mouse_render(ctx);
 }

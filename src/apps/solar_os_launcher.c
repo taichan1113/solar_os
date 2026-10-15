@@ -12,6 +12,7 @@
 #include "freertos/task.h"
 
 #include "solar_os_app_registry.h"
+#include "solar_os_board.h"
 #include "solar_os_config.h"
 #include "solar_os_expansion.h"
 #include "solar_os_gfx.h"

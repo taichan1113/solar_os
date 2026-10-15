@@ -3,7 +3,7 @@
 #include "../../src/apps/solar_os_type_mouse.c"
 struct solar_os_gfx { size_t width, height; };
 static struct solar_os_gfx display={800,480};
-static bool leased, online;
+static bool leased, online, fail_enable;
 static unsigned renders, keyboard_releases, mouse_releases, closes;
 static char drawn_text[4096];
 static bool contains(const char *s) { return strstr(drawn_text, s) != NULL; }
@@ -21,7 +21,7 @@ void solar_os_gfx_circle(solar_os_gfx_t *g,int x,int y,int r) { (void)g; (void)x
 void solar_os_gfx_line(solar_os_gfx_t *g,int x,int y,int xx,int yy) { (void)g; (void)x; (void)y; (void)xx; (void)yy; }
 esp_err_t solar_os_gfx_submit(solar_os_gfx_t *g,uint64_t *s) { (void)g; (void)s; ++renders; return ESP_OK; }
 esp_err_t solar_os_expansion_enable_acquire(const char *n,const void *p)
-{ assert(!strcmp(n,"fixture-pointer") && p==type_mouse_storage && !leased); leased=true; return ESP_OK; }
+{ assert(!strcmp(n,"fixture-pointer") && p==type_mouse_storage && !leased); if(fail_enable) return ESP_FAIL; leased=true; return ESP_OK; }
 esp_err_t solar_os_expansion_enable_release(const char *n,const void *p)
 { assert(!strcmp(n,"fixture-pointer") && p==type_mouse_storage && leased); leased=false; return ESP_OK; }
 esp_err_t solar_os_ble_session_create(const char *n,solar_os_ble_session_t *s)
@@ -56,6 +56,9 @@ int main(void)
 {
     type_mouse_state_t state; type_mouse_storage=&state;
     solar_os_context_t c={.gfx=&display};
+    fail_enable=true;
+    assert(type_mouse_start(&c)==ESP_FAIL && !leased && !tm.engine && renders==0);
+    fail_enable=false;
     assert(type_mouse_start(&c)==ESP_OK && leased && renders==1 && c.graphics_active);
     assert(contains("Layer: Base") && contains("Shift") && contains("Mouse"));
     assert(!tm.connected); type_mouse_status(&c,200); assert(!tm.connected);
