@@ -222,3 +222,5 @@ SOLAR_OS_GFX_ICON_ENTRY(X, "x")
 SOLAR_OS_GFX_ICON_ENTRY(YEN, "yen")
 SOLAR_OS_GFX_ICON_ENTRY(ZOOM_IN, "zoom-in")
 SOLAR_OS_GFX_ICON_ENTRY(ZOOM_OUT, "zoom-out")
+/* Native icon; append to preserve stored Open Iconic numeric identifiers. */
+SOLAR_OS_GFX_ICON_ENTRY(KEYBOARD, "keyboard")

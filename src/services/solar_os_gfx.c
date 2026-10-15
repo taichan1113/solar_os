@@ -25,7 +25,7 @@
 _Static_assert(GFX_INDEX8_THEME_BASE + GFX_INDEX8_THEME_COUNT ==
                    GFX_INDEX8_PALETTE_SIZE,
                "INDEX8 palette layout must fill all entries");
-_Static_assert(SOLAR_OS_GFX_ICON_COUNT == 223,
+_Static_assert(SOLAR_OS_GFX_ICON_KEYBOARD == 223,
                "Open Iconic mapping must name every glyph");
 
 struct solar_os_gfx_index8_surface {
@@ -1249,6 +1249,19 @@ void solar_os_gfx_icon(solar_os_gfx_t *gfx,
     }
 
     const int pixels = (int)size;
+    if (icon == SOLAR_OS_GFX_ICON_KEYBOARD) {
+        /* Native geometry scales with the same 8/16/32/48/64 icon sizes. */
+        const int unit = pixels / 8;
+        solar_os_gfx_rect(gfx, x, y + unit, pixels, 7 * unit);
+        for (int row = 0; row < 2; ++row) {
+            for (int column = 0; column < 3; ++column) {
+                solar_os_gfx_fill_rect(gfx, x + (1 + 2 * column) * unit,
+                    y + (2 + 2 * row) * unit, unit, unit);
+            }
+        }
+        solar_os_gfx_fill_rect(gfx, x + 2 * unit, y + 6 * unit, 4 * unit, unit);
+        return;
+    }
     const uint16_t encoding =
         (uint16_t)(GFX_OPEN_ICONIC_FIRST_ENCODING + (unsigned)icon);
 

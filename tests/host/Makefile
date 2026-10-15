@@ -10,7 +10,8 @@ MANUAL_GENERATED_DIR := generated/solar_os
 MANUAL_GENERATED_HEADER := $(MANUAL_GENERATED_DIR)/solar_os_manual_data.h
 
 .PHONY: all test clean
-
+TARGETS += type_mouse_engine_test type_mouse_lifecycle_test
+CJSON_DIR ?= $(HOME)/.platformio/packages/framework-espidf/components/json/cJSON
 TARGETS += files_layout_test
 files_layout_test: files_layout_test.c $(ROOT)/src/apps/solar_os_files.c
 	# Existing bounded ZIP/delete prompts deliberately truncate long filenames.
@@ -514,6 +515,28 @@ sketch_canvas_test: sketch_canvas_test.c $(WRITER_DIR)/solar_os_sketch_canvas.c 
 	$(CC) $(CFLAGS) -I. -I$(WRITER_DIR) \
 		sketch_canvas_test.c $(WRITER_DIR)/solar_os_sketch_canvas.c -o $@
 
+.PHONY: test-launcher-touch
+test-launcher-touch: launcher_touch_test
+	./launcher_touch_test
+
+launcher_touch_test: launcher_touch_test.c $(WRITER_DIR)/solar_os_launcher.c $(WRITER_DIR)/solar_os_launcher_layout.c $(ROOT)/src/shell/solar_os_shell_parse.c $(ROOT)/src/shell/solar_os_shell_launch.c $(ROOT)/src/services/solar_os_json.c $(ROOT)/src/services/solar_os_gfx_icons.c $(ROOT)/src/services/solar_os_gfx_icon_table.inc $(CJSON_DIR)/cJSON.c
+	$(CC) $(CFLAGS) -DSOLAR_OS_PACKAGE_APP_TYPE_MOUSE=1 -DSOLAR_OS_PACKAGE_SERVICE_EXPANSION=1 \
+		-DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' -include compat.h \
+		-ffunction-sections -fdata-sections -I. -I$(ROOT)/src -I$(WRITER_DIR) -I$(ROOT)/src/services -I$(ROOT)/src/shell \
+		-I$(CJSON_DIR) launcher_touch_test.c $(WRITER_DIR)/solar_os_launcher_layout.c $(ROOT)/src/shell/solar_os_shell_parse.c $(ROOT)/src/shell/solar_os_shell_launch.c \
+		$(ROOT)/src/services/solar_os_json.c $(ROOT)/src/services/solar_os_gfx_icons.c $(CJSON_DIR)/cJSON.c -Wl,--gc-sections -o $@
+
+type_mouse_engine_test: type_mouse_engine_test.cpp $(WRITER_DIR)/solar_os_type_mouse_engine.cpp
+	$(CXX) -std=c++17 -O2 -Wall -Wextra -Werror -I$(WRITER_DIR) $^ -o $@
+
+type_mouse_lifecycle_test.o: type_mouse_lifecycle_test.c $(WRITER_DIR)/solar_os_type_mouse.c
+	$(CC) $(CFLAGS) -DSOLAR_OS_PACKAGE_SERVICE_EXPANSION=1 \
+		-DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' \
+		-I. -I$(ROOT)/src -I$(WRITER_DIR) -I$(ROOT)/src/services -c $< -o $@
+
+type_mouse_lifecycle_test: type_mouse_lifecycle_test.o $(WRITER_DIR)/solar_os_type_mouse_engine.cpp
+	$(CXX) -std=c++17 -O2 -Wall -Wextra -Werror -I$(WRITER_DIR) $^ -o $@
+
 launcher_layout_test: launcher_layout_test.c $(WRITER_DIR)/solar_os_launcher_layout.c $(WRITER_DIR)/solar_os_launcher_layout.h
 	$(CC) $(CFLAGS) -I$(WRITER_DIR) \
 		launcher_layout_test.c $(WRITER_DIR)/solar_os_launcher_layout.c -o $@
@@ -1002,6 +1025,8 @@ rtc_pcf85063_test: rtc_pcf85063_test.c \
 		rtc_pcf85063_test.c $(ROOT)/src/drivers/rtc_pcf85063.c -o $@
 
 test: $(TARGETS)
+	./type_mouse_engine_test
+	./type_mouse_lifecycle_test
 	./writer_quality_test
 	./files_layout_test
 	./writer_checkpoint_test
@@ -1148,6 +1173,7 @@ test: $(TARGETS)
 
 clean:
 	$(RM) $(TARGETS) model_bundle_test inference_lua_json_test zoo_test
+	$(RM) launcher_touch_test type_mouse_lifecycle_test.o
 	$(RM) -r generated
 
 writer_checkpoint_test: writer_checkpoint_test.c $(ROOT)/src/services/solar_os_doc_zoom.h $(WRITER_DIR)/solar_os_writer_checkpoint.c $(WRITER_DIR)/solar_os_writer_checkpoint.h $(WRITER_DIR)/solar_os_writer_files.c $(WRITER_DIR)/solar_os_writer_buffer.c
