@@ -17,7 +17,8 @@ class ScriptGfxIconsTest(unittest.TestCase):
             TABLE.read_text(encoding="utf-8"),
             re.MULTILINE,
         )
-        self.assertEqual(len(entries), 223)
+        self.assertEqual(len(entries), 224)
+        self.assertEqual(entries[-1], ("KEYBOARD", "keyboard"))
         self.assertEqual(dict(entries)["TABLET"], "tablet")
         for symbol, name in entries:
             self.assertEqual(name, symbol.lower().replace("_", "-"))

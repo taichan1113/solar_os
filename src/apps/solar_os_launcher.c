@@ -9,6 +9,8 @@
 #include <sys/stat.h>
 
 #include "solar_os_app_registry.h"
+#include "solar_os_config.h"
+#include "solar_os_expansion.h"
 #include "solar_os_gfx.h"
 #include "solar_os_ui_font.h"
 #include "solar_os_json.h"
@@ -23,7 +25,8 @@
 #define LAUNCHER_CONFIG_FILE "launcher.json"
 #define LAUNCHER_CONFIG_MAX_BYTES (16U * 1024U)
 #define LAUNCHER_GRID_MAX 8U
-#define LAUNCHER_ITEM_MAX 32U
+#define LAUNCHER_CONFIG_ITEM_MAX 32U
+#define LAUNCHER_ITEM_MAX (LAUNCHER_CONFIG_ITEM_MAX + 1U)
 #define LAUNCHER_NAME_MAX 48U
 #define LAUNCHER_ICON_NAME_MAX 32U
 #define LAUNCHER_COMMAND_MAX 192U
@@ -50,6 +53,7 @@ typedef struct {
     int pointer_y;
     bool pointer_relative;
     bool suspended;
+    bool touch_lease;
     bool render_pending;
     char config_path[SOLAR_OS_STORAGE_PATH_MAX];
 } launcher_state_t;
@@ -260,6 +264,51 @@ static void launcher_render(solar_os_context_t *ctx)
     launcher.render_pending = false;
 }
 
+static void launcher_add_type_mouse(void)
+{
+#if SOLAR_OS_PACKAGE_APP_TYPE_MOUSE
+    /* Overlay only in memory: never migrate or overwrite the user's JSON. */
+    bool occupied[LAUNCHER_GRID_MAX][LAUNCHER_GRID_MAX] = {{false}};
+    for (size_t i = 0; i < launcher.config.item_count; ++i) {
+        launcher_item_t *item = &launcher.config.items[i];
+        char command[LAUNCHER_COMMAND_MAX];
+        char *argv[SOLAR_OS_APP_ARG_MAX] = {0};
+        strlcpy(command, item->command, sizeof(command));
+        const solar_os_shell_parse_result_t parsed =
+            solar_os_shell_tokenize(command, argv, SOLAR_OS_APP_ARG_MAX);
+        if (parsed.error == SOLAR_OS_SHELL_PARSE_OK && parsed.argc == 1 &&
+            !strcmp(argv[0], "typemouse")) {
+            item->icon = SOLAR_OS_GFX_ICON_KEYBOARD;
+            return;
+        }
+        occupied[item->cell.row][item->cell.column] = true;
+    }
+    unsigned column = 0, row = 0;
+    bool found = false;
+    for (row = 0; row < launcher.config.rows && !found; ++row) {
+        for (column = 0; column < launcher.config.columns; ++column) {
+            if (!occupied[row][column]) { found = true; break; }
+        }
+        if (found) break;
+    }
+    if (!found) {
+        if (launcher.config.rows < LAUNCHER_GRID_MAX) {
+            row = launcher.config.rows++;
+            column = 0;
+        } else {
+            /* A full eight-row grid with <=32 items has room for a column. */
+            column = launcher.config.columns++;
+            row = 0;
+        }
+    }
+    launcher_item_t *item = &launcher.config.items[launcher.config.item_count++];
+    *item = (launcher_item_t){.cell = {.column = column, .row = row},
+                             .icon = SOLAR_OS_GFX_ICON_KEYBOARD};
+    strlcpy(item->name, "TypeMouse", sizeof(item->name));
+    strlcpy(item->command, "typemouse", sizeof(item->command));
+#endif
+}
+
 static esp_err_t launcher_parse_config(const char *source, size_t source_len)
 {
     solar_os_json_doc_t *document = NULL;
@@ -288,7 +337,7 @@ static esp_err_t launcher_parse_config(const char *source, size_t source_len)
     if (err == ESP_OK &&
         (columns == 0U || columns > LAUNCHER_GRID_MAX ||
          rows == 0U || rows > LAUNCHER_GRID_MAX ||
-         item_count == 0U || item_count > LAUNCHER_ITEM_MAX)) {
+         item_count == 0U || item_count > LAUNCHER_CONFIG_ITEM_MAX)) {
         err = ESP_ERR_INVALID_SIZE;
     }
 
@@ -342,6 +391,7 @@ static esp_err_t launcher_parse_config(const char *source, size_t source_len)
         }
     }
     solar_os_json_free(document);
+    if (err == ESP_OK) launcher_add_type_mouse();
     return err;
 }
 
@@ -558,6 +608,31 @@ static void launcher_activate(solar_os_context_t *ctx)
     }
 }
 
+static esp_err_t launcher_touch_acquire(void)
+{
+#if defined(SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE) && SOLAR_OS_PACKAGE_SERVICE_EXPANSION
+    if (!launcher.touch_lease) {
+        const esp_err_t err = solar_os_expansion_enable_acquire(
+            SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE, launcher_state_storage);
+        if (err != ESP_OK) return err;
+        launcher.touch_lease = true;
+    }
+#endif
+    return ESP_OK;
+}
+
+static void launcher_touch_release(void)
+{
+    if (!launcher_state_storage) return;
+#if defined(SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE) && SOLAR_OS_PACKAGE_SERVICE_EXPANSION
+    if (launcher.touch_lease) {
+        (void)solar_os_expansion_enable_release(
+            SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE, launcher_state_storage);
+    }
+#endif
+    launcher.touch_lease = false;
+}
+
 static esp_err_t launcher_start(solar_os_context_t *ctx)
 {
     const int argc = solar_os_context_argc(ctx);
@@ -590,6 +665,8 @@ static esp_err_t launcher_start(solar_os_context_t *ctx)
     }
     launcher.pointer_x = (int)solar_os_gfx_width(gfx) / 2;
     launcher.pointer_y = (int)solar_os_gfx_height(gfx) / 2;
+    err = launcher_touch_acquire();
+    if (err != ESP_OK) return err;
     launcher.render_pending = true;
     solar_os_context_set_graphics_active(ctx, true);
     launcher_render(ctx);
@@ -598,12 +675,15 @@ static esp_err_t launcher_start(solar_os_context_t *ctx)
 
 static void launcher_stop(solar_os_context_t *ctx)
 {
+    launcher_touch_release();
     solar_os_context_set_graphics_active(ctx, false);
 }
 
 static void launcher_suspend(solar_os_context_t *ctx)
 {
     launcher.suspended = true;
+    launcher.pointer_relative = false;
+    launcher_touch_release();
     solar_os_context_set_graphics_active(ctx, false);
 }
 
@@ -617,6 +697,11 @@ static void launcher_resume(solar_os_context_t *ctx)
     }
     if (!launcher_config_fits(solar_os_context_gfx(ctx))) {
         launcher_finish_error(ctx, "grid does not fit display", ESP_ERR_INVALID_SIZE);
+        return;
+    }
+    const esp_err_t touch_err = launcher_touch_acquire();
+    if (touch_err != ESP_OK) {
+        launcher_finish_error(ctx, "touch enable failed", touch_err);
         return;
     }
     launcher.render_pending = true;
@@ -738,6 +823,7 @@ const solar_os_app_t solar_os_launcher_app = {
     .state_slot = &launcher_state_storage,
     .state_size = sizeof(launcher_state_t),
     .state_storage = SOLAR_OS_APP_STATE_EXTERNAL_PREFERRED,
+    .state_release_cleanup = launcher_touch_release,
     .tick_interval_ms = LAUNCHER_TICK_MS,
     .tick_deadline_ms = 25U,
 };

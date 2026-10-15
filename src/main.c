@@ -30,6 +30,9 @@
 #include "solar_os_buttons.h"
 #include "solar_os_cdc.h"
 #include "solar_os_config.h"
+#if defined(SOLAR_OS_BOARD_M5PAPER_MONO) && SOLAR_OS_PACKAGE_APP_LAUNCHER
+#include "apps/solar_os_launcher.h"
+#endif
 #if SOLAR_OS_PACKAGE_APP_WRITER
 #include "apps/solar_os_writer_checkpoint.h"
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
@@ -2009,8 +2012,16 @@ void app_main(void)
     ESP_LOGI(TAG, "boot milestone: status ready");
 
     if (terminal != NULL) {
+#if defined(SOLAR_OS_BOARD_M5PAPER_MONO) && SOLAR_OS_PACKAGE_APP_LAUNCHER
+        const bool launcher_started = solar_os_sessions_switch_to_app(&solar_os_launcher_app);
+        ESP_LOGI(TAG, "boot milestone: launcher switch=%s", launcher_started ? "ok" : "failed");
+        if (!launcher_started) {
+            (void)solar_os_sessions_switch_to_app(solar_os_shell_app());
+        }
+#else
         const bool shell_started = solar_os_sessions_switch_to_app(solar_os_shell_app());
         ESP_LOGI(TAG, "boot milestone: shell switch=%s", shell_started ? "ok" : "failed");
+#endif
     } else {
         start_headless_shell_if_needed();
     }

@@ -1,7 +1,7 @@
 #pragma once
 
 /*
- * Stable SolarOS names for the complete Open Iconic glyph set.
+ * Stable SolarOS names for the complete Open Iconic glyph set and native icons.
  *
  * The names follow the upstream icon names, but callers must use these
  * identifiers instead of depending on the font's private glyph encoding.

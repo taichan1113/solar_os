@@ -270,6 +270,7 @@ static void type_mouse_stop(solar_os_context_t *ctx)
 static void type_mouse_suspend(solar_os_context_t *ctx)
 {
     tm.suspended = true;
+    tm.header_armed = false;
     type_mouse_release();
     solar_os_type_mouse_engine_cancel(tm.engine);
     type_mouse_touch_release();
