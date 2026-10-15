@@ -6,13 +6,15 @@
 struct solar_os_gfx { size_t width, height; };
 static struct solar_os_gfx display = {800, 480};
 static bool leased, fail_enable;
-static unsigned acquires, releases;
+static unsigned acquires, releases, delays;
 static solar_os_launch_policy_t launch_policy;
 static unsigned writes;
 static const char *config_file="launcher-touch-fixture.json";
-static const solar_os_app_t child = {.name = "type-mouse"};
+const solar_os_app_t solar_os_type_mouse_app = {.name = "type-mouse"};
 static const solar_os_app_registry_entry_t child_entry = {
-    .name = "typemouse", .app = &child, .min_argc = 1, .max_argc = 1};
+    .name = "typemouse", .app = &solar_os_type_mouse_app, .min_argc = 1, .max_argc = 1};
+
+void vTaskDelay(TickType_t ticks) { assert(ticks == 100); ++delays; }
 
 size_t strlcpy(char *d, const char *s, size_t n)
 { size_t l = strlen(s); if (n) { size_t c = l < n-1 ? l : n-1; memcpy(d,s,c); d[c]=0; } return l; }
@@ -100,9 +102,10 @@ int main(void)
     configuration_overlay();
     solar_os_context_t ctx={.gfx=&display};
     fail_enable=true; assert(launcher_touch_acquire()==ESP_FAIL && !launcher.touch_lease);
+    assert(acquires==3 && delays==2);
     launcher_touch_release(); assert(releases==0);
     fail_enable=false; assert(launcher_touch_acquire()==ESP_OK && leased);
-    assert(launcher_touch_acquire()==ESP_OK && acquires==2);
+    assert(launcher_touch_acquire()==ESP_OK && acquires==4);
     launcher.pointer_relative=true; launcher_suspend(&ctx);
     assert(!leased && !launcher.touch_lease && !launcher.pointer_relative && launcher.suspended);
     assert(launcher_touch_acquire()==ESP_OK); launcher.suspended=false;
@@ -111,7 +114,16 @@ int main(void)
     solar_os_input_pointer_event_t press={.mode=SOLAR_OS_INPUT_POINTER_ABSOLUTE,
         .action=SOLAR_OS_INPUT_POINTER_PRESS,.buttons=SOLAR_OS_INPUT_POINTER_BUTTON_PRIMARY,.x=100,.y=100};
     assert(launcher_pointer_event(&ctx,&press));
-    assert(ctx.requested_app==&child && launch_policy==SOLAR_OS_LAUNCH_CHILD_RETURN);
+    assert(ctx.requested_app==&solar_os_type_mouse_app &&
+           launch_policy==SOLAR_OS_LAUNCH_CHILD_RETURN && launcher.touch_handoff);
+    const unsigned before_handoff_releases = releases;
+    launcher_suspend(&ctx);
+    assert(leased && launcher.touch_lease && !launcher.touch_handoff &&
+           releases==before_handoff_releases);
+    launcher.suspended=false;
+    const unsigned before_resume_acquires = acquires;
+    assert(launcher_touch_acquire()==ESP_OK && leased &&
+           acquires==before_resume_acquires && releases==before_handoff_releases);
     launcher_stop(&ctx); launcher_touch_release();
     assert(releases==2 && !leased && !ctx.graphics_active);
     puts("launcher_touch_test: 64 grids, custom item, lease failure/lifecycle, TypeMouse child launch PASS");
