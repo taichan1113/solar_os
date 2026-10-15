@@ -8,6 +8,9 @@
 #include <string.h>
 #include <sys/stat.h>
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 #include "solar_os_app_registry.h"
 #include "solar_os_config.h"
 #include "solar_os_expansion.h"
@@ -21,6 +24,9 @@
 #include "solar_os_shell_launch.h"
 #include "solar_os_shell_parse.h"
 #include "solar_os_storage.h"
+#if SOLAR_OS_PACKAGE_APP_TYPE_MOUSE
+#include "solar_os_type_mouse.h"
+#endif
 
 #define LAUNCHER_CONFIG_FILE "launcher.json"
 #define LAUNCHER_CONFIG_MAX_BYTES (16U * 1024U)
@@ -54,6 +60,7 @@ typedef struct {
     bool pointer_relative;
     bool suspended;
     bool touch_lease;
+    bool touch_handoff;
     bool render_pending;
     char config_path[SOLAR_OS_STORAGE_PATH_MAX];
 } launcher_state_t;
@@ -586,6 +593,7 @@ static void launcher_activate(solar_os_context_t *ctx)
         return;
     }
 
+    launcher.touch_handoff = false;
     esp_err_t err = ESP_OK;
     const solar_os_app_registry_entry_t *entry =
         solar_os_app_registry_find(argv[0]);
@@ -606,14 +614,24 @@ static void launcher_activate(solar_os_context_t *ctx)
     if (err != ESP_OK) {
         launcher_finish_error(ctx, "command failed", err);
     }
+#if SOLAR_OS_PACKAGE_APP_TYPE_MOUSE
+    if (err == ESP_OK && ctx->requested_app == &solar_os_type_mouse_app) {
+        launcher.touch_handoff = true;
+    }
+#endif
 }
 
 static esp_err_t launcher_touch_acquire(void)
 {
 #if defined(SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE) && SOLAR_OS_PACKAGE_SERVICE_EXPANSION
     if (!launcher.touch_lease) {
-        const esp_err_t err = solar_os_expansion_enable_acquire(
-            SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE, launcher_state_storage);
+        esp_err_t err = ESP_FAIL;
+        for (unsigned attempt = 0; attempt < 3; ++attempt) {
+            err = solar_os_expansion_enable_acquire(
+                SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE, launcher_state_storage);
+            if (err == ESP_OK) break;
+            if (attempt < 2) vTaskDelay(pdMS_TO_TICKS(100));
+        }
         if (err != ESP_OK) return err;
         launcher.touch_lease = true;
     }
@@ -683,7 +701,10 @@ static void launcher_suspend(solar_os_context_t *ctx)
 {
     launcher.suspended = true;
     launcher.pointer_relative = false;
-    launcher_touch_release();
+    /* TypeMouse acquires the same touch device after this callback. Keeping
+     * our lease prevents a rapid power cycle during the handoff. */
+    if (!launcher.touch_handoff) launcher_touch_release();
+    launcher.touch_handoff = false;
     solar_os_context_set_graphics_active(ctx, false);
 }
 
