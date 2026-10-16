@@ -7,7 +7,8 @@ sys.path.insert(0, str(Path(__file__).parent / 'hil'))
 import analyze_sketch_trace as trace
 
 
-def journal(*, overflow=0, push_error=False, final=False):
+def journal(*, overflow=0, push_error=False, final=False,
+            unchanged_release=False):
     entries = [
         (10, 'SAMPLE', 1, 1, 0, 100, 100),
         (11, 'PUSH', 1, 0, 0, trace.PRESS, 1),
@@ -28,6 +29,11 @@ def journal(*, overflow=0, push_error=False, final=False):
                     (40, 'WORKER_START', 0, 0, 7, 0, 0),
                     (45, 'SSD', 0, 0, 0, 5, 0),
                     (46, 'WORKER_END', 0, 0, 7, 0, 1)]
+    if unchanged_release:
+        entries = [(t + 30 if point == 2 else t, name, point,
+                    version, generation, a, b)
+                   for t, name, point, version, generation, a, b in entries]
+        entries.sort(key=lambda entry: entry[0])
     lines = [f'SKTRACE_META,0,{len(entries)},{overflow},30,4']
     for i, (t, name, point, version, generation, a, b) in enumerate(entries):
         lines.append(f'SKTRACE,{i},{t},{trace.NAMES.index(name)},{point},'
@@ -43,6 +49,12 @@ class SketchTraceTests(unittest.TestCase):
         self.assertEqual(result['final_canvas_version'], 1)
         self.assertEqual(result['completed_canvas_version'], 1)
         self.assertEqual(result['stage_us']['release_to_done']['p50_us'], 26)
+
+    def test_unchanged_release_uses_completed_prior_canvas(self):
+        meta, rows = trace.parse(journal(final=True, unchanged_release=True))
+        result = trace.analyze(meta, rows)
+        self.assertTrue(result['valid'], result['failures'])
+        self.assertEqual(result['stage_us']['release_to_done']['p50_us'], 0)
 
     def test_release_fifo_failure_is_not_success(self):
         meta, rows = trace.parse(journal(push_error=True, final=True))

@@ -1160,6 +1160,9 @@ static void sketch_canvas_pointer(const sketch_layout_t *layout,
             const int end_y = y < 0 ? 0 :
                 (y >= layout->canvas_height ? layout->canvas_height - 1 : y);
             if (end_x != sketch.stroke_x || end_y != sketch.stroke_y) {
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+                const int64_t canvas_start = esp_timer_get_time();
+#endif
                 solar_os_sketch_canvas_line(&sketch.canvas, sketch.stroke_x,
                                             sketch.stroke_y, end_x, end_y,
                                             sketch_brush_color(),
@@ -1168,6 +1171,11 @@ static void sketch_canvas_pointer(const sketch_layout_t *layout,
                                   end_x, end_y);
                 sketch.stroke_x = end_x;
                 sketch.stroke_y = end_y;
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+                solar_os_sketch_trace_record(SKTRACE_CANVAS,
+                    solar_os_sketch_trace_current(), ++sketch_canvas_version,
+                    0, (int32_t)(esp_timer_get_time() - canvas_start), 0);
+#endif
             }
         }
         sketch.drawing = false;
