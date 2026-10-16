@@ -158,13 +158,28 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     ssd1677_window_t dirty;
     const bool changed = d->fastest_tiles ? ssd1677_find_change_bytes(d, &dirty) :
                                            ssd1677_find_change_window(d, &dirty);
-    if (!changed) return ESP_OK;
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+    if (!changed && d->trial_force_identical_fastest)
+        dirty = (ssd1677_window_t){0, SSD1677_PANEL_ROW_BYTES-1, 0, SSD1677_HEIGHT-1};
+#endif
+    if (!changed
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+        && !d->trial_force_identical_fastest
+#endif
+        ) return ESP_OK;
     const int64_t diff_end = esp_timer_get_time();
     d->transport_spi_hz = d->fastest_spi_hz;
     const ssd1677_window_t full = {0, SSD1677_PANEL_ROW_BYTES-1, 0, SSD1677_HEIGHT-1};
     d->timing = (epd_ssd1677_timing_t){.start_us=start, .partial=true, .diff_us=diff_end-start};
     d->papermono_baseline_valid = false;
     const bool cold = !d->reference_awake;
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+    /* The only B difference is omission of these three writes when the
+     * previous custom update completed and no reset/OTP/sleep intervened. */
+    const bool hold_voltage = d->voltage_hold_trial && !cold &&
+                              d->controller_ready && d->voltage_hold_ready;
+    d->voltage_hold_ready = false; /* Any failed transaction needs baseline. */
+#endif
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
     if (d->dirty_hold_trial && d->dirty_hold_dual_sync &&
         d->dirty_hold_dual_updates >= 32U) {
@@ -227,9 +242,25 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         d->timing.write_end_us[i] = esp_timer_get_time();
     }
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x32,lut,105);
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+    if (err == ESP_OK) ++d->trial_fast_0x32_count;
+    if (err == ESP_OK && !hold_voltage) {
+        err = ssd1677_cmd_data(d,0x03,lut+105,1);
+        if (err == ESP_OK) ++d->trial_fast_0x03_count;
+    }
+    if (err == ESP_OK && !hold_voltage) {
+        err = ssd1677_cmd_data(d,0x04,lut+106,3);
+        if (err == ESP_OK) ++d->trial_fast_0x04_count;
+    }
+    if (err == ESP_OK && !hold_voltage) {
+        err = ssd1677_cmd_data(d,0x2c,lut+109,1);
+        if (err == ESP_OK) ++d->trial_fast_0x2c_count;
+    }
+#else
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x03,lut+105,1);
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x04,lut+106,3);
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x2c,lut+109,1);
+#endif
     const uint8_t ctrl1=0, ctrl2=cold ? 0xcc : 0x0c;
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x21,&ctrl1,1);
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x22,&ctrl2,1);
@@ -237,6 +268,9 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         d->timing.activations=1;
         d->timing.activate_us[0]=esp_timer_get_time();
         err=ssd1677_cmd(d,0x20);
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+        if (err == ESP_OK) ++d->trial_fast_0x20_count;
+#endif
         if (err == ESP_OK) {
             /* At least one RTOS tick: avoid mistaking pre-assertion LOW for done.
              * Reference's guard is 2ms; SolarOS tick may be 10ms. */
@@ -277,6 +311,9 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         d->papermono_baseline_valid=true;
         d->reference_awake=true;
         d->controller_ready=true;
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+        d->voltage_hold_ready=true;
+#endif
         d->partial_refresh_active=true;
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
         if (trial && d->dirty_hold_dual_sync) ++d->dirty_hold_dual_updates;

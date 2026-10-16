@@ -281,6 +281,9 @@ static void display_print_usage(solar_os_shell_io_t *term)
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     solar_os_shell_io_writeln(term, "  display test display0 ab-a|ab-b baseline|dose (serial, operator-stepped)");
 #endif
+#if defined(SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL) && SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+    solar_os_shell_io_writeln(term, "  display test display0 voltage-hold A|B (serial, 6 warm updates)");
+#endif
     solar_os_shell_io_writeln(term, "  display mode <target> [mode]");
     solar_os_shell_io_writeln(term,
                               "  display join <name> --horizontal|--vertical <target> <target> [target ...]");
@@ -643,10 +646,20 @@ static void display_draw_test_pattern(u8g2_t *u8g2, const char *name)
 #include "solar_os_shell_quality_ab.inc"
 #include "solar_os_writer.h"
 #endif
+#if defined(SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL) && SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+#include "solar_os_shell_voltage_hold_trial.inc"
+#endif
 
 static void display_cmd_test(solar_os_shell_io_t *term, int argc, char **argv)
 {
     static const char owner[] = "shell:display-test";
+
+#if defined(SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL) && SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+    if (argc >= 4 && strcmp(argv[3], "voltage-hold") == 0) {
+        display_cmd_voltage_hold_trial(term, argc, argv);
+        return;
+    }
+#endif
 
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     if (argc >= 4 && strcmp(argv[3], "writer-quality") == 0) {

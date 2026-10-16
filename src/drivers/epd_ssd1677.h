@@ -24,6 +24,10 @@
 #define SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL 0
 #endif
 
+#ifndef SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+#define SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL 0
+#endif
+
 /* Opt-in SPI clock trial; normal fastest builds retain their 40 MHz default. */
 #ifndef SOLAR_OS_SSD1677_SPI20_TRIAL
 #define SOLAR_OS_SSD1677_SPI20_TRIAL 0
@@ -137,6 +141,14 @@ typedef struct {
 #endif
     bool timing_enabled;
     bool reference_awake; /* fastest Mode 2, analog power retained */
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+    bool voltage_hold_trial; /* RAM-only A/B switch; defaults to baseline. */
+    bool voltage_hold_ready; /* Cleared on reset, OTP, sleep, or failure. */
+    bool trial_force_identical_fastest; /* Diagnostic only; normal no-op stays. */
+    uint32_t trial_fast_0x20_count;
+    uint32_t trial_fast_0x32_count, trial_fast_0x03_count;
+    uint32_t trial_fast_0x04_count, trial_fast_0x2c_count;
+#endif
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
     bool dirty_hold_trial; /* RAM-only window switch; PaperMono starts in rows-dual. */
     bool dirty_hold_full_height; /* Diagnostic: X window only, full gate range. */

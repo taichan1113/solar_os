@@ -283,6 +283,9 @@ static esp_err_t ssd1677_set_full_address(epd_ssd1677_t *display)
 static esp_err_t ssd1677_controller_init(epd_ssd1677_t *display)
 {
     display->reference_awake = false;
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+    display->voltage_hold_ready = false;
+#endif
     display->papermono_baseline_valid = false;
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
     display->dirty_hold_ram_synced = false;
@@ -514,6 +517,9 @@ static esp_err_t ssd1677_papermono_refresh(epd_ssd1677_t *display)
     #if SOLAR_OS_SSD1677_HYBRID_TRIAL
         !quality &&
     #endif
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+        !display->trial_force_identical_fastest &&
+#endif
         memcmp(ssd1677_frame(display), display->shadow, display->buffer_size) == 0) return ESP_OK;
     if (!cleanup && baseline &&
         (display->refresh_mode == EPD_SSD1677_REFRESH_FASTEST ||
@@ -532,6 +538,9 @@ static esp_err_t ssd1677_papermono_refresh(epd_ssd1677_t *display)
     #endif
         return fast_err;
     }
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+    display->voltage_hold_ready = false; /* OTP path changes controller state. */
+#endif
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
     display->dirty_hold_ram_synced = false;
 #endif
@@ -711,6 +720,9 @@ static esp_err_t ssd1677_sleep(epd_ssd1677_t *display)
     const bool fastest_powered = display->reference_awake;
     display->papermono_baseline_valid = false;
     display->reference_awake = false;
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+    display->voltage_hold_ready = false;
+#endif
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
     display->dirty_hold_ram_synced = false;
 #endif
@@ -1145,11 +1157,17 @@ const char *epd_ssd1677_controller_mode_values(const epd_ssd1677_t *display)
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
                " dirty-window=<off,columns,rows,rows-dual>"
 #endif
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+               " voltage-hold=<off,on>"
+#endif
                ;
 #elif SOLAR_OS_SSD1677_WAVEFORM_TRIAL
         return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> fastest-waveform=<baseline,dose,hold> (EXPERIMENTAL; DC/lifetime unverified) " SSD1677_SPI_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>"
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
                " dirty-window=<off,columns,rows,rows-dual>"
+#endif
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+               " voltage-hold=<off,on>"
 #endif
                ;
 #elif SOLAR_OS_SSD1677_HYBRID_TRIAL
@@ -1157,11 +1175,17 @@ const char *epd_ssd1677_controller_mode_values(const epd_ssd1677_t *display)
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
                " dirty-window=<off,columns,rows,rows-dual>"
 #endif
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+               " voltage-hold=<off,on>"
+#endif
                ;
 #else
         return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> " SSD1677_SPI_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>"
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
                " dirty-window=<off,columns,rows,rows-dual>"
+#endif
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+               " voltage-hold=<off,on>"
 #endif
                ;
 #endif
@@ -1174,6 +1198,13 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
 {
     if (display == NULL || mode == NULL) return ESP_ERR_INVALID_ARG;
     if (display->papermono_otp) {
+#if SOLAR_OS_SSD1677_VOLTAGE_HOLD_TRIAL
+        if (strcmp(mode, "voltage-hold=off") == 0 ||
+            strcmp(mode, "voltage-hold=on") == 0) {
+            display->voltage_hold_trial = strcmp(mode, "voltage-hold=on") == 0;
+            return ESP_OK;
+        }
+#endif
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
         if (strcmp(mode, "dirty-window=columns") == 0 ||
             strcmp(mode, "dirty-window=rows") == 0 ||
