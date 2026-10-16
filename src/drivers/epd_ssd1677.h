@@ -139,6 +139,7 @@ typedef struct {
     bool reference_awake; /* fastest Mode 2, analog power retained */
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
     bool dirty_hold_trial; /* RAM-only trial switch; starts OFF on hardware. */
+    bool dirty_hold_full_height; /* Diagnostic: X window only, full gate range. */
     bool dirty_hold_ram_synced; /* Both controller RAM planes equal shadow. */
 #endif
     bool fastest_tiles;

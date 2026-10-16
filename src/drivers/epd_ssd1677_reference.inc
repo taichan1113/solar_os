@@ -170,6 +170,11 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
                        d->refresh_mode == EPD_SSD1677_REFRESH_FASTEST &&
                        d->fastest_tiles && d->band_buffer != NULL;
     const bool narrow = trial && !cold && d->dirty_hold_ram_synced;
+    ssd1677_window_t ram_window = dirty;
+    if (narrow && d->dirty_hold_full_height) {
+        ram_window.y_start = 0;
+        ram_window.y_end = SSD1677_HEIGHT - 1U;
+    }
     d->dirty_hold_ram_synced = false; /* Unknown until post-activation sync succeeds. */
 #endif
     const char *waveform_name;
@@ -193,7 +198,7 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
         /* A synchronized RED plane already holds the old image. The cold or
          * unsynchronized entry writes both full planes before activation. */
-        err = narrow ? ssd1677_write_tile_window(d, 0x24, source, &dirty, i) :
+        err = narrow ? ssd1677_write_tile_window(d, 0x24, source, &ram_window, i) :
               d->fastest_tiles ? ssd1677_write_bands(d, i ? 0x26 : 0x24, source, i) :
                                  ssd1677_write_plane(d, i ? 0x26 : 0x24, source, &full, false);
 #else
@@ -203,8 +208,8 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         if (err == ESP_OK) {
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
             d->timing.ram_data_bytes[i] = narrow ?
-                (dirty.x_end_byte - dirty.x_start_byte + 1U) *
-                (dirty.y_end - dirty.y_start + 1U) : SSD1677_BUFFER_BYTES;
+                (ram_window.x_end_byte - ram_window.x_start_byte + 1U) *
+                (ram_window.y_end - ram_window.y_start + 1U) : SSD1677_BUFFER_BYTES;
 #else
             d->timing.ram_data_bytes[i] = SSD1677_BUFFER_BYTES;
 #endif
@@ -240,11 +245,11 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         d->timing.write_start_us[i] = esp_timer_get_time();
         /* Without this step the old/new transition remains in RED RAM and
          * would be re-applied outside the next dirty rectangle. */
-        err = narrow ? ssd1677_write_tile_window(d, 0x26, ssd1677_frame(d), &dirty, i) :
+        err = narrow ? ssd1677_write_tile_window(d, 0x26, ssd1677_frame(d), &ram_window, i) :
                        ssd1677_write_bands(d, 0x26, ssd1677_frame(d), i);
         if (err == ESP_OK) d->timing.ram_data_bytes[i] = narrow ?
-            (dirty.x_end_byte - dirty.x_start_byte + 1U) *
-            (dirty.y_end - dirty.y_start + 1U) : SSD1677_BUFFER_BYTES;
+            (ram_window.x_end_byte - ram_window.x_start_byte + 1U) *
+            (ram_window.y_end - ram_window.y_start + 1U) : SSD1677_BUFFER_BYTES;
         d->timing.write_end_us[i] = esp_timer_get_time();
         if (err == ESP_OK) d->dirty_hold_ram_synced = true;
     }
