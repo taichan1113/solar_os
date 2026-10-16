@@ -238,10 +238,6 @@ static void display_cmd_voltage_hold_trial(solar_os_shell_io_t *io,
 done:
     d->trial_force_identical_fastest = false;
     free(initial_frame);
-    solar_os_shell_io_printf(io,
-        "VH end condition=%c err=%d completed=%u healthy=%u buffer_interference=%u total_fast_0x20=%lu\n",
-        condition, err, completed, healthy, buffer_interference,
-        (unsigned long)d->trial_fast_0x20_count);
     if (configured) {
         if (healthy) {
             esp_err_t cleanup = solar_os_display_set_controller_mode(target.name,
@@ -249,7 +245,10 @@ done:
             if (cleanup == ESP_OK)
                 cleanup = fixed_black_trial_present(io, &target, d, "exit-otp",
                                                     UINT_MAX, false, false);
-            if (cleanup != ESP_OK) healthy = false;
+            if (cleanup != ESP_OK) {
+                healthy = false;
+                if (err == ESP_OK) err = cleanup;
+            }
         }
         const char *refresh[] = {"refresh=auto", "refresh=partial", "refresh=full",
                                  "refresh=fastest", "refresh=typing",
@@ -269,4 +268,8 @@ done:
         (void)solar_os_display_set_controller_mode(target.name, "refresh=cleanup");
         solar_os_sessions_mark_foreground_dirty();
     }
+    solar_os_shell_io_printf(io,
+        "VH end condition=%c err=%d completed=%u healthy=%u buffer_interference=%u total_fast_0x20=%lu\n",
+        condition, err, completed, healthy, buffer_interference,
+        (unsigned long)d->trial_fast_0x20_count);
 }
