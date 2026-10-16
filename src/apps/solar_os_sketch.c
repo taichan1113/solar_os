@@ -83,6 +83,12 @@ typedef struct {
     bool dirty;
     bool suspended;
     bool render_pending;
+    bool full_render_pending;
+    bool paint_region_valid;
+    int paint_x0;
+    int paint_y0;
+    int paint_x1;
+    int paint_y1;
     bool pointer_relative;
     char path[SOLAR_OS_STORAGE_PATH_MAX];
     char message[128];
@@ -100,6 +106,38 @@ static const solar_os_gfx_color_t sketch_colors[4] = {
 
 static bool sketch_is_shape_tool(void);
 static void sketch_draw_shape(solar_os_sketch_canvas_t *canvas, int x, int y);
+
+static void sketch_request_full(void)
+{
+    sketch.full_render_pending = true;
+    sketch.render_pending = true;
+}
+
+static void sketch_mark_paint(int x0, int y0, int x1, int y1)
+{
+    const int radius = sketch.weight > 1U ? (int)sketch.weight / 2 : 0;
+    int left = (x0 < x1 ? x0 : x1) - radius - 1;
+    int top = (y0 < y1 ? y0 : y1) - radius - 1;
+    int right = (x0 > x1 ? x0 : x1) + radius + 2;
+    int bottom = (y0 > y1 ? y0 : y1) + radius + 2;
+    if (left < 0) left = 0;
+    if (top < 0) top = 0;
+    if (right > sketch.canvas.width) right = sketch.canvas.width;
+    if (bottom > sketch.canvas.height) bottom = sketch.canvas.height;
+    if (left >= right || top >= bottom) return;
+    if (sketch.paint_region_valid) {
+        if (left > sketch.paint_x0) left = sketch.paint_x0;
+        if (top > sketch.paint_y0) top = sketch.paint_y0;
+        if (right < sketch.paint_x1) right = sketch.paint_x1;
+        if (bottom < sketch.paint_y1) bottom = sketch.paint_y1;
+    }
+    sketch.paint_x0 = left;
+    sketch.paint_y0 = top;
+    sketch.paint_x1 = right;
+    sketch.paint_y1 = bottom;
+    sketch.paint_region_valid = true;
+    sketch.render_pending = true;
+}
 
 static void sketch_pointer_acquire(void)
 {
@@ -193,7 +231,7 @@ static void sketch_set_info(const char *message)
 {
     strlcpy(sketch.message, message != NULL ? message : "", sizeof(sketch.message));
     sketch.modal = SKETCH_MODAL_INFO;
-    sketch.render_pending = true;
+    sketch_request_full();
 }
 
 static uint8_t sketch_nearest_color(uint8_t red, uint8_t green, uint8_t blue)
@@ -399,7 +437,7 @@ static void sketch_browser_close(void)
     solar_os_storage_browser_destroy(sketch.browser);
     sketch.browser = NULL;
     sketch.modal = SKETCH_MODAL_NONE;
-    sketch.render_pending = true;
+    sketch_request_full();
 }
 
 static void sketch_path_directory(const char *path,
@@ -441,7 +479,7 @@ static void sketch_browser_open(sketch_modal_t modal)
         return;
     }
     sketch.modal = modal;
-    sketch.render_pending = true;
+    sketch_request_full();
 }
 
 static void sketch_browser_activate(void)
@@ -461,7 +499,7 @@ static void sketch_browser_activate(void)
         return;
     }
     if (!file_selected) {
-        sketch.render_pending = true;
+        sketch_request_full();
         return;
     }
     err = sketch_load_image(selected, modal == SKETCH_MODAL_OPEN);
@@ -471,7 +509,7 @@ static void sketch_browser_activate(void)
         sketch_set_info("Image load failed");
     } else {
         sketch.modal = SKETCH_MODAL_NONE;
-        sketch.render_pending = true;
+        sketch_request_full();
     }
 }
 
@@ -737,6 +775,65 @@ static void sketch_render_popup(solar_os_gfx_t *gfx,
                        solar_os_ui_px(34), solar_os_ui_px(20), "OK", false);
 }
 
+static bool sketch_render_paint(solar_os_gfx_t *gfx,
+                                const sketch_layout_t *layout)
+{
+#if !defined(SOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT) || !SOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT
+    (void)gfx;
+    (void)layout;
+    return false;
+#else
+    if (sketch.full_render_pending || !sketch.paint_region_valid ||
+        sketch.modal != SKETCH_MODAL_NONE || sketch.pointer_relative ||
+        solar_os_gfx_format(gfx) != SOLAR_OS_DISPLAY_FORMAT_MONO1) {
+        return false;
+    }
+    const int x = sketch.paint_x0;
+    const int y = sketch.paint_y0;
+    const int width = sketch.paint_x1 - x;
+    const int height = sketch.paint_y1 - y;
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    solar_os_sketch_trace_record(SKTRACE_RENDER, 0, sketch_canvas_version, 0,
+                                 width, height);
+    const int64_t xbm_start = esp_timer_get_time();
+#endif
+    if (!solar_os_sketch_canvas_render_xbm_region(
+            &sketch.canvas, x, y, width, height,
+            sketch.canvas_bitmap, sketch.canvas_bitmap_size)) {
+        return false;
+    }
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    solar_os_sketch_trace_record(SKTRACE_XBM, 0, sketch_canvas_version, 0,
+        (int32_t)(esp_timer_get_time() - xbm_start), width * height);
+    const int64_t bitmap_start = esp_timer_get_time();
+#endif
+    solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_WHITE);
+    solar_os_gfx_fill_rect(gfx, layout->canvas_x + x,
+                           layout->canvas_y + y, width, height);
+    solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
+    solar_os_gfx_bitmap(gfx, layout->canvas_x + x,
+                        layout->canvas_y + y, width, height,
+                        sketch.canvas_bitmap);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    solar_os_sketch_trace_record(SKTRACE_BITMAP, 0, sketch_canvas_version, 0,
+        (int32_t)(esp_timer_get_time() - bitmap_start), width * height);
+#endif
+    uint64_t generation = 0;
+    const esp_err_t err = solar_os_gfx_submit(gfx, &generation);
+#if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
+    solar_os_sketch_trace_record(SKTRACE_SUBMIT, 0, sketch_canvas_version,
+                                 generation, 0, err);
+#endif
+    if (err != ESP_OK) {
+        SOLAR_OS_LOGE("sketch", "paint submit failed: %s", esp_err_to_name(err));
+    } else {
+        sketch.paint_region_valid = false;
+        sketch.render_pending = false;
+    }
+    return true;
+#endif
+}
+
 static void sketch_render(solar_os_context_t *ctx)
 {
     if (sketch.suspended) {
@@ -747,6 +844,7 @@ static void sketch_render(solar_os_context_t *ctx)
         return;
     }
     const sketch_layout_t layout = sketch_layout(gfx);
+    if (sketch_render_paint(gfx, &layout)) return;
 #if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
     solar_os_sketch_trace_record(SKTRACE_RENDER, 0, sketch_canvas_version, 0, 0, 0);
 #endif
@@ -898,8 +996,13 @@ static void sketch_render(solar_os_context_t *ctx)
     if (err != ESP_OK) SOLAR_OS_LOGE("sketch", "display submit failed: %s", esp_err_to_name(err));
 #else
     solar_os_gfx_present(gfx);
+    const esp_err_t err = ESP_OK;
 #endif
-    sketch.render_pending = false;
+    if (err == ESP_OK) {
+        sketch.render_pending = false;
+        sketch.full_render_pending = false;
+        sketch.paint_region_valid = false;
+    }
 }
 
 static bool sketch_is_shape_tool(void)
@@ -967,7 +1070,7 @@ static void sketch_bucket_fill(int x, int y)
     solar_os_memory_free(workspace);
     if (changed) {
         sketch.dirty = true;
-        sketch.render_pending = true;
+        sketch_request_full();
     }
 }
 
@@ -996,16 +1099,20 @@ static void sketch_canvas_pointer(const sketch_layout_t *layout,
                                         sketch_brush_color(),
                                         sketch_brush_pattern(),
                                         sketch.weight);
+            const bool was_dirty = sketch.dirty;
             sketch.dirty = true;
+            sketch_mark_paint(x, y, x, y);
+            if (!was_dirty) sketch_request_full();
 #if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
             solar_os_sketch_trace_record(SKTRACE_CANVAS,
                 solar_os_sketch_trace_current(), ++sketch_canvas_version,
                 0, (int32_t)(esp_timer_get_time() - canvas_start), 0);
 #endif
         }
-        sketch.render_pending = true;
+        if (!sketch_is_brush_tool()) sketch_request_full();
     } else if (pointer->action == SOLAR_OS_INPUT_POINTER_MOVE &&
                sketch.drawing && sketch_is_brush_tool() && inside) {
+        if (x == sketch.stroke_x && y == sketch.stroke_y) return;
 #if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
         const int64_t canvas_start = esp_timer_get_time();
 #endif
@@ -1013,6 +1120,7 @@ static void sketch_canvas_pointer(const sketch_layout_t *layout,
                                     sketch.stroke_y, x, y,
                                     sketch_brush_color(),
                                     sketch_brush_pattern(), sketch.weight);
+        sketch_mark_paint(sketch.stroke_x, sketch.stroke_y, x, y);
         sketch.stroke_x = x;
         sketch.stroke_y = y;
         sketch.dirty = true;
@@ -1021,14 +1129,13 @@ static void sketch_canvas_pointer(const sketch_layout_t *layout,
             solar_os_sketch_trace_current(), ++sketch_canvas_version,
             0, (int32_t)(esp_timer_get_time() - canvas_start), 0);
 #endif
-        sketch.render_pending = true;
     } else if (pointer->action == SOLAR_OS_INPUT_POINTER_MOVE &&
                sketch.drawing && sketch_is_shape_tool()) {
         sketch.preview_x = x < 0 ? 0 :
             (x >= layout->canvas_width ? layout->canvas_width - 1 : x);
         sketch.preview_y = y < 0 ? 0 :
             (y >= layout->canvas_height ? layout->canvas_height - 1 : y);
-        sketch.render_pending = true;
+        sketch_request_full();
     } else if (pointer->action == SOLAR_OS_INPUT_POINTER_RELEASE &&
                sketch.drawing) {
         if (sketch_is_shape_tool()) {
@@ -1046,9 +1153,24 @@ static void sketch_canvas_pointer(const sketch_layout_t *layout,
                 solar_os_sketch_trace_current(), ++sketch_canvas_version,
                 0, (int32_t)(esp_timer_get_time() - canvas_start), 0);
 #endif
+            sketch_request_full();
+        } else if (sketch_is_brush_tool()) {
+            const int end_x = x < 0 ? 0 :
+                (x >= layout->canvas_width ? layout->canvas_width - 1 : x);
+            const int end_y = y < 0 ? 0 :
+                (y >= layout->canvas_height ? layout->canvas_height - 1 : y);
+            if (end_x != sketch.stroke_x || end_y != sketch.stroke_y) {
+                solar_os_sketch_canvas_line(&sketch.canvas, sketch.stroke_x,
+                                            sketch.stroke_y, end_x, end_y,
+                                            sketch_brush_color(),
+                                            sketch_brush_pattern(), sketch.weight);
+                sketch_mark_paint(sketch.stroke_x, sketch.stroke_y,
+                                  end_x, end_y);
+                sketch.stroke_x = end_x;
+                sketch.stroke_y = end_y;
+            }
         }
         sketch.drawing = false;
-        sketch.render_pending = true;
     }
 }
 
@@ -1087,7 +1209,7 @@ static void sketch_toolbar_pointer(const sketch_layout_t *layout)
             solar_os_sketch_canvas_clear(&sketch.canvas, 0U);
             sketch.dirty = true;
         }
-        sketch.render_pending = true;
+        sketch_request_full();
         return;
     }
     if (y >= layout->canvas_y + layout->canvas_height) {
@@ -1098,7 +1220,7 @@ static void sketch_toolbar_pointer(const sketch_layout_t *layout)
         } else if (index >= 4 && index < 8) {
             sketch.pattern = (uint8_t)(index - 4);
         }
-        sketch.render_pending = true;
+        sketch_request_full();
     }
 }
 
@@ -1159,14 +1281,14 @@ static bool sketch_pointer_event(solar_os_context_t *ctx,
         sketch.pointer_y = layout.screen_height - 1;
     if (pointer->action == SOLAR_OS_INPUT_POINTER_MOVE &&
         pointer->mode == SOLAR_OS_INPUT_POINTER_RELATIVE) {
-        sketch.render_pending = true;
+        sketch_request_full();
     }
 
     if (sketch.modal == SKETCH_MODAL_NO_POINTER ||
         sketch.modal == SKETCH_MODAL_INFO) {
         if (pointer->action == SOLAR_OS_INPUT_POINTER_PRESS) {
             sketch.modal = SKETCH_MODAL_NONE;
-            sketch.render_pending = true;
+            sketch_request_full();
         }
         return true;
     }
@@ -1195,7 +1317,7 @@ static bool sketch_char_event(solar_os_context_t *ctx, uint8_t ch)
         if (ch == '\r' || ch == '\n' || ch == SOLAR_OS_KEY_ESCAPE ||
             ch == SOLAR_OS_KEY_APP_EXIT) {
             sketch.modal = SKETCH_MODAL_NONE;
-            sketch.render_pending = true;
+            sketch_request_full();
         }
         return true;
     }
@@ -1205,10 +1327,10 @@ static bool sketch_char_event(solar_os_context_t *ctx, uint8_t ch)
             sketch_browser_close();
         } else if (ch == SOLAR_OS_KEY_UP) {
             solar_os_storage_browser_move(sketch.browser, -1);
-            sketch.render_pending = true;
+            sketch_request_full();
         } else if (ch == SOLAR_OS_KEY_DOWN) {
             solar_os_storage_browser_move(sketch.browser, 1);
-            sketch.render_pending = true;
+            sketch_request_full();
         } else if (ch == '\r' || ch == '\n') {
             sketch_browser_activate();
         }
@@ -1226,26 +1348,26 @@ static bool sketch_char_event(solar_os_context_t *ctx, uint8_t ch)
         sketch_browser_open(SKETCH_MODAL_IMPORT);
     } else if (ch == 'p' || ch == 'P' || ch == 'f' || ch == 'F') {
         sketch.tool = SKETCH_TOOL_FREEHAND;
-        sketch.render_pending = true;
+        sketch_request_full();
     } else if (ch == 'l' || ch == 'L') {
         sketch.tool = SKETCH_TOOL_LINE;
-        sketch.render_pending = true;
+        sketch_request_full();
     } else if (ch == 'r' || ch == 'R') {
         sketch.tool = SKETCH_TOOL_RECTANGLE;
-        sketch.render_pending = true;
+        sketch_request_full();
     } else if (ch == 'e' || ch == 'E') {
         sketch.tool = SKETCH_TOOL_ELLIPSE;
-        sketch.render_pending = true;
+        sketch_request_full();
     } else if (ch == 'b' || ch == 'B') {
         sketch.tool = SKETCH_TOOL_FILL;
-        sketch.render_pending = true;
+        sketch_request_full();
     } else if (ch == 'x' || ch == 'X') {
         sketch.tool = SKETCH_TOOL_ERASER;
-        sketch.render_pending = true;
+        sketch_request_full();
     } else if (ch == 'c' || ch == 'C') {
         solar_os_sketch_canvas_clear(&sketch.canvas, 0U);
         sketch.dirty = true;
-        sketch.render_pending = true;
+        sketch_request_full();
     }
     return true;
 }
@@ -1306,7 +1428,7 @@ static esp_err_t sketch_start(solar_os_context_t *ctx)
     sketch_pointer_acquire();
     sketch.modal = sketch_has_pointer() ? SKETCH_MODAL_NONE :
                                            SKETCH_MODAL_NO_POINTER;
-    sketch.render_pending = true;
+    sketch_request_full();
     solar_os_context_set_graphics_active(ctx, true);
 
     const int argc = solar_os_context_argc(ctx);
@@ -1377,7 +1499,7 @@ static void sketch_resume(solar_os_context_t *ctx)
     if (sketch.modal == SKETCH_MODAL_NO_POINTER && sketch_has_pointer())
         sketch.modal = SKETCH_MODAL_NONE;
     sketch.suspended = false;
-    sketch.render_pending = true;
+    sketch_request_full();
     solar_os_context_set_graphics_active(ctx, true);
     sketch_render(ctx);
 }

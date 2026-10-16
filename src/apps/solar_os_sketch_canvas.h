@@ -64,6 +64,10 @@ bool solar_os_sketch_canvas_render_xbm(
     const solar_os_sketch_canvas_t *canvas,
     uint8_t *bitmap,
     size_t bitmap_size);
+bool solar_os_sketch_canvas_render_xbm_region(
+    const solar_os_sketch_canvas_t *canvas,
+    int x, int y, int width, int height,
+    uint8_t *bitmap, size_t bitmap_size);
 
 /* Write an interoperable 8-bit grayscale PNG with filter-free, uncompressed
  * DEFLATE rows. The caller owns flushing, syncing, and atomic replacement. */

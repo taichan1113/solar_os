@@ -336,10 +336,10 @@ bool solar_os_sketch_canvas_flood_fill(solar_os_sketch_canvas_t *canvas,
     return true;
 }
 
-bool solar_os_sketch_canvas_render_xbm(
+bool solar_os_sketch_canvas_render_xbm_region(
     const solar_os_sketch_canvas_t *canvas,
-    uint8_t *bitmap,
-    size_t bitmap_size)
+    int x, int y, int width, int height,
+    uint8_t *bitmap, size_t bitmap_size)
 {
     static const uint8_t bayer4[4][4] = {
         {0U, 8U, 2U, 10U},
@@ -347,27 +347,42 @@ bool solar_os_sketch_canvas_render_xbm(
         {3U, 11U, 1U, 9U},
         {15U, 7U, 13U, 5U},
     };
-    const size_t required = canvas != NULL ?
-        solar_os_sketch_canvas_xbm_bytes(canvas->width, canvas->height) : 0U;
+    const size_t required = width > 0 && height > 0 ?
+        (((size_t)width + 7U) / 8U) * (size_t)height : 0U;
     if (canvas == NULL || canvas->pixels == NULL || bitmap == NULL ||
+        x < 0 || y < 0 || width <= 0 || height <= 0 ||
+        x > (int)canvas->width - width ||
+        y > (int)canvas->height - height ||
         required == 0U || bitmap_size < required) {
         return false;
     }
-    const size_t stride = ((size_t)canvas->width + 7U) / 8U;
+    const size_t stride = ((size_t)width + 7U) / 8U;
     memset(bitmap, 0, required);
-    for (int y_pos = 0; y_pos < (int)canvas->height; y_pos++) {
-        for (int x_pos = 0; x_pos < (int)canvas->width; x_pos++) {
+    for (int row = 0; row < height; row++) {
+        for (int column = 0; column < width; column++) {
+            const int x_pos = x + column;
+            const int y_pos = y + row;
             const uint8_t shade = solar_os_sketch_canvas_get(
                 canvas, x_pos, y_pos);
             const uint8_t threshold = shade == 0U ? 16U :
                 (shade == 1U ? 12U : (shade == 2U ? 5U : 0U));
             if (bayer4[y_pos & 3][x_pos & 3] >= threshold) {
-                bitmap[(size_t)y_pos * stride + ((size_t)x_pos >> 3U)] |=
-                    (uint8_t)(1U << (x_pos & 7));
+                bitmap[(size_t)row * stride + ((size_t)column >> 3U)] |=
+                    (uint8_t)(1U << (column & 7));
             }
         }
     }
     return true;
+}
+
+bool solar_os_sketch_canvas_render_xbm(
+    const solar_os_sketch_canvas_t *canvas,
+    uint8_t *bitmap,
+    size_t bitmap_size)
+{
+    return canvas != NULL && solar_os_sketch_canvas_render_xbm_region(
+        canvas, 0, 0, canvas->width, canvas->height,
+        bitmap, bitmap_size);
 }
 
 static uint32_t sketch_crc32_update(uint32_t crc, uint8_t byte)

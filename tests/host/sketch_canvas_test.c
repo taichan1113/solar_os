@@ -33,6 +33,38 @@ int main(void)
     assert((xbm[0] & 0x04U) == 0U);
     assert(xbm[1] == 0U);
 
+    /* A compact, unaligned update must reproduce the matching full-frame
+     * pixels, including the absolute-coordinate color dither. */
+    uint8_t region_pixels[solar_os_sketch_canvas_bytes(17U, 13U)];
+    solar_os_sketch_canvas_t region_canvas = {
+        .pixels = region_pixels, .width = 17U, .height = 13U,
+    };
+    for (int y = 0; y < 13; y++) {
+        for (int x = 0; x < 17; x++) {
+            solar_os_sketch_canvas_set(&region_canvas, x, y,
+                                       (uint8_t)((x + 2 * y) % 4), 0);
+        }
+    }
+    uint8_t full_xbm[solar_os_sketch_canvas_xbm_bytes(17U, 13U)];
+    uint8_t small_xbm[3U * 7U];
+    assert(solar_os_sketch_canvas_render_xbm(
+        &region_canvas, full_xbm, sizeof(full_xbm)));
+    assert(solar_os_sketch_canvas_render_xbm_region(
+        &region_canvas, 5, 3, 11, 7, small_xbm, sizeof(small_xbm)));
+    for (int y = 0; y < 7; y++) {
+        for (int x = 0; x < 11; x++) {
+            const bool from_full = (full_xbm[(size_t)(y + 3) * 3U +
+                (unsigned)(x + 5) / 8U] & (1U << ((x + 5) & 7))) != 0;
+            const bool from_region = (small_xbm[(size_t)y * 2U +
+                (unsigned)x / 8U] & (1U << (x & 7))) != 0;
+            assert(from_full == from_region);
+        }
+    }
+    assert(!solar_os_sketch_canvas_render_xbm_region(
+        &region_canvas, 10, 10, 8, 4, small_xbm, sizeof(small_xbm)));
+    assert(!solar_os_sketch_canvas_render_xbm_region(
+        &region_canvas, 5, 3, 11, 7, small_xbm, 13U));
+
     FILE *file = tmpfile();
     assert(file != NULL);
     assert(solar_os_sketch_canvas_write_png(file, &canvas) == ESP_OK);
