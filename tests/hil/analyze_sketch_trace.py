@@ -139,11 +139,19 @@ def analyze(meta, rows):
                    frame['version'] >= accepted['version'] and
                    gen in ends and ends[gen]['a'] == 0 and
                    ends[gen]['b'] == 1 and gen not in replacements]
+            if not matching and push['a'] == RELEASE and canvas is None:
+                # An unchanged release no longer requests a redundant EPD
+                # update. Its latest Canvas version must still be visible.
+                matching = [ends[gen] for gen, frame in submits.items()
+                    if frame['version'] >= accepted['version'] and
+                       gen in ends and ends[gen]['a'] == 0 and
+                       ends[gen]['b'] == 1 and gen not in replacements]
             if not matching and push['a'] == RELEASE:
                 failures.append(f'release point {point} has no completed final frame')
             elif matching:
                 key = 'press_to_done' if push['a'] == PRESS else 'release_to_done'
-                stages[key].append(min(r['time_us'] for r in matching)-sample['time_us'])
+                stages[key].append(max(0, min(r['time_us'] for r in matching)
+                                        - sample['time_us']))
     versions = [r['version'] for r in kinds['CANVAS']]
     if versions and any(b <= a for a, b in zip(versions, versions[1:])):
         failures.append('Canvas version not increasing')
