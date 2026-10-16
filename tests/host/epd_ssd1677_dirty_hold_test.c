@@ -495,7 +495,10 @@ static void test_dual_sync_periodic_resync(void)
     }
 }
 
-int main(void)
+#ifndef SSD1677_DIRTY_TEST_MAIN
+#define SSD1677_DIRTY_TEST_MAIN main
+#endif
+int SSD1677_DIRTY_TEST_MAIN(void)
 {
     const double bounds_us = benchmark_bounds_us();
     const transfer_t baseline = run_series(false);

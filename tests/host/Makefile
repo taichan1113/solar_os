@@ -34,6 +34,19 @@ TARGETS += epd_ssd1677_test epd_uc8179_test uc8179_expansion_test epd_uc8279_tes
 TARGETS += epd_ssd1677_waveform_trial_test
 TARGETS += epd_ssd1677_hybrid_trial_test
 TARGETS += epd_ssd1677_dirty_hold_test
+TARGETS += sketch_dirty_pipeline_test
+
+sketch_dirty_pipeline_test: sketch_dirty_pipeline_test.c epd_ssd1677_dirty_hold_test.c epd_ssd1677_test.c \
+        $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677_reference.inc \
+        $(ROOT)/src/apps/solar_os_sketch_canvas.c $(ROOT)/src/services/solar_os_gfx.c \
+        $(ROOT)/src/services/solar_os_ui_scale.c $(TERMINAL_RENDER_U8G2) $(wildcard $(ROOT)/fonts/build/u8g2/*.c)
+	# Existing GFX INDEX8 signedness warnings are also excluded by writer_quality_test.
+	$(CC) $(CFLAGS) -Wno-sign-compare -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 -D_GNU_SOURCE -include compat.h \
+		-ffunction-sections -fdata-sections -Iepd_stubs -I. -I$(ROOT)/src -I$(ROOT)/src/services \
+		-I$(ROOT)/src/apps -I$(ROOT)/components/u8g2/src/clib sketch_dirty_pipeline_test.c \
+		$(ROOT)/src/apps/solar_os_sketch_canvas.c $(ROOT)/src/services/solar_os_gfx.c \
+		$(ROOT)/src/services/solar_os_ui_scale.c $(TERMINAL_RENDER_U8G2) \
+		$(wildcard $(ROOT)/fonts/build/u8g2/*.c) -Wl,--gc-sections -lm -o $@
 TARGETS += epd_ssd1677_spi_clock_normal_test epd_ssd1677_spi_clock_20_test
 TARGETS += epd_ssd1677_spi_clock_dirty_normal_test epd_ssd1677_spi_clock_dirty_20_test
 TARGETS += quality_ab_test

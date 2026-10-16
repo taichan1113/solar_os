@@ -134,6 +134,8 @@ int main(void)
     pointer(&c,SOLAR_OS_INPUT_POINTER_PRESS,100,100);
     for(int x=101;x<=200;x++)pointer(&c,SOLAR_OS_INPUT_POINTER_MOVE,x,100);
     assert(submits==1);tick(&c);assert(submits==2);
+    pointer(&c,SOLAR_OS_INPUT_POINTER_MOVE,200,100);
+    tick(&c);assert(submits==2); /* Identical MOVE does not request another frame. */
     const unsigned clears_before_paint=full_clears;
     pointer(&c,SOLAR_OS_INPUT_POINTER_MOVE,204,100);
     pointer(&c,SOLAR_OS_INPUT_POINTER_RELEASE,208,100);
@@ -141,6 +143,25 @@ int main(void)
     assert(full_clears==clears_before_paint);
     assert(last_bitmap_width<l.canvas_width && last_bitmap_height<l.canvas_height);
     for(int x=100;x<=208;x++)assert(solar_os_sketch_canvas_get(&sketch.canvas,x-l.canvas_x,100-l.canvas_y)==3);
+    pointer(&c,SOLAR_OS_INPUT_POINTER_PRESS,250,120);tick(&c);
+    const unsigned before_unchanged_release=submits;
+    pointer(&c,SOLAR_OS_INPUT_POINTER_RELEASE,250,120);tick(&c);
+    assert(submits==before_unchanged_release);
+    /* Compare actual brush changes with the app's pending region, including
+     * clipping, an 8-pixel brush, coalesced MOVE and the RELEASE endpoint. */
+    const size_t canvas_bytes=solar_os_sketch_canvas_bytes(sketch.canvas.width,sketch.canvas.height);
+    uint8_t *old_pixels=malloc(canvas_bytes);assert(old_pixels);
+    memcpy(old_pixels,sketch.canvas.pixels,canvas_bytes);
+    solar_os_sketch_canvas_t old_canvas=sketch.canvas;old_canvas.pixels=old_pixels;
+    sketch.weight=8;
+    pointer(&c,SOLAR_OS_INPUT_POINTER_PRESS,l.canvas_x,l.canvas_y);
+    pointer(&c,SOLAR_OS_INPUT_POINTER_MOVE,l.canvas_x+7,l.canvas_y+8);
+    pointer(&c,SOLAR_OS_INPUT_POINTER_RELEASE,l.canvas_x+12,l.canvas_y+14);
+    assert(sketch.paint_region_valid);
+    for(int y=0;y<sketch.canvas.height;++y)for(int x=0;x<sketch.canvas.width;++x)
+        if(solar_os_sketch_canvas_get(&old_canvas,x,y)!=solar_os_sketch_canvas_get(&sketch.canvas,x,y))
+            assert(x>=sketch.paint_x0 && x<sketch.paint_x1 && y>=sketch.paint_y0 && y<sketch.paint_y1);
+    free(old_pixels);tick(&c);assert(!sketch.paint_region_valid);sketch.weight=1;
     solar_os_sketch_canvas_set(&sketch.canvas,10,10,1,0);
     solar_os_sketch_canvas_set(&sketch.canvas,11,10,2,0);
     sketch_suspend(&c);assert(!leased && sketch.suspended && allocations==3);
