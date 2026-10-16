@@ -758,8 +758,8 @@ static void test_hybrid_trial(void)
 
 /* Decode the actual table, including repeat and skipped phases (SSD1677 6.6).
  * Counts are waveform frames, not milliseconds or evidence of DC balance. */
-#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
-static void waveform_frames(const uint8_t *lut, unsigned row, unsigned counts[4])
+#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL || SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+static inline void waveform_frames(const uint8_t *lut, unsigned row, unsigned counts[4])
 {
     memset(counts, 0, 4 * sizeof(*counts));
     for (unsigned group=0; group<10; ++group) {
@@ -770,7 +770,9 @@ static void waveform_frames(const uint8_t *lut, unsigned row, unsigned counts[4]
         }
     }
 }
+#endif
 
+#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
 static void test_waveform_trials(void)
 {
     const char *modes[] = {"fastest-waveform=baseline", "fastest-waveform=dose",

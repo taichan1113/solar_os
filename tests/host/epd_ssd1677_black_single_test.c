@@ -92,6 +92,16 @@ static void test_failure(unsigned fault)
 
 int main(void)
 {
+    unsigned decoded[4];
+    waveform_frames(ssd1677_trial_black_hold_single_lut, 0, decoded);
+    assert(decoded[0] == 2 && decoded[1] == 0 && decoded[2] == 2 && decoded[3] == 6);
+    assert(-15 * (int)decoded[2] + 5 * (int)decoded[3] == 0);
+    for (unsigned row = 1; row < 5; ++row) {
+        unsigned original[4];
+        waveform_frames(ssd1677_trial_black_hold_single_lut, row, decoded);
+        waveform_frames(ssd1677_reference_lut, row, original);
+        assert(!memcmp(decoded, original, sizeof(decoded)));
+    }
     epd_ssd1677_baseline_main(); /* unchanged normal Driver regression, with flag enabled */
     for (unsigned r = 0; r < 2; ++r) for (unsigned s = 0; s < 2; ++s) test_identical_ab(r, s);
     for (unsigned f = 0; f < 3; ++f) test_failure(f);
