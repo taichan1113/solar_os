@@ -20,6 +20,8 @@ typedef struct {
     uint32_t mouse_sequence;
     uint8_t last_modifiers, last_keys[6];
     uint8_t displayed_layer, displayed_modifiers;
+    uint8_t displayed_locked_layers, displayed_locked_modifiers;
+    uint64_t displayed_visual_positions;
     uint32_t last_status_ms, passkey;
 } type_mouse_state_t;
 
@@ -85,7 +87,13 @@ static void type_mouse_draw_key(solar_os_gfx_t *gfx, int position)
 {
     int x, y, width, height;
     if (!solar_os_type_mouse_engine_rect(position, &x, &y, &width, &height)) return;
-    solar_os_gfx_rect(gfx, x, y, width, height);
+    const bool inverted = (tm.displayed_visual_positions & (UINT64_C(1) << position)) != 0;
+    solar_os_gfx_set_color(gfx, inverted ? SOLAR_OS_GFX_COLOR_BLACK :
+        SOLAR_OS_GFX_COLOR_WHITE);
+    solar_os_gfx_fill_rect(gfx, x, y, width, height);
+    solar_os_gfx_set_color(gfx, inverted ? SOLAR_OS_GFX_COLOR_WHITE :
+        SOLAR_OS_GFX_COLOR_BLACK);
+    if (!inverted) solar_os_gfx_rect(gfx, x, y, width, height);
     const char *tap = solar_os_type_mouse_engine_tap_label(tm.engine, position);
     const char *hold = solar_os_type_mouse_engine_hold_label(position);
     solar_os_gfx_set_font_native(gfx, SOLAR_OS_GFX_FONT_BOLD_20);
@@ -100,6 +108,19 @@ static void type_mouse_draw_key(solar_os_gfx_t *gfx, int position)
         solar_os_gfx_set_font_native(gfx, SOLAR_OS_GFX_FONT_MONO_12);
         solar_os_gfx_text(gfx, x + 4, y + height - 5, hold);
     }
+    solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
+}
+
+static void type_mouse_redraw_keys(solar_os_context_t *ctx, uint64_t visual_positions)
+{
+    const uint64_t changed = tm.displayed_visual_positions ^ visual_positions;
+    if (!changed) return;
+    solar_os_gfx_t *gfx = solar_os_context_gfx(ctx);
+    if (!gfx) return;
+    tm.displayed_visual_positions = visual_positions;
+    for (int i = 0; i < 42; ++i)
+        if (changed & (UINT64_C(1) << i)) type_mouse_draw_key(gfx, i);
+    (void)solar_os_gfx_submit(gfx, NULL);
 }
 
 static void type_mouse_draw_guide(solar_os_gfx_t *gfx, int x, int y,
@@ -157,18 +178,26 @@ static void type_mouse_render(solar_os_context_t *ctx)
     } else {
         tm.displayed_layer = solar_os_type_mouse_engine_layer(tm.engine);
         tm.displayed_modifiers = solar_os_type_mouse_engine_held_modifiers(tm.engine);
-        char state[80];
-        snprintf(state, sizeof(state), "Layer: %s%s%s%s",
+        tm.displayed_locked_layers = solar_os_type_mouse_engine_locked_layers(tm.engine);
+        tm.displayed_locked_modifiers = solar_os_type_mouse_engine_locked_modifiers(tm.engine);
+        tm.displayed_visual_positions = solar_os_type_mouse_engine_visual_positions(tm.engine);
+        char state[96];
+        snprintf(state, sizeof(state), "Layer: %s%s%s%s%s%s%s%s",
             solar_os_type_mouse_engine_layer_label(tm.engine),
+            tm.displayed_locked_layers & (1U << tm.displayed_layer) ? "*" : "",
             tm.displayed_modifiers & 0x02U ? "  Shift" : "",
+            tm.displayed_locked_modifiers & 0x02U ? "*" : "",
             tm.displayed_modifiers & 0x01U ? "  Ctrl" : "",
-            tm.displayed_modifiers & 0x04U ? "  Alt" : "");
+            tm.displayed_locked_modifiers & 0x01U ? "*" : "",
+            tm.displayed_modifiers & 0x04U ? "  Alt" : "",
+            tm.displayed_locked_modifiers & 0x04U ? "*" : "");
         solar_os_gfx_rect(gfx, 12, 83, 520, 47);
         solar_os_gfx_set_font_native(gfx, SOLAR_OS_GFX_FONT_BOLD_20);
         solar_os_gfx_text(gfx, 18, 113, state);
         for (int i = 0; i < 42; ++i) type_mouse_draw_key(gfx, i);
         solar_os_gfx_set_font_native(gfx, SOLAR_OS_GFX_FONT_MONO_16);
-        solar_os_gfx_text(gfx, 18, 455, "Large: tap   Small: hold   Mouse: switch mode");
+        solar_os_gfx_text(gfx, 18, 455,
+            "Large: tap  Small: hold  Hold 1s: lock/unlock  * locked");
     }
     (void)solar_os_gfx_submit(gfx, NULL);
 }
@@ -291,8 +320,14 @@ static void type_mouse_frame(solar_os_context_t *ctx,
             type_mouse_keys_send(&keys);
             if (tm.displayed_layer != solar_os_type_mouse_engine_layer(tm.engine) ||
                 tm.displayed_modifiers !=
-                    solar_os_type_mouse_engine_held_modifiers(tm.engine))
+                    solar_os_type_mouse_engine_held_modifiers(tm.engine) ||
+                tm.displayed_locked_layers !=
+                    solar_os_type_mouse_engine_locked_layers(tm.engine) ||
+                tm.displayed_locked_modifiers !=
+                    solar_os_type_mouse_engine_locked_modifiers(tm.engine))
                 type_mouse_render(ctx);
+            else type_mouse_redraw_keys(ctx,
+                solar_os_type_mouse_engine_visual_positions(tm.engine));
         }
     }
 }

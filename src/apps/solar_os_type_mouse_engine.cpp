@@ -27,6 +27,7 @@ struct TypeJpMapping {
 static constexpr int KEY_X = 18, KEY_Y = 142;
 static constexpr int KEY_WIDTH = 764, KEY_HEIGHT = 272;
 static constexpr uint32_t HOLD_MS = 550;
+static constexpr uint32_t TOGGLE_MS = 1000;
 
 struct TypeContact {
     bool active = false, hold = false, used = false;
@@ -49,6 +50,9 @@ struct MouseSink {
 
 struct solar_os_type_mouse_engine {
     TypeContact contacts[16]{};
+    uint8_t locked_layers = 0;
+    uint8_t locked_modifiers = 0;
+    uint64_t locked_positions = 0;
     MouseSink sink;
     papermono::Touchpad<MouseSink> *pad = nullptr;
     explicit solar_os_type_mouse_engine(solar_os_type_mouse_send_t callback, void *ctx)
@@ -88,12 +92,15 @@ extern "C" bool solar_os_type_mouse_engine_rect(int position, int *x, int *y,
 extern "C" const char *solar_os_type_mouse_engine_label(int position)
 { return position >= 0 && position < 42 ? kTypeKeys[position].label : ""; }
 
+static TypeAction hold_action_for(int position)
+{ return kTypeHoldActions[position]; }
+
 static uint8_t active_layers(const solar_os_type_mouse_engine_t *engine)
 {
-    uint8_t layers = 0;
+    uint8_t layers = engine->locked_layers;
     for (const TypeContact &c : engine->contacts)
-        if (c.active && c.hold && kTypeHoldActions[c.position].kind == TypeActionKind::Layer)
-            layers |= (uint8_t)(1U << kTypeHoldActions[c.position].layer);
+        if (c.active && c.hold && hold_action_for(c.position).kind == TypeActionKind::Layer)
+            layers |= (uint8_t)(1U << hold_action_for(c.position).layer);
     return layers;
 }
 
@@ -143,7 +150,7 @@ extern "C" const char *solar_os_type_mouse_engine_tap_label(
 extern "C" const char *solar_os_type_mouse_engine_hold_label(int position)
 {
     if (position < 0 || position >= 42) return "";
-    const TypeAction &action = kTypeHoldActions[position];
+    const TypeAction action = hold_action_for(position);
     return action.kind == TypeActionKind::Layer ||
         action.kind == TypeActionKind::Modifier ? action.label : "";
 }
@@ -152,16 +159,56 @@ extern "C" uint8_t solar_os_type_mouse_engine_held_modifiers(
     const solar_os_type_mouse_engine_t *engine)
 {
     if (!engine) return 0;
-    uint8_t modifiers = 0;
+    uint8_t modifiers = engine->locked_modifiers;
     for (const TypeContact &contact : engine->contacts) {
         if (!contact.active) continue;
         if (contact.hold &&
-            kTypeHoldActions[contact.position].kind == TypeActionKind::Modifier)
-            modifiers |= kTypeHoldActions[contact.position].modifiers;
+            hold_action_for(contact.position).kind == TypeActionKind::Modifier)
+            modifiers |= hold_action_for(contact.position).modifiers;
         else if (!contact.hold && contact.action.kind == TypeActionKind::Modifier)
             modifiers |= contact.action.modifiers;
     }
     return modifiers;
+}
+
+extern "C" uint8_t solar_os_type_mouse_engine_locked_layers(
+    const solar_os_type_mouse_engine_t *engine)
+{ return engine ? engine->locked_layers : 0; }
+
+extern "C" uint8_t solar_os_type_mouse_engine_locked_modifiers(
+    const solar_os_type_mouse_engine_t *engine)
+{ return engine ? engine->locked_modifiers : 0; }
+
+extern "C" uint64_t solar_os_type_mouse_engine_visual_positions(
+    const solar_os_type_mouse_engine_t *engine)
+{
+    if (!engine) return 0;
+    uint64_t positions = engine->locked_positions;
+    for (const TypeContact &contact : engine->contacts)
+        if (contact.active) positions |= UINT64_C(1) << contact.position;
+    return positions;
+}
+
+static void toggle_lock(solar_os_type_mouse_engine_t *engine, uint8_t position)
+{
+    const TypeAction action = hold_action_for(position);
+    uint8_t *state = action.kind == TypeActionKind::Layer ?
+        &engine->locked_layers : &engine->locked_modifiers;
+    const uint8_t bit = action.kind == TypeActionKind::Layer ?
+        (uint8_t)(1U << action.layer) : action.modifiers;
+    if (*state & bit) {
+        *state &= (uint8_t)~bit;
+        for (unsigned i = 0; i < 42; ++i) {
+            const TypeAction other = hold_action_for(i);
+            if (other.kind == action.kind &&
+                (action.kind == TypeActionKind::Layer ?
+                    other.layer == action.layer : other.modifiers == action.modifiers))
+                engine->locked_positions &= ~(UINT64_C(1) << i);
+        }
+    } else {
+        *state |= bit;
+        engine->locked_positions |= UINT64_C(1) << position;
+    }
 }
 
 static void jp_map(uint8_t &usage, uint8_t &modifiers)
@@ -190,6 +237,9 @@ extern "C" void solar_os_type_mouse_engine_cancel(solar_os_type_mouse_engine_t *
 {
     if (!engine) return;
     for (TypeContact &c : engine->contacts) c = TypeContact{};
+    engine->locked_layers = 0;
+    engine->locked_modifiers = 0;
+    engine->locked_positions = 0;
     engine->pad->cancel();
 }
 
@@ -203,11 +253,20 @@ extern "C" void solar_os_type_mouse_engine_type(solar_os_type_mouse_engine_t *en
     for (size_t i = 0; i < count; ++i) if (points[i].id < 16) seen[points[i].id] = true;
     for (TypeContact &c : engine->contacts) {
         if (!c.active || seen[&c-engine->contacts]) continue;
-        if (c.hold && !c.used && ms-c.pressed_ms < HOLD_MS) {
-            if (c.position == 41) out->switch_mouse = true;
-            else if (c.action.kind == TypeActionKind::Key) {
-                out->tap_usage = c.action.usage;
-                out->tap_modifiers = c.action.modifiers;
+        if (c.hold && !c.used) {
+            const uint32_t duration = ms - c.pressed_ms;
+            if (duration < HOLD_MS) {
+                if (c.position == 41) out->switch_mouse = true;
+                else if (c.action.kind == TypeActionKind::Key) {
+                    out->tap_usage = c.action.usage;
+                    out->tap_modifiers = c.action.modifiers;
+                }
+            } else if (duration >= TOGGLE_MS) {
+                // Commit once on a normal release. Chords and CANCEL never lock.
+                const TypeAction hold = hold_action_for(c.position);
+                if (hold.kind == TypeActionKind::Layer ||
+                    hold.kind == TypeActionKind::Modifier)
+                    toggle_lock(engine, c.position);
             }
         }
         c = TypeContact{};
@@ -217,22 +276,28 @@ extern "C" void solar_os_type_mouse_engine_type(solar_os_type_mouse_engine_t *en
         if (id >= 16 || engine->contacts[id].active) continue;
         const int position = solar_os_type_mouse_engine_hit(points[i].x, points[i].y);
         if (position < 0) continue;
+        bool chord_present = false;
         for (TypeContact &other : engine->contacts)
-            if (other.active && other.hold) other.used = true;
+            if (other.active) {
+                chord_present = true;
+                if (other.hold) other.used = true;
+            }
         TypeContact &c = engine->contacts[id];
         c.active = true;
         c.position = (uint8_t)position;
         c.action = action_for(position, active_layers(engine));
-        const TypeAction hold = kTypeHoldActions[position];
+        const TypeAction hold = hold_action_for(position);
         c.hold = hold.kind == TypeActionKind::Layer ||
             hold.kind == TypeActionKind::Modifier || position == 41;
+        c.used = c.hold && chord_present;
         c.pressed_ms = ms;
     }
     uint8_t count_keys = 0;
+    out->modifiers = engine->locked_modifiers;
     for (const TypeContact &c : engine->contacts) {
         if (!c.active) continue;
         if (c.hold) {
-            const TypeAction &hold = kTypeHoldActions[c.position];
+            const TypeAction hold = hold_action_for(c.position);
             if (hold.kind == TypeActionKind::Modifier) out->modifiers |= hold.modifiers;
         } else out->modifiers |= c.action.modifiers;
     }

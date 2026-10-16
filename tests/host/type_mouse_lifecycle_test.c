@@ -5,13 +5,17 @@ struct solar_os_gfx { size_t width, height; };
 static struct solar_os_gfx display={800,480};
 static bool leased, online, fail_enable;
 static unsigned renders, keyboard_releases, mouse_releases, closes;
+static solar_os_gfx_color_t draw_color;
+static unsigned black_fills, white_fills;
 static char drawn_text[4096];
 static bool contains(const char *s) { return strstr(drawn_text, s) != NULL; }
 solar_os_gfx_t *solar_os_context_gfx(solar_os_context_t *c) { return c->gfx; }
 void solar_os_context_set_graphics_active(solar_os_context_t *c,bool v) { c->graphics_active=v; }
 void solar_os_context_finish(solar_os_context_t *c,int e,const char *s) { (void)s; c->exit_requested=true; c->exit_code=e; }
 void solar_os_gfx_clear(solar_os_gfx_t *g,solar_os_gfx_color_t c) { (void)g; (void)c; drawn_text[0]=0; }
-void solar_os_gfx_set_color(solar_os_gfx_t *g,solar_os_gfx_color_t c) { (void)g; (void)c; }
+void solar_os_gfx_set_color(solar_os_gfx_t *g,solar_os_gfx_color_t c) { (void)g; draw_color=c; }
+void solar_os_gfx_fill_rect(solar_os_gfx_t *g,int x,int y,int w,int h)
+{ (void)g; (void)x; (void)y; (void)w; (void)h; if(draw_color==SOLAR_OS_GFX_COLOR_BLACK) ++black_fills; else if(draw_color==SOLAR_OS_GFX_COLOR_WHITE) ++white_fills; }
 void solar_os_gfx_set_font_native(solar_os_gfx_t *g,solar_os_gfx_font_t f) { (void)g; (void)f; }
 size_t solar_os_gfx_text_width(solar_os_gfx_t *g,const char *s) { (void)g; return strlen(s)*10; }
 void solar_os_gfx_text(solar_os_gfx_t *g,int x,int y,const char *s)
@@ -84,10 +88,15 @@ int main(void)
     key.snapshot.count=1;
     key.snapshot.contacts[0]=(solar_os_touch_contact_t){.id=5,.x=x+w/2,.y=y+h/2};
     unsigned key_render=renders;
+    unsigned black_before=black_fills, white_before=white_fills;
     type_mouse_frame(&c,&key);
+    assert(renders==key_render+1 && black_fills==black_before+1);
+    type_mouse_frame(&c,&key); // Repeated touch frame does not redraw.
+    assert(renders==key_render+1);
     key.snapshot.count=0; key.timestamp_us+=10000;
     type_mouse_frame(&c,&key);
-    assert(renders==key_render);
+    assert(renders==key_render+2 && white_fills==white_before+1);
+    key_render=renders;
     assert(solar_os_type_mouse_engine_rect(24,&x,&y,&w,&h));
     solar_os_input_touch_frame_t shift={.state=SOLAR_OS_INPUT_TOUCH_SAMPLE,.timestamp_us=950000};
     shift.snapshot.count=1;
@@ -97,8 +106,20 @@ int main(void)
     shift.snapshot.count=0; shift.timestamp_us+=10000;
     type_mouse_frame(&c,&shift);
     assert(renders==key_render+2 && contains("Layer: Base"));
+    shift.snapshot.count=1; shift.timestamp_us=2100000;
+    type_mouse_frame(&c,&shift);
+    shift.snapshot.count=0; shift.timestamp_us=3100000;
+    type_mouse_frame(&c,&shift);
+    assert(contains("Shift*") &&
+        (solar_os_type_mouse_engine_visual_positions(tm.engine) & (UINT64_C(1)<<24)));
+    shift.snapshot.count=1; shift.timestamp_us=3200000;
+    type_mouse_frame(&c,&shift);
+    shift.snapshot.count=0; shift.timestamp_us=4200000;
+    type_mouse_frame(&c,&shift);
+    assert(!solar_os_type_mouse_engine_locked_modifiers(tm.engine) &&
+        !solar_os_type_mouse_engine_visual_positions(tm.engine));
     assert(solar_os_type_mouse_engine_rect(37,&x,&y,&w,&h));
-    solar_os_input_touch_frame_t sym={.state=SOLAR_OS_INPUT_TOUCH_SAMPLE,.timestamp_us=1000000};
+    solar_os_input_touch_frame_t sym={.state=SOLAR_OS_INPUT_TOUCH_SAMPLE,.timestamp_us=5000000};
     sym.snapshot.count=1;
     sym.snapshot.contacts[0]=(solar_os_touch_contact_t){.id=7,.x=x+w/2,.y=y+h/2};
     unsigned before=renders;
@@ -107,10 +128,21 @@ int main(void)
     sym.snapshot.count=0; sym.timestamp_us+=10000;
     type_mouse_frame(&c,&sym);
     assert(renders==before+2 && contains("Layer: Base"));
+    shift.snapshot.count=1; shift.timestamp_us=6000000;
+    type_mouse_frame(&c,&shift);
+    shift.snapshot.count=0; shift.timestamp_us=7000000;
+    type_mouse_frame(&c,&shift);
+    assert(solar_os_type_mouse_engine_locked_modifiers(tm.engine)==2);
+    kr=keyboard_releases;
+    online=false; type_mouse_status(&c,1000);
+    assert(keyboard_releases>kr && !tm.last_modifiers &&
+        !solar_os_type_mouse_engine_locked_modifiers(tm.engine) &&
+        !solar_os_type_mouse_engine_visual_positions(tm.engine));
+    online=true; type_mouse_status(&c,1200);
     type_mouse_mode(&c,true);
     assert(contains("Pointer") && contains("Click") && contains("Drag") && contains("Scroll"));
     unsigned mouse_render=renders;
-    solar_os_input_touch_frame_t move={.state=SOLAR_OS_INPUT_TOUCH_SAMPLE,.timestamp_us=2000000};
+    solar_os_input_touch_frame_t move={.state=SOLAR_OS_INPUT_TOUCH_SAMPLE,.timestamp_us=8000000};
     move.snapshot.count=1;
     move.snapshot.contacts[0]=(solar_os_touch_contact_t){.id=7,.x=350,.y=310};
     type_mouse_frame(&c,&move);

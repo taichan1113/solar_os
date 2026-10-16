@@ -38,6 +38,7 @@ int main() {
     assert(keys.keys[0] == 0x04 && keys.keys[1] == 0);
     solar_os_type_mouse_engine_type(engine, &same_a, 1, 30, &keys);
     assert(keys.keys[0] == 0x04); // One finger still owns A.
+    assert(solar_os_type_mouse_engine_visual_positions(engine) == (UINT64_C(1) << 13));
     solar_os_type_mouse_engine_type(engine, nullptr, 0, 50, &keys);
     assert(keys.keys[0] == 0);
 
@@ -112,7 +113,73 @@ int main() {
     solar_os_type_mouse_engine_mouse(engine, pad, 1, 2, 240);
     solar_os_type_mouse_engine_mouse(engine, nullptr, 0, 3, 270);
     assert(reports.count > 0);
+
+    // A solo long hold locks the action after release, leaving the other
+    // finger free to reach a key next to the layer or modifier key.
+    solar_os_type_mouse_engine_type(engine, &shift, 1, 300, &keys);
+    assert(solar_os_type_mouse_engine_visual_positions(engine) & (UINT64_C(1) << 24));
+    solar_os_type_mouse_engine_type(engine, nullptr, 0, 1300, &keys);
+    assert(keys.modifiers == 0x02 && keys.tap_usage == 0);
+    assert(solar_os_type_mouse_engine_locked_modifiers(engine) == 0x02);
+    assert(solar_os_type_mouse_engine_visual_positions(engine) == (UINT64_C(1) << 24));
+    auto z = point(0, 25); // Adjacent to the Shift/Esc key.
+    solar_os_type_mouse_engine_type(engine, &z, 1, 1320, &keys);
+    assert(keys.keys[0] == 0x1D && (keys.modifiers & 0x02));
+    solar_os_type_mouse_engine_type(engine, nullptr, 0, 1340, &keys);
+    assert(keys.modifiers == 0x02);
+    solar_os_type_mouse_engine_type(engine, &shift, 1, 1400, &keys);
+    solar_os_type_mouse_engine_type(engine, nullptr, 0, 2400, &keys);
+    assert(keys.modifiers == 0 && keys.tap_usage == 0);
+    assert(solar_os_type_mouse_engine_locked_modifiers(engine) == 0);
+    assert(solar_os_type_mouse_engine_visual_positions(engine) == 0);
+
+    solar_os_type_mouse_engine_type(engine, &shift, 1, 2500, &keys);
+    solar_os_type_mouse_engine_type(engine, nullptr, 0, 2550, &keys);
+    assert(keys.tap_usage == 0x29); // Short Esc tap is unchanged.
+
+    solar_os_type_mouse_engine_type(engine, &sym, 1, 2600, &keys);
+    solar_os_type_mouse_engine_type(engine, nullptr, 0, 3600, &keys);
+    assert(solar_os_type_mouse_engine_layer(engine) == 1);
+    assert(solar_os_type_mouse_engine_locked_layers(engine) == (1U << 1));
+    assert(solar_os_type_mouse_engine_visual_positions(engine) == (UINT64_C(1) << 37));
+    solar_os_type_mouse_engine_type(engine, &l, 1, 3620, &keys);
+    assert(keys.keys[0] == 0x32); // Sym mapping persists without two fingers.
+    solar_os_type_mouse_engine_type(engine, nullptr, 0, 3640, &keys);
+    solar_os_type_mouse_engine_type(engine, &sym, 1, 3700, &keys);
+    solar_os_type_mouse_engine_type(engine, nullptr, 0, 4700, &keys);
+    assert(solar_os_type_mouse_engine_layer(engine) == 0);
+    assert(solar_os_type_mouse_engine_visual_positions(engine) == 0);
+
+    // A two-finger chord remains momentary even when held past the threshold.
+    solar_os_type_mouse_engine_type(engine, &shift, 1, 4800, &keys);
+    solar_os_type_mouse_point_t chord[] = {shift, z};
+    solar_os_type_mouse_engine_type(engine, chord, 2, 4850, &keys);
+    solar_os_type_mouse_engine_type(engine, nullptr, 0, 5900, &keys);
+    assert(solar_os_type_mouse_engine_locked_modifiers(engine) == 0);
+    assert(keys.modifiers == 0);
+
+    solar_os_type_mouse_engine_type(engine, &nav, 1, 6000, &keys);
+    solar_os_type_mouse_engine_type(engine, nullptr, 0, 7000, &keys);
+    assert(solar_os_type_mouse_engine_locked_layers(engine) == (1U << 2));
     solar_os_type_mouse_engine_cancel(engine);
+    assert(solar_os_type_mouse_engine_locked_layers(engine) == 0);
+    assert(solar_os_type_mouse_engine_locked_modifiers(engine) == 0);
+    assert(solar_os_type_mouse_engine_visual_positions(engine) == 0);
+    auto ctrl = point(1, 12);
+    solar_os_type_mouse_engine_type(engine, &ctrl, 1, 7100, &keys);
+    solar_os_type_mouse_engine_type(engine, nullptr, 0, 8100, &keys);
+    assert(keys.modifiers == 0x01 && keys.tap_usage == 0);
+    solar_os_type_mouse_engine_cancel(engine);
+    solar_os_type_mouse_engine_type(engine, &fn, 1, 8200, &keys);
+    solar_os_type_mouse_engine_type(engine, nullptr, 0, 9200, &keys);
+    assert(solar_os_type_mouse_engine_layer(engine) == 3);
+    assert(!std::strcmp(solar_os_type_mouse_engine_tap_label(engine, 3), "F3"));
+    solar_os_type_mouse_engine_cancel(engine);
+    // Alt retains its existing momentary behavior, including long holds.
+    solar_os_type_mouse_engine_type(engine, &alt, 1, 9300, &keys);
+    solar_os_type_mouse_engine_type(engine, nullptr, 0, 10300, &keys);
+    assert(keys.modifiers == 0 && !solar_os_type_mouse_engine_locked_modifiers(engine));
+    assert(solar_os_type_mouse_engine_visual_positions(engine) == 0);
     solar_os_type_mouse_engine_destroy(engine);
     std::puts("type_mouse_engine_test: PASS");
 }
