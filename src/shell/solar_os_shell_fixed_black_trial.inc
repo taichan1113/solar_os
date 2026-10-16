@@ -132,7 +132,6 @@ static void display_cmd_fixed_black_trial(solar_os_shell_io_t *io,
                                           offsetof(epd_ssd1677_t, u8g2));
     if (!d->papermono_otp || !d->fastest_tiles || !d->band_buffer ||
         d->fastest_spi_hz != 20000000 ||
-        d->configured_spi_hz != 20000000 ||
         d->waveform_trial != EPD_SSD1677_WAVEFORM_BASELINE ||
         u8g2_GetDisplayWidth(target.u8g2) != 800 ||
         u8g2_GetDisplayHeight(target.u8g2) != 480 || target.black_is_one ||
@@ -151,12 +150,16 @@ static void display_cmd_fixed_black_trial(solar_os_shell_io_t *io,
     }
     const epd_ssd1677_refresh_mode_t previous_refresh = d->refresh_mode;
     const bool previous_timing = d->timing_enabled;
+    const int previous_configured_spi_hz = d->configured_spi_hz;
     bool configured = false, healthy = false;
     unsigned completed = 0;
+    unsigned buffer_interference = 0;
     err = solar_os_display_wait(target.u8g2, 70000);
     if (err != ESP_OK || d->faulted) goto done;
     healthy = true;
     configured = true;
+    /* Keep the OTP setup/cleanup at 20 MHz as well as the fastest steps. */
+    d->configured_spi_hz = 20000000;
     err = solar_os_display_set_controller_mode(target.name, "refresh=fastest");
     if (err == ESP_OK) err = solar_os_display_set_controller_mode(target.name, "timing=on");
     if (err != ESP_OK) goto done;
@@ -186,7 +189,18 @@ static void display_cmd_fixed_black_trial(solar_os_shell_io_t *io,
         const int64_t due = start + (int64_t)step * 2000000;
         while (esp_timer_get_time() < due) vTaskDelay(pdMS_TO_TICKS(5));
         const int64_t actual = esp_timer_get_time();
-        if (condition == 'C') fixed_black_trial_right(target.u8g2, step);
+        if (condition != 'A') {
+            /* A foreground app may edit the shared U8g2 buffer while our
+             * display claim blocks its physical presents. Rebuild the exact
+             * trial frame before each intentional 0x20 activation. */
+            if (fixed_black_trial_left_hash(d->buffer) != fixed_hash) {
+                buffer_interference++;
+                solar_os_shell_io_printf(io,
+                    "FB buffer_interference step=%u restored=1\n", step);
+            }
+            fixed_black_trial_image(target.u8g2);
+            if (condition == 'C') fixed_black_trial_right(target.u8g2, step);
+        }
         if (fixed_black_trial_left_hash(d->buffer) != fixed_hash) {
             err = ESP_ERR_INVALID_STATE;
             goto done;
@@ -210,8 +224,8 @@ static void display_cmd_fixed_black_trial(solar_os_shell_io_t *io,
 done:
     d->trial_force_identical_fastest = false;
     solar_os_shell_io_printf(io,
-        "FB end condition=%c err=%d completed=%u healthy=%u total_fast_0x20=%lu\n",
-        condition, err, completed, healthy,
+        "FB end condition=%c err=%d completed=%u healthy=%u buffer_interference=%u total_fast_0x20=%lu\n",
+        condition, err, completed, healthy, buffer_interference,
         (unsigned long)d->trial_fast_0x20_count);
     if (configured) {
         if (healthy) {
@@ -231,6 +245,7 @@ done:
         (void)solar_os_display_set_controller_mode(target.name, refresh[previous_refresh]);
         (void)solar_os_display_set_controller_mode(target.name,
                  previous_timing ? "timing=on" : "timing=off");
+        d->configured_spi_hz = previous_configured_spi_hz;
     }
     (void)solar_os_display_release(target.name, owner);
     if (configured && healthy && solar_os_display_target_is_board_primary(target.name)) {

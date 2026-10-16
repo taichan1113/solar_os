@@ -18,7 +18,8 @@ display test display0 fixed-black C
 ```
 
 The command rejects an on-device Shell, non-PaperMono display, non-baseline LUT,
-non-tile path, or a clock other than 20 MHz. It claims `display0` and first shows
+or a non-tile fastest path. It temporarily configures 20 MHz for both OTP and
+fastest updates, then restores the previous configured clock. It claims `display0` and first shows
 white with a normal OTP full update. `FB gate=white` waits for `g`. The same
 fixed-left/variable-right image is then shown with an OTP full update.
 `FB gate=T0-photograph` waits while the initial image is photographed. Shoot at
