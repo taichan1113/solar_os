@@ -4,6 +4,8 @@
 
 Host検証・ESP32-S3ビルド済み。実機Flash・波形実行は未実施。依頼書Step 4の指定に従い、結果と候補を提示してFlash承認を得るまで実機へ進まない。短期反復試験は対象外。
 
+**ユーザー判断：今回は実機試験を保留（2026-10-16）。** Flash承認への回答は「今回は実機試験を保留する」。TrialのFlash、A/B、Candidate波形実行は行わず、現在のIntegrationを維持する。再開には改めてユーザーの指示を待つ。保存したHost結果・ビルド成果物は実機評価済みとは扱わない。
+
 | 項目 | 内容 |
 |---|---|
 | Branch | `experiment/papermono-black-hold-single` |
