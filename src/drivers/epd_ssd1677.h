@@ -138,12 +138,12 @@ typedef struct {
     bool timing_enabled;
     bool reference_awake; /* fastest Mode 2, analog power retained */
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
-    bool dirty_hold_trial; /* RAM-only trial switch; starts OFF on hardware. */
+    bool dirty_hold_trial; /* RAM-only window switch; PaperMono starts in rows-dual. */
     bool dirty_hold_full_height; /* Diagnostic: X window only, full gate range. */
     bool dirty_hold_full_width; /* Diagnostic: Y window only, full source range. */
     bool dirty_hold_dual_sync; /* Trial: synchronize both command RAMs after 0x20. */
     bool dirty_hold_ram_synced; /* Both controller RAM planes equal shadow. */
-    uint8_t dirty_hold_dual_updates; /* Bounded hardware trial, including cold fallback. */
+    uint8_t dirty_hold_dual_updates; /* Updates since the last full-RAM resync. */
 #endif
     bool fastest_tiles;
     epd_ssd1677_waveform_trial_t waveform_trial; /* volatile; baseline at init */

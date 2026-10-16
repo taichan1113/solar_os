@@ -870,10 +870,10 @@ esp_err_t epd_ssd1677_init(epd_ssd1677_t *display,
     display->reset_context = config->reset_context;
     display->papermono_otp = config->papermono_otp;
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
-    display->dirty_hold_trial = false;
+    display->dirty_hold_trial = config->papermono_otp;
     display->dirty_hold_full_height = false;
-    display->dirty_hold_full_width = false;
-    display->dirty_hold_dual_sync = false;
+    display->dirty_hold_full_width = config->papermono_otp;
+    display->dirty_hold_dual_sync = config->papermono_otp;
     display->dirty_hold_dual_updates = 0;
 #endif
     display->configured_spi_hz = config->spi_clock_hz;

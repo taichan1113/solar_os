@@ -465,24 +465,34 @@ static void test_dual_sync_against_swap_model(void)
     }
 }
 
-static void test_dual_sync_update_cap(void)
+static void test_dual_sync_periodic_resync(void)
 {
-    epd_ssd1677_t d = make_display();
-    d.papermono_otp = true; d.band_buffer = band; d.fastest_tiles = true;
-    assert(epd_ssd1677_set_controller_mode(&d, "refresh=fastest") == ESP_OK);
-    assert(ssd1677_refresh(&d) == ESP_OK);
-    assert(epd_ssd1677_set_controller_mode(&d, "dirty-window=rows-dual") == ESP_OK);
-    for (unsigned i = 0; i < 6; ++i) {
-        flip(700 + i, 420); command_count = 0;
+    for (unsigned swap = 0; swap < 2; ++swap) {
+        epd_ssd1677_t d = make_display();
+        d.papermono_otp = true; d.band_buffer = band; d.fastest_tiles = true;
+        assert(epd_ssd1677_set_controller_mode(&d, "refresh=fastest") == ESP_OK);
         assert(ssd1677_refresh(&d) == ESP_OK);
-        assert(d.dirty_hold_trial && d.dirty_hold_dual_updates == i + 1U);
-        assert(d.timing.activations == 1);
+        controller_ram_t *m = malloc(sizeof(*m));
+        assert(m);
+        controller_seed(m, &d);
+        m->swap_after_activation = swap != 0;
+        assert(epd_ssd1677_set_controller_mode(&d, "dirty-window=rows-dual") == ESP_OK);
+        for (unsigned i = 0; i < 66; ++i) {
+            flip(700 + i, 420); command_count = 0;
+            assert(ssd1677_refresh(&d) == ESP_OK);
+            const transfer_t t = controller_apply(m, &d);
+            const bool full = i == 0 || i == 32 || i == 64;
+            assert(t.activations == 1);
+            assert(t.bw_bytes == (full ? 2U * SSD1677_BUFFER_BYTES :
+                                         2U * SSD1677_PANEL_ROW_BYTES));
+            assert(t.red_bytes == (full ? 2U * SSD1677_BUFFER_BYTES :
+                                          SSD1677_PANEL_ROW_BYTES));
+            assert(d.dirty_hold_trial && d.dirty_hold_dual_sync && d.dirty_hold_ram_synced);
+            assert(d.dirty_hold_dual_updates == i % 32U + 1U);
+            assert(memcmp(m->bw, m->red, sizeof(m->bw)) == 0);
+        }
+        free(m);
     }
-    flip(710, 420); command_count = 0;
-    assert(ssd1677_refresh(&d) == ESP_OK);
-    assert(!d.dirty_hold_trial && !d.dirty_hold_dual_sync && !d.dirty_hold_ram_synced);
-    assert(find_command(0x24, 0)->length == SSD1677_BUFFER_BYTES);
-    assert(find_command(0x26, 0)->length == SSD1677_BUFFER_BYTES);
 }
 
 int main(void)
@@ -509,7 +519,7 @@ int main(void)
     test_full_height_column_window();
     test_full_width_row_window();
     test_dual_sync_against_swap_model();
-    test_dual_sync_update_cap();
+    test_dual_sync_periodic_resync();
     puts("epd_ssd1677_dirty_hold_test: PASS");
     return 0;
 }

@@ -168,11 +168,9 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
     if (d->dirty_hold_trial && d->dirty_hold_dual_sync &&
         d->dirty_hold_dual_updates >= 32U) {
-        d->dirty_hold_trial = false;
-        d->dirty_hold_dual_sync = false;
-        d->dirty_hold_full_width = false;
         d->dirty_hold_ram_synced = false;
-        ESP_LOGW(TAG, "Dirty RAM dual trial reached 32 updates; full-RAM fallback");
+        d->dirty_hold_dual_updates = 0;
+        ESP_LOGI(TAG, "Dirty RAM dual: periodic full-RAM resync after 32 updates");
     }
     const bool trial = d->dirty_hold_trial &&
                        d->refresh_mode == EPD_SSD1677_REFRESH_FASTEST &&
