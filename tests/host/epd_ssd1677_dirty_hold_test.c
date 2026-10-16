@@ -18,6 +18,7 @@ typedef struct {
     unsigned activations;
     uint8_t update_ctrl2;
     unsigned mode2_face; /* Logical activation parity, not a physical RAM bank. */
+    bool swap_after_activation; /* Alternative silicon behavior, not a proven fact. */
     unsigned mode2_face_visits[2];
     size_t classes[4]; /* old/new: BB, BW, WB, WW */
 } controller_ram_t;
@@ -131,9 +132,15 @@ static transfer_t controller_apply(controller_ram_t *m, epd_ssd1677_t *d)
                 }
             }
             memcpy(m->visible, m->bw, sizeof(m->visible));
-            /* M5GFX tracks this face across Mode-2 activations. The model
-             * deliberately leaves the command-addressed 0x24/0x26 RAM
-             * contents unchanged here; actual silicon retention is unproven. */
+            if (m->swap_after_activation) {
+                for (size_t i = 0; i < sizeof(m->bw); ++i) {
+                    const uint8_t pixel = m->bw[i], known = m->bw_known[i];
+                    m->bw[i] = m->red[i]; m->red[i] = pixel;
+                    m->bw_known[i] = m->red_known[i]; m->red_known[i] = known;
+                }
+            }
+            /* Retain and swap are two explicit models; neither establishes
+             * the actual command-addressed RAM behavior of the silicon. */
             m->mode2_face ^= 1U;
             break;
         default: break;
@@ -401,6 +408,83 @@ static void test_full_width_row_window(void)
     free(m);
 }
 
+static void test_dual_sync_against_swap_model(void)
+{
+    epd_ssd1677_t d = make_display();
+    d.papermono_otp = true; d.band_buffer = band; d.fastest_tiles = true;
+    assert(epd_ssd1677_set_controller_mode(&d, "refresh=fastest") == ESP_OK);
+    assert(ssd1677_refresh(&d) == ESP_OK);
+    controller_ram_t *m = malloc(sizeof(*m));
+    assert(m);
+    controller_seed(m, &d);
+    m->swap_after_activation = true;
+
+    /* The previous one-face post-sync fails immediately under this model. */
+    assert(epd_ssd1677_set_controller_mode(&d, "dirty-window=rows") == ESP_OK);
+    flip(770, 400); command_count = 0;
+    assert(ssd1677_refresh(&d) == ESP_OK);
+    assert(controller_apply(m, &d).activations == 1);
+    assert(memcmp(m->bw, m->red, sizeof(m->bw)) != 0);
+    free(m);
+
+    for (unsigned swap = 0; swap < 2; ++swap) {
+        d = make_display();
+        d.papermono_otp = true; d.band_buffer = band; d.fastest_tiles = true;
+        assert(epd_ssd1677_set_controller_mode(&d, "refresh=fastest") == ESP_OK);
+        assert(ssd1677_refresh(&d) == ESP_OK);
+        m = malloc(sizeof(*m));
+        assert(m);
+        controller_seed(m, &d);
+        m->swap_after_activation = swap != 0;
+        assert(epd_ssd1677_set_controller_mode(&d, "dirty-window=rows-dual") == ESP_OK);
+        assert(d.dirty_hold_trial && d.dirty_hold_full_width && d.dirty_hold_dual_sync);
+        flip(770, 400); command_count = 0;
+        assert(ssd1677_refresh(&d) == ESP_OK);
+        transfer_t t = controller_apply(m, &d);
+        assert(t.activations == 1 && t.bw_bytes == 2U * SSD1677_BUFFER_BYTES);
+        assert(t.red_bytes == 2U * SSD1677_BUFFER_BYTES);
+        assert(memcmp(m->bw, m->red, sizeof(m->bw)) == 0);
+
+        /* Revisit a changed row, then update a disjoint row: stale face content
+         * must not reappear after either alternating Mode-2 activation. */
+        flip(770, 400); flip(771, 401); command_count = 0;
+        assert(ssd1677_refresh(&d) == ESP_OK);
+        t = controller_apply(m, &d);
+        assert(t.bw_bytes == 4U * SSD1677_PANEL_ROW_BYTES);
+        assert(t.red_bytes == 2U * SSD1677_PANEL_ROW_BYTES);
+        assert(memcmp(m->bw, m->red, sizeof(m->bw)) == 0);
+        flip(120, 80); command_count = 0;
+        assert(ssd1677_refresh(&d) == ESP_OK);
+        t = controller_apply(m, &d);
+        assert(t.bw_bytes == 2U * SSD1677_PANEL_ROW_BYTES);
+        assert(t.red_bytes == SSD1677_PANEL_ROW_BYTES);
+        assert(memcmp(m->bw, m->red, sizeof(m->bw)) == 0);
+        assert(epd_ssd1677_set_controller_mode(&d, "dirty-window=off") == ESP_OK);
+        assert(!d.dirty_hold_trial && !d.dirty_hold_dual_sync && !d.dirty_hold_ram_synced);
+        free(m);
+    }
+}
+
+static void test_dual_sync_update_cap(void)
+{
+    epd_ssd1677_t d = make_display();
+    d.papermono_otp = true; d.band_buffer = band; d.fastest_tiles = true;
+    assert(epd_ssd1677_set_controller_mode(&d, "refresh=fastest") == ESP_OK);
+    assert(ssd1677_refresh(&d) == ESP_OK);
+    assert(epd_ssd1677_set_controller_mode(&d, "dirty-window=rows-dual") == ESP_OK);
+    for (unsigned i = 0; i < 6; ++i) {
+        flip(700 + i, 420); command_count = 0;
+        assert(ssd1677_refresh(&d) == ESP_OK);
+        assert(d.dirty_hold_trial && d.dirty_hold_dual_updates == i + 1U);
+        assert(d.timing.activations == 1);
+    }
+    flip(710, 420); command_count = 0;
+    assert(ssd1677_refresh(&d) == ESP_OK);
+    assert(!d.dirty_hold_trial && !d.dirty_hold_dual_sync && !d.dirty_hold_ram_synced);
+    assert(find_command(0x24, 0)->length == SSD1677_BUFFER_BYTES);
+    assert(find_command(0x26, 0)->length == SSD1677_BUFFER_BYTES);
+}
+
 int main(void)
 {
     const double bounds_us = benchmark_bounds_us();
@@ -424,6 +508,8 @@ int main(void)
     test_runtime_switch_fallback();
     test_full_height_column_window();
     test_full_width_row_window();
+    test_dual_sync_against_swap_model();
+    test_dual_sync_update_cap();
     puts("epd_ssd1677_dirty_hold_test: PASS");
     return 0;
 }

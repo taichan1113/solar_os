@@ -120,7 +120,7 @@ static esp_err_t ssd1677_write_tile_window(epd_ssd1677_t *d, uint8_t command,
 {
     if (!d || !d->band_buffer || !source || !w ||
         w->x_start_byte > w->x_end_byte || w->x_end_byte >= SSD1677_PANEL_ROW_BYTES ||
-        w->y_start > w->y_end || w->y_end >= SSD1677_HEIGHT || phase >= 3U)
+        w->y_start > w->y_end || w->y_end >= SSD1677_HEIGHT || phase >= 4U)
         return ESP_ERR_INVALID_ARG;
     const size_t row_bytes = w->x_end_byte - w->x_start_byte + 1U;
     ESP_RETURN_ON_ERROR(ssd1677_set_partial_window(d, w), TAG, "dirty RAM address failed");
@@ -166,6 +166,14 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     d->papermono_baseline_valid = false;
     const bool cold = !d->reference_awake;
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+    if (d->dirty_hold_trial && d->dirty_hold_dual_sync &&
+        d->dirty_hold_dual_updates >= 6U) {
+        d->dirty_hold_trial = false;
+        d->dirty_hold_dual_sync = false;
+        d->dirty_hold_full_width = false;
+        d->dirty_hold_ram_synced = false;
+        ESP_LOGW(TAG, "Dirty RAM dual trial reached six updates; full-RAM fallback");
+    }
     const bool trial = d->dirty_hold_trial &&
                        d->refresh_mode == EPD_SSD1677_REFRESH_FASTEST &&
                        d->fastest_tiles && d->band_buffer != NULL;
@@ -245,16 +253,21 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     }
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
     if (err == ESP_OK && trial) {
-        const unsigned i = d->timing.writes++;
-        d->timing.write_start_us[i] = esp_timer_get_time();
-        /* Without this step the old/new transition remains in RED RAM and
-         * would be re-applied outside the next dirty rectangle. */
-        err = narrow ? ssd1677_write_tile_window(d, 0x26, ssd1677_frame(d), &ram_window, i) :
-                       ssd1677_write_bands(d, 0x26, ssd1677_frame(d), i);
-        if (err == ESP_OK) d->timing.ram_data_bytes[i] = narrow ?
-            (ram_window.x_end_byte - ram_window.x_start_byte + 1U) *
-            (ram_window.y_end - ram_window.y_start + 1U) : SSD1677_BUFFER_BYTES;
-        d->timing.write_end_us[i] = esp_timer_get_time();
+        /* Mode-2 may exchange the command-addressed RAM faces on activation.
+         * A single 0x26 write would then leave the prior image in 0x24.
+         * The opt-in trial synchronizes both faces before the next update. */
+        const unsigned sync_count = d->dirty_hold_dual_sync ? 2U : 1U;
+        for (unsigned sync = 0; sync < sync_count && err == ESP_OK; ++sync) {
+            const uint8_t command = d->dirty_hold_dual_sync && sync == 0 ? 0x24 : 0x26;
+            const unsigned i = d->timing.writes++;
+            d->timing.write_start_us[i] = esp_timer_get_time();
+            err = narrow ? ssd1677_write_tile_window(d, command, ssd1677_frame(d), &ram_window, i) :
+                           ssd1677_write_bands(d, command, ssd1677_frame(d), i);
+            if (err == ESP_OK) d->timing.ram_data_bytes[i] = narrow ?
+                (ram_window.x_end_byte - ram_window.x_start_byte + 1U) *
+                (ram_window.y_end - ram_window.y_start + 1U) : SSD1677_BUFFER_BYTES;
+            d->timing.write_end_us[i] = esp_timer_get_time();
+        }
         if (err == ESP_OK) d->dirty_hold_ram_synced = true;
     }
 #endif
@@ -267,6 +280,9 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         d->reference_awake=true;
         d->controller_ready=true;
         d->partial_refresh_active=true;
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+        if (trial && d->dirty_hold_dual_sync) ++d->dirty_hold_dual_updates;
+#endif
     } else {
         d->reference_awake=false;
         d->controller_ready=false;
@@ -280,7 +296,8 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
                  (int)err,cold,dirty.x_start_byte*8,dirty.y_start,
                  (dirty.x_end_byte-dirty.x_start_byte+1)*8,dirty.y_end-dirty.y_start+1,
                  (unsigned)(d->timing.ram_data_bytes[0] + d->timing.ram_data_bytes[1] +
-                            d->timing.ram_data_bytes[2]), (unsigned)d->timing.activations,
+                            d->timing.ram_data_bytes[2] + d->timing.ram_data_bytes[3]),
+                 (unsigned)d->timing.activations,
                  start,d->timing.end_us,d->timing.end_us-start,
                  d->timing.ready_us[0]-d->timing.activate_us[0]);
         ESP_LOGI(TAG, "REF phases path=%s spi_khz=%d diff_us=%" PRId64 " promote_us=%" PRId64 " waveform=%s",

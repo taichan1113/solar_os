@@ -62,10 +62,10 @@ typedef enum {
  * Write time includes tile conversion, address setup and SPI, not just wire time. */
 typedef struct {
     int64_t start_us, end_us;
-    int64_t write_start_us[3], write_end_us[3];
-    int64_t convert_start_us[3], convert_end_us[3];
-    int64_t convert_us[3], spi_us[3];
-    size_t ram_data_bytes[3]; /* Successful 0x24/0x26 pixel payload per write. */
+    int64_t write_start_us[4], write_end_us[4];
+    int64_t convert_start_us[4], convert_end_us[4];
+    int64_t convert_us[4], spi_us[4];
+    size_t ram_data_bytes[4]; /* Successful 0x24/0x26 pixel payload per write. */
     int64_t activate_us[2], ready_us[2];
     int64_t diff_us, promote_us;
     uint8_t writes, activations;
@@ -141,7 +141,9 @@ typedef struct {
     bool dirty_hold_trial; /* RAM-only trial switch; starts OFF on hardware. */
     bool dirty_hold_full_height; /* Diagnostic: X window only, full gate range. */
     bool dirty_hold_full_width; /* Diagnostic: Y window only, full source range. */
+    bool dirty_hold_dual_sync; /* Trial: synchronize both command RAMs after 0x20. */
     bool dirty_hold_ram_synced; /* Both controller RAM planes equal shadow. */
+    uint8_t dirty_hold_dual_updates; /* Bounded hardware trial, including cold fallback. */
 #endif
     bool fastest_tiles;
     epd_ssd1677_waveform_trial_t waveform_trial; /* volatile; baseline at init */
