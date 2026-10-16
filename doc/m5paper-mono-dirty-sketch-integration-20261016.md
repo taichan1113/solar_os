@@ -1,5 +1,7 @@
 # PaperMono Dirty Rectangle＋Sketch高速化 統合候補（2026-10-16）
 
+> この文書は `460cef3a` 時点の初回候補の記録。TypeMouse長押し固定・キー反転を含む後続候補は [TypeMouse追加統合報告](m5paper-mono-dirty-sketch-typemouse-integration-20261016.md) を参照。以下の旧Firmwareサイズ・SHAおよびTypeMouse未収録の記述は初回候補に対するもの。
+
 ## 判定
 
 **統合成功・実機評価へ進める。** Host 19本とPython 9件がPASSし、ESP-IDF 5.5.5のESP32-S3ビルドが成功した。今回、COMポート・実機Flashへのアクセス、実機状態変更、実用Branchへのマージは実施していない。実機の描画品質、追従速度、黒濃度、長期安定性は今回未評価。
