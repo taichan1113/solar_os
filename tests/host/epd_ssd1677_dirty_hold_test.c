@@ -309,6 +309,37 @@ static void test_mode_and_sleep_fallback(void)
     assert(find_command(0x24, 0)->length == SSD1677_BUFFER_BYTES);
 }
 
+static void test_runtime_switch_fallback(void)
+{
+    epd_ssd1677_t d = make_display();
+    d.papermono_otp = true; d.band_buffer = band; d.fastest_tiles = true;
+    assert(!d.dirty_hold_trial);
+    assert(epd_ssd1677_set_controller_mode(&d, "refresh=fastest") == ESP_OK);
+    assert(ssd1677_refresh(&d) == ESP_OK); /* OTP baseline. */
+    flip(0, 0); command_count = 0;
+    assert(ssd1677_refresh(&d) == ESP_OK);
+    assert(find_command(0x24, 0)->length == SSD1677_BUFFER_BYTES);
+    assert(find_command(0x26, 0)->length == SSD1677_BUFFER_BYTES);
+    assert(epd_ssd1677_set_controller_mode(&d, "dirty-window=on") == ESP_OK);
+    assert(d.dirty_hold_trial && !d.dirty_hold_ram_synced);
+    flip(1, 0); command_count = 0;
+    assert(ssd1677_refresh(&d) == ESP_OK && d.dirty_hold_ram_synced);
+    assert(find_command(0x24, 0)->length == SSD1677_BUFFER_BYTES);
+    assert(find_command(0x26, 0)->length == SSD1677_BUFFER_BYTES);
+    assert(find_command(0x26, 1)->length == SSD1677_BUFFER_BYTES);
+    flip(2, 0); command_count = 0;
+    assert(ssd1677_refresh(&d) == ESP_OK && d.dirty_hold_ram_synced);
+    assert(find_command(0x24, 0)->length == 1U);
+    assert(find_command(0x26, 0)->length == 1U);
+    assert(epd_ssd1677_set_controller_mode(&d, "dirty-window=off") == ESP_OK);
+    assert(!d.dirty_hold_trial && !d.dirty_hold_ram_synced);
+    flip(3, 0); command_count = 0;
+    assert(ssd1677_refresh(&d) == ESP_OK);
+    assert(find_command(0x24, 0)->length == SSD1677_BUFFER_BYTES);
+    assert(find_command(0x26, 0)->length == SSD1677_BUFFER_BYTES);
+    assert(epd_ssd1677_set_controller_mode(&d, "dirty-window=unknown") == ESP_ERR_INVALID_ARG);
+}
+
 int main(void)
 {
     const double bounds_us = benchmark_bounds_us();
@@ -329,6 +360,7 @@ int main(void)
     test_failures_and_recovery();
     test_unknown_ram_fallback();
     test_mode_and_sleep_fallback();
+    test_runtime_switch_fallback();
     puts("epd_ssd1677_dirty_hold_test: PASS");
     return 0;
 }

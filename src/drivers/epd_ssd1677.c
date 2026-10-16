@@ -870,7 +870,7 @@ esp_err_t epd_ssd1677_init(epd_ssd1677_t *display,
     display->reset_context = config->reset_context;
     display->papermono_otp = config->papermono_otp;
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
-    display->dirty_hold_trial = config->papermono_otp;
+    display->dirty_hold_trial = false;
 #endif
     display->configured_spi_hz = config->spi_clock_hz;
     display->transport_spi_hz = config->spi_clock_hz;
@@ -1137,13 +1137,29 @@ const char *epd_ssd1677_controller_mode_values(const epd_ssd1677_t *display)
 #endif
     if (display != NULL && display->papermono_otp)
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL && SOLAR_OS_SSD1677_HYBRID_TRIAL
-        return "refresh=<auto,partial,full,cleanup,fastest,typing,hybrid> timing=<on,off> fastest-waveform=<baseline,dose,hold> hybrid-idle-ms=<500..30000> hybrid-max-updates=<1..10> " SSD1677_SPI_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
+        return "refresh=<auto,partial,full,cleanup,fastest,typing,hybrid> timing=<on,off> fastest-waveform=<baseline,dose,hold> hybrid-idle-ms=<500..30000> hybrid-max-updates=<1..10> " SSD1677_SPI_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>"
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+               " dirty-window=<off,on>"
+#endif
+               ;
 #elif SOLAR_OS_SSD1677_WAVEFORM_TRIAL
-        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> fastest-waveform=<baseline,dose,hold> (EXPERIMENTAL; DC/lifetime unverified) " SSD1677_SPI_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
+        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> fastest-waveform=<baseline,dose,hold> (EXPERIMENTAL; DC/lifetime unverified) " SSD1677_SPI_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>"
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+               " dirty-window=<off,on>"
+#endif
+               ;
 #elif SOLAR_OS_SSD1677_HYBRID_TRIAL
-        return "refresh=<auto,partial,full,cleanup,fastest,typing,hybrid> timing=<on,off> hybrid-idle-ms=<500..30000> hybrid-max-updates=<1..10> " SSD1677_SPI_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
+        return "refresh=<auto,partial,full,cleanup,fastest,typing,hybrid> timing=<on,off> hybrid-idle-ms=<500..30000> hybrid-max-updates=<1..10> " SSD1677_SPI_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>"
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+               " dirty-window=<off,on>"
+#endif
+               ;
 #else
-        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> " SSD1677_SPI_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>";
+        return "refresh=<auto,partial,full,cleanup,fastest,typing> timing=<on,off> " SSD1677_SPI_VALUES " fastest-path=<scalar,tile> typing-frame-ms=<0..1000> typing-cleanup-updates=<0..4096> typing-idle-ms=<30000..300000>"
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+               " dirty-window=<off,on>"
+#endif
+               ;
 #endif
 #undef SSD1677_SPI_VALUES
     return "refresh=<auto,partial,full>";
@@ -1154,6 +1170,18 @@ static esp_err_t ssd1677_set_controller_mode_unlocked(epd_ssd1677_t *display,
 {
     if (display == NULL || mode == NULL) return ESP_ERR_INVALID_ARG;
     if (display->papermono_otp) {
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+        if (strcmp(mode, "dirty-window=on") == 0 || strcmp(mode, "dirty-window=off") == 0) {
+            const bool enable = strcmp(mode, "dirty-window=on") == 0;
+            if (display->dirty_hold_trial != enable) {
+                display->dirty_hold_trial = enable;
+                display->dirty_hold_ram_synced = false; /* Force full RAM write on next fast update. */
+            }
+            ESP_LOGI(TAG, "Dirty RAM window trial %s; next fast update uses full RAM baseline",
+                     enable ? "ON" : "OFF");
+            return ESP_OK;
+        }
+#endif
 #if SOLAR_OS_SSD1677_HYBRID_TRIAL
         const struct { const char *key; uint32_t *field; unsigned min, max; } hybrid_options[] = {
             {"hybrid-idle-ms=", &display->hybrid_idle_ms, 500, 30000},

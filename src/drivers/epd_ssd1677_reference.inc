@@ -200,6 +200,15 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         err = d->fastest_tiles ? ssd1677_write_bands(d, i ? 0x26 : 0x24, source, i) :
                                 ssd1677_write_plane(d, i ? 0x26 : 0x24, source, &full, false);
 #endif
+        if (err == ESP_OK) {
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+            d->timing.ram_data_bytes[i] = narrow ?
+                (dirty.x_end_byte - dirty.x_start_byte + 1U) *
+                (dirty.y_end - dirty.y_start + 1U) : SSD1677_BUFFER_BYTES;
+#else
+            d->timing.ram_data_bytes[i] = SSD1677_BUFFER_BYTES;
+#endif
+        }
         d->timing.write_end_us[i] = esp_timer_get_time();
     }
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x32,lut,105);
@@ -233,6 +242,9 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
          * would be re-applied outside the next dirty rectangle. */
         err = narrow ? ssd1677_write_tile_window(d, 0x26, ssd1677_frame(d), &dirty, i) :
                        ssd1677_write_bands(d, 0x26, ssd1677_frame(d), i);
+        if (err == ESP_OK) d->timing.ram_data_bytes[i] = narrow ?
+            (dirty.x_end_byte - dirty.x_start_byte + 1U) *
+            (dirty.y_end - dirty.y_start + 1U) : SSD1677_BUFFER_BYTES;
         d->timing.write_end_us[i] = esp_timer_get_time();
         if (err == ESP_OK) d->dirty_hold_ram_synced = true;
     }
@@ -254,18 +266,21 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     }
     d->timing.end_us=esp_timer_get_time();
     if (d->timing_enabled || err!=ESP_OK) {
-        ESP_LOGI(TAG,"REF err=%d cold=%u region=%u,%u,%u,%u bytes=96000 start=%" PRId64
+        ESP_LOGI(TAG,"REF err=%d cold=%u region=%u,%u,%u,%u ram_bytes=%u 0x20=%u start=%" PRId64
                  " end=%" PRId64 " total_us=%" PRId64 " busy_us=%" PRId64,
                  (int)err,cold,dirty.x_start_byte*8,dirty.y_start,
                  (dirty.x_end_byte-dirty.x_start_byte+1)*8,dirty.y_end-dirty.y_start+1,
+                 (unsigned)(d->timing.ram_data_bytes[0] + d->timing.ram_data_bytes[1] +
+                            d->timing.ram_data_bytes[2]), (unsigned)d->timing.activations,
                  start,d->timing.end_us,d->timing.end_us-start,
                  d->timing.ready_us[0]-d->timing.activate_us[0]);
         ESP_LOGI(TAG, "REF phases path=%s spi_khz=%d diff_us=%" PRId64 " promote_us=%" PRId64 " waveform=%s",
                  d->fastest_tiles ? "tile" : "scalar", d->actual_spi_hz/1000,
                  d->timing.diff_us, d->timing.promote_us, waveform_name);
         for (unsigned i=0;i<d->timing.writes;i++)
-            ESP_LOGI(TAG,"REF write%u us=%" PRId64 " convert_us=%" PRId64 " spi_us=%" PRId64,
-                     i,d->timing.write_end_us[i]-d->timing.write_start_us[i],
+            ESP_LOGI(TAG,"REF write%u ram_bytes=%u us=%" PRId64 " convert_us=%" PRId64 " spi_us=%" PRId64,
+                     i,(unsigned)d->timing.ram_data_bytes[i],
+                     d->timing.write_end_us[i]-d->timing.write_start_us[i],
                      d->timing.convert_us[i],d->timing.spi_us[i]);
     }
     return err;

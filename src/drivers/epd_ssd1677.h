@@ -65,6 +65,7 @@ typedef struct {
     int64_t write_start_us[3], write_end_us[3];
     int64_t convert_start_us[3], convert_end_us[3];
     int64_t convert_us[3], spi_us[3];
+    size_t ram_data_bytes[3]; /* Successful 0x24/0x26 pixel payload per write. */
     int64_t activate_us[2], ready_us[2];
     int64_t diff_us, promote_us;
     uint8_t writes, activations;
@@ -137,7 +138,7 @@ typedef struct {
     bool timing_enabled;
     bool reference_awake; /* fastest Mode 2, analog power retained */
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
-    bool dirty_hold_trial; /* Host opt-in; no production UI or persistence. */
+    bool dirty_hold_trial; /* RAM-only trial switch; starts OFF on hardware. */
     bool dirty_hold_ram_synced; /* Both controller RAM planes equal shadow. */
 #endif
     bool fastest_tiles;
