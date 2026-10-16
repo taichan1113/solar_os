@@ -1,0 +1,28 @@
+[
+  {
+    "condition": "A",
+    "source": "C:\\Users\\takec\\Pictures\\Camera Roll\\WIN_20261017_01_36_05_Pro.mp4",
+    "source_bytes": 1152604356,
+    "source_created_local": "2026-10-17T01:36:05.664506",
+    "source_modified_local": "2026-10-17T01:38:15.729808",
+    "serial_created_local": "2026-10-17T01:36:25.287382",
+    "serial_last_write_local": "2026-10-17T01:39:17.954666",
+    "assignment": "User specified older video=A, newer video=B; folder contains exactly these two video files",
+    "original_modified": false,
+    "sha256": "254c786495e85509017a08e2561096b129955efe2ebd20120b301fa59c4f7459",
+    "original_size_unchanged": true
+  },
+  {
+    "condition": "B",
+    "source": "C:\\Users\\takec\\Pictures\\Camera Roll\\WIN_20261017_01_39_43_Pro.mp4",
+    "source_bytes": 1415441009,
+    "source_created_local": "2026-10-17T01:39:43.289195",
+    "source_modified_local": "2026-10-17T01:42:25.284380",
+    "serial_created_local": "2026-10-17T01:40:06.876899",
+    "serial_last_write_local": "2026-10-17T01:42:56.166756",
+    "assignment": "User specified older video=A, newer video=B; folder contains exactly these two video files",
+    "original_modified": false,
+    "sha256": "1590aa4eacdd67aa7041dcc1206c6c8476e9768e39304cb3065445d499bc8aa4",
+    "original_size_unchanged": true
+  }
+]
