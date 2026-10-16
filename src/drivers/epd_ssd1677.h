@@ -12,6 +12,12 @@
 #ifndef SOLAR_OS_SSD1677_WAVEFORM_TRIAL
 #define SOLAR_OS_SSD1677_WAVEFORM_TRIAL 0
 #endif
+#ifndef SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+#define SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL 0
+#endif
+#if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+#error Single-shot compensation must not enable persistent dose/hold selection
+#endif
 #ifndef SOLAR_OS_SSD1677_HYBRID_TRIAL
 #define SOLAR_OS_SSD1677_HYBRID_TRIAL 0
 #endif
@@ -146,6 +152,10 @@ typedef struct {
     uint8_t dirty_hold_dual_updates; /* Updates since the last full-RAM resync. */
 #endif
     bool fastest_tiles;
+#if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+    uint8_t black_hold_pending, black_hold_active; /* exclusive executor test only */
+    uint32_t black_hold_commands[5]; /* successful 03,04,2c,32,20 commands */
+#endif
     epd_ssd1677_waveform_trial_t waveform_trial; /* volatile; baseline at init */
     int configured_spi_hz, transport_spi_hz, applied_spi_hz, actual_spi_hz;
     int fastest_spi_hz;
@@ -165,6 +175,13 @@ esp_err_t epd_ssd1677_resume(epd_ssd1677_t *display);
 esp_err_t epd_ssd1677_set_power_save(epd_ssd1677_t *display, bool enabled);
 /* Executor owns hardware exclusively for this call. No U8g2 state is read. */
 esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *, const uint8_t *, size_t);
+#if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+/* Caller claims/drains the display executor before arming exactly one snapshot.
+ * Candidate budget is global for this boot and is consumed even on failure. */
+esp_err_t epd_ssd1677_black_hold_arm(epd_ssd1677_t *, bool candidate);
+void epd_ssd1677_black_hold_cancel(epd_ssd1677_t *);
+bool epd_ssd1677_black_hold_spent(void);
+#endif
 #if SOLAR_OS_SSD1677_HYBRID_TRIAL
 /* Worker-only: explicitly activate one same-frame OTP partial update. */
 esp_err_t epd_ssd1677_present_quality_snapshot(epd_ssd1677_t *, const uint8_t *, size_t);

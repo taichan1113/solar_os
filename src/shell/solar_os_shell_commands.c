@@ -644,9 +644,20 @@ static void display_draw_test_pattern(u8g2_t *u8g2, const char *name)
 #include "solar_os_writer.h"
 #endif
 
+#if defined(SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL) && SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+#include "solar_os_shell_black_hold_single.inc"
+#endif
+
 static void display_cmd_test(solar_os_shell_io_t *term, int argc, char **argv)
 {
     static const char owner[] = "shell:display-test";
+
+#if defined(SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL) && SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+    if (argc >= 4 && strcmp(argv[3], "black-hold-single") == 0) {
+        display_cmd_black_hold_single(term, argc, argv);
+        return;
+    }
+#endif
 
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     if (argc >= 4 && strcmp(argv[3], "writer-quality") == 0) {

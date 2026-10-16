@@ -151,6 +151,11 @@ static esp_err_t ssd1677_cmd_data(epd_ssd1677_t *display,
                         TAG,
                         "D/C command failed");
     ESP_RETURN_ON_ERROR(ssd1677_tx_byte(display, command), TAG, "command transmit failed");
+#if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+    const uint8_t tracked[] = {0x03, 0x04, 0x2c, 0x32, 0x20};
+    for (unsigned i = 0; i < sizeof(tracked); ++i)
+        if (command == tracked[i]) ++display->black_hold_commands[i];
+#endif
     if (length == 0) {
         return ESP_OK;
     }
@@ -511,6 +516,9 @@ static esp_err_t ssd1677_papermono_refresh(epd_ssd1677_t *display)
                               display->hybrid_fast_updates >= display->hybrid_max_updates;
     #endif
     if (!cleanup && baseline &&
+    #if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+        !display->black_hold_active &&
+    #endif
     #if SOLAR_OS_SSD1677_HYBRID_TRIAL
         !quality &&
     #endif
@@ -1011,10 +1019,45 @@ esp_err_t epd_ssd1677_resume(epd_ssd1677_t *display)
     return err;
 }
 
+#if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+static bool black_hold_candidate_spent; /* survives display deinit/reset within this boot */
+bool epd_ssd1677_black_hold_spent(void) { return black_hold_candidate_spent; }
+void epd_ssd1677_black_hold_cancel(epd_ssd1677_t *d)
+{
+    if (d) d->black_hold_pending = 0;
+}
+esp_err_t epd_ssd1677_black_hold_arm(epd_ssd1677_t *d, bool candidate)
+{
+    if (!d || !d->papermono_otp || d->faulted || !d->powered ||
+        !d->shadow_valid || !d->papermono_baseline_valid ||
+        d->refresh_mode != EPD_SSD1677_REFRESH_FASTEST || !d->fastest_tiles ||
+        !d->band_buffer || d->fastest_spi_hz != 20000000 ||
+        d->waveform_trial != EPD_SSD1677_WAVEFORM_BASELINE ||
+        d->black_hold_pending || d->black_hold_active ||
+        (candidate && (!d->reference_awake || !d->controller_ready || black_hold_candidate_spent)))
+        return ESP_ERR_INVALID_STATE;
+    if (candidate) black_hold_candidate_spent = true; /* never refund after an error */
+    d->black_hold_pending = candidate ? 2U : 1U;
+    return ESP_OK;
+}
+#endif
+
 esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *display, const uint8_t *frame, size_t size)
 {
+#if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+    const unsigned request = display ? display->black_hold_pending : 0;
+    if (display) display->black_hold_pending = 0;
+#endif
     if (!display || !display->buffer || !frame || size != display->buffer_size)
         return ESP_ERR_INVALID_ARG;
+#if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+    if (request && (display->faulted || !display->shadow_valid ||
+        !display->papermono_baseline_valid || !display->powered ||
+        display->refresh_mode != EPD_SSD1677_REFRESH_FASTEST ||
+        (request == 2U && !display->reference_awake) ||
+        memcmp(frame, display->shadow, size))) return ESP_ERR_INVALID_STATE;
+    display->black_hold_active = request;
+#endif
     display->snapshot = frame;
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     if (display->trial_observer) {
@@ -1026,7 +1069,22 @@ esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *display, const uint8_t *fr
         }
     }
 #endif
-    const esp_err_t err = ssd1677_refresh(display);
+    esp_err_t err = ssd1677_refresh(display);
+#if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+    display->black_hold_active = 0; /* no persistent candidate selection */
+    if (request && err == ESP_OK) {
+        /* Same restore in A and B; no activation. Never send while timed-out BUSY. */
+        const int64_t restore_start = esp_timer_get_time();
+        err = ssd1677_cmd_data(display, 0x32, ssd1677_reference_lut, 105);
+        display->timing.spi_us[3] += esp_timer_get_time() - restore_start;
+        display->timing.end_us = esp_timer_get_time();
+        if (err != ESP_OK) {
+            display->faulted = true;
+            display->shadow_valid = display->papermono_baseline_valid = false;
+            display->reference_awake = display->controller_ready = false;
+        }
+    }
+#endif
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     if (display->trial_observer)
         (void)display->trial_observer(display->trial_observer_context, frame, true, err);

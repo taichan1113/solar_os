@@ -20,13 +20,19 @@ static const uint8_t ssd1677_reference_lut[110] = {
     0x17,0x46,0xa8,0x32,0x30,
 };
 
-#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+#if SOLAR_OS_SSD1677_WAVEFORM_TRIAL || SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
 #include "epd_ssd1677_waveform_trial.inc"
 #endif
 
 static const uint8_t *ssd1677_selected_lut(const epd_ssd1677_t *d, const char **name)
 {
     *name = "baseline";
+#if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+    if (d->black_hold_active == 2U) {
+        *name = "black-hold-single";
+        return ssd1677_trial_black_hold_single_lut;
+    }
+#endif
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     /* Typing is a separate, existing experiment; do not change its waveform. */
     if (d->refresh_mode == EPD_SSD1677_REFRESH_FASTEST) {
@@ -158,6 +164,11 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     ssd1677_window_t dirty;
     const bool changed = d->fastest_tiles ? ssd1677_find_change_bytes(d, &dirty) :
                                            ssd1677_find_change_window(d, &dirty);
+#if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+    if (!changed && d->black_hold_active) {
+        dirty = (ssd1677_window_t){0, SSD1677_PANEL_ROW_BYTES-1, 0, SSD1677_HEIGHT-1};
+    } else
+#endif
     if (!changed) return ESP_OK;
     const int64_t diff_end = esp_timer_get_time();
     d->transport_spi_hz = d->fastest_spi_hz;
