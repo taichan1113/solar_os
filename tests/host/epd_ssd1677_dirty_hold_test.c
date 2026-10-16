@@ -321,7 +321,8 @@ static void test_runtime_switch_fallback(void)
     assert(find_command(0x24, 0)->length == SSD1677_BUFFER_BYTES);
     assert(find_command(0x26, 0)->length == SSD1677_BUFFER_BYTES);
     assert(epd_ssd1677_set_controller_mode(&d, "dirty-window=columns") == ESP_OK);
-    assert(d.dirty_hold_trial && d.dirty_hold_full_height && !d.dirty_hold_ram_synced);
+    assert(d.dirty_hold_trial && d.dirty_hold_full_height &&
+           !d.dirty_hold_full_width && !d.dirty_hold_ram_synced);
     flip(1, 0); command_count = 0;
     assert(ssd1677_refresh(&d) == ESP_OK && d.dirty_hold_ram_synced);
     assert(find_command(0x24, 0)->length == SSD1677_BUFFER_BYTES);
@@ -331,6 +332,15 @@ static void test_runtime_switch_fallback(void)
     assert(ssd1677_refresh(&d) == ESP_OK && d.dirty_hold_ram_synced);
     assert(find_command(0x24, 0)->length == SSD1677_HEIGHT);
     assert(find_command(0x26, 0)->length == SSD1677_HEIGHT);
+    assert(epd_ssd1677_set_controller_mode(&d, "dirty-window=rows") == ESP_OK);
+    assert(d.dirty_hold_trial && !d.dirty_hold_full_height &&
+           d.dirty_hold_full_width && !d.dirty_hold_ram_synced);
+    flip(2, 1); command_count = 0;
+    assert(ssd1677_refresh(&d) == ESP_OK && d.dirty_hold_ram_synced);
+    assert(find_command(0x24, 0)->length == SSD1677_BUFFER_BYTES);
+    flip(2, 1); flip(2, 2); command_count = 0;
+    assert(ssd1677_refresh(&d) == ESP_OK && d.dirty_hold_ram_synced);
+    assert(find_command(0x24, 0)->length == 2U * SSD1677_PANEL_ROW_BYTES);
     assert(epd_ssd1677_set_controller_mode(&d, "dirty-window=off") == ESP_OK);
     assert(!d.dirty_hold_trial && !d.dirty_hold_ram_synced);
     flip(3, 0); command_count = 0;
@@ -354,7 +364,7 @@ static void test_full_height_column_window(void)
     assert(d.dirty_hold_trial && d.dirty_hold_full_height);
     flip(770, 400);
     run_step(&d, m, true, SSD1677_BUFFER_BYTES, true);
-    flip(771, 401);
+    flip(770, 400); flip(771, 401);
     run_step(&d, m, true, SSD1677_HEIGHT, false);
     const captured_command_t *xb = find_command(0x44, 0);
     const captured_command_t *yb = find_command(0x45, 0);
@@ -364,6 +374,30 @@ static void test_full_height_column_window(void)
            yb->data[2] == 0 && yb->data[3] == 0);
     assert(epd_ssd1677_set_controller_mode(&d, "dirty-window=off") == ESP_OK);
     assert(!d.dirty_hold_trial && !d.dirty_hold_ram_synced);
+    free(m);
+}
+
+static void test_full_width_row_window(void)
+{
+    epd_ssd1677_t d = make_display();
+    d.papermono_otp = true; d.band_buffer = band; d.fastest_tiles = true;
+    assert(epd_ssd1677_set_controller_mode(&d, "refresh=fastest") == ESP_OK);
+    assert(ssd1677_refresh(&d) == ESP_OK);
+    controller_ram_t *m = malloc(sizeof(*m));
+    assert(m);
+    controller_seed(m, &d);
+    assert(epd_ssd1677_set_controller_mode(&d, "dirty-window=rows") == ESP_OK);
+    assert(d.dirty_hold_trial && d.dirty_hold_full_width && !d.dirty_hold_full_height);
+    flip(770, 400);
+    run_step(&d, m, true, SSD1677_BUFFER_BYTES, true);
+    flip(770, 400); flip(771, 401);
+    run_step(&d, m, true, 2U * SSD1677_PANEL_ROW_BYTES, false);
+    const captured_command_t *xb = find_command(0x44, 0);
+    const captured_command_t *yb = find_command(0x45, 0);
+    assert(xb && xb->length == 4 && xb->data[0] == 0 && xb->data[1] == 0 &&
+           xb->data[2] == 0x1f && xb->data[3] == 0x03);
+    assert(yb && yb->length == 4 && yb->data[0] == 0x4f && yb->data[1] == 0 &&
+           yb->data[2] == 0x4e && yb->data[3] == 0);
     free(m);
 }
 
@@ -389,6 +423,7 @@ int main(void)
     test_mode_and_sleep_fallback();
     test_runtime_switch_fallback();
     test_full_height_column_window();
+    test_full_width_row_window();
     puts("epd_ssd1677_dirty_hold_test: PASS");
     return 0;
 }

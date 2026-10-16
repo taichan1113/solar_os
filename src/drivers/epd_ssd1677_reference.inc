@@ -175,6 +175,10 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         ram_window.y_start = 0;
         ram_window.y_end = SSD1677_HEIGHT - 1U;
     }
+    if (narrow && d->dirty_hold_full_width) {
+        ram_window.x_start_byte = 0;
+        ram_window.x_end_byte = SSD1677_PANEL_ROW_BYTES - 1U;
+    }
     d->dirty_hold_ram_synced = false; /* Unknown until post-activation sync succeeds. */
 #endif
     const char *waveform_name;
