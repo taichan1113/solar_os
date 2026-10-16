@@ -34,6 +34,7 @@ TARGETS += epd_ssd1677_test epd_uc8179_test uc8179_expansion_test epd_uc8279_tes
 TARGETS += epd_ssd1677_waveform_trial_test
 TARGETS += epd_ssd1677_hybrid_trial_test
 TARGETS += epd_ssd1677_fixed_black_trial_test
+TARGETS += fixed_black_frame_test
 TARGETS += quality_ab_test
 TARGETS += writer_quality_test
 TARGETS += frontlight_pwm_test epd_xteink_identify_test x4pro_expansion_test
@@ -263,6 +264,13 @@ epd_ssd1677_fixed_black_trial_test: epd_ssd1677_test.c $(ROOT)/src/drivers/epd_s
 	$(CC) $(CFLAGS) -DSOLAR_OS_SSD1677_FIXED_BLACK_TRIAL=1 -ffunction-sections -fdata-sections \
 		-Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib \
 		epd_ssd1677_test.c -Wl,--gc-sections -o $@
+
+fixed_black_frame_test: fixed_black_frame_test.c $(ROOT)/src/shell/solar_os_shell_fixed_black_trial.inc \
+	$(ROOT)/fonts/build/u8g2/u8g2_font_solar_os_default_r_20_tf.c
+	$(CC) $(CFLAGS) -ffunction-sections -fdata-sections \
+		-Iepd_stubs -I. -I$(ROOT)/src/drivers -I$(ROOT)/src/services -I$(ROOT)/components/u8g2/src/clib \
+		fixed_black_frame_test.c $(EPD_U8G2_TEST_SOURCES) $(ROOT)/components/u8g2/src/clib/u8g2_box.c $(ROOT)/components/u8g2/src/clib/u8x8_8x8.c \
+		$(ROOT)/fonts/build/u8g2/u8g2_font_solar_os_default_r_20_tf.c -Wl,--gc-sections -o $@
 
 quality_ab_test: quality_ab_test.c epd_ssd1677_test.c $(ROOT)/src/shell/solar_os_shell_quality_ab.inc \
         $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677_reference.inc $(ROOT)/src/drivers/epd_ssd1677_waveform_trial.inc \
@@ -1158,6 +1166,7 @@ test: $(TARGETS)
 	./epd_ssd1677_test
 	./epd_ssd1677_waveform_trial_test
 	./epd_ssd1677_fixed_black_trial_test
+	./fixed_black_frame_test
 	./quality_ab_test
 	./m5papermono_power_test
 	./ft6336_test

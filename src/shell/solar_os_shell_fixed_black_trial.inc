@@ -2,6 +2,7 @@
  * No storage writes or Writer changes. One command runs one condition. */
 #include "epd_ssd1677.h"
 #include <limits.h>
+#include <stdlib.h>
 
 static void fixed_black_trial_white(u8g2_t *g)
 {
@@ -30,8 +31,10 @@ static void fixed_black_trial_right(u8g2_t *g, unsigned step)
 {
     char text[] = "abcdefg";
     text[step + 1] = '\0';
+    u8g2_SetClipWindow(g, 400, 0, 800, 480);
     u8g2_SetDrawColor(g, 0);
     u8g2_DrawStr(g, 430, 150, text);
+    u8g2_SetMaxClipWindow(g);
 }
 
 static unsigned fixed_black_trial_changed(const uint8_t *a, const uint8_t *b, size_t n)
@@ -42,16 +45,19 @@ static unsigned fixed_black_trial_changed(const uint8_t *a, const uint8_t *b, si
     return changes;
 }
 
-/* U8g2's native 800x480/R0 buffer is 60 tile rows of 800 columns. */
-static uint32_t fixed_black_trial_left_hash(const uint8_t *frame)
+/* U8g2 keeps native 800x480 bytes even when the logical view uses R2.
+ * Under R2, logical left x=0..399 resides in native columns 400..799. */
+static uint32_t fixed_black_trial_left_hash(const u8g2_t *g, const uint8_t *frame)
 {
     uint32_t hash = UINT32_C(2166136261);
+    const size_t first_column = g->cb == U8G2_R2 ? 400 : 0;
     for (size_t tile_y = 0; tile_y < 60; ++tile_y)
-        for (size_t x = 0; x < 400; ++x)
+        for (size_t x = first_column; x < first_column + 400; ++x)
             hash = (hash ^ frame[tile_y * 800 + x]) * UINT32_C(16777619);
     return hash;
 }
 
+#ifndef SOLAR_OS_FIXED_BLACK_FRAME_ONLY
 /* A serial gate leaves the image untouched for T0/T1 photographs. */
 static bool fixed_black_trial_gate(solar_os_shell_io_t *io, const char *stage)
 {
@@ -133,6 +139,7 @@ static void display_cmd_fixed_black_trial(solar_os_shell_io_t *io,
     if (!d->papermono_otp || !d->fastest_tiles || !d->band_buffer ||
         d->fastest_spi_hz != 20000000 ||
         d->waveform_trial != EPD_SSD1677_WAVEFORM_BASELINE ||
+        (target.u8g2->cb != U8G2_R0 && target.u8g2->cb != U8G2_R2) ||
         u8g2_GetDisplayWidth(target.u8g2) != 800 ||
         u8g2_GetDisplayHeight(target.u8g2) != 480 || target.black_is_one ||
         d->buffer_size != 48000 || d->buffer != u8g2_GetBufferPtr(target.u8g2) ||
@@ -154,6 +161,7 @@ static void display_cmd_fixed_black_trial(solar_os_shell_io_t *io,
     bool configured = false, healthy = false;
     unsigned completed = 0;
     unsigned buffer_interference = 0;
+    uint8_t *initial_frame = NULL;
     err = solar_os_display_wait(target.u8g2, 70000);
     if (err != ESP_OK || d->faulted) goto done;
     healthy = true;
@@ -178,9 +186,13 @@ static void display_cmd_fixed_black_trial(solar_os_shell_io_t *io,
                                                         UINT_MAX, false, false);
     if (err != ESP_OK) { healthy = false; goto done; }
     d->reference_awake = false; /* OTP full slept the controller; first fast is cold. */
-    const uint32_t fixed_hash = fixed_black_trial_left_hash(d->buffer);
-    solar_os_shell_io_printf(io, "FB fixed_left_hash=%08lx\n",
-                             (unsigned long)fixed_hash);
+    const uint32_t fixed_hash = fixed_black_trial_left_hash(target.u8g2, d->buffer);
+    initial_frame = malloc(d->buffer_size);
+    if (!initial_frame) { err = ESP_ERR_NO_MEM; goto done; }
+    memcpy(initial_frame, d->buffer, d->buffer_size);
+    solar_os_shell_io_printf(io, "FB fixed_left_hash=%08lx rotation=%s\n",
+                             (unsigned long)fixed_hash,
+                             target.u8g2->cb == U8G2_R2 ? "R2" : "R0");
     if (!fixed_black_trial_gate(io, "T0-photograph")) goto done;
     err = solar_os_display_set_controller_mode(target.name, "refresh=fastest");
     if (err != ESP_OK) goto done;
@@ -193,17 +205,42 @@ static void display_cmd_fixed_black_trial(solar_os_shell_io_t *io,
             /* A foreground app may edit the shared U8g2 buffer while our
              * display claim blocks its physical presents. Rebuild the exact
              * trial frame before each intentional 0x20 activation. */
-            if (fixed_black_trial_left_hash(d->buffer) != fixed_hash) {
+            if (fixed_black_trial_left_hash(target.u8g2, d->buffer) != fixed_hash) {
                 buffer_interference++;
                 solar_os_shell_io_printf(io,
                     "FB buffer_interference step=%u restored=1\n", step);
             }
-            fixed_black_trial_image(target.u8g2);
+            /* Restore the exact T0 frame. Re-rendering it could differ from
+             * the submitted frame if another task changed U8g2 state. */
+            memcpy(d->buffer, initial_frame, d->buffer_size);
+            const uint32_t restored_hash = fixed_black_trial_left_hash(target.u8g2, d->buffer);
+            if (restored_hash != fixed_hash) {
+                solar_os_shell_io_printf(io,
+                    "FB invalid-left stage=restore step=%u expected=%08lx actual=%08lx\n",
+                    step, (unsigned long)fixed_hash, (unsigned long)restored_hash);
+                err = ESP_ERR_INVALID_STATE;
+                goto done;
+            }
             if (condition == 'C') fixed_black_trial_right(target.u8g2, step);
         }
-        if (fixed_black_trial_left_hash(d->buffer) != fixed_hash) {
+        const uint32_t current_hash = fixed_black_trial_left_hash(target.u8g2, d->buffer);
+        if (current_hash != fixed_hash) {
+            solar_os_shell_io_printf(io,
+                "FB invalid-left stage=right step=%u expected=%08lx actual=%08lx\n",
+                step, (unsigned long)fixed_hash, (unsigned long)current_hash);
             err = ESP_ERR_INVALID_STATE;
             goto done;
+        }
+        if (condition == 'C') {
+            const unsigned changed = fixed_black_trial_changed(d->shadow, d->buffer,
+                                                                 d->buffer_size);
+            if (fixed_black_trial_left_hash(target.u8g2, d->shadow) != fixed_hash ||
+                changed == 0 || changed > 2000) {
+                solar_os_shell_io_printf(io,
+                    "FB invalid-right step=%u changed=%u\n", step, changed);
+                err = ESP_ERR_INVALID_STATE;
+                goto done;
+            }
         }
         if (condition != 'A') {
             err = fixed_black_trial_present(io, &target, d, "fast-step",
@@ -223,6 +260,7 @@ static void display_cmd_fixed_black_trial(solar_os_shell_io_t *io,
     (void)fixed_black_trial_gate(io, "T1-photograph");
 done:
     d->trial_force_identical_fastest = false;
+    free(initial_frame);
     solar_os_shell_io_printf(io,
         "FB end condition=%c err=%d completed=%u healthy=%u buffer_interference=%u total_fast_0x20=%lu\n",
         condition, err, completed, healthy, buffer_interference,
@@ -253,3 +291,4 @@ done:
         solar_os_sessions_mark_foreground_dirty();
     }
 }
+#endif /* SOLAR_OS_FIXED_BLACK_FRAME_ONLY */
