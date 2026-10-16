@@ -43,6 +43,13 @@ const char *solar_os_type_mouse_engine_layer_label(
     const solar_os_type_mouse_engine_t *engine);
 uint8_t solar_os_type_mouse_engine_held_modifiers(
     const solar_os_type_mouse_engine_t *engine);
+uint8_t solar_os_type_mouse_engine_locked_layers(
+    const solar_os_type_mouse_engine_t *engine);
+uint8_t solar_os_type_mouse_engine_locked_modifiers(
+    const solar_os_type_mouse_engine_t *engine);
+// Physical key positions to invert: current contacts plus locked hold keys.
+uint64_t solar_os_type_mouse_engine_visual_positions(
+    const solar_os_type_mouse_engine_t *engine);
 bool solar_os_type_mouse_engine_rect(int position, int *x, int *y,
     int *width, int *height);
 

@@ -1893,6 +1893,14 @@ pointer, a short tap clicks, a double tap with the second touch held and moved
 drags, and two fingers scroll. The app
 releases HID keys and buttons when switching modes, suspending, or closing.
 
+In Type mode, large labels are tap actions and small labels are hold actions.
+Hold a Shift, Ctrl, Fn, Sym, or Nav key alone for at least one second, then
+release it to lock that action. Repeat the long press to unlock it. A normal
+two-finger chord remains momentary. Pressed keys are inverted; a locked key
+stays inverted after release, and the status line marks locked actions with
+`*`. Locks clear on touch cancellation, BLE connection changes, mode changes,
+suspension, or app exit. Alt and GUI retain their momentary behavior.
+
 Usage:
 
 ```text
