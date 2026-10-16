@@ -13,7 +13,8 @@ struct solar_os_gfx { size_t width, height; };
 static struct solar_os_gfx display = {800,480};
 static size_t allocations, allocation_number, fail_at;
 static bool leased, manual_on, other_pointer, fail_enable;
-static unsigned submits, synchronous_presents;
+static unsigned submits, synchronous_presents, full_clears;
+static int last_bitmap_width, last_bitmap_height;
 static esp_err_t submit_error;
 static char directory[100];
 
@@ -41,7 +42,7 @@ void solar_os_context_finish(solar_os_context_t *c,int e,const char *s)
 size_t solar_os_gfx_width(const solar_os_gfx_t *g){return g->width;}
 size_t solar_os_gfx_height(const solar_os_gfx_t *g){return g->height;}
 solar_os_display_format_t solar_os_gfx_format(const solar_os_gfx_t *g){(void)g;return SOLAR_OS_DISPLAY_FORMAT_MONO1;}
-void solar_os_gfx_clear(solar_os_gfx_t *g,solar_os_gfx_color_t c){(void)g;(void)c;}
+void solar_os_gfx_clear(solar_os_gfx_t *g,solar_os_gfx_color_t c){(void)g;(void)c;full_clears++;}
 void solar_os_gfx_set_color(solar_os_gfx_t *g,solar_os_gfx_color_t c){(void)g;(void)c;}
 void solar_os_gfx_set_font(solar_os_gfx_t *g,solar_os_gfx_font_t f){(void)g;(void)f;}
 size_t solar_os_gfx_text_fit(solar_os_gfx_t *g,const char *text,int width,char *out,size_t cap){(void)g;size_t n=strlen(text);if(n>=cap)n=cap-1;if(n>(size_t)(width>0?width/6:0))n=width>0?width/6:0;memmove(out,text,n);out[n]=0;return n;}
@@ -57,7 +58,7 @@ void solar_os_gfx_fill_circle(solar_os_gfx_t *g,int x,int y,int r){solar_os_gfx_
 void solar_os_gfx_icon(solar_os_gfx_t *g,int x,int y,solar_os_gfx_icon_t i,solar_os_gfx_icon_size_t z)
 {(void)i;solar_os_gfx_fill_rect(g,x,y,(int)z,(int)z);}
 void solar_os_gfx_bitmap(solar_os_gfx_t *g,int x,int y,int w,int h,const uint8_t *b)
-{assert(b);solar_os_gfx_fill_rect(g,x,y,w,h);}
+{assert(b);last_bitmap_width=w;last_bitmap_height=h;solar_os_gfx_fill_rect(g,x,y,w,h);}
 void solar_os_gfx_bitmap_2bpp(solar_os_gfx_t *g,int x,int y,int w,int h,const uint8_t *b,size_t n,const solar_os_gfx_color_t p[4])
 {(void)n;(void)p;solar_os_gfx_bitmap(g,x,y,w,h,b);}
 void solar_os_gfx_present(solar_os_gfx_t *g){(void)g;synchronous_presents++;}
@@ -95,7 +96,7 @@ static solar_os_context_t begin(unsigned failure)
 {
     assert(!allocations && !leased);
     sketch_state_storage=calloc(1,sizeof(sketch_state_t)); assert(sketch_state_storage);
-    allocation_number=0;fail_at=failure;submits=synchronous_presents=0;submit_error=ESP_OK;
+    allocation_number=0;fail_at=failure;submits=synchronous_presents=full_clears=0;submit_error=ESP_OK;
     return (solar_os_context_t){.gfx=&display,.argc=1};
 }
 static void end(solar_os_context_t *c)
@@ -133,8 +134,13 @@ int main(void)
     pointer(&c,SOLAR_OS_INPUT_POINTER_PRESS,100,100);
     for(int x=101;x<=200;x++)pointer(&c,SOLAR_OS_INPUT_POINTER_MOVE,x,100);
     assert(submits==1);tick(&c);assert(submits==2);
-    pointer(&c,SOLAR_OS_INPUT_POINTER_RELEASE,200,100);tick(&c);assert(submits==3 && !sketch.drawing);
-    for(int x=100;x<=200;x++)assert(solar_os_sketch_canvas_get(&sketch.canvas,x-l.canvas_x,100-l.canvas_y)==3);
+    const unsigned clears_before_paint=full_clears;
+    pointer(&c,SOLAR_OS_INPUT_POINTER_MOVE,204,100);
+    pointer(&c,SOLAR_OS_INPUT_POINTER_RELEASE,208,100);
+    tick(&c);assert(submits==3 && !sketch.drawing);
+    assert(full_clears==clears_before_paint);
+    assert(last_bitmap_width<l.canvas_width && last_bitmap_height<l.canvas_height);
+    for(int x=100;x<=208;x++)assert(solar_os_sketch_canvas_get(&sketch.canvas,x-l.canvas_x,100-l.canvas_y)==3);
     solar_os_sketch_canvas_set(&sketch.canvas,10,10,1,0);
     solar_os_sketch_canvas_set(&sketch.canvas,11,10,2,0);
     sketch_suspend(&c);assert(!leased && sketch.suspended && allocations==3);
@@ -153,20 +159,18 @@ int main(void)
     FILE *f=fopen(gif_path,"wb");assert(f && fwrite(gif,1,sizeof(gif),f)==sizeof(gif));assert(!fclose(f));
     assert(sketch_load_image(gif_path,false)==ESP_OK && sketch.dirty && !sketch.path[0]);
     manual_on=true;end(&c);assert(manual_on);
-    /* A failed RELEASE submit leaves the logical Canvas intact but the
-     * current implementation clears render_pending. Do not count it as a
-     * visible final frame or silently retry a latched display fault. */
+    /* A failed final submit must leave the unpresented brush region pending. */
     manual_on=false;c=begin(0);assert(sketch_start(&c)==ESP_OK);
     pointer(&c,SOLAR_OS_INPUT_POINTER_PRESS,100,100);tick(&c);
     pointer(&c,SOLAR_OS_INPUT_POINTER_MOVE,130,100);
     pointer(&c,SOLAR_OS_INPUT_POINTER_RELEASE,130,100);
     const unsigned before_failed_submit=submits;
     submit_error=ESP_FAIL;tick(&c);
-    assert(submits==before_failed_submit+1 && !sketch.render_pending);
+    assert(submits==before_failed_submit+1 && sketch.render_pending);
     assert(solar_os_sketch_canvas_get(&sketch.canvas,130-l.canvas_x,100-l.canvas_y)==3);
-    submit_error=ESP_OK;tick(&c);assert(submits==before_failed_submit+1);
+    submit_error=ESP_OK;tick(&c);assert(submits==before_failed_submit+2 && !sketch.render_pending);
     sketch_suspend(&c);sketch_resume(&c);
-    assert(submits==before_failed_submit+2);
+    assert(submits==before_failed_submit+3);
     end(&c);
     manual_on=false;c=begin(0);c.argc=2;strcpy(c.argv[1],first);assert(sketch_start(&c)==ESP_OK && leased && !sketch.dirty);end(&c);
     assert(unlink(first)==0 && unlink(second)==0 && unlink(gif_path)==0 && rmdir(directory)==0);
