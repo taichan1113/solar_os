@@ -1,0 +1,42 @@
+{
+  "single_D_Driver_SPI_RAM_Shadow": "PASS",
+  "shell_scenarios": {
+    "normal_A_D": "PASS",
+    "R2_A_D": "PASS",
+    "D_BUSY_failure_and_no_retry": "PASS",
+    "D_abort_before_measure_and_no_retry": "PASS",
+    "D_cancel_at_white_and_no_retry": "PASS"
+  },
+  "independent_LUT_decode_tests": 2,
+  "legacy_waveform_regression": "PASS",
+  "major_executables": {
+    "epd_ssd1677_dirty_hold_test": "PASS",
+    "epd_ssd1677_test": "PASS",
+    "epd_ssd1677_spi_clock_dirty_20_test": "PASS",
+    "epd_ssd1677_hybrid_trial_test": "PASS",
+    "sketch_dirty_pipeline_test": "PASS",
+    "sketch_canvas_test": "PASS",
+    "sketch_lifecycle_test": "PASS",
+    "sketch_scale140_lifecycle_test": "PASS",
+    "sketch_legacy_lifecycle_test": "PASS",
+    "sketch_touch_projection_test": "PASS",
+    "sketch_trace_core_test": "PASS",
+    "display_async_test": "PASS",
+    "writer_quality_test": "PASS",
+    "writer_buffer_test": "PASS",
+    "writer_files_test": "PASS",
+    "launcher_touch_test": "PASS",
+    "type_mouse_engine_test": "PASS",
+    "type_mouse_lifecycle_test": "PASS",
+    "shell_launch_test": "PASS"
+  },
+  "Sketch_Python_cases": 9,
+  "failures": 0,
+  "compiler_warnings": 0,
+  "test_harness_note": "A test-only SPI failure hook was added to test baseline LUT restoration failure after successful activation. Production Driver sequence is unchanged.",
+  "real_hardware_validation": "NOT RUN (explicitly prohibited)",
+  "logs": {
+    "single": ".research\\black-hold-timing-d\\host-single-verified.log",
+    "regressions": ".research\\black-hold-timing-d\\host-regressions.log"
+  }
+}

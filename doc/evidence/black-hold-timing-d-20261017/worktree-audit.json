@@ -1,0 +1,140 @@
+[
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\black-hold-repro-b\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\black-hold-single\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\black-hold-timing-c\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\dirty-rectangle-hardware\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\dirty-rectangle-live\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\dirty-sketch-integration\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\display-update-mvp\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\epd-quality-mvp\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\fastest-fixed-black-cause\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\hybrid-refresh\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\lh",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\m5gfx-fastest-diff\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\shell-completion\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\sketch-latency-live\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\ssd1677-dirty-hold\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\type-mouse-mvp\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\type-mouse-phase1a\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\type-mouse-phase1b1\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\type-mouse-phase1b2\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\type-mouse-toggle\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\ui",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  },
+  {
+    "path": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\voltage-register-hold\\worktree",
+    "head_unchanged": true,
+    "status_unchanged": true,
+    "recorded_changed_files_unchanged": true
+  }
+]

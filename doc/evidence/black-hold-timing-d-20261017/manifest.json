@@ -1,0 +1,83 @@
+{
+  "result": "CANDIDATE_D_IMPLEMENTATION_HOST_BUILD_PASS_NO_DEVICE_ACCESS",
+  "branch": "experiment/papermono-black-hold-timing-d",
+  "implementation_commit": "e51d5a61db216227a30d514b18aa42c7368e90ab",
+  "base_commit": "affd31987f81c7249473d64ae3957be199d6ed14",
+  "integration_commit": "391925abff2d261d1d5856711aa0a1f101ac435a",
+  "board": "m5paper_mono",
+  "flavor": "writerdeck",
+  "layout": "ota",
+  "esp_idf": "5.5.5",
+  "compiler": "GCC 14.2.0",
+  "flags": {
+    "BLACK_HOLD_SINGLE_TRIAL": 1,
+    "DIRTY_HOLD_TRIAL": 1,
+    "SPI20_TRIAL": 1,
+    "HYBRID_TRIAL": 1,
+    "WAVEFORM_TRIAL": 0,
+    "SKETCH_LATENCY_TRIAL": 0
+  },
+  "runtime_refresh_note": "Driver initializes AUTO; existing startup selects fastest/tile. Candidate D is never selected at boot. Runtime/SPI frequency not measured in this task.",
+  "dirty_default": "PaperMono rows-dual; unchanged from B",
+  "application": "firmware-app-only.bin",
+  "application_bytes": 3458960,
+  "sha256": "5c8f0944e9b71b134f4aca5584c9e74ae9004cac2e06fab90a4fd10b55343fcd",
+  "ota_slot_bytes": 7340032,
+  "ota_remaining_bytes": 3881072,
+  "partitions": {
+    "nvs": {
+      "offset": 36864,
+      "size": 16384
+    },
+    "otadata": {
+      "offset": 53248,
+      "size": 8192
+    },
+    "phy_init": {
+      "offset": 61440,
+      "size": 4096
+    },
+    "ota_0": {
+      "offset": 65536,
+      "size": 7340032
+    },
+    "ota_1": {
+      "offset": 7405568,
+      "size": 7340032
+    },
+    "flash": {
+      "offset": 14745600,
+      "size": 2031616
+    }
+  },
+  "lut_D_sha256": "9be4bea8b9a07fef33834293d25979a9b0f3fc820d3e9912a1fc106532ef1832",
+  "lut_B_sha256": "45c5419f6986e3b1a81f8394e386fd5bc627503dcaa6d2c483a9113a63209422",
+  "lut_baseline_sha256": "e8a7abbb2110cb8d941e80cc2869bbe1d0814e1d4a38e5d0cc5173b10f39ce50",
+  "D_lut0": "2ff00000000000000000",
+  "B_to_D_changed_offsets": [
+    0
+  ],
+  "baseline_to_D_changed_offsets": [
+    0,
+    1
+  ],
+  "D_present_in_binary": true,
+  "B_C_waveforms_absent_in_binary": true,
+  "nominal_source_volt_frames": 0,
+  "effective_DC_balance_proven": false,
+  "physical_quality_tested": false,
+  "manufacturer_validated": false,
+  "sdk_config_equal_to_B": true,
+  "build_seconds": 247.40600000001723,
+  "compiler_warning_count": 0,
+  "compiler_error_count": 0,
+  "device_accessed": false,
+  "flash_performed": false,
+  "hardware_trials_performed": false,
+  "rollback_reference_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6",
+  "timing_ms": {
+    "T0_from_prepare": 5000,
+    "measurement_from_prepare": 10000,
+    "T1_from_measurement_end": 2000
+  }
+}

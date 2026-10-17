@@ -1,0 +1,89 @@
+{
+  "source": "SSD1677 Rev1.0 sections 6.6/6.7, Table6-6 and Figure6-6, pages16-17",
+  "B_hex": "8ff00000000000000000",
+  "D_hex": "2ff00000000000000000",
+  "B_decoded": [
+    [
+      0,
+      0,
+      2,
+      -15
+    ],
+    [
+      0,
+      1,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      5
+    ],
+    [
+      0,
+      3,
+      2,
+      5
+    ],
+    [
+      1,
+      0,
+      1,
+      5
+    ],
+    [
+      1,
+      1,
+      1,
+      5
+    ]
+  ],
+  "D_decoded": [
+    [
+      0,
+      0,
+      2,
+      0
+    ],
+    [
+      0,
+      1,
+      2,
+      -15
+    ],
+    [
+      0,
+      2,
+      2,
+      5
+    ],
+    [
+      0,
+      3,
+      2,
+      5
+    ],
+    [
+      1,
+      0,
+      1,
+      5
+    ],
+    [
+      1,
+      1,
+      1,
+      5
+    ]
+  ],
+  "B_to_D_changed_offsets": [
+    0
+  ],
+  "total_frames": 10,
+  "nominal_source_volt_frames": 0,
+  "effective_DC_balance_proven": false,
+  "device_accessed": false,
+  "result": "PASS"
+}
