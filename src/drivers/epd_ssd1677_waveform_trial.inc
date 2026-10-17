@@ -38,11 +38,12 @@ static const uint8_t ssd1677_trial_hold_lut[110] = {
 #endif
 
 #if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
-/* SSD1677 Rev1.0 6.6/6.7, Fig6-6: group0 10/00/11/11, group1 11/11/00/00.
+/* Candidate C: SSD1677 Rev1.0 6.6/6.7, Fig6-6:
+ * group0 10/11/11/11, group1 00/00/00/00 (HOLD moved to the end).
  * VSL*2 + VSS*2 + VSH2*6 = 0 nominal source V.frame, NOT proven DC balance.
  * This is NOT a manufacturer-validated waveform or a panel safety guarantee. */
 static const uint8_t ssd1677_trial_black_hold_single_lut[110] = {
-    0x8f,0xf0,0,0,0,0,0,0,0,0,
+    0xbf,0x00,0,0,0,0,0,0,0,0,
     0x6a,0xa0,0,0,0,0,0,0,0,0,
     0x95,0x50,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,

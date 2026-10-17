@@ -121,6 +121,8 @@ int main(int argc, char **argv)
 {
     const bool fail=argc>1 && !strcmp(argv[1],"fail");
     setup(argc>1 && !strcmp(argv[1],"r2"));
+    run('B'); /* Old Candidate B is not executable in this Trial. */
+    assert(!submitted && !claims && !epd_ssd1677_black_hold_spent());
     if(fail) failure_at=4;
     run('A');
     assert(claims==1 && releases==1);
@@ -132,10 +134,11 @@ int main(int argc, char **argv)
         assert(fixture.configured_spi_hz==10000000 && !fixture.timing_enabled);
         const unsigned before=submitted; run('A'); assert(submitted==before);
         setup(argc>1 && !strcmp(argv[1],"r2"));
-        run('B');
+        run('C');
         assert(submitted==5 && fast_updates==2 && otp_updates==3 && redraws==1 && !*keys);
         assert(epd_ssd1677_black_hold_spent() && !fixture.black_hold_active && !fixture.black_hold_pending);
-        const unsigned after=submitted; run('B'); assert(submitted==after);
+        const unsigned after=submitted; run('C'); assert(submitted==after);
+        assert(strstr(output,"BH phase=C-single") && strstr(output,"BH end condition=C"));
         assert(strstr(output,"cmd32=2 cmd20=1") && strstr(output,"BH gate=T1-photograph"));
     }
     puts("black-single Shell: actual pattern/rotation, OTP/prepare/single/restore, budgets and fault exit PASS");

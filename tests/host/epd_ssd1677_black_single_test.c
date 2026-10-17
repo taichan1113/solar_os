@@ -21,7 +21,7 @@ static epd_ssd1677_t prepared(bool r2)
     return d;
 }
 
-static void test_identical_ab(bool r2, bool swap)
+static void test_identical_ac(bool r2, bool swap)
 {
     black_hold_candidate_spent = false; /* simulate a fresh boot in this Host case */
     epd_ssd1677_t d = prepared(r2);
@@ -45,8 +45,8 @@ static void test_identical_ab(bool r2, bool swap)
     for (size_t i = 0; i < command_count; ++i) {
         assert(a[i].command == commands[i].command && a[i].length == commands[i].length);
         if (commands[i].command == 0x32 && luts++ == 0) {
-            assert(commands[i].length == 105 && commands[i].data[0] == 0x8f && commands[i].data[1] == 0xf0);
-            assert(!memcmp(a[i].data+2, commands[i].data+2, 103));
+            assert(commands[i].length == 105 && commands[i].data[0] == 0xbf && commands[i].data[1] == 0x00);
+            assert(!memcmp(a[i].data+1, commands[i].data+1, 104));
         } else assert(!memcmp(a[i].data, commands[i].data, a[i].length));
         if (commands[i].command == 0x20) ++activations;
     }
@@ -103,7 +103,7 @@ int main(void)
         assert(!memcmp(decoded, original, sizeof(decoded)));
     }
     epd_ssd1677_baseline_main(); /* unchanged normal Driver regression, with flag enabled */
-    for (unsigned r = 0; r < 2; ++r) for (unsigned s = 0; s < 2; ++s) test_identical_ab(r, s);
+    for (unsigned r = 0; r < 2; ++r) for (unsigned s = 0; s < 2; ++s) test_identical_ac(r, s);
     for (unsigned f = 0; f < 3; ++f) test_failure(f);
     black_hold_candidate_spent = false;
     epd_ssd1677_t d = prepared(false);
