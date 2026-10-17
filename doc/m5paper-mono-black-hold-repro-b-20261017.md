@@ -1,5 +1,7 @@
 # SSD1677 Candidate B再現性確認・Phase 1準備（2026-10-17）
 
+実施後の結果は[Phase 1実機結果](m5paper-mono-black-hold-repro-b-results-20261017.md)。以下はFlash承認前の準備記録として保持する。
+
 ## 状態と範囲
 
 Phase 1のHost検証・ESP32-S3ビルドを完了。依頼書§4 Step 3の指定に従い、**実機Flash前の明示承認待ち**。今回はUSB Shellの読取確認のみで、Flash・診断のEPD更新は行っていない。

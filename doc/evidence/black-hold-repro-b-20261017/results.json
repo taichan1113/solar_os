@@ -1,0 +1,1181 @@
+{
+  "date_JST": "2026-10-17",
+  "phase": "1 only",
+  "classification": "B-1: blackening direction reproduced in relative video contrast, with camera geometry/illumination limitations",
+  "implementation_commit": "e9f5989671c968f69e5c35893fb4c7573dd7da8a",
+  "trial_application_sha256": "4e8e7ed51d0d6dbf2adf8fdf5ca8f6c4d55456f153a8aa7325a63fe2b8d38b8c",
+  "final_application_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6",
+  "video_sources": [
+    {
+      "condition": "A",
+      "source": "C:\\Users\\takec\\Videos\\AB\\20261017-123603.avi",
+      "bytes": 790804076,
+      "sha256": "564abf7a4f5428dc670e605b2ea2de8ab3f63ea7980fb039fbd94fa6b28248d6",
+      "source_created_utc": "2026-10-17T03:36:03.1969676Z",
+      "source_modified_utc": "2026-10-17T03:38:06.3346593Z",
+      "capture_directory": ".research/black-hold-repro-b/archive/20261017-repro-b/A"
+    },
+    {
+      "condition": "B",
+      "source": "C:\\Users\\takec\\Videos\\AB\\20261017-125153.avi",
+      "bytes": 807632398,
+      "sha256": "f38c984a9c76ce8b79a01fd2b216ab58b1334d754a11060a16f9b8450c8158f4",
+      "source_created_utc": "2026-10-17T03:51:53.5995964Z",
+      "source_modified_utc": "2026-10-17T03:53:58.6255576Z",
+      "capture_directory": ".research/black-hold-repro-b/archive/20261017-repro-b-retake/B"
+    }
+  ],
+  "shadow_excluded_video": {
+    "source": "C:\\Users\\takec\\Videos\\AB\\20261017-124131.avi",
+    "bytes": 937848490,
+    "created_utc": "2026-10-17T03:36:03.1969676Z",
+    "modified_utc": "2026-10-17T03:44:01.0024897Z",
+    "sha256": "5878e0c7968d619b414aa7631e7b54823b85f1b11510248b675a65fb5afea2f5"
+  },
+  "optical_results": [
+    {
+      "condition": "A",
+      "source": "C:\\Users\\takec\\Videos\\AB\\20261017-123603.avi",
+      "rois": {
+        "square_black": [
+          642,
+          783,
+          792,
+          930
+        ],
+        "square_white": [
+          855,
+          783,
+          1005,
+          930
+        ],
+        "text_black_patch": [
+          600,
+          420,
+          1580,
+          650
+        ],
+        "text_white": [
+          620,
+          665,
+          1600,
+          720
+        ]
+      },
+      "text_mask_pixels": 12077,
+      "text_mask_source": "immutable per-video T0 mask; threshold 0.65 adjacent white; panel geometry differs across videos",
+      "samples": [
+        {
+          "label": "T0",
+          "offset_s": 0,
+          "pts_s": 76.599923,
+          "square_black": 92.26390022675737,
+          "square_white": 180.01854875283448,
+          "square_contrast": 0.4874755914545465,
+          "text_black": 110.73702078330712,
+          "text_white": 181.62846011131725,
+          "text_contrast": 0.3903101930422241,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        },
+        {
+          "label": "T0",
+          "offset_s": 0.5,
+          "pts_s": 77.099923,
+          "square_black": 92.33641723356008,
+          "square_white": 179.87192743764172,
+          "square_contrast": 0.4866546517350718,
+          "text_black": 111.12826032955203,
+          "text_white": 181.53808905380333,
+          "text_contrast": 0.387851547249589,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        },
+        {
+          "label": "T0",
+          "offset_s": 1,
+          "pts_s": 77.599922,
+          "square_black": 92.36702947845805,
+          "square_white": 179.77963718820862,
+          "square_contrast": 0.4862208483502479,
+          "text_black": 110.94857994535067,
+          "text_white": 181.4986827458256,
+          "text_contrast": 0.38870862164479014,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        },
+        {
+          "label": "T1",
+          "offset_s": 0,
+          "pts_s": 83.766583,
+          "square_black": 92.79977324263038,
+          "square_white": 177.1102947845805,
+          "square_contrast": 0.47603399703273674,
+          "text_black": 113.9918854020038,
+          "text_white": 178.67974025974027,
+          "text_contrast": 0.36203239809785975,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        },
+        {
+          "label": "T1",
+          "offset_s": 0.5,
+          "pts_s": 84.266582,
+          "square_black": 93.00925170068027,
+          "square_white": 177.46063492063493,
+          "square_contrast": 0.4758879807779542,
+          "text_black": 114.15566779829427,
+          "text_white": 178.96445269016698,
+          "text_contrast": 0.3621321660121701,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        },
+        {
+          "label": "T1",
+          "offset_s": 1,
+          "pts_s": 84.766582,
+          "square_black": 92.9487074829932,
+          "square_white": 177.2868934240363,
+          "square_contrast": 0.4757158541851275,
+          "text_black": 113.94410863625072,
+          "text_white": 178.7317439703154,
+          "text_contrast": 0.36248533078055184,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        }
+      ],
+      "summary": {
+        "T0": {
+          "square_black": 92.33641723356008,
+          "square_white": 179.87192743764172,
+          "square_contrast": 0.4866546517350718,
+          "text_black": 110.94857994535067,
+          "text_white": 181.53808905380333,
+          "text_contrast": 0.38870862164479014,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        },
+        "T1": {
+          "square_black": 92.9487074829932,
+          "square_white": 177.2868934240363,
+          "square_contrast": 0.4758879807779542,
+          "text_black": 113.9918854020038,
+          "text_white": 178.7317439703154,
+          "text_contrast": 0.3621321660121701,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        }
+      },
+      "event_metrics": {
+        "square": {
+          "raw_minimum": 0.47413395947676684,
+          "raw_minimum_pts_s": 82.366584,
+          "median3_minimum": 0.47498476738052103,
+          "median3_minimum_pts_s": 82.133251,
+          "drop_from_T0_pp": 1.2520692258304933,
+          "recovery_to_T1_pp": 0.17540213011873473,
+          "median3_drop_from_T0_pp": 1.1669884354550741,
+          "median3_recovery_to_T1_pp": 0.09032133974331558,
+          "T0_native_range_pp": 0.18985243564786924,
+          "white_change_percent": -1.437152562064814,
+          "interpretation": "minimum within +/-1s of approximate phase-completion locator, not a resolved LUT phase"
+        },
+        "text": {
+          "raw_minimum": 0.36009465972262195,
+          "raw_minimum_pts_s": 82.366584,
+          "median3_minimum": 0.36026893674552246,
+          "median3_minimum_pts_s": 82.099918,
+          "drop_from_T0_pp": 2.8613961922168194,
+          "recovery_to_T1_pp": 0.203750628954813,
+          "median3_drop_from_T0_pp": 2.843968489926768,
+          "median3_recovery_to_T1_pp": 0.18632292666476147,
+          "T0_native_range_pp": 0.2626164096617256,
+          "white_change_percent": -1.5458712263167085,
+          "interpretation": "minimum within +/-1s of approximate phase-completion locator, not a resolved LUT phase"
+        }
+      },
+      "event_end_locator_s": 81.76540207862854,
+      "marker_locator_s": {
+        "T0": 76.59110207862854,
+        "measure": 81.59110207862854,
+        "T1": 83.76610207862853
+      },
+      "square_delta_percentage_points": -1.0766670957117586,
+      "text_delta_percentage_points": -2.6576455632620064,
+      "synchronization": "USB phase receipt wallclock minus original PC file creation time; approximate and requires visual verification; no calibrated sync bound",
+      "repeated_frames_are_independent_trials": false
+    },
+    {
+      "condition": "B",
+      "source": "C:\\Users\\takec\\Videos\\AB\\20261017-125153.avi",
+      "rois": {
+        "square_black": [
+          726,
+          801,
+          867,
+          939
+        ],
+        "square_white": [
+          926,
+          801,
+          1067,
+          939
+        ],
+        "text_black_patch": [
+          690,
+          450,
+          1600,
+          690
+        ],
+        "text_white": [
+          710,
+          695,
+          1610,
+          750
+        ]
+      },
+      "text_mask_pixels": 13143,
+      "text_mask_source": "immutable per-video T0 mask; threshold 0.65 adjacent white; panel geometry differs across videos",
+      "samples": [
+        {
+          "label": "T0",
+          "offset_s": 0,
+          "pts_s": 89.299911,
+          "square_black": 83.10175763182238,
+          "square_white": 171.0746222633364,
+          "square_contrast": 0.5142367901657369,
+          "text_black": 103.90466407973827,
+          "text_white": 175.46866666666668,
+          "text_contrast": 0.407844910127896,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        },
+        {
+          "label": "T0",
+          "offset_s": 0.5,
+          "pts_s": 89.79991,
+          "square_black": 83.09507657518759,
+          "square_white": 171.08608284510228,
+          "square_contrast": 0.5143083809428256,
+          "text_black": 104.12850947272312,
+          "text_white": 175.29828282828282,
+          "text_contrast": 0.40599241593983876,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        },
+        {
+          "label": "T0",
+          "offset_s": 1,
+          "pts_s": 90.29991,
+          "square_black": 83.17072669339089,
+          "square_white": 171.10098674067223,
+          "square_contrast": 0.5139085502794446,
+          "text_black": 103.99741307159705,
+          "text_white": 175.2858585858586,
+          "text_contrast": 0.40669821336068024,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        },
+        {
+          "label": "T1",
+          "offset_s": 0,
+          "pts_s": 96.46657,
+          "square_black": 74.16620413197657,
+          "square_white": 167.26194881282763,
+          "square_contrast": 0.5565865120047637,
+          "text_black": 96.88297953283117,
+          "text_white": 171.60436363636364,
+          "text_contrast": 0.435428228747551,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        },
+        {
+          "label": "T1",
+          "offset_s": 0.5,
+          "pts_s": 96.96657,
+          "square_black": 74.16707780861343,
+          "square_white": 167.51552060849008,
+          "square_contrast": 0.557252500907343,
+          "text_black": 97.04146694057674,
+          "text_white": 171.69250505050505,
+          "text_contrast": 0.43479497307100834,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        },
+        {
+          "label": "T1",
+          "offset_s": 1,
+          "pts_s": 97.466569,
+          "square_black": 74.40769863295303,
+          "square_white": 167.39135574056942,
+          "square_contrast": 0.555486612174446,
+          "text_black": 97.00426082325193,
+          "text_white": 171.7182222222222,
+          "text_contrast": 0.4350962899108181,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        }
+      ],
+      "summary": {
+        "T0": {
+          "square_black": 83.10175763182238,
+          "square_white": 171.08608284510228,
+          "square_contrast": 0.5142367901657369,
+          "text_black": 103.99741307159705,
+          "text_white": 175.29828282828282,
+          "text_contrast": 0.40669821336068024,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        },
+        "T1": {
+          "square_black": 74.16707780861343,
+          "square_white": 167.39135574056942,
+          "square_contrast": 0.5565865120047637,
+          "text_black": 97.00426082325193,
+          "text_white": 171.69250505050505,
+          "text_contrast": 0.4350962899108181,
+          "square_black_clip_fraction": 0.0,
+          "text_black_clip_fraction": 0.0,
+          "square_white_clip_fraction": 0.0,
+          "text_white_clip_fraction": 0.0
+        }
+      },
+      "event_metrics": {
+        "square": {
+          "raw_minimum": 0.4516344129684445,
+          "raw_minimum_pts_s": 94.233239,
+          "median3_minimum": 0.4951007525742585,
+          "median3_minimum_pts_s": 94.233239,
+          "drop_from_T0_pp": 6.260237719729239,
+          "recovery_to_T1_pp": 10.495209903631924,
+          "median3_drop_from_T0_pp": 1.913603759147836,
+          "median3_recovery_to_T1_pp": 6.148575943050521,
+          "T0_native_range_pp": 0.2149057581305125,
+          "white_change_percent": -2.159571978673447,
+          "interpretation": "minimum within +/-1s of approximate phase-completion locator, not a resolved LUT phase"
+        },
+        "text": {
+          "raw_minimum": 0.3502041992362701,
+          "raw_minimum_pts_s": 94.233239,
+          "median3_minimum": 0.3739066778742484,
+          "median3_minimum_pts_s": 94.233239,
+          "drop_from_T0_pp": 5.649401412441013,
+          "recovery_to_T1_pp": 8.4892090674548,
+          "median3_drop_from_T0_pp": 3.2791535486431824,
+          "median3_recovery_to_T1_pp": 6.118961203656969,
+          "T0_native_range_pp": 0.23103910030077834,
+          "white_change_percent": -2.0569384477712727,
+          "interpretation": "minimum within +/-1s of approximate phase-completion locator, not a resolved LUT phase"
+        }
+      },
+      "event_end_locator_s": 94.47610092163086,
+      "marker_locator_s": {
+        "T0": 89.30218792163086,
+        "measure": 94.30218792163086,
+        "T1": 96.47618392163086
+      },
+      "square_delta_percentage_points": 4.234972183902686,
+      "text_delta_percentage_points": 2.8398076550137876,
+      "synchronization": "USB phase receipt wallclock minus original PC file creation time; approximate and requires visual verification; no calibrated sync bound",
+      "repeated_frames_are_independent_trials": false
+    }
+  ],
+  "comparison": {
+    "square": {
+      "A_delta_pp": -1.0766670957117586,
+      "B_delta_pp": 4.234972183902686,
+      "improvement_pp": 5.311639279614445,
+      "T0_B_minus_A_pp": 2.7582138430665095
+    },
+    "text": {
+      "A_delta_pp": -2.6576455632620064,
+      "B_delta_pp": 2.8398076550137876,
+      "improvement_pp": 5.497453218275794,
+      "T0_B_minus_A_pp": 1.7989591715890096
+    }
+  },
+  "near_event_check": {
+    "A": {
+      "windows_relative_approximate_end_s": {
+        "before": [
+          -0.75,
+          -0.5
+        ],
+        "after": [
+          0.2,
+          0.45
+        ]
+      },
+      "groups": {
+        "before": {
+          "square_black": 90.59791383219955,
+          "square_white": 176.87569160997734,
+          "square_contrast": 0.4880430507063006,
+          "text_black": 110.56139769810383,
+          "text_white": 178.52098330241188,
+          "text_contrast": 0.38068121935663735,
+          "native_frames": 7
+        },
+        "after": {
+          "square_black": 93.12961451247165,
+          "square_white": 177.4190702947846,
+          "square_contrast": 0.4751646613848299,
+          "text_black": 114.32321768651155,
+          "text_white": 178.88575139146567,
+          "text_contrast": 0.3607336471125733,
+          "native_frames": 8
+        }
+      },
+      "square_step_pp": -1.287838932147073,
+      "text_step_pp": -1.9947572244064071,
+      "square_white_change_percent": 0.307209362610128,
+      "text_white_change_percent": 0.20432785116126784,
+      "purpose": "Assess whether update-adjacent contrast step tracks uniform white brightness; supplements, does not replace predeclared T0/T1 windows"
+    },
+    "B": {
+      "windows_relative_approximate_end_s": {
+        "before": [
+          -0.75,
+          -0.5
+        ],
+        "after": [
+          0.2,
+          0.45
+        ]
+      },
+      "groups": {
+        "before": {
+          "square_black": 81.60299105766265,
+          "square_white": 167.7678075855689,
+          "square_contrast": 0.513575139235275,
+          "text_black": 103.06296127216008,
+          "text_white": 172.01097979797981,
+          "text_contrast": 0.400724391913558,
+          "native_frames": 8
+        },
+        "after": {
+          "square_black": 73.65972864631514,
+          "square_white": 167.8366224689074,
+          "square_contrast": 0.5612616961019777,
+          "text_black": 96.8815338963707,
+          "text_white": 172.06452525252524,
+          "text_contrast": 0.43696320706509634,
+          "native_frames": 7
+        }
+      },
+      "square_step_pp": 4.768655686670275,
+      "text_step_pp": 3.6238815151538315,
+      "square_white_change_percent": 0.04101793087054606,
+      "text_white_change_percent": 0.031129091066350867,
+      "purpose": "Assess whether update-adjacent contrast step tracks uniform white brightness; supplements, does not replace predeclared T0/T1 windows"
+    }
+  },
+  "measurements": {
+    "A": {
+      "condition": "A",
+      "phases": [
+        {
+          "phase": "white-otp",
+          "err": 0,
+          "candidate": 0,
+          "spi_hz": 20000000,
+          "cmd03": 0,
+          "cmd04": 0,
+          "cmd2c": 0,
+          "cmd32": 0,
+          "cmd20": 2,
+          "start_us": 147549955,
+          "end_us": 152019028,
+          "total_us": 4469073,
+          "busy_us": 99570,
+          "spi_us": 90273
+        },
+        {
+          "phase": "image-otp",
+          "err": 0,
+          "candidate": 0,
+          "spi_hz": 20000000,
+          "cmd03": 0,
+          "cmd04": 0,
+          "cmd2c": 0,
+          "cmd32": 0,
+          "cmd20": 2,
+          "start_us": 195639462,
+          "end_us": 200115028,
+          "total_us": 4475566,
+          "busy_us": 99673,
+          "spi_us": 94305
+        },
+        {
+          "phase": "prepare-baseline",
+          "err": 0,
+          "candidate": 0,
+          "spi_hz": 20000000,
+          "cmd03": 1,
+          "cmd04": 1,
+          "cmd2c": 1,
+          "cmd32": 2,
+          "cmd20": 1,
+          "start_us": 200124843,
+          "end_us": 200666679,
+          "total_us": 541836,
+          "busy_us": 133544,
+          "spi_us": 78610
+        },
+        {
+          "phase": "A-single",
+          "err": 0,
+          "candidate": 0,
+          "spi_hz": 20000000,
+          "cmd03": 1,
+          "cmd04": 1,
+          "cmd2c": 1,
+          "cmd32": 2,
+          "cmd20": 1,
+          "start_us": 210671334,
+          "end_us": 210841308,
+          "total_us": 169974,
+          "busy_us": 51926,
+          "spi_us": 61771
+        },
+        {
+          "phase": "exit-otp",
+          "err": 0,
+          "candidate": 0,
+          "spi_hz": 20000000,
+          "cmd03": 0,
+          "cmd04": 0,
+          "cmd2c": 0,
+          "cmd32": 0,
+          "cmd20": 2,
+          "start_us": 358064198,
+          "end_us": 362540300,
+          "total_us": 4476102,
+          "busy_us": 99727,
+          "spi_us": 94591
+        }
+      ],
+      "measured": {
+        "phase": "A-single",
+        "err": 0,
+        "candidate": 0,
+        "spi_hz": 20000000,
+        "cmd03": 1,
+        "cmd04": 1,
+        "cmd2c": 1,
+        "cmd32": 2,
+        "cmd20": 1,
+        "start_us": 210671334,
+        "end_us": 210841308,
+        "total_us": 169974,
+        "busy_us": 51926,
+        "spi_us": 61771
+      },
+      "markers": {
+        "T0": {
+          "anchor_us": 200666679,
+          "target_us": 205666679,
+          "actual_us": 205667008
+        },
+        "measure": {
+          "anchor_us": 200666679,
+          "target_us": 210666679,
+          "actual_us": 210667008
+        },
+        "T1": {
+          "anchor_us": 210841308,
+          "target_us": 212841308,
+          "actual_us": 212842008
+        }
+      },
+      "actual_intervals_us": {
+        "prepare_to_T0_us": 5000329,
+        "prepare_to_measure_driver_start_us": 10004655,
+        "T0_to_measure_driver_start_us": 5004326,
+        "measurement_end_to_T1_us": 2000700
+      },
+      "diagnostic_cmd20": 8,
+      "candidate_executions": 0,
+      "physical_lut_readback": false
+    },
+    "B_shadow": {
+      "condition": "B",
+      "phases": [
+        {
+          "phase": "white-otp",
+          "err": 0,
+          "candidate": 0,
+          "spi_hz": 20000000,
+          "cmd03": 0,
+          "cmd04": 0,
+          "cmd2c": 0,
+          "cmd32": 0,
+          "cmd20": 2,
+          "start_us": 434454510,
+          "end_us": 438930028,
+          "total_us": 4475518,
+          "busy_us": 99648,
+          "spi_us": 95228
+        },
+        {
+          "phase": "image-otp",
+          "err": 0,
+          "candidate": 0,
+          "spi_hz": 20000000,
+          "cmd03": 0,
+          "cmd04": 0,
+          "cmd2c": 0,
+          "cmd32": 0,
+          "cmd20": 2,
+          "start_us": 542750457,
+          "end_us": 547228100,
+          "total_us": 4477643,
+          "busy_us": 99755,
+          "spi_us": 94545
+        },
+        {
+          "phase": "prepare-baseline",
+          "err": 0,
+          "candidate": 0,
+          "spi_hz": 20000000,
+          "cmd03": 1,
+          "cmd04": 1,
+          "cmd2c": 1,
+          "cmd32": 2,
+          "cmd20": 1,
+          "start_us": 547238012,
+          "end_us": 547780314,
+          "total_us": 542302,
+          "busy_us": 134166,
+          "spi_us": 78916
+        },
+        {
+          "phase": "B-single",
+          "err": 0,
+          "candidate": 1,
+          "spi_hz": 20000000,
+          "cmd03": 1,
+          "cmd04": 1,
+          "cmd2c": 1,
+          "cmd32": 2,
+          "cmd20": 1,
+          "start_us": 557785332,
+          "end_us": 557954143,
+          "total_us": 168811,
+          "busy_us": 51142,
+          "spi_us": 62189
+        },
+        {
+          "phase": "exit-otp",
+          "err": 0,
+          "candidate": 0,
+          "spi_hz": 20000000,
+          "cmd03": 0,
+          "cmd04": 0,
+          "cmd2c": 0,
+          "cmd32": 0,
+          "cmd20": 2,
+          "start_us": 600517124,
+          "end_us": 604996030,
+          "total_us": 4478906,
+          "busy_us": 99541,
+          "spi_us": 93436
+        }
+      ],
+      "measured": {
+        "phase": "B-single",
+        "err": 0,
+        "candidate": 1,
+        "spi_hz": 20000000,
+        "cmd03": 1,
+        "cmd04": 1,
+        "cmd2c": 1,
+        "cmd32": 2,
+        "cmd20": 1,
+        "start_us": 557785332,
+        "end_us": 557954143,
+        "total_us": 168811,
+        "busy_us": 51142,
+        "spi_us": 62189
+      },
+      "markers": {
+        "T0": {
+          "anchor_us": 547780314,
+          "target_us": 552780314,
+          "actual_us": 552781008
+        },
+        "measure": {
+          "anchor_us": 547780314,
+          "target_us": 557780314,
+          "actual_us": 557781008
+        },
+        "T1": {
+          "anchor_us": 557954143,
+          "target_us": 559954143,
+          "actual_us": 559955009
+        }
+      },
+      "actual_intervals_us": {
+        "prepare_to_T0_us": 5000694,
+        "prepare_to_measure_driver_start_us": 10005018,
+        "T0_to_measure_driver_start_us": 5004324,
+        "measurement_end_to_T1_us": 2000866
+      },
+      "diagnostic_cmd20": 8,
+      "candidate_executions": 1,
+      "physical_lut_readback": false,
+      "optical_qualification": "User reported leaning over panel introduced shadow during B; retain as contaminated record, not primary reproduction comparison"
+    },
+    "B_retake": {
+      "condition": "B-retake",
+      "phases": [
+        {
+          "phase": "white-otp",
+          "err": 0,
+          "candidate": 0,
+          "spi_hz": 20000000,
+          "cmd03": 0,
+          "cmd04": 0,
+          "cmd2c": 0,
+          "cmd32": 0,
+          "cmd20": 2,
+          "start_us": 115870971,
+          "end_us": 120348368,
+          "total_us": 4477397,
+          "busy_us": 99680,
+          "spi_us": 94614
+        },
+        {
+          "phase": "image-otp",
+          "err": 0,
+          "candidate": 0,
+          "spi_hz": 20000000,
+          "cmd03": 0,
+          "cmd04": 0,
+          "cmd2c": 0,
+          "cmd32": 0,
+          "cmd20": 2,
+          "start_us": 182408450,
+          "end_us": 186885028,
+          "total_us": 4476578,
+          "busy_us": 99625,
+          "spi_us": 94076
+        },
+        {
+          "phase": "prepare-baseline",
+          "err": 0,
+          "candidate": 0,
+          "spi_hz": 20000000,
+          "cmd03": 1,
+          "cmd04": 1,
+          "cmd2c": 1,
+          "cmd32": 2,
+          "cmd20": 1,
+          "start_us": 186894830,
+          "end_us": 187436623,
+          "total_us": 541793,
+          "busy_us": 133639,
+          "spi_us": 78810
+        },
+        {
+          "phase": "B-single",
+          "err": 0,
+          "candidate": 1,
+          "spi_hz": 20000000,
+          "cmd03": 1,
+          "cmd04": 1,
+          "cmd2c": 1,
+          "cmd32": 2,
+          "cmd20": 1,
+          "start_us": 197441345,
+          "end_us": 197610921,
+          "total_us": 169576,
+          "busy_us": 51125,
+          "spi_us": 62233
+        },
+        {
+          "phase": "exit-otp",
+          "err": 0,
+          "candidate": 0,
+          "spi_hz": 20000000,
+          "cmd03": 0,
+          "cmd04": 0,
+          "cmd2c": 0,
+          "cmd32": 0,
+          "cmd20": 2,
+          "start_us": 246773129,
+          "end_us": 251250028,
+          "total_us": 4476899,
+          "busy_us": 99639,
+          "spi_us": 95201
+        }
+      ],
+      "measured": {
+        "phase": "B-single",
+        "err": 0,
+        "candidate": 1,
+        "spi_hz": 20000000,
+        "cmd03": 1,
+        "cmd04": 1,
+        "cmd2c": 1,
+        "cmd32": 2,
+        "cmd20": 1,
+        "start_us": 197441345,
+        "end_us": 197610921,
+        "total_us": 169576,
+        "busy_us": 51125,
+        "spi_us": 62233
+      },
+      "markers": {
+        "T0": {
+          "anchor_us": 187436623,
+          "target_us": 192436623,
+          "actual_us": 192437008
+        },
+        "measure": {
+          "anchor_us": 187436623,
+          "target_us": 197436623,
+          "actual_us": 197437008
+        },
+        "T1": {
+          "anchor_us": 197610921,
+          "target_us": 199610921,
+          "actual_us": 199611004
+        }
+      },
+      "actual_intervals_us": {
+        "prepare_to_T0_us": 5000385,
+        "prepare_to_measure_driver_start_us": 10004722,
+        "T0_to_measure_driver_start_us": 5004337,
+        "measurement_end_to_T1_us": 2000083
+      },
+      "diagnostic_cmd20": 8,
+      "candidate_executions": 1,
+      "physical_lut_readback": false
+    }
+  },
+  "flash_restore": {
+    "initial_flash": {
+      "result": "PASS",
+      "port": "COM39",
+      "commit": "e9f5989671c968f69e5c35893fb4c7573dd7da8a",
+      "app_offset": "0x10000",
+      "artifact_size": 3457728,
+      "artifact_sha256": "4e8e7ed51d0d6dbf2adf8fdf5ca8f6c4d55456f153a8aa7325a63fe2b8d38b8c",
+      "write_started": true,
+      "protected_regions": {
+        "bootloader": {
+          "unchanged": true,
+          "sha256": "3ae58d175ec0f7e3d2ae412ffcce00819578af7aa327b02ec72c33aab838e947"
+        },
+        "partition_table": {
+          "unchanged": true,
+          "sha256": "5e3ed4b37934b0b91570d25452be2d1b5dce204ffe049febf7b6a9e6e696f97d"
+        },
+        "nvs": {
+          "unchanged": true,
+          "sha256": "3c3b4ba2d8a50f86f409bddc72b0e88cc275e5f8956ecae53d99468f2460d947"
+        },
+        "otadata": {
+          "unchanged": true,
+          "sha256": "8ba3b110139f45443d4f268d1a3373ef99a1718b71d51664531b83ee2d4b91a3"
+        },
+        "phy_init": {
+          "unchanged": true,
+          "sha256": "58b59eb397fcc8b699d265a18af84e063dc9bab0bd03632ad2f91e70038aa788"
+        },
+        "fat": {
+          "unchanged": true,
+          "sha256": "12b2426eb6294852d297993168683e15dfe6295b57ad7c613dd0fd96ce600a6e"
+        }
+      },
+      "mac": "28:84:85:44:79:68",
+      "flash_id": "0x184046",
+      "flash_size": 16777216,
+      "full_backup_sha256": "bad80bdea1d8629dc05116492f7eee17fc031a8e06cfeb9163971d2c8208bebd",
+      "partitions": {
+        "nvs": {
+          "kind": 1,
+          "subtype": 2,
+          "offset": 36864,
+          "size": 16384
+        },
+        "otadata": {
+          "kind": 1,
+          "subtype": 0,
+          "offset": 53248,
+          "size": 8192
+        },
+        "phy_init": {
+          "kind": 1,
+          "subtype": 1,
+          "offset": 61440,
+          "size": 4096
+        },
+        "ota_0": {
+          "kind": 0,
+          "subtype": 16,
+          "offset": 65536,
+          "size": 7340032
+        },
+        "ota_1": {
+          "kind": 0,
+          "subtype": 17,
+          "offset": 7405568,
+          "size": 7340032
+        },
+        "flash": {
+          "kind": 1,
+          "subtype": 129,
+          "offset": 14745600,
+          "size": 2031616
+        }
+      },
+      "ota_records": [
+        {
+          "sequence": 1,
+          "state": 2,
+          "crc_valid": true
+        },
+        {
+          "sequence": 4294967295,
+          "state": 4294967295,
+          "crc_valid": false
+        }
+      ],
+      "active_slot": "ota_0",
+      "rollback_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6",
+      "rollback_size": 3455712,
+      "readback_sha256": "4e8e7ed51d0d6dbf2adf8fdf5ca8f6c4d55456f153a8aa7325a63fe2b8d38b8c"
+    },
+    "initial_restore": {
+      "result": "PASS",
+      "rollback_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6",
+      "protected_regions": {
+        "bootloader": {
+          "unchanged": true,
+          "sha256": "3ae58d175ec0f7e3d2ae412ffcce00819578af7aa327b02ec72c33aab838e947"
+        },
+        "partition_table": {
+          "unchanged": true,
+          "sha256": "5e3ed4b37934b0b91570d25452be2d1b5dce204ffe049febf7b6a9e6e696f97d"
+        },
+        "nvs": {
+          "unchanged": true,
+          "sha256": "620d998885cb2b695e96c0580b373b8de6ddf6ed4c0bb69d32f9ad5f79261045"
+        },
+        "otadata": {
+          "unchanged": true,
+          "sha256": "8ba3b110139f45443d4f268d1a3373ef99a1718b71d51664531b83ee2d4b91a3"
+        },
+        "phy_init": {
+          "unchanged": true,
+          "sha256": "58b59eb397fcc8b699d265a18af84e063dc9bab0bd03632ad2f91e70038aa788"
+        },
+        "fat": {
+          "unchanged": true,
+          "sha256": "e230c96c348092bfc9b2012e81cdf9b3febab7b4d952df350614de238179dfb3"
+        }
+      }
+    },
+    "retake_flash": {
+      "result": "PASS",
+      "port": "COM39",
+      "commit": "e9f5989671c968f69e5c35893fb4c7573dd7da8a",
+      "app_offset": "0x10000",
+      "artifact_size": 3457728,
+      "artifact_sha256": "4e8e7ed51d0d6dbf2adf8fdf5ca8f6c4d55456f153a8aa7325a63fe2b8d38b8c",
+      "write_started": true,
+      "protected_regions": {
+        "bootloader": {
+          "unchanged": true,
+          "sha256": "3ae58d175ec0f7e3d2ae412ffcce00819578af7aa327b02ec72c33aab838e947"
+        },
+        "partition_table": {
+          "unchanged": true,
+          "sha256": "5e3ed4b37934b0b91570d25452be2d1b5dce204ffe049febf7b6a9e6e696f97d"
+        },
+        "nvs": {
+          "unchanged": true,
+          "sha256": "0b13209ee99ec4b539f4bc2dcb9653c47a50c54fe35891b6e5f72afe53bfe287"
+        },
+        "otadata": {
+          "unchanged": true,
+          "sha256": "8ba3b110139f45443d4f268d1a3373ef99a1718b71d51664531b83ee2d4b91a3"
+        },
+        "phy_init": {
+          "unchanged": true,
+          "sha256": "58b59eb397fcc8b699d265a18af84e063dc9bab0bd03632ad2f91e70038aa788"
+        },
+        "fat": {
+          "unchanged": true,
+          "sha256": "817fb4c4192e971ecb51159e7d938a9cf6ff6d0040158bad7a5aac7243974c07"
+        }
+      },
+      "mac": "28:84:85:44:79:68",
+      "flash_id": "0x184046",
+      "flash_size": 16777216,
+      "full_backup_sha256": "3323b3d269438d03e02b76899c107b40557484823d0dbff454979bdc465d945f",
+      "partitions": {
+        "nvs": {
+          "kind": 1,
+          "subtype": 2,
+          "offset": 36864,
+          "size": 16384
+        },
+        "otadata": {
+          "kind": 1,
+          "subtype": 0,
+          "offset": 53248,
+          "size": 8192
+        },
+        "phy_init": {
+          "kind": 1,
+          "subtype": 1,
+          "offset": 61440,
+          "size": 4096
+        },
+        "ota_0": {
+          "kind": 0,
+          "subtype": 16,
+          "offset": 65536,
+          "size": 7340032
+        },
+        "ota_1": {
+          "kind": 0,
+          "subtype": 17,
+          "offset": 7405568,
+          "size": 7340032
+        },
+        "flash": {
+          "kind": 1,
+          "subtype": 129,
+          "offset": 14745600,
+          "size": 2031616
+        }
+      },
+      "ota_records": [
+        {
+          "sequence": 1,
+          "state": 2,
+          "crc_valid": true
+        },
+        {
+          "sequence": 4294967295,
+          "state": 4294967295,
+          "crc_valid": false
+        }
+      ],
+      "active_slot": "ota_0",
+      "rollback_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6",
+      "rollback_size": 3455712,
+      "readback_sha256": "4e8e7ed51d0d6dbf2adf8fdf5ca8f6c4d55456f153a8aa7325a63fe2b8d38b8c"
+    },
+    "final_restore": {
+      "result": "PASS",
+      "rollback_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6",
+      "protected_regions": {
+        "bootloader": {
+          "unchanged": true,
+          "sha256": "3ae58d175ec0f7e3d2ae412ffcce00819578af7aa327b02ec72c33aab838e947"
+        },
+        "partition_table": {
+          "unchanged": true,
+          "sha256": "5e3ed4b37934b0b91570d25452be2d1b5dce204ffe049febf7b6a9e6e696f97d"
+        },
+        "nvs": {
+          "unchanged": true,
+          "sha256": "f2e28715330777463e25781a95bbb3d3c5a3aad721fb872743802ba462268297"
+        },
+        "otadata": {
+          "unchanged": true,
+          "sha256": "8ba3b110139f45443d4f268d1a3373ef99a1718b71d51664531b83ee2d4b91a3"
+        },
+        "phy_init": {
+          "unchanged": true,
+          "sha256": "58b59eb397fcc8b699d265a18af84e063dc9bab0bd03632ad2f91e70038aa788"
+        },
+        "fat": {
+          "unchanged": true,
+          "sha256": "ce449087cec6b07b6e39aeb44b3a35c3eb428223a8850195de6e5ef38c856a70"
+        }
+      }
+    }
+  },
+  "camera_settings": {
+    "camera": "Insta360 Link",
+    "application": "Insta360 Link Controller",
+    "focus_percent": 19,
+    "color_temperature_K": 4100,
+    "brightness_percent": 81,
+    "contrast_percent": 45,
+    "saturation_percent": 0,
+    "sharpness_percent": 26,
+    "anti_flicker_Hz": 60,
+    "exposure_curve": "linear (user reported)",
+    "settings_lockable": true,
+    "exposure_gain_manual_state": "manual fixed (user confirmed)",
+    "resolution_fps": "4K 30fps (user confirmed)",
+    "panel_temperature_measured": false,
+    "temperature_note": "User has no thermometer",
+    "natural_light_intrusion_possible": true,
+    "settings_source": "user report; controller state not independently read back",
+    "exposure_gain_numeric_values": "not supplied"
+  },
+  "geometry_note": {
+    "observed_before_quantification": "A and B frames show translated/scaled panel; common image-coordinate text mask is invalid. Use per-video corresponding fixed physical ROIs and freeze T0 mask within each video. No warp or original modification.",
+    "A_square_preview_1280_bbox": [
+      205,
+      252,
+      272,
+      319
+    ],
+    "B_square_preview_1280_bbox": [
+      234,
+      259,
+      297,
+      323
+    ],
+    "optical_comparison_limit": "Camera/panel geometry not identical despite user-reported settings lock; check T0 contrast and white variation; no cross-run absolute photometry."
+  },
+  "diagnostic_command20_total": 24,
+  "candidate_B_total": 2,
+  "retake_reason": "User explicitly requested a single B retake after reported shadow contamination; A not repeated",
+  "user_visual_A": "濃さほぼ不変・背景正常・目立つちらつきなし",
+  "user_visual_B_retake": "濃さほぼ不変・背景正常・影なし",
+  "final_launcher_visual": "正常",
+  "D_implemented": false,
+  "phase2_approved": false,
+  "repetition_trial_performed": false,
+  "waveform_lut_changed_from_original_B": false
+}

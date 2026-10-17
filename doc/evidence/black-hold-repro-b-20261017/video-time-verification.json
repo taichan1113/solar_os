@@ -1,0 +1,62 @@
+[
+  {
+    "source": "C:\\Users\\takec\\Videos\\AB\\20261017-123603.avi",
+    "bytes": 790804076,
+    "created_utc": "2026-10-17T03:36:03.1969676Z",
+    "modified_utc": "2026-10-17T03:38:06.3346593Z",
+    "sha256": "564abf7a4f5428dc670e605b2ea2de8ab3f63ea7980fb039fbd94fa6b28248d6",
+    "probe": {
+      "duration_s": 122.98,
+      "decoded_size": [
+        3840,
+        2160
+      ],
+      "nominal_fps": 30.0,
+      "variable_frame_rate_assumed_possible": true
+    },
+    "filename_start_jst": "2026-10-17T12:36:03+09:00",
+    "modified_jst": "2026-10-17T12:38:06.334659+09:00",
+    "estimated_start_from_end_jst": "2026-10-17T12:36:03.354659+09:00",
+    "filename_to_end_seconds": 123.334659
+  },
+  {
+    "source": "C:\\Users\\takec\\Videos\\AB\\20261017-124131.avi",
+    "bytes": 937848490,
+    "created_utc": "2026-10-17T03:36:03.1969676Z",
+    "modified_utc": "2026-10-17T03:44:01.0024897Z",
+    "sha256": "5878e0c7968d619b414aa7631e7b54823b85f1b11510248b675a65fb5afea2f5",
+    "probe": {
+      "duration_s": 148.8,
+      "decoded_size": [
+        3840,
+        2160
+      ],
+      "nominal_fps": 30.0,
+      "variable_frame_rate_assumed_possible": true
+    },
+    "filename_start_jst": "2026-10-17T12:41:31+09:00",
+    "modified_jst": "2026-10-17T12:44:01.002489+09:00",
+    "estimated_start_from_end_jst": "2026-10-17T12:41:32.202489+09:00",
+    "filename_to_end_seconds": 150.002489
+  },
+  {
+    "source": "C:\\Users\\takec\\Videos\\AB\\20261017-125153.avi",
+    "bytes": 807632398,
+    "created_utc": "2026-10-17T03:51:53.5995964Z",
+    "modified_utc": "2026-10-17T03:53:58.6255576Z",
+    "sha256": "f38c984a9c76ce8b79a01fd2b216ab58b1334d754a11060a16f9b8450c8158f4",
+    "probe": {
+      "duration_s": 124.83,
+      "decoded_size": [
+        3840,
+        2160
+      ],
+      "nominal_fps": 30.0,
+      "variable_frame_rate_assumed_possible": true
+    },
+    "filename_start_jst": "2026-10-17T12:51:53+09:00",
+    "modified_jst": "2026-10-17T12:53:58.625557+09:00",
+    "estimated_start_from_end_jst": "2026-10-17T12:51:53.795557+09:00",
+    "filename_to_end_seconds": 125.625557
+  }
+]
