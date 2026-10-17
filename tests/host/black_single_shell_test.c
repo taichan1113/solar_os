@@ -156,32 +156,44 @@ int main(int argc, char **argv)
 {
     const bool fail=argc>1 && !strcmp(argv[1],"fail");
     const bool abort=argc>1 && !strcmp(argv[1],"abort");
+    const bool cancel=argc>1 && !strcmp(argv[1],"cancel");
     setup(argc>1 && !strcmp(argv[1],"r2"));
-    run('C'); run('D'); assert(!submitted && !claims);
+    run('B'); run('C'); assert(!submitted && !claims);
+    solar_os_shell_io_t non_port={.port=0};
+    char *invalid_io[]={"display","test","display0","black-hold-single","D"};
+    display_cmd_black_hold_single(&non_port,5,invalid_io);
+    assert(!submitted && !claims);
     if(fail) failure_at=4;
     if(abort) abort_wait=true;
-    run('A');
+    if(cancel) keys="q";
+    run(fail || abort || cancel ? 'D' : 'A');
     assert(claims==1 && releases==1);
-    if(abort) {
+    if(cancel) {
+        assert(submitted==2 && fast_updates==0 && otp_updates==2 && redraws==1);
+        assert(!epd_ssd1677_black_hold_spent());
+        const unsigned before=submitted; run('D'); assert(submitted==before);
+    } else if(abort) {
         assert(submitted==4 && fast_updates==1 && otp_updates==3 && redraws==1);
         assert(strstr(output,"BH mark=T0 ") && strstr(output,"BH aborted wait=measure"));
-        assert(!strstr(output,"BH phase=A-single") && !epd_ssd1677_black_hold_spent());
+        assert(!strstr(output,"BH phase=D-single") && !epd_ssd1677_black_hold_spent());
+        const unsigned before=submitted; run('D'); assert(submitted==before);
     } else if(fail) {
         assert(fixture.faulted && !redraws && submitted==4 && otp_updates==2);
-        assert(!fixture.black_hold_pending && !fixture.black_hold_active);
+        assert(!fixture.black_hold_pending && !fixture.black_hold_active && epd_ssd1677_black_hold_spent());
+        const unsigned before=submitted; run('D'); assert(submitted==before);
     } else {
         assert(submitted==5 && fast_updates==2 && otp_updates==3 && redraws==1 && !*keys);
         check_timing();
         assert(fixture.configured_spi_hz==10000000 && !fixture.timing_enabled);
         const unsigned before=submitted; run('A'); assert(submitted==before);
         setup(argc>1 && !strcmp(argv[1],"r2"));
-        run('B');
+        run('D');
         assert(submitted==5 && fast_updates==2 && otp_updates==3 && redraws==1 && !*keys);
         check_timing();
         assert(epd_ssd1677_black_hold_spent() && !fixture.black_hold_active && !fixture.black_hold_pending);
-        const unsigned after=submitted; run('B'); assert(submitted==after);
+        const unsigned after=submitted; run('D'); assert(submitted==after);
         assert(strstr(output,"cmd32=2 cmd20=1") && strstr(output,"BH gate=T1-photograph"));
     }
-    puts("black-single Shell: timed T0/measurement/T1, abort, rotation, single shot and restore PASS");
+    puts("black-single Shell: A/D timed T0/measurement/T1, abort/cancel, old B/C rejection, rotation and one-shot restore PASS");
     return 0;
 }

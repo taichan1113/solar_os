@@ -21,7 +21,7 @@ static epd_ssd1677_t prepared(bool r2)
     return d;
 }
 
-static void test_identical_ab(bool r2, bool swap)
+static void test_identical_ad(bool r2, bool swap)
 {
     black_hold_candidate_spent = false; /* simulate a fresh boot in this Host case */
     epd_ssd1677_t d = prepared(r2);
@@ -45,7 +45,7 @@ static void test_identical_ab(bool r2, bool swap)
     for (size_t i = 0; i < command_count; ++i) {
         assert(a[i].command == commands[i].command && a[i].length == commands[i].length);
         if (commands[i].command == 0x32 && luts++ == 0) {
-            assert(commands[i].length == 105 && commands[i].data[0] == 0x8f && commands[i].data[1] == 0xf0);
+            assert(commands[i].length == 105 && commands[i].data[0] == 0x2f && commands[i].data[1] == 0xf0);
             assert(!memcmp(a[i].data+2, commands[i].data+2, 103));
         } else assert(!memcmp(a[i].data, commands[i].data, a[i].length));
         if (commands[i].command == 0x20) ++activations;
@@ -90,6 +90,27 @@ static void test_failure(unsigned fault)
     assert(epd_ssd1677_black_hold_arm(&d, true) == ESP_ERR_INVALID_STATE); /* display reset doesn't refund */
 }
 
+/* A successful activation followed by failed baseline 0x32 must poison state.
+ * The transport hook fails the restore only, not the candidate LUT send. */
+static void test_restore_failure(bool candidate)
+{
+    black_hold_candidate_spent = false;
+    epd_ssd1677_t d = prepared(false);
+    assert(epd_ssd1677_black_hold_arm(&d, candidate) == ESP_OK);
+    command_count = 0;
+    fail_lut_restore = true;
+    assert(epd_ssd1677_present_snapshot(&d, frame, sizeof(frame)) == ESP_FAIL);
+    assert(d.faulted && !d.shadow_valid && !d.papermono_baseline_valid);
+    assert(!d.reference_awake && !d.controller_ready && !d.black_hold_active && !d.black_hold_pending);
+    unsigned activations = 0;
+    for (size_t i = 0; i < command_count; ++i) if (commands[i].command == 0x20) ++activations;
+    assert(activations == 1 && epd_ssd1677_black_hold_spent() == candidate);
+    fail_lut_restore = false;
+    const size_t before = command_count;
+    assert(epd_ssd1677_present_snapshot(&d, frame, sizeof(frame)) == ESP_ERR_INVALID_STATE);
+    assert(command_count == before && epd_ssd1677_black_hold_arm(&d, true) == ESP_ERR_INVALID_STATE);
+}
+
 int main(void)
 {
     unsigned decoded[4];
@@ -103,8 +124,10 @@ int main(void)
         assert(!memcmp(decoded, original, sizeof(decoded)));
     }
     epd_ssd1677_baseline_main(); /* unchanged normal Driver regression, with flag enabled */
-    for (unsigned r = 0; r < 2; ++r) for (unsigned s = 0; s < 2; ++s) test_identical_ab(r, s);
+    for (unsigned r = 0; r < 2; ++r) for (unsigned s = 0; s < 2; ++s) test_identical_ad(r, s);
     for (unsigned f = 0; f < 3; ++f) test_failure(f);
+    test_restore_failure(false);
+    test_restore_failure(true);
     black_hold_candidate_spent = false;
     epd_ssd1677_t d = prepared(false);
     assert(epd_ssd1677_black_hold_arm(&d, true) == ESP_OK);
@@ -112,6 +135,6 @@ int main(void)
     assert(!d.black_hold_pending && epd_ssd1677_black_hold_spent());
     assert(epd_ssd1677_set_controller_mode(&d, "fastest-waveform=black-hold-single") == ESP_ERR_INVALID_ARG);
     assert(epd_ssd1677_set_controller_mode(&d, "fastest-waveform=hold") == ESP_ERR_INVALID_ARG);
-    puts("black-single: R0/R2 retain/swap, RAM/Shadow/classes, command-only LUT diff, one-shot/restore/fault gates PASS");
+    puts("black-single: R0/R2 retain/swap, RAM/Shadow/classes, command-only LUT diff, D one-shot/restore-failure/fault gates PASS");
     return 0;
 }

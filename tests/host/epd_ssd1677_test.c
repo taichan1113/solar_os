@@ -20,6 +20,7 @@ static bool fail_external_reset;
 static int fail_command = -1;
 static bool busy_on_activation;
 static bool fail_plane_data;
+static bool fail_lut_restore;
 static bool fail_spi_override;
 static int fail_plane_after_bytes = -1;
 static int fail_plane_command = 0x24;
@@ -69,6 +70,10 @@ esp_err_t spi_device_polling_transmit(spi_device_handle_t device, spi_transactio
     size_t length = transaction->length / 8U;
     if (dc_level == 0) {
         if (data[0] == fail_command) return ESP_FAIL;
+        if (data[0] == 0x32 && fail_lut_restore) {
+            for (size_t i = 0; i < command_count; ++i)
+                if (commands[i].command == 0x20) return ESP_FAIL;
+        }
         if (data[0] == 0x20 && busy_on_activation) stuck_busy = true;
         assert(length == 1 && command_count < 128);
         commands[command_count++] = (captured_command_t){.command = data[0]};
@@ -103,6 +108,7 @@ static epd_ssd1677_t make_display(void)
     fail_command = -1;
     busy_on_activation = false;
     fail_plane_data = false;
+    fail_lut_restore = false;
     fail_spi_override = false;
     fail_plane_after_bytes = -1;
     return (epd_ssd1677_t) {
