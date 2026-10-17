@@ -1020,24 +1020,34 @@ esp_err_t epd_ssd1677_resume(epd_ssd1677_t *display)
 }
 
 #if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
-static bool black_hold_candidate_spent; /* survives display deinit/reset within this boot */
-bool epd_ssd1677_black_hold_spent(void) { return black_hold_candidate_spent; }
+static bool black_hold_candidate_spent[2]; /* survives display deinit/reset within this boot */
+static bool black_hold_failed;
+bool epd_ssd1677_black_hold_blocked(void) { return black_hold_failed; }
+bool epd_ssd1677_black_hold_spent(epd_ssd1677_black_hold_t candidate)
+{
+    return candidate == EPD_SSD1677_BLACK_HOLD_B ? black_hold_candidate_spent[0] :
+           candidate == EPD_SSD1677_BLACK_HOLD_D ? black_hold_candidate_spent[1] :
+           candidate != EPD_SSD1677_BLACK_HOLD_BASELINE;
+}
 void epd_ssd1677_black_hold_cancel(epd_ssd1677_t *d)
 {
     if (d) d->black_hold_pending = 0;
 }
-esp_err_t epd_ssd1677_black_hold_arm(epd_ssd1677_t *d, bool candidate)
+esp_err_t epd_ssd1677_black_hold_arm(epd_ssd1677_t *d, epd_ssd1677_black_hold_t candidate)
 {
-    if (!d || !d->papermono_otp || d->faulted || !d->powered ||
+    if (candidate < EPD_SSD1677_BLACK_HOLD_BASELINE || candidate > EPD_SSD1677_BLACK_HOLD_D)
+        return ESP_ERR_INVALID_ARG;
+    if (!d || black_hold_failed || !d->papermono_otp || d->faulted || !d->powered ||
         !d->shadow_valid || !d->papermono_baseline_valid ||
         d->refresh_mode != EPD_SSD1677_REFRESH_FASTEST || !d->fastest_tiles ||
         !d->band_buffer || d->fastest_spi_hz != 20000000 ||
         d->waveform_trial != EPD_SSD1677_WAVEFORM_BASELINE ||
         d->black_hold_pending || d->black_hold_active ||
-        (candidate && (!d->reference_awake || !d->controller_ready || black_hold_candidate_spent)))
+        (candidate && (!d->reference_awake || !d->controller_ready || epd_ssd1677_black_hold_spent(candidate))))
         return ESP_ERR_INVALID_STATE;
-    if (candidate) black_hold_candidate_spent = true; /* never refund after an error */
-    d->black_hold_pending = candidate ? 2U : 1U;
+    if (candidate) black_hold_candidate_spent[candidate - 1U] = true;
+    d->black_hold_lut_ready_us = d->black_hold_restore_start_us = d->black_hold_restore_end_us = 0;
+    d->black_hold_pending = (uint8_t)candidate + 1U;
     return ESP_OK;
 }
 #endif
@@ -1048,14 +1058,21 @@ esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *display, const uint8_t *fr
     const unsigned request = display ? display->black_hold_pending : 0;
     if (display) display->black_hold_pending = 0;
 #endif
-    if (!display || !display->buffer || !frame || size != display->buffer_size)
-        return ESP_ERR_INVALID_ARG;
+    if (!display || !display->buffer || !frame || size != display->buffer_size) {
 #if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
-    if (request && (display->faulted || !display->shadow_valid ||
+        if (request) black_hold_failed = true;
+#endif
+        return ESP_ERR_INVALID_ARG;
+    }
+#if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+    if (request && (black_hold_failed || display->faulted || !display->shadow_valid ||
         !display->papermono_baseline_valid || !display->powered ||
         display->refresh_mode != EPD_SSD1677_REFRESH_FASTEST ||
-        (request == 2U && !display->reference_awake) ||
-        memcmp(frame, display->shadow, size))) return ESP_ERR_INVALID_STATE;
+        (request > 1U && !display->reference_awake) ||
+        memcmp(frame, display->shadow, size))) {
+        black_hold_failed = true;
+        return ESP_ERR_INVALID_STATE;
+    }
     display->black_hold_active = request;
 #endif
     display->snapshot = frame;
@@ -1073,9 +1090,11 @@ esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *display, const uint8_t *fr
 #if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
     display->black_hold_active = 0; /* no persistent candidate selection */
     if (request && err == ESP_OK) {
-        /* Same restore in A and B; no activation. Never send while timed-out BUSY. */
+        /* Same restore for baseline preparation, B and D; no activation. */
         const int64_t restore_start = esp_timer_get_time();
+        display->black_hold_restore_start_us = restore_start;
         err = ssd1677_cmd_data(display, 0x32, ssd1677_reference_lut, 105);
+        display->black_hold_restore_end_us = esp_timer_get_time();
         display->timing.spi_us[3] += esp_timer_get_time() - restore_start;
         display->timing.end_us = esp_timer_get_time();
         if (err != ESP_OK) {
@@ -1084,6 +1103,7 @@ esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *display, const uint8_t *fr
             display->reference_awake = display->controller_ready = false;
         }
     }
+    if (request && err != ESP_OK) black_hold_failed = true;
 #endif
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     if (display->trial_observer)

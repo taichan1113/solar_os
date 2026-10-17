@@ -1,4 +1,4 @@
-/* Single A/D operator-gated diagnostic, reusing the fixed-black image and
+/* Single B/D operator-gated diagnostic, reusing the fixed-black image and
  * existing display claim / immutable executor submission / OTP cleanup. */
 #include "epd_ssd1677.h"
 #include "esp_timer.h"
@@ -68,7 +68,7 @@ static bool black_single_wait_until(solar_os_shell_io_t *io, const char *stage,
 
 static esp_err_t black_single_present(solar_os_shell_io_t *io,
     solar_os_display_target_t *target, epd_ssd1677_t *d, const char *phase,
-    const uint8_t *image, bool forced, bool candidate)
+    const uint8_t *image, bool forced, epd_ssd1677_black_hold_t candidate)
 {
     uint32_t before[5];
     memcpy(before, d->black_hold_commands, sizeof(before));
@@ -101,21 +101,29 @@ static esp_err_t black_single_present(solar_os_shell_io_t *io,
         (long long)t->start_us, (long long)t->end_us, (long long)(t->end_us-t->start_us),
         (long long)(t->ready_us[0]-t->activate_us[0]),
         (long long)(t->spi_us[0]+t->spi_us[1]+t->spi_us[2]+t->spi_us[3]));
+    if (forced) solar_os_shell_io_printf(io,
+        "BH trace phase=%s lut_ready_us=%lld activate_call_us=%lld busy_wait_end_us=%lld "
+        "restore_start_us=%lld restore_end_us=%lld busy_edge_measured=0\n", phase,
+        (long long)d->black_hold_lut_ready_us, (long long)t->activate_us[0],
+        (long long)t->ready_us[0], (long long)d->black_hold_restore_start_us,
+        (long long)d->black_hold_restore_end_us);
     return err;
 }
 
 static void display_cmd_black_hold_single(solar_os_shell_io_t *io, int argc, char **argv)
 {
-    static bool started[2]; /* no automatic or accidental second A/D in one boot */
+    static bool started[2]; /* B and D each once, including operator cancel */
+    static bool failed; /* no next condition after a diagnostic failure */
     static const char owner[] = "shell:black-single";
     if (argc != 5 || strcmp(argv[2], "display0") ||
-        (strcmp(argv[4], "A") && strcmp(argv[4], "D")) ||
+        (strcmp(argv[4], "B") && strcmp(argv[4], "D")) ||
         solar_os_shell_io_kind(io) != SOLAR_OS_SHELL_IO_KIND_PORT) {
-        solar_os_shell_io_writeln(io, "usage (USB serial): display test display0 black-hold-single A|D");
+        solar_os_shell_io_writeln(io, "usage (USB serial): display test display0 black-hold-single B|D");
         return;
     }
-    const bool candidate = argv[4][0] == 'D';
-    if (started[candidate] || (candidate && epd_ssd1677_black_hold_spent()) ||
+    const unsigned index = argv[4][0] == 'D';
+    const epd_ssd1677_black_hold_t candidate = index ? EPD_SSD1677_BLACK_HOLD_D : EPD_SSD1677_BLACK_HOLD_B;
+    if (started[index] || failed || epd_ssd1677_black_hold_blocked() || epd_ssd1677_black_hold_spent(candidate) ||
         !solar_os_sessions_foreground_is_shell()) {
         solar_os_shell_io_writeln(io, "BH rejected: single-use budget or foreground Shell required");
         return;
@@ -148,7 +156,7 @@ static void display_cmd_black_hold_single(solar_os_shell_io_t *io, int argc, cha
     if (err != ESP_OK || d->faulted) goto done;
     image = malloc(d->buffer_size);
     if (!image) { err = ESP_ERR_NO_MEM; goto done; }
-    started[candidate] = true;
+    started[index] = true;
     d->configured_spi_hz = 20000000;
     (void)solar_os_display_set_controller_mode(target.name, "timing=on");
     black_single_white(target.u8g2);
@@ -172,7 +180,7 @@ static void display_cmd_black_hold_single(solar_os_shell_io_t *io, int argc, cha
      * T0: +5s; measurement: +10s; T1: +2s from completed measurement. */
     if (!black_single_wait_until(io, "T0", prepared_us, 5000)) goto done;
     if (!black_single_wait_until(io, "measure", prepared_us, 10000)) goto done;
-    err = black_single_present(io, &target, d, candidate ? "D-single" : "A-single", image, true, candidate);
+    err = black_single_present(io, &target, d, index ? "D-single" : "B-single", image, true, candidate);
     if (err != ESP_OK) { healthy = false; goto done; }
     if (!black_single_wait_until(io, "T1", d->timing.end_us, 2000)) goto done;
     (void)black_single_gate(io, "T1-photograph");
@@ -182,6 +190,7 @@ done:
         err = solar_os_display_set_controller_mode(target.name, "refresh=cleanup");
         if (err == ESP_OK) err = black_single_present(io, &target, d, "exit-otp", image, false, false);
     }
+    if (err != ESP_OK || d->faulted) failed = true;
     const char *refresh[] = {"refresh=auto", "refresh=partial", "refresh=full",
                             "refresh=fastest", "refresh=typing",
 #if SOLAR_OS_SSD1677_HYBRID_TRIAL
@@ -195,5 +204,5 @@ done:
     (void)solar_os_display_release(target.name, owner);
     if (healthy && err == ESP_OK && !d->faulted) solar_os_sessions_mark_foreground_dirty();
     solar_os_shell_io_printf(io, "BH end condition=%c err=%d healthy=%u candidate_spent=%u\n",
-                            candidate ? 'D' : 'A', err, healthy, epd_ssd1677_black_hold_spent());
+                            argv[4][0], err, healthy, epd_ssd1677_black_hold_spent(candidate));
 }

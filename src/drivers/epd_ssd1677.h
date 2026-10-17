@@ -153,6 +153,7 @@ typedef struct {
 #endif
     bool fastest_tiles;
 #if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+    int64_t black_hold_lut_ready_us, black_hold_restore_start_us, black_hold_restore_end_us;
     uint8_t black_hold_pending, black_hold_active; /* exclusive executor test only */
     uint32_t black_hold_commands[5]; /* successful 03,04,2c,32,20 commands */
 #endif
@@ -176,11 +177,17 @@ esp_err_t epd_ssd1677_set_power_save(epd_ssd1677_t *display, bool enabled);
 /* Executor owns hardware exclusively for this call. No U8g2 state is read. */
 esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *, const uint8_t *, size_t);
 #if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
-/* Caller claims/drains the display executor before arming exactly one snapshot.
- * Candidate budget is global for this boot and is consumed even on failure. */
-esp_err_t epd_ssd1677_black_hold_arm(epd_ssd1677_t *, bool candidate);
+typedef enum {
+    EPD_SSD1677_BLACK_HOLD_BASELINE = 0,
+    EPD_SSD1677_BLACK_HOLD_B,
+    EPD_SSD1677_BLACK_HOLD_D,
+} epd_ssd1677_black_hold_t;
+/* Caller claims/drains the executor. B/D each have a boot-global, nonrefundable
+ * budget. A failed forced snapshot blocks both candidates until reboot. */
+esp_err_t epd_ssd1677_black_hold_arm(epd_ssd1677_t *, epd_ssd1677_black_hold_t);
 void epd_ssd1677_black_hold_cancel(epd_ssd1677_t *);
-bool epd_ssd1677_black_hold_spent(void);
+bool epd_ssd1677_black_hold_spent(epd_ssd1677_black_hold_t);
+bool epd_ssd1677_black_hold_blocked(void);
 #endif
 #if SOLAR_OS_SSD1677_HYBRID_TRIAL
 /* Worker-only: explicitly activate one same-frame OTP partial update. */

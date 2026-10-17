@@ -28,9 +28,13 @@ static const uint8_t *ssd1677_selected_lut(const epd_ssd1677_t *d, const char **
 {
     *name = "baseline";
 #if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
-    if (d->black_hold_active == 2U) {
-        *name = "black-hold-single";
-        return ssd1677_trial_black_hold_single_lut;
+    if (d->black_hold_active == EPD_SSD1677_BLACK_HOLD_B + 1U) {
+        *name = "black-hold-B";
+        return ssd1677_trial_black_hold_b_lut;
+    }
+    if (d->black_hold_active == EPD_SSD1677_BLACK_HOLD_D + 1U) {
+        *name = "black-hold-D";
+        return ssd1677_trial_black_hold_d_lut;
     }
 #endif
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
@@ -238,6 +242,9 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         d->timing.write_end_us[i] = esp_timer_get_time();
     }
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x32,lut,105);
+#if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+    if (err == ESP_OK && d->black_hold_active) d->black_hold_lut_ready_us = esp_timer_get_time();
+#endif
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x03,lut+105,1);
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x04,lut+106,3);
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x2c,lut+109,1);

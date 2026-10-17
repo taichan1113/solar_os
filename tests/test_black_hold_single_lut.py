@@ -10,19 +10,20 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 
 def array(path, name):
-    body = re.search(r'\b' + name + r'\[110\]\s*=\s*\{(.*?)\};', path.read_text(), re.S)[1]
+    body = re.search(r'\b' + name + r'\[110\]\s*=\s*\{(.*?)\};', path.read_text(encoding='utf-8'), re.S)[1]
     body = re.sub(r'/\*.*?\*/|//[^\n]*', '', body, flags=re.S)
     return bytes(int(v, 0) for v in re.findall(r'0x[0-9a-fA-F]+|\b[0-9]+\b', body))
 
 class BlackHoldLutTests(unittest.TestCase):
     def test_spec_encoding_and_unchanged_baseline(self):
         base = array(ROOT/'src/drivers/epd_ssd1677_reference.inc', 'ssd1677_reference_lut')
-        trial = array(ROOT/'src/drivers/epd_ssd1677_waveform_trial.inc', 'ssd1677_trial_black_hold_single_lut')
+        trial = array(ROOT/'src/drivers/epd_ssd1677_waveform_trial.inc', 'ssd1677_trial_black_hold_d_lut')
         self.assertEqual(len(base), 110)
         self.assertEqual(len(trial), 110)
         self.assertEqual(hashlib.sha256(base).hexdigest(), 'e8a7abbb2110cb8d941e80cc2869bbe1d0814e1d4a38e5d0cc5173b10f39ce50')
         self.assertEqual([i for i in range(110) if trial[i] != base[i]], [0, 1])
         self.assertEqual(trial[:10], bytes([0x2f, 0xf0] + [0]*8))
+        self.assertEqual(hashlib.sha256(trial).hexdigest(), '9be4bea8b9a07fef33834293d25979a9b0f3fc820d3e9912a1fc106532ef1832')
         self.assertEqual(trial[10:], base[10:])
         decoded = []
         voltage = [0, 16, -15, 5]  # Table6-6 + unchanged 04 values
@@ -41,8 +42,10 @@ class BlackHoldLutTests(unittest.TestCase):
 
     def test_B_to_D_only_reorders_first_two_phases(self):
         base = array(ROOT/'src/drivers/epd_ssd1677_reference.inc', 'ssd1677_reference_lut')
-        d = array(ROOT/'src/drivers/epd_ssd1677_waveform_trial.inc', 'ssd1677_trial_black_hold_single_lut')
-        b = bytes([0x8f, 0xf0]) + base[2:]
+        d = array(ROOT/'src/drivers/epd_ssd1677_waveform_trial.inc', 'ssd1677_trial_black_hold_d_lut')
+        b = array(ROOT/'src/drivers/epd_ssd1677_waveform_trial.inc', 'ssd1677_trial_black_hold_b_lut')
+        self.assertEqual(len(b), 110)
+        self.assertEqual(b, bytes([0x8f, 0xf0]) + base[2:])
         self.assertEqual(hashlib.sha256(b).hexdigest(), '45c5419f6986e3b1a81f8394e386fd5bc627503dcaa6d2c483a9113a63209422')
         self.assertEqual([i for i in range(110) if b[i] != d[i]], [0])
         def decode(lut):
