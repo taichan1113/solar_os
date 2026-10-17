@@ -1,0 +1,18 @@
+{
+  "build.log": {
+    "bytes": 225565,
+    "sha256": "aba728ae8d94a909141e0718d198168b89ceca50409ca5547efa8f18e1fe3905"
+  },
+  "host-single-verified.log": {
+    "bytes": 3957,
+    "sha256": "91484e6eb0c416aa853a1bb6b9e1824f24a440135cb578ce753445314ff366cb"
+  },
+  "host-regressions.log": {
+    "bytes": 17391,
+    "sha256": "d4690fd2e9d5cab6fcc8c4bfb22419b8141141194cb64e8bda060bd504c52194"
+  },
+  "capture_black_single.py": {
+    "bytes": 4974,
+    "sha256": "b3ce851c10368520892ee1802379820961d4e37b3bc87bfb9575028072c8b438"
+  }
+}

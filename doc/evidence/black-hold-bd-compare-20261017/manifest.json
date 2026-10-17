@@ -1,0 +1,80 @@
+{
+  "result": "BD_HOST_BUILD_PASS_AWAITING_EXPLICIT_FLASH_APPROVAL",
+  "branch": "experiment/papermono-black-hold-bd-compare",
+  "implementation_commit": "26a9b87c1da931dbcc6cf7babff53a9b9cde93c0",
+  "base_commit": "be172606ee54c174a0b2601f3002386d9261c60e",
+  "board": "m5paper_mono",
+  "flavor": "writerdeck",
+  "layout": "ota",
+  "esp_idf": "5.5.5",
+  "compiler": "GCC 14.2.0",
+  "flags": {
+    "BLACK_HOLD_SINGLE_TRIAL": 1,
+    "DIRTY_HOLD_TRIAL": 1,
+    "SPI20_TRIAL": 1,
+    "HYBRID_TRIAL": 1,
+    "WAVEFORM_TRIAL": 0,
+    "SKETCH_LATENCY_TRIAL": 0
+  },
+  "application": "firmware-app-only.bin",
+  "application_bytes": 3459712,
+  "sha256": "0c31b2ac41aaba98d4d1dee1514f3e787d0297ed063d39eabedccbba2a12d1ab",
+  "ota_slot_bytes": 7340032,
+  "ota_remaining_bytes": 3880320,
+  "partitions": {
+    "nvs": {
+      "offset": 36864,
+      "size": 16384
+    },
+    "otadata": {
+      "offset": 53248,
+      "size": 8192
+    },
+    "phy_init": {
+      "offset": 61440,
+      "size": 4096
+    },
+    "ota_0": {
+      "offset": 65536,
+      "size": 7340032
+    },
+    "ota_1": {
+      "offset": 7405568,
+      "size": 7340032
+    },
+    "flash": {
+      "offset": 14745600,
+      "size": 2031616
+    }
+  },
+  "lut_B_sha256": "45c5419f6986e3b1a81f8394e386fd5bc627503dcaa6d2c483a9113a63209422",
+  "lut_D_sha256": "9be4bea8b9a07fef33834293d25979a9b0f3fc820d3e9912a1fc106532ef1832",
+  "lut_baseline_sha256": "e8a7abbb2110cb8d941e80cc2869bbe1d0814e1d4a38e5d0cc5173b10f39ce50",
+  "B_D_changed_offsets": [
+    0
+  ],
+  "sdk_config_equal_to_D": true,
+  "build_seconds": 248.48500000001513,
+  "compiler_warning_count": 0,
+  "compiler_error_count": 0,
+  "device_accessed": false,
+  "flash_performed": false,
+  "hardware_trials_performed": false,
+  "physical_quality_tested": false,
+  "effective_DC_balance_proven": false,
+  "manufacturer_validated": false,
+  "rollback_reference_commit": "391925abff2d261d1d5856711aa0a1f101ac435a",
+  "rollback_reference_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6",
+  "runtime_note": "Driver initializes AUTO; existing startup selects fastest/tile. B/D never chosen by normal app or persisted settings. Dirty rows-dual unchanged. Actual current device and SPI not queried.",
+  "timing_ms": {
+    "T0_from_prepare": 5000,
+    "measurement_from_prepare": 10000,
+    "T1_from_measurement_end": 2000
+  },
+  "maximum_candidate_updates_per_boot": {
+    "B": 1,
+    "D": 1
+  },
+  "planned_diagnostic_cmd20_each": 8,
+  "planned_diagnostic_cmd20_total": 16
+}

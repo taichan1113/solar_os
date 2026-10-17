@@ -1,0 +1,38 @@
+{
+  "dedicated": {
+    "returncode": 0,
+    "command": [
+      "sh",
+      ".research/black-hold-bd-compare/run_single_host.sh"
+    ],
+    "log": ".research\\black-hold-bd-compare\\host-single-verified.log"
+  },
+  "regressions": {
+    "returncode": 0,
+    "command": [
+      "env",
+      "CJSON_DIR=/mnt/c/Users/takec/.platformio/packages/framework-espidf/components/json/cJSON",
+      "sh",
+      ".research/black-hold-bd-compare/worktree/tests/host/run_dirty_sketch_integration.sh"
+    ],
+    "log": ".research\\black-hold-bd-compare\\host-regressions.log"
+  },
+  "shell_cases": [
+    "normal",
+    "r2",
+    "fail-B",
+    "fail-D",
+    "restore-B",
+    "restore-D",
+    "abort-B",
+    "abort-D",
+    "cancel-B",
+    "cancel-D"
+  ],
+  "dedicated_driver": "R0/R2 x retain/swap x both candidate orders; identical command/payload except first LUT byte0; independent boot budgets; cancel/invalid/stale-snapshot/BUSY/LUT/restore faults",
+  "python_lut_tests": 2,
+  "major_host_executables": 19,
+  "sketch_python_tests": 9,
+  "all_verified_returncodes_zero": true,
+  "initial_harness_issue": "First launcher attempt stopped before compilation because the new local .sh had CRLF. Corrected to LF; verified run completed with exit 0. No firmware test failed in that attempt."
+}

@@ -1,0 +1,43 @@
+make: Entering directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/worktree/tests/host'
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 -DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -DSOLAR_OS_SSD1677_HYBRID_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../components/u8g2/src/clib \
+	epd_ssd1677_black_single_test.c ../../components/u8g2/src/clib/u8g2_setup.c ../../components/u8g2/src/clib/u8g2_buffer.c ../../components/u8g2/src/clib/u8g2_font.c ../../components/u8g2/src/clib/u8g2_ll_hvline.c ../../components/u8g2/src/clib/u8g2_hvline.c ../../components/u8g2/src/clib/u8g2_intersection.c ../../components/u8g2/src/clib/u8x8_setup.c ../../components/u8g2/src/clib/u8x8_display.c -Wl,--gc-sections -o epd_ssd1677_black_single_test
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 -DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -DSOLAR_OS_SSD1677_HYBRID_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../src/drivers -I../../src/services -I../../components/u8g2/src/clib \
+	black_single_shell_test.c ../../components/u8g2/src/clib/u8g2_setup.c ../../components/u8g2/src/clib/u8g2_buffer.c ../../components/u8g2/src/clib/u8g2_font.c ../../components/u8g2/src/clib/u8g2_ll_hvline.c ../../components/u8g2/src/clib/u8g2_hvline.c ../../components/u8g2/src/clib/u8g2_intersection.c ../../components/u8g2/src/clib/u8x8_setup.c ../../components/u8g2/src/clib/u8x8_display.c ../../components/u8g2/src/clib/u8g2_box.c ../../components/u8g2/src/clib/u8x8_8x8.c \
+	../../fonts/build/u8g2/u8g2_font_solar_os_default_r_20_tf.c -Wl,--gc-sections -o black_single_shell_test
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_SSD1677_WAVEFORM_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../components/u8g2/src/clib \
+	epd_ssd1677_test.c -Wl,--gc-sections -o epd_ssd1677_waveform_trial_test
+make: Leaving directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/worktree/tests/host'
+hybrid host: fastest=96194 SPI bytes, idle OTP partial=96045 SPI bytes
+epd_ssd1677_test: PASS
+black-single B/D: SPI differs only LUT byte0; R0/R2 retain/swap, independent budgets, cancel, fault/restore gates PASS
+RUN Shell normal
+black-single B/D Shell: explicit single starts, independent budgets, timed markers, cancel, trace and restore PASS
+RUN Shell r2
+black-single B/D Shell: explicit single starts, independent budgets, timed markers, cancel, trace and restore PASS
+RUN Shell fail-B
+black-single B/D Shell: failure blocks both candidates with no retry PASS
+RUN Shell fail-D
+black-single B/D Shell: failure blocks both candidates with no retry PASS
+RUN Shell restore-B
+black-single B/D Shell: failure blocks both candidates with no retry PASS
+RUN Shell restore-D
+black-single B/D Shell: failure blocks both candidates with no retry PASS
+RUN Shell abort-B
+black-single B/D Shell: explicit single starts, independent budgets, timed markers, cancel, trace and restore PASS
+RUN Shell abort-D
+black-single B/D Shell: explicit single starts, independent budgets, timed markers, cancel, trace and restore PASS
+RUN Shell cancel-B
+black-single B/D Shell: explicit single starts, independent budgets, timed markers, cancel, trace and restore PASS
+RUN Shell cancel-D
+black-single B/D Shell: explicit single starts, independent budgets, timed markers, cancel, trace and restore PASS
+epd_ssd1677_test: PASS
+test_B_to_D_only_reorders_first_two_phases (tests.test_black_hold_single_lut.BlackHoldLutTests.test_B_to_D_only_reorders_first_two_phases) ... ok
+test_spec_encoding_and_unchanged_baseline (tests.test_black_hold_single_lut.BlackHoldLutTests.test_spec_encoding_and_unchanged_baseline) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.008s
+
+OK

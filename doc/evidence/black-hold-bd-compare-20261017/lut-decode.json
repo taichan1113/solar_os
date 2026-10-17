@@ -1,0 +1,101 @@
+{
+  "result": "PASS",
+  "baseline_sha256": "e8a7abbb2110cb8d941e80cc2869bbe1d0814e1d4a38e5d0cc5173b10f39ce50",
+  "length_bytes": 110,
+  "B_D_changed_offsets": [
+    0
+  ],
+  "LUT1_to_4_timing_FR_voltages_identical": true,
+  "candidates": {
+    "B": {
+      "lut0_hex": "8f f0 00 00 00 00 00 00 00 00",
+      "sha256": "45c5419f6986e3b1a81f8394e386fd5bc627503dcaa6d2c483a9113a63209422",
+      "phases": [
+        {
+          "group": 0,
+          "phase": 0,
+          "frames": 2,
+          "nominal_source_V": -15
+        },
+        {
+          "group": 0,
+          "phase": 1,
+          "frames": 2,
+          "nominal_source_V": 0
+        },
+        {
+          "group": 0,
+          "phase": 2,
+          "frames": 2,
+          "nominal_source_V": 5
+        },
+        {
+          "group": 0,
+          "phase": 3,
+          "frames": 2,
+          "nominal_source_V": 5
+        },
+        {
+          "group": 1,
+          "phase": 0,
+          "frames": 1,
+          "nominal_source_V": 5
+        },
+        {
+          "group": 1,
+          "phase": 1,
+          "frames": 1,
+          "nominal_source_V": 5
+        }
+      ],
+      "frames": 10,
+      "nominal_source_volt_frames": 0
+    },
+    "D": {
+      "lut0_hex": "2f f0 00 00 00 00 00 00 00 00",
+      "sha256": "9be4bea8b9a07fef33834293d25979a9b0f3fc820d3e9912a1fc106532ef1832",
+      "phases": [
+        {
+          "group": 0,
+          "phase": 0,
+          "frames": 2,
+          "nominal_source_V": 0
+        },
+        {
+          "group": 0,
+          "phase": 1,
+          "frames": 2,
+          "nominal_source_V": -15
+        },
+        {
+          "group": 0,
+          "phase": 2,
+          "frames": 2,
+          "nominal_source_V": 5
+        },
+        {
+          "group": 0,
+          "phase": 3,
+          "frames": 2,
+          "nominal_source_V": 5
+        },
+        {
+          "group": 1,
+          "phase": 0,
+          "frames": 1,
+          "nominal_source_V": 5
+        },
+        {
+          "group": 1,
+          "phase": 1,
+          "frames": 1,
+          "nominal_source_V": 5
+        }
+      ],
+      "frames": 10,
+      "nominal_source_volt_frames": 0
+    }
+  },
+  "manufacturer_validated": false,
+  "effective_DC_balance_proven": false
+}

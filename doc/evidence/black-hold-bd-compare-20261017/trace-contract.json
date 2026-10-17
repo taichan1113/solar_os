@@ -1,0 +1,11 @@
+{
+  "clock": "esp_timer_get_time monotonic microseconds",
+  "request_start": "BH phase start_us",
+  "lut_ready": "successful 0x32 payload return timestamp, stored only for forced diagnostic",
+  "activate": "existing activate_us[0], timestamp before 0x20 API call",
+  "busy_end": "existing ready_us[0], polled wait completion",
+  "busy_assertion_edge": "not measured; no new GPIO polling or ISR",
+  "baseline_restore": "timestamps before/after baseline 0x32, no 0x20",
+  "output": "BH trace is formatted after completed Driver return; no Serial print within waveform/BUSY loop",
+  "optical_sync": "Serial timestamps do not provide calibrated camera synchronization; no EPD sync marker added"
+}
