@@ -1,0 +1,61 @@
+{
+  "branch": "experiment/papermono-black-hold-timing-c",
+  "implementation_commit": "10213ae15385189461a8aff776a4cde49a911008",
+  "trial_base": "8f060acae3bbece08934985d85092ace3e2ae53b",
+  "integration_base": "391925abff2d261d1d5856711aa0a1f101ac435a",
+  "artifact": "firmware-app-only.bin",
+  "application_bytes": 3457728,
+  "sha256": "79fda106499056524f499dbf80a05b27dcce3e573b6fbdbfffa6b5afe5e5a6cb",
+  "ota_slot_bytes": 7340032,
+  "partitions": {
+    "nvs": {
+      "offset": 36864,
+      "size": 16384
+    },
+    "otadata": {
+      "offset": 53248,
+      "size": 8192
+    },
+    "phy_init": {
+      "offset": 61440,
+      "size": 4096
+    },
+    "ota_0": {
+      "offset": 65536,
+      "size": 7340032
+    },
+    "ota_1": {
+      "offset": 7405568,
+      "size": 7340032
+    },
+    "flash": {
+      "offset": 14745600,
+      "size": 2031616
+    }
+  },
+  "esp_idf": "5.5.5",
+  "flags": {
+    "BLACK_HOLD_SINGLE_TRIAL": 1,
+    "DIRTY_HOLD_TRIAL": 1,
+    "SPI20_TRIAL": 1,
+    "HYBRID_TRIAL": 1,
+    "WAVEFORM_TRIAL": 0,
+    "SKETCH_LATENCY_TRIAL": 0
+  },
+  "candidate_lut0_hex": "bf000000000000000000",
+  "baseline_lut_sha256": "e8a7abbb2110cb8d941e80cc2869bbe1d0814e1d4a38e5d0cc5173b10f39ce50",
+  "candidate_lut_sha256": "45d4fae3d47114dd1aa8c9f8be1b7354430550262163797603e89ea1ad0a0cb0",
+  "changed_offsets_from_baseline": [
+    0
+  ],
+  "changed_offsets_from_B": [
+    0,
+    1
+  ],
+  "nominal_source_volt_frames": 0,
+  "physical_dc_balance_proven": false,
+  "manufacturer_validated": false,
+  "device_accessed": false,
+  "flash_performed": false,
+  "result": "HOST_BUILD_PASS_AWAITING_EXPLICIT_FLASH_APPROVAL"
+}
