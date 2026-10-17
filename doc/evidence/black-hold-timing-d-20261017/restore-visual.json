@@ -1,0 +1,7 @@
+{
+  "user_report": "Shellの文字・白背景とも正常",
+  "screen": "Shell",
+  "quality": "normal",
+  "additional_display_update_requested": false,
+  "note": "Runtime query reported Launcher startup; physical screen confirmed Shell. No extra transition forced."
+}

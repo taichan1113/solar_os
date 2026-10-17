@@ -1,0 +1,127 @@
+{
+  "condition": "A",
+  "phases": [
+    {
+      "phase": "white-otp",
+      "err": 0,
+      "candidate": 0,
+      "spi_hz": 20000000,
+      "cmd03": 0,
+      "cmd04": 0,
+      "cmd2c": 0,
+      "cmd32": 0,
+      "cmd20": 2,
+      "start_us": 152630618,
+      "end_us": 157105307,
+      "total_us": 4474689,
+      "busy_us": 99255,
+      "spi_us": 91726
+    },
+    {
+      "phase": "image-otp",
+      "err": 0,
+      "candidate": 0,
+      "spi_hz": 20000000,
+      "cmd03": 0,
+      "cmd04": 0,
+      "cmd2c": 0,
+      "cmd32": 0,
+      "cmd20": 2,
+      "start_us": 203706429,
+      "end_us": 208183148,
+      "total_us": 4476719,
+      "busy_us": 99939,
+      "spi_us": 93178
+    },
+    {
+      "phase": "prepare-baseline",
+      "err": 0,
+      "candidate": 0,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "start_us": 208193004,
+      "end_us": 208734278,
+      "total_us": 541274,
+      "busy_us": 133883,
+      "spi_us": 78916
+    },
+    {
+      "phase": "A-single",
+      "err": 0,
+      "candidate": 0,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "start_us": 218739315,
+      "end_us": 218907801,
+      "total_us": 168486,
+      "busy_us": 51184,
+      "spi_us": 62073
+    },
+    {
+      "phase": "exit-otp",
+      "err": 0,
+      "candidate": 0,
+      "spi_hz": 20000000,
+      "cmd03": 0,
+      "cmd04": 0,
+      "cmd2c": 0,
+      "cmd32": 0,
+      "cmd20": 2,
+      "start_us": 329630111,
+      "end_us": 334104017,
+      "total_us": 4473906,
+      "busy_us": 99386,
+      "spi_us": 90358
+    }
+  ],
+  "measured": {
+    "phase": "A-single",
+    "err": 0,
+    "candidate": 0,
+    "spi_hz": 20000000,
+    "cmd03": 1,
+    "cmd04": 1,
+    "cmd2c": 1,
+    "cmd32": 2,
+    "cmd20": 1,
+    "start_us": 218739315,
+    "end_us": 218907801,
+    "total_us": 168486,
+    "busy_us": 51184,
+    "spi_us": 62073
+  },
+  "markers": {
+    "T0": {
+      "anchor_us": 208734278,
+      "target_us": 213734278,
+      "actual_us": 213734998
+    },
+    "measure": {
+      "anchor_us": 208734278,
+      "target_us": 218734278,
+      "actual_us": 218734998
+    },
+    "T1": {
+      "anchor_us": 218907801,
+      "target_us": 220907801,
+      "actual_us": 220908001
+    }
+  },
+  "actual_intervals_us": {
+    "prepare_to_T0_us": 5000720,
+    "prepare_to_measure_driver_start_us": 10005037,
+    "T0_to_measure_driver_start_us": 5004317,
+    "measurement_end_to_T1_us": 2000200
+  },
+  "diagnostic_cmd20": 8,
+  "candidate_D_executions": 0,
+  "physical_lut_readback": false
+}

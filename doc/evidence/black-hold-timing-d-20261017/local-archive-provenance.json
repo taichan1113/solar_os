@@ -1,0 +1,30 @@
+{
+  ".research\\black-hold-timing-d\\archive\\20261017-timing-d\\flash.log": {
+    "bytes": 12058,
+    "sha256": "23b233e1dd84ef95e969d55e304c724959c9b049a4f20cb7def73cb2d9c47b45"
+  },
+  ".research\\black-hold-timing-d\\archive\\20261017-timing-d\\restore.log": {
+    "bytes": 5470,
+    "sha256": "612824784695e82378c295d2d98a27047233542efb8c25392fdfa448c49a3ce2"
+  },
+  ".research\\black-hold-timing-d\\archive\\20261017-timing-d\\full-flash-before.bin": {
+    "bytes": 16777216,
+    "sha256": "5265eb0ad6ea5394274dd8f16404531c44a095a8a9ef53febeabb5a32e4303ec"
+  },
+  ".research\\black-hold-timing-d\\archive\\20261017-timing-d\\ota0-app-rollback.bin": {
+    "bytes": 3455712,
+    "sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6"
+  },
+  ".research\\black-hold-timing-d\\host-single-verified.log": {
+    "bytes": 1586,
+    "sha256": "b42517640bfdf327b9dfffe3d48e8d143ebff6118e914284bb56d82bb80a9ad5"
+  },
+  ".research\\black-hold-timing-d\\host-regressions.log": {
+    "bytes": 17387,
+    "sha256": "35ab89ed28852ccb45f0d1ec404e2faff161681110829fcb133ed815efe8e682"
+  },
+  ".research\\black-hold-timing-d\\build.log": {
+    "bytes": 225565,
+    "sha256": "9f8904831eb6b9603eaad40da7410664b29347c169419f4ef41a8fa8e269b580"
+  }
+}

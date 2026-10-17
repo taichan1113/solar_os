@@ -1,0 +1,58 @@
+{
+  "condition": "A",
+  "gate": null,
+  "fault": false,
+  "ended": true,
+  "done": true,
+  "completed": 1,
+  "markers": [
+    "BH mark=T0 anchor_us=208734278 target_us=213734278 actual_us=213734998",
+    "BH mark=measure anchor_us=208734278 target_us=218734278 actual_us=218734998",
+    "BH mark=T1 anchor_us=218907801 target_us=220907801 actual_us=220908001"
+  ],
+  "events": [
+    {
+      "line": "BH phase=white-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2 start_us=152630618 end_us=157105307 total_us=4474689 busy_us=99255 spi_us=91726",
+      "received_unix_ns": 1792212752699672100,
+      "received_monotonic_ns": 195561171000000
+    },
+    {
+      "line": "BH phase=image-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2 start_us=203706429 end_us=208183148 total_us=4476719 busy_us=99939 spi_us=93178",
+      "received_unix_ns": 1792212803734316500,
+      "received_monotonic_ns": 195612203000000
+    },
+    {
+      "line": "BH phase=prepare-baseline err=0 candidate=0 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1 start_us=208193004 end_us=208734278 total_us=541274 busy_us=133883 spi_us=78916",
+      "received_unix_ns": 1792212804314383600,
+      "received_monotonic_ns": 195612781000000
+    },
+    {
+      "line": "BH mark=T0 anchor_us=208734278 target_us=213734278 actual_us=213734998",
+      "received_unix_ns": 1792212809287882400,
+      "received_monotonic_ns": 195617765000000
+    },
+    {
+      "line": "BH mark=measure anchor_us=208734278 target_us=218734278 actual_us=218734998",
+      "received_unix_ns": 1792212814288802300,
+      "received_monotonic_ns": 195622765000000
+    },
+    {
+      "line": "BH phase=A-single err=0 candidate=0 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1 start_us=218739315 end_us=218907801 total_us=168486 busy_us=51184 spi_us=62073",
+      "received_unix_ns": 1792212814460005500,
+      "received_monotonic_ns": 195622937000000
+    },
+    {
+      "line": "BH mark=T1 anchor_us=218907801 target_us=220907801 actual_us=220908001",
+      "received_unix_ns": 1792212816454136500,
+      "received_monotonic_ns": 195624921000000
+    },
+    {
+      "line": "BH phase=exit-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2 start_us=329630111 end_us=334104017 total_us=4473906 busy_us=99386 spi_us=90358",
+      "received_unix_ns": 1792212929669684800,
+      "received_monotonic_ns": 195738140000000
+    }
+  ],
+  "last_control": "g",
+  "last_gate": "T1-photograph",
+  "last_marker": "T1"
+}

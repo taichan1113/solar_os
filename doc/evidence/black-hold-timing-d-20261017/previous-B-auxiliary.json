@@ -1,0 +1,96 @@
+{
+  "source": "C:\\Users\\takec\\Videos\\AB\\20261017-125153.avi",
+  "source_sha256": "f38c984a9c76ce8b79a01fd2b216ab58b1334d754a11060a16f9b8450c8158f4",
+  "summary": {
+    "T0": {
+      "square_black": 83.10175763182238,
+      "square_white": 171.08608284510228,
+      "square_contrast": 0.5142367901657369,
+      "text_black": 103.99741307159705,
+      "text_white": 175.29828282828282,
+      "text_contrast": 0.40669821336068024,
+      "square_black_clip_fraction": 0.0,
+      "text_black_clip_fraction": 0.0,
+      "square_white_clip_fraction": 0.0,
+      "text_white_clip_fraction": 0.0
+    },
+    "T1": {
+      "square_black": 74.16707780861343,
+      "square_white": 167.39135574056942,
+      "square_contrast": 0.5565865120047637,
+      "text_black": 97.00426082325193,
+      "text_white": 171.69250505050505,
+      "text_contrast": 0.4350962899108181,
+      "square_black_clip_fraction": 0.0,
+      "text_black_clip_fraction": 0.0,
+      "square_white_clip_fraction": 0.0,
+      "text_white_clip_fraction": 0.0
+    }
+  },
+  "event_metrics": {
+    "square": {
+      "raw_minimum": 0.4516344129684445,
+      "raw_minimum_pts_s": 94.233239,
+      "median3_minimum": 0.4951007525742585,
+      "median3_minimum_pts_s": 94.233239,
+      "drop_from_T0_pp": 6.260237719729239,
+      "recovery_to_T1_pp": 10.495209903631924,
+      "median3_drop_from_T0_pp": 1.913603759147836,
+      "median3_recovery_to_T1_pp": 6.148575943050521,
+      "T0_native_range_pp": 0.2149057581305125,
+      "white_change_percent": -2.159571978673447,
+      "interpretation": "minimum within +/-1s of approximate phase-completion locator, not a resolved LUT phase"
+    },
+    "text": {
+      "raw_minimum": 0.3502041992362701,
+      "raw_minimum_pts_s": 94.233239,
+      "median3_minimum": 0.3739066778742484,
+      "median3_minimum_pts_s": 94.233239,
+      "drop_from_T0_pp": 5.649401412441013,
+      "recovery_to_T1_pp": 8.4892090674548,
+      "median3_drop_from_T0_pp": 3.2791535486431824,
+      "median3_recovery_to_T1_pp": 6.118961203656969,
+      "T0_native_range_pp": 0.23103910030077834,
+      "white_change_percent": -2.0569384477712727,
+      "interpretation": "minimum within +/-1s of approximate phase-completion locator, not a resolved LUT phase"
+    }
+  },
+  "near_event": {
+    "windows_relative_approximate_end_s": {
+      "before": [
+        -0.75,
+        -0.5
+      ],
+      "after": [
+        0.2,
+        0.45
+      ]
+    },
+    "groups": {
+      "before": {
+        "square_black": 81.60299105766265,
+        "square_white": 167.7678075855689,
+        "square_contrast": 0.513575139235275,
+        "text_black": 103.06296127216008,
+        "text_white": 172.01097979797981,
+        "text_contrast": 0.400724391913558,
+        "native_frames": 8
+      },
+      "after": {
+        "square_black": 73.65972864631514,
+        "square_white": 167.8366224689074,
+        "square_contrast": 0.5612616961019777,
+        "text_black": 96.8815338963707,
+        "text_white": 172.06452525252524,
+        "text_contrast": 0.43696320706509634,
+        "native_frames": 7
+      }
+    },
+    "square_step_pp": 4.768655686670275,
+    "text_step_pp": 3.6238815151538315,
+    "square_white_change_percent": 0.04101793087054606,
+    "text_white_change_percent": 0.031129091066350867,
+    "purpose": "Assess whether update-adjacent contrast step tracks uniform white brightness; supplements, does not replace predeclared T0/T1 windows"
+  },
+  "limitation": "Previous session, auxiliary only; no controlled simultaneous B/D comparison; ambient light and temperature uncertain."
+}

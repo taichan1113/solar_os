@@ -1,0 +1,48 @@
+[
+  {
+    "source": "C:\\Users\\takec\\Videos\\AD\\20261017-135214.avi",
+    "bytes": 1122872716,
+    "source_created_utc": "2026-10-17T04:52:14.2461588Z",
+    "source_modified_utc": "2026-10-17T04:55:04.4201817Z",
+    "sha256": "92659de941c95cd64a9d29998e36544a4da9cf05b58564bee3a144404972e498",
+    "condition": "A",
+    "capture_directory": ".research/black-hold-timing-d/archive/20261017-timing-d/A",
+    "created_JST": "2026-10-17T13:52:14.246158+09:00",
+    "modified_JST": "2026-10-17T13:55:04.420181+09:00",
+    "duration_s": 170.04,
+    "file_wall_interval_s": 170.174023,
+    "warm_end_receipt_JST": "2026-10-17T13:53:34.460005+09:00",
+    "event_end_locator_s": 80.21384739875793,
+    "marker_locator_s": {
+      "T0": 75.04104439875793,
+      "measure": 80.04104439875793,
+      "T1": 82.21404739875794
+    },
+    "source_hash_unchanged": true,
+    "mapping": "filename, file dates, duration, log overlap and common optical image agree",
+    "sync_limit": "PC file creation and USB receipt approximate; no calibrated sub-frame synchronization"
+  },
+  {
+    "source": "C:\\Users\\takec\\Videos\\AD\\20261017-135558.avi",
+    "bytes": 1126716768,
+    "source_created_utc": "2026-10-17T04:55:58.7127613Z",
+    "source_modified_utc": "2026-10-17T04:58:50.5226619Z",
+    "sha256": "9869823f7dba73c01c33b8e720d4e012099ae2e96c10768cfdf68383e41634c1",
+    "condition": "D",
+    "capture_directory": ".research/black-hold-timing-d/archive/20261017-timing-d/D",
+    "created_JST": "2026-10-17T13:55:58.712761+09:00",
+    "modified_JST": "2026-10-17T13:58:50.522661+09:00",
+    "duration_s": 171.63,
+    "file_wall_interval_s": 171.8099,
+    "warm_end_receipt_JST": "2026-10-17T13:57:59.016103+09:00",
+    "event_end_locator_s": 120.30334210395813,
+    "marker_locator_s": {
+      "T0": 115.12901410395813,
+      "measure": 120.12901410395813,
+      "T1": 122.30401410395812
+    },
+    "source_hash_unchanged": true,
+    "mapping": "filename, file dates, duration, log overlap and common optical image agree",
+    "sync_limit": "PC file creation and USB receipt approximate; no calibrated sub-frame synchronization"
+  }
+]

@@ -1,0 +1,126 @@
+{
+  "A": {
+    "windows_relative_approximate_end_s": {
+      "before": [
+        -0.75,
+        -0.5
+      ],
+      "after": [
+        0.2,
+        0.45
+      ],
+      "pre_step_reference": [
+        -2.25,
+        -2.0
+      ]
+    },
+    "groups": {
+      "before": {
+        "square_black": 80.48507040805839,
+        "square_white": 164.11766368588755,
+        "square_contrast": 0.5097325783018887,
+        "text_black": 99.46427019038512,
+        "text_white": 166.6608484848485,
+        "text_contrast": 0.40323748300323836,
+        "native_frames": 8
+      },
+      "after": {
+        "square_black": 84.44906979134547,
+        "square_white": 164.78862164662348,
+        "square_contrast": 0.48741070894107796,
+        "text_black": 104.60166912979223,
+        "text_white": 167.17478787878787,
+        "text_contrast": 0.3743511508234065,
+        "native_frames": 7
+      },
+      "pre_step_reference": {
+        "square_black": 80.51824442388735,
+        "square_white": 164.209065679926,
+        "square_contrast": 0.5098037069557206,
+        "text_black": 99.56385290793706,
+        "text_white": 166.68224242424242,
+        "text_contrast": 0.4026823470643737,
+        "native_frames": 8
+      }
+    },
+    "square": {
+      "near_update_step_pp": -2.232186936081071,
+      "near_update_white_change_percent": 0.4088273898537276,
+      "raw_drop_from_local_pre_pp": 2.319642912465092,
+      "median3_drop_from_local_pre_pp": 2.26473000648813,
+      "pre_event_contrast_step_pp": -0.007112865383196443,
+      "pre_event_white_step_percent": -0.05566196583604022
+    },
+    "text": {
+      "near_update_step_pp": -2.8886332179831884,
+      "near_update_white_change_percent": 0.30837440143365313,
+      "raw_drop_from_local_pre_pp": 2.963770243660846,
+      "median3_drop_from_local_pre_pp": 2.9315354509650615,
+      "pre_event_contrast_step_pp": 0.05551359388646371,
+      "pre_event_white_step_percent": -0.012835164131930199
+    },
+    "interpretation": "Post-hoc sensitivity check, not replacement T0/T1; fixed near-update windows copied from prior B. D has an earlier optical step; local pre-update is distinct from protocol T0. No physical phase synchronization."
+  },
+  "D": {
+    "windows_relative_approximate_end_s": {
+      "before": [
+        -0.75,
+        -0.5
+      ],
+      "after": [
+        0.2,
+        0.45
+      ],
+      "pre_step_reference": [
+        -2.25,
+        -2.0
+      ]
+    },
+    "groups": {
+      "before": {
+        "square_black": 76.69850447116866,
+        "square_white": 161.86075136190772,
+        "square_contrast": 0.5261013893960362,
+        "text_black": 97.69019415746348,
+        "text_white": 164.98020202020203,
+        "text_contrast": 0.40780552722666996,
+        "native_frames": 8
+      },
+      "after": {
+        "square_black": 72.23887347106589,
+        "square_white": 161.81909754342686,
+        "square_contrast": 0.5539238071965688,
+        "text_black": 91.37005700035625,
+        "text_white": 165.055898989899,
+        "text_contrast": 0.44624801679398973,
+        "native_frames": 7
+      },
+      "pre_step_reference": {
+        "square_black": 81.3730856203104,
+        "square_white": 163.72574262514132,
+        "square_contrast": 0.5028489780873593,
+        "text_black": 99.8002760954756,
+        "text_white": 166.48059595959597,
+        "text_contrast": 0.4005528984951101,
+        "native_frames": 8
+      }
+    },
+    "square": {
+      "near_update_step_pp": 2.7822417800532517,
+      "near_update_white_change_percent": -0.025734353838324786,
+      "raw_drop_from_local_pre_pp": 2.2892270814233617,
+      "median3_drop_from_local_pre_pp": 2.1256184101291598,
+      "pre_event_contrast_step_pp": 2.3252411308676946,
+      "pre_event_white_step_percent": -1.1390947039425559
+    },
+    "text": {
+      "near_update_step_pp": 3.844248956731977,
+      "near_update_white_change_percent": 0.045882456664525506,
+      "raw_drop_from_local_pre_pp": 2.0944791090673043,
+      "median3_drop_from_local_pre_pp": 1.6406299895689536,
+      "pre_event_contrast_step_pp": 0.7252628731559851,
+      "pre_event_white_step_percent": -0.9012425326481166
+    },
+    "interpretation": "Post-hoc sensitivity check, not replacement T0/T1; fixed near-update windows copied from prior B. D has an earlier optical step; local pre-update is distinct from protocol T0. No physical phase synchronization."
+  }
+}
