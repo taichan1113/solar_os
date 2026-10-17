@@ -1,0 +1,26 @@
+{
+  "condition": "previous B",
+  "summary": {
+    "T0": {
+      "square_black": 18.333552812071332,
+      "square_white": 132.82518518518518,
+      "square_contrast": 0.8619723150657712,
+      "text_black": 72.62459684264132,
+      "text_white": 133.48403100775195,
+      "text_contrast": 0.4562403861193461
+    },
+    "T1": {
+      "square_black": 6.535967078189301,
+      "square_white": 132.61903978052126,
+      "square_contrast": 0.9507162237865239,
+      "text_black": 66.80147682906129,
+      "text_white": 133.21899224806202,
+      "text_contrast": 0.4985589088928642
+    }
+  },
+  "raw_minimum": 0.7923144234579316,
+  "median3_minimum": 0.8056017317052753,
+  "drop_from_T0_pp": 6.965789160783964,
+  "recovery_to_T1_pp": 15.84018003285923,
+  "comparison_limits": "Different capture transfer curve, exposure, black floor, framing, panel history; no direct ranking"
+}

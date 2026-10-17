@@ -1,5 +1,7 @@
 # SSD1677 Candidate C・単発A/C Trial準備（2026-10-17）
 
+> 以下は実機承認前の準備記録。その後、明示承認を受けA/C各1回とIntegration復元を完了した。最新結果は[実機評価報告](m5paper-mono-black-hold-timing-c-hardware-20261017.md)を参照。
+
 ## 状態
 
 Candidate Cの最小実装・Host検証を完了。実機Flashは依頼書§5の明示承認待ちであり、今回の実機測定・光学評価は未実施。準備済み成果物のハッシュとビルド結果は後掲。旧Candidate Bと実用IntegrationのBranchは変更していない。

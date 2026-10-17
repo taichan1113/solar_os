@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-17",
+  "authorization": "User explicitly approved application-only flash, single A/C, Integration restore; USB connected/no unsaved edits/no competition",
+  "artifact_sha256": "79fda106499056524f499dbf80a05b27dcce3e573b6fbdbfffa6b5afe5e5a6cb",
+  "restore_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6",
+  "candidate_lut0_hex": "bf000000000000000000",
+  "candidate_max_activations": 1,
+  "candidate_executions": 1,
+  "old_B_execution_allowed": false,
+  "short_repeat_trial": false,
+  "current_stage": "COMPLETE_RESTORED_INTEGRATION_ANALYSIS_FINISHED",
+  "capture_method": "one continuous video per condition; camera settings adjusted by user; FPS pending video metadata",
+  "flash_readback_verified": true,
+  "protected_regions_unchanged": true,
+  "current_application_sha256": "79fda106499056524f499dbf80a05b27dcce3e573b6fbdbfffa6b5afe5e5a6cb",
+  "A_measurement_completed": true,
+  "C_measurement_completed": true,
+  "old_B_executions": 0,
+  "final_application_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6",
+  "final_visual": "Launcher表示は正常",
+  "final_visual_confirmed_by_user": true,
+  "optical_classification": "3: insufficient blackening in this single A/C observation"
+}

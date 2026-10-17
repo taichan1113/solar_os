@@ -1,0 +1,22 @@
+[
+  {
+    "condition": "A",
+    "source": "C:\\Users\\takec\\Videos\\20261017-113400.avi",
+    "bytes": 867683888,
+    "sha256": "76e3bc78ed662a43e986ab32cbf90d4b2dbbd91a3e0f95f404223d4ec627c463",
+    "source_created_local": "2026-10-17T11:34:00.580102",
+    "source_modified_local": "2026-10-17T11:36:23.053615",
+    "serial_created_local": "2026-10-17T11:34:15.787971",
+    "serial_last_write_local": "2026-10-17T11:37:22.388745"
+  },
+  {
+    "condition": "C",
+    "source": "C:\\Users\\takec\\Videos\\20261017-113800.avi",
+    "bytes": 727379204,
+    "sha256": "37351020c7e7540ad391a58b81a505046f519742508370bc7449a6e1803de914",
+    "source_created_local": "2026-10-17T11:38:00.548012",
+    "source_modified_local": "2026-10-17T11:39:57.480957",
+    "serial_created_local": "2026-10-17T11:38:13.361498",
+    "serial_last_write_local": "2026-10-17T11:40:13.628658"
+  }
+]
