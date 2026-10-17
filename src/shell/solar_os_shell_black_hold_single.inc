@@ -1,6 +1,7 @@
 /* Single A/B operator-gated diagnostic, reusing the fixed-black image and
  * existing display claim / immutable executor submission / OTP cleanup. */
 #include "epd_ssd1677.h"
+#include "esp_timer.h"
 #include <stdlib.h>
 
 static void black_single_white(u8g2_t *g)
@@ -39,6 +40,30 @@ static bool black_single_gate(solar_os_shell_io_t *io, const char *stage)
         if (n && (key == 'q' || key == 27 || key == 3)) return false;
         vTaskDelay(pdMS_TO_TICKS(20));
     }
+}
+
+/* Video markers only: no display request. Anchor both conditions to completed
+ * Driver timestamps rather than operator response or accumulated log delays. */
+static bool black_single_wait_until(solar_os_shell_io_t *io, const char *stage,
+                                    int64_t anchor_us, uint32_t delay_ms)
+{
+    const int64_t target_us = anchor_us + (int64_t)delay_ms * 1000;
+    while (esp_timer_get_time() < target_us) {
+        uint8_t key = 0;
+        size_t n = 0;
+        esp_err_t err = solar_os_port_read(&io->port, &key, 1, 0, &n);
+        if ((err != ESP_OK && err != ESP_ERR_TIMEOUT) ||
+            (n && (key == 'q' || key == 27 || key == 3))) {
+            solar_os_shell_io_printf(io, "BH aborted wait=%s\n", stage);
+            return false;
+        }
+        vTaskDelay(1);
+    }
+    solar_os_shell_io_printf(io,
+        "BH mark=%s anchor_us=%lld target_us=%lld actual_us=%lld\n", stage,
+        (long long)anchor_us, (long long)target_us, (long long)esp_timer_get_time());
+    solar_os_shell_io_flush(io);
+    return true;
 }
 
 static esp_err_t black_single_present(solar_os_shell_io_t *io,
@@ -142,11 +167,14 @@ static void display_cmd_black_hold_single(solar_os_shell_io_t *io, int argc, cha
     err = solar_os_display_set_controller_mode(target.name, "refresh=fastest");
     if (err == ESP_OK) err = black_single_present(io, &target, d, "prepare-baseline", image, true, false);
     if (err != ESP_OK) { healthy = false; goto done; }
-    if (!black_single_gate(io, "T0-photograph")) goto done;
+    const int64_t prepared_us = d->timing.end_us;
+    /* White gate authorizes the whole timed single shot while video runs.
+     * T0: +5s; measurement: +10s; T1: +2s from completed measurement. */
+    if (!black_single_wait_until(io, "T0", prepared_us, 5000)) goto done;
+    if (!black_single_wait_until(io, "measure", prepared_us, 10000)) goto done;
     err = black_single_present(io, &target, d, candidate ? "B-single" : "A-single", image, true, candidate);
     if (err != ESP_OK) { healthy = false; goto done; }
-    /* Identical post-BUSY wait in A and B, then retain T1 until confirmation. */
-    vTaskDelay(pdMS_TO_TICKS(2000));
+    if (!black_single_wait_until(io, "T1", d->timing.end_us, 2000)) goto done;
     (void)black_single_gate(io, "T1-photograph");
 done:
     epd_ssd1677_black_hold_cancel(d);
