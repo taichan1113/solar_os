@@ -1,0 +1,20 @@
+{
+  "camera": "Insta360 Link",
+  "application": "Insta360 Link Controller",
+  "focus_percent": 19,
+  "color_temperature_K": 4100,
+  "brightness_percent": 81,
+  "contrast_percent": 45,
+  "saturation_percent": 0,
+  "sharpness_percent": 26,
+  "anti_flicker_Hz": 60,
+  "exposure_curve": "linear (user reported)",
+  "settings_lockable": true,
+  "exposure_gain_manual_state": "manual fixed (user confirmed)",
+  "resolution_fps": "4K 30fps (user confirmed)",
+  "panel_temperature_measured": false,
+  "temperature_note": "User has no thermometer",
+  "natural_light_intrusion_possible": true,
+  "settings_source": "user report; controller state not independently read back",
+  "exposure_gain_numeric_values": "not supplied"
+}
