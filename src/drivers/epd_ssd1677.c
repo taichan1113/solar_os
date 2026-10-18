@@ -4,6 +4,12 @@
 #include <inttypes.h>
 #include <string.h>
 #include <stdlib.h>
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#include <stdatomic.h>
+#if !SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL || SOLAR_OS_SSD1677_WAVEFORM_TRIAL
+#error Writer D requires Dirty rows-dual and excludes other waveform trials
+#endif
+#endif
 
 #include "driver/gpio.h"
 #include "esp_check.h"
@@ -43,6 +49,9 @@ static void operation_end(epd_ssd1677_t *d, epd_ssd1677_operation_t op, esp_err_
     if (d->operation_end) d->operation_end(d->execution_context, op, err);
 }
 
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#include "epd_ssd1677_writer_d.inc"
+#endif
 
 typedef struct {
     uint16_t x_start_byte;
@@ -162,7 +171,11 @@ static esp_err_t ssd1677_cmd_data(epd_ssd1677_t *display,
 
 static esp_err_t ssd1677_cmd(epd_ssd1677_t *display, uint8_t command)
 {
-    return ssd1677_cmd_data(display, command, NULL, 0);
+    const esp_err_t err = ssd1677_cmd_data(display, command, NULL, 0);
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+    if (command == 0x20 && err == ESP_OK) writer_d_activation(display);
+#endif
+    return err;
 }
 
 static esp_err_t ssd1677_wait_ready(const epd_ssd1677_t *display)
@@ -1016,6 +1029,11 @@ esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *display, const uint8_t *fr
     if (!display || !display->buffer || !frame || size != display->buffer_size)
         return ESP_ERR_INVALID_ARG;
     display->snapshot = frame;
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+    display->writer_trial.current = (epd_ssd1677_writer_record_t){.start_us = esp_timer_get_time()};
+    display->writer_trial.used_d = display->writer_trial.reference = false;
+    display->writer_trial.restored = display->writer_trial.cap_transition = false;
+#endif
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     if (display->trial_observer) {
         const esp_err_t gate=display->trial_observer(display->trial_observer_context, frame, false, ESP_OK);
@@ -1027,6 +1045,9 @@ esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *display, const uint8_t *fr
     }
 #endif
     const esp_err_t err = ssd1677_refresh(display);
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+    writer_d_finish(display, err);
+#endif
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     if (display->trial_observer)
         (void)display->trial_observer(display->trial_observer_context, frame, true, err);

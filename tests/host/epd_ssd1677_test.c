@@ -67,6 +67,12 @@ esp_err_t spi_device_polling_transmit(spi_device_handle_t device, spi_transactio
     const uint8_t *data = transaction->flags & SPI_TRANS_USE_TXDATA ?
         transaction->tx_data : transaction->tx_buffer;
     size_t length = transaction->length / 8U;
+#ifdef SSD1677_TEST_TRANSPORT_HOOK
+    extern esp_err_t ssd1677_test_transport_hook(bool, uint8_t);
+    const esp_err_t hook = ssd1677_test_transport_hook(dc_level == 0,
+        dc_level == 0 ? data[0] : commands[command_count - 1].command);
+    if (hook != ESP_OK) return hook;
+#endif
     if (dc_level == 0) {
         if (data[0] == fail_command) return ESP_FAIL;
         if (data[0] == 0x20 && busy_on_activation) stuck_busy = true;

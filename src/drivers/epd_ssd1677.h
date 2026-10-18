@@ -7,6 +7,7 @@
 #include "driver/spi_master.h"
 #include "esp_err.h"
 #include "u8g2.h"
+#include "epd_ssd1677_writer_d.h"
 
 /* Temporary, opt-in laboratory build. Not an adopted panel waveform. */
 #ifndef SOLAR_OS_SSD1677_WAVEFORM_TRIAL
@@ -103,6 +104,9 @@ typedef struct {
     void *trial_observer_context;
     esp_err_t (*trial_observer)(void *, const uint8_t *, bool, esp_err_t);
 #endif
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+    epd_ssd1677_writer_trial_t writer_trial;
+#endif
     void *execution_context;
     void (*operation_begin)(void *, epd_ssd1677_operation_t);
     void (*operation_end)(void *, epd_ssd1677_operation_t, esp_err_t);
@@ -168,6 +172,11 @@ esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *, const uint8_t *, size_t)
 #if SOLAR_OS_SSD1677_HYBRID_TRIAL
 /* Worker-only: explicitly activate one same-frame OTP partial update. */
 esp_err_t epd_ssd1677_present_quality_snapshot(epd_ssd1677_t *, const uint8_t *, size_t);
+#endif
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+/* records, when non-NULL, points to SSD1677_WRITER_D_RECORDS entries. */
+esp_err_t epd_ssd1677_writer_lut(epd_ssd1677_t *, const char *,
+    epd_ssd1677_writer_status_t *, epd_ssd1677_writer_record_t *);
 #endif
 void epd_ssd1677_deinit(epd_ssd1677_t *display);
 u8g2_t *epd_ssd1677_get_u8g2(epd_ssd1677_t *display);

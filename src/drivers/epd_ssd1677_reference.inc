@@ -24,6 +24,21 @@ static const uint8_t ssd1677_reference_lut[110] = {
 #include "epd_ssd1677_waveform_trial.inc"
 #endif
 
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+static const uint8_t ssd1677_trial_black_hold_d_lut[110] = {
+    0x2f,0xf0,0,0,0,0,0,0,0,0,
+    0x6a,0xa0,0,0,0,0,0,0,0,0,
+    0x95,0x50,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,
+    2,2,2,2,0, 1,1,0,0,0,
+    0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+    0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+    0x8f,0x8f,0x8f,0x8f,0x8f,
+    0x17,0x46,0xa8,0x32,0x30,
+};
+#endif
+
 static const uint8_t *ssd1677_selected_lut(const epd_ssd1677_t *d, const char **name)
 {
     *name = "baseline";
@@ -189,6 +204,18 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
 #endif
     const char *waveform_name;
     const uint8_t *lut = ssd1677_selected_lut(d, &waveform_name);
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+    if (writer_d_reserve(d, cold)) {
+        lut = ssd1677_trial_black_hold_d_lut;
+        waveform_name = "writer_candidate_d";
+    }
+    if (d->writer_trial.origin.writer) {
+        d->writer_trial.current.x = dirty.x_start_byte * 8;
+        d->writer_trial.current.y = dirty.y_start;
+        d->writer_trial.current.width = (dirty.x_end_byte - dirty.x_start_byte + 1) * 8;
+        d->writer_trial.current.height = dirty.y_end - dirty.y_start + 1;
+    }
+#endif
     esp_err_t err = ESP_OK;
     if (cold) {
         /* Reset electronic state, not the optical completed-shadow baseline. */
@@ -226,7 +253,13 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         }
         d->timing.write_end_us[i] = esp_timer_get_time();
     }
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+    const int64_t lut_start = esp_timer_get_time();
+#endif
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x32,lut,105);
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+    d->writer_trial.current.lut_us = esp_timer_get_time() - lut_start;
+#endif
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x03,lut+105,1);
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x04,lut+106,3);
     if (err == ESP_OK) err = ssd1677_cmd_data(d,0x2c,lut+109,1);
@@ -267,6 +300,15 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
             d->timing.write_end_us[i] = esp_timer_get_time();
         }
         if (err == ESP_OK) d->dirty_hold_ram_synced = true;
+    }
+#endif
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+    if (err == ESP_OK && d->writer_trial.used_d) {
+        const int64_t restore_start = esp_timer_get_time();
+        /* Existing D trial restore: after BUSY AND both RAM syncs. No activation. */
+        err = ssd1677_cmd_data(d, 0x32, ssd1677_reference_lut, 105);
+        d->writer_trial.current.restore_us = esp_timer_get_time() - restore_start;
+        d->writer_trial.restored = err == ESP_OK;
     }
 #endif
     if (err == ESP_OK) {

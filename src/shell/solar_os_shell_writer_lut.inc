@@ -1,0 +1,63 @@
+/* USB-only read/control: never paints the panel or changes startup/NVS. */
+static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **argv)
+{
+    if (argc != 5 || strcmp(argv[2], "display0") ||
+        solar_os_shell_io_kind(io) != SOLAR_OS_SHELL_IO_KIND_PORT) {
+        solar_os_shell_io_writeln(io,
+            "USB: display test display0 writer-lut status|baseline|candidate_d|disable|trace");
+        return;
+    }
+    solar_os_display_target_t target;
+    if (!solar_os_display_find_target(argv[2], &target) || !target.ready ||
+        !target.u8g2 || !target.driver || strcmp(target.driver, "ssd1677")) {
+        solar_os_shell_io_writeln(io, "writer-lut: ready SSD1677 display0 required");
+        return;
+    }
+    epd_ssd1677_t *d = (epd_ssd1677_t *)((uint8_t *)target.u8g2 - offsetof(epd_ssd1677_t, u8g2));
+    epd_ssd1677_writer_record_t *records = NULL;
+    if (!strcmp(argv[4], "trace")) {
+        records = calloc(SSD1677_WRITER_D_RECORDS, sizeof(*records));
+        if (!records) { solar_os_shell_io_writeln(io, "writer-lut: no trace memory"); return; }
+    }
+    epd_ssd1677_writer_status_t s;
+    const esp_err_t err = epd_ssd1677_writer_lut(d, argv[4], &s, records);
+    solar_os_shell_io_printf(io,
+        "writer-lut err=%d mode=%s attempt=%u/6 D0x20=%u success=%u error=%u failed=%u cap=%u\n",
+        (int)err, s.enabled ? "D" : "A", (unsigned)s.attempts, (unsigned)s.d_physical,
+        (unsigned)s.d_success, (unsigned)s.d_errors, s.failed, s.cap_reached);
+    solar_os_shell_io_printf(io,
+        "writer physical=%u A=%u D=%u OTP=%u noop=%u other0x20=%u records=%u\n",
+        (unsigned)s.writer_physical, (unsigned)s.writer_a, (unsigned)s.d_physical,
+        (unsigned)s.writer_otp, (unsigned)s.writer_noop, (unsigned)s.other_physical, (unsigned)s.records);
+    solar_os_display_submission_status_t queue;
+    if (solar_os_display_submission_status(target.u8g2, &queue) == ESP_OK)
+        solar_os_shell_io_printf(io,
+            "queue submitted=%u replaced=%u writer=%u coalesced=%u cancelled=%u superseded=%u error=%d\n",
+            (unsigned)queue.submitted, (unsigned)queue.replaced, (unsigned)queue.writer_submitted,
+            (unsigned)queue.writer_coalesced, (unsigned)queue.writer_cancelled,
+            (unsigned)queue.writer_superseded, (int)queue.error);
+    if (records) {
+        const uint32_t first = s.records > SSD1677_WRITER_D_RECORDS ? s.records - SSD1677_WRITER_D_RECORDS : 0;
+        for (uint32_t i = first; i < s.records; i++) {
+            const epd_ssd1677_writer_record_t *r = &records[i % SSD1677_WRITER_D_RECORDS];
+            solar_os_shell_io_printf(io,
+                "WL seq=%u gen=%llu mode=%s 0x20=%u err=%d restored=%u cap_to_A=%u input=%u merged=%u ram=%u region=%u,%u,%u,%u\n",
+                (unsigned)r->seq, (unsigned long long)r->origin.generation,
+                r->candidate_d ? "D" : r->reference ? "A" : "OTP/noop", (unsigned)r->physical,
+                (int)r->error, r->restored, r->cap_transition, (unsigned)r->origin.inputs,
+                (unsigned)r->origin.coalesced, (unsigned)r->ram_bytes, r->x, r->y, r->width, r->height);
+            solar_os_shell_io_printf(io,
+                "WL time seq=%u input=%lld,%lld render=%lld,%lld queue=%lld,%lld execute=%lld,%lld\n",
+                (unsigned)r->seq, (long long)r->origin.input_first_us, (long long)r->origin.input_last_us,
+                (long long)r->origin.render_start_us, (long long)r->origin.rendered_us,
+                (long long)r->origin.queued_first_us, (long long)r->origin.queued_us,
+                (long long)r->start_us, (long long)r->end_us);
+            solar_os_shell_io_printf(io,
+                "WL panel seq=%u ram=%lld,%lld activate=%lld ready=%lld spi_us=%lld lut_us=%lld restore_us=%lld\n",
+                (unsigned)r->seq, (long long)r->ram_start_us, (long long)r->ram_end_us,
+                (long long)r->activation_us, (long long)r->ready_us, (long long)r->spi_us,
+                (long long)r->lut_us, (long long)r->restore_us);
+        }
+        free(records);
+    }
+}

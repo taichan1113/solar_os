@@ -524,6 +524,15 @@ if(SOLAR_OS_PACKAGE_SERVICE_BLE AND "$ENV{SOLAR_OS_BLE_SECURITY_TRACE}" STREQUAL
 endif()
 
 # Temporary opt-in waveform laboratory; normal builds retain the M5GFX LUT.
+if("$ENV{SOLAR_OS_SSD1677_WRITER_D_TRIAL}" STREQUAL "1")
+    if(NOT SOLAR_OS_BOARD_ID STREQUAL "m5paper_mono" OR
+       NOT "$ENV{SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL}" STREQUAL "1" OR
+       NOT "$ENV{SOLAR_OS_SSD1677_SPI20_TRIAL}" STREQUAL "1" OR
+       "$ENV{SOLAR_OS_SSD1677_WAVEFORM_TRIAL}" STREQUAL "1")
+        message(FATAL_ERROR "Writer D requires PaperMono, Dirty, SPI20 and no waveform diagnostic")
+    endif()
+    target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_SSD1677_WRITER_D_TRIAL=1)
+endif()
 if("$ENV{SOLAR_OS_SSD1677_WAVEFORM_TRIAL}" STREQUAL "1")
     target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_SSD1677_WAVEFORM_TRIAL=1)
 endif()
