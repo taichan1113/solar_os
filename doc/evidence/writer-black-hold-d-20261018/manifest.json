@@ -1,0 +1,89 @@
+{
+  "result": "WRITER_D_HOST_BUILD_PASS_AWAITING_SEPARATE_FLASH_APPROVAL",
+  "branch": "experiment/papermono-writer-black-hold-d",
+  "base_commit": "391925abff2d261d1d5856711aa0a1f101ac435a",
+  "implementation_commit": "251232824da2f5350dbdf9184e0398b434a61497",
+  "implementation_commits": [
+    "029724b0f3738acbdede42c476976656ca52865e",
+    "695809f65d572bba550b06b4c22dda0363a4bc3a",
+    "251232824da2f5350dbdf9184e0398b434a61497"
+  ],
+  "board": "m5paper_mono",
+  "flavor": "writerdeck",
+  "layout": "ota",
+  "esp_idf": "5.5.5",
+  "compiler": "GCC 14.2.0",
+  "flags": {
+    "WRITER_D_TRIAL": 1,
+    "DIRTY_HOLD_TRIAL": 1,
+    "SPI20_TRIAL": 1,
+    "HYBRID_TRIAL": 1,
+    "WAVEFORM_TRIAL": 0,
+    "SKETCH_LATENCY_TRIAL": 0
+  },
+  "application": "firmware-app-only.bin",
+  "application_bytes": 3458400,
+  "sha256": "517250fa47fd1d702fccf28e5f3da6d4557fca978bd6f9e953d589ed6b29a253",
+  "ota_slot_bytes": 7340032,
+  "ota_remaining_bytes": 3881632,
+  "partitions": {
+    "nvs": {
+      "offset": 36864,
+      "size": 16384
+    },
+    "otadata": {
+      "offset": 53248,
+      "size": 8192
+    },
+    "phy_init": {
+      "offset": 61440,
+      "size": 4096
+    },
+    "ota_0": {
+      "offset": 65536,
+      "size": 7340032
+    },
+    "ota_1": {
+      "offset": 7405568,
+      "size": 7340032
+    },
+    "flash": {
+      "offset": 14745600,
+      "size": 2031616
+    }
+  },
+  "baseline_LUT_sha256": "e8a7abbb2110cb8d941e80cc2869bbe1d0814e1d4a38e5d0cc5173b10f39ce50",
+  "D_LUT_sha256": "9be4bea8b9a07fef33834293d25979a9b0f3fc820d3e9912a1fc106532ef1832",
+  "unchanged_LUT_indices": [
+    2,
+    109
+  ],
+  "default_mode": "baseline",
+  "D_budget_per_boot": 6,
+  "budget_refundable": false,
+  "NVS_modified": false,
+  "source_is_explicit_snapshot_metadata": true,
+  "physical_mode_selected_at_execution": true,
+  "forced_full_frame_diagnostic_imported": false,
+  "no_op_still_skipped": true,
+  "baseline_restore_additional_cmd20": 0,
+  "writer_trace_capacity": 32,
+  "host_major_executables": 19,
+  "host_sketch_python_tests": 9,
+  "host_extra_executables": 14,
+  "host_restore_failure_extra_process": true,
+  "build_seconds": 41.40600000001723,
+  "final_build_warning_count": 0,
+  "final_build_warnings": [],
+  "final_build_error_count": 0,
+  "initial_build_failure": "Writer macro collision, fixed in source commit; original failure log retained",
+  "device_accessed": false,
+  "COM_enumerated": false,
+  "flash_performed": false,
+  "physical_quality_tested": false,
+  "Writer_classification": "W-1..W-6 not measured",
+  "effective_DC_balance_proven": false,
+  "manufacturer_validated": false,
+  "rollback_reference_commit": "391925abff2d261d1d5856711aa0a1f101ac435a",
+  "rollback_reference_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6"
+}

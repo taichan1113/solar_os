@@ -1,0 +1,27 @@
+{
+  "returncode": 1,
+  "elapsed_seconds": 131.15600000001723,
+  "command": [
+    "C:\\Users\\takec\\.platformio\\penv\\Scripts\\python.exe",
+    "-m",
+    "platformio",
+    "run",
+    "-e",
+    "esp32_s3_devkitc1_n16r8"
+  ],
+  "cwd": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\writer-black-hold-d\\worktree",
+  "requested_environment": {
+    "SOLAR_OS_BOARD": "m5paper_mono",
+    "SOLAR_OS_FLAVOR": "writerdeck",
+    "SOLAR_OS_LAYOUT": "ota",
+    "SOLAR_OS_SSD1677_WRITER_D_TRIAL": "1",
+    "SOLAR_OS_SSD1677_WAVEFORM_TRIAL": "0",
+    "SOLAR_OS_SSD1677_HYBRID_TRIAL": "1",
+    "SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL": "1",
+    "SOLAR_OS_SSD1677_SPI20_TRIAL": "1",
+    "SOLAR_OS_SKETCH_LATENCY_TRIAL": "0"
+  },
+  "source_commit": "029724b0f3738acbdede42c476976656ca52865e",
+  "device_accessed": false,
+  "flash_performed": false
+}

@@ -1,0 +1,78 @@
+{
+  ".gitattributes": {
+    "bytes": 41,
+    "sha256": "898fc2da01b20487ea0b1e7243ca918ee7538eaeb39a3f080b7d01193074e161"
+  },
+  "audit_candidate.py": {
+    "bytes": 5754,
+    "sha256": "eb3c8c5c25d3b13458668e65a5cab294a632c5448fda43158ebc74995005d559"
+  },
+  "audit_worktrees.py": {
+    "bytes": 1236,
+    "sha256": "bd8e700a47130467101a6eac7fc1c46473971ab2d7e5783d6814fde4aa0c4b39"
+  },
+  "build-result.json": {
+    "bytes": 852,
+    "sha256": "b6b0de9843e01e334363bb485ea43c502a118a2ab0b465df952cef023111285a"
+  },
+  "build-selection.txt": {
+    "bytes": 5994,
+    "sha256": "f3c8422700b119fb673bf57b9dc606e83b66e7ff93da991bf913522e7dc9fb92"
+  },
+  "build.log": {
+    "bytes": 3132,
+    "sha256": "d210a08054b6b49d898f7dcfa7158100a1c272fa3a141a280030d97f99b5cbe5"
+  },
+  "build_candidate.py": {
+    "bytes": 1547,
+    "sha256": "1a340e20aae1131fc7cd43c7609ff959d8b57c78f3e7613c0a1cb7f140ef22a0"
+  },
+  "changed-files.txt": {
+    "bytes": 851,
+    "sha256": "030913dca024209afde8b897ca8b135034e63b64b160fdaa7eea2cd84792b6de"
+  },
+  "host-extra-result.json": {
+    "bytes": 1504,
+    "sha256": "30602cc9800315179ef5359b21dbc17ef51bf83b747910ef2dfc752d1b3fcb56"
+  },
+  "host-extra.log": {
+    "bytes": 4769,
+    "sha256": "e86f0bc70d4d22798fae1d517bb3dfae4b0d7a414df1eb990a1cde8a88fd7e4d"
+  },
+  "host-main-result.json": {
+    "bytes": 244,
+    "sha256": "0dd3ee18d343803d23a67bbbc91d488df6a37243fea192ae69c7cc3ae8c485bc"
+  },
+  "host-main.log": {
+    "bytes": 13807,
+    "sha256": "19caa14ffb609ccedbfd4c50b8a3f3c3dbd65db97bc41f52745eb4dd7941d3f6"
+  },
+  "initial-failed-build-result.json": {
+    "bytes": 853,
+    "sha256": "faeafa72252171c2522db862fa45dfc7f952b3eba8ed3bfac82c9bdc8e3550c7"
+  },
+  "initial-failed-build.log": {
+    "bytes": 24034,
+    "sha256": "09534e008dc825ff2610eca01760456f6e1c1213ab8f1485a98f3045e193f33e"
+  },
+  "manifest.json": {
+    "bytes": 2855,
+    "sha256": "4441182cbd9b00481bc05f946d49133e9dfe81d8af1cd0de95f192ff0ba3b171"
+  },
+  "other-worktrees-after.json": {
+    "bytes": 22684,
+    "sha256": "ad7cd6ebef24f7d77ecfb48b4915b21ed17a84d4041efdce2801132784b32170"
+  },
+  "other-worktrees-before.json": {
+    "bytes": 21267,
+    "sha256": "10631ba72d7313f7e2458dec8da19e486c95c978bae67e735e659886378ef45c"
+  },
+  "package_report.py": {
+    "bytes": 2227,
+    "sha256": "36cdf92f0985c8ed8c707a1cd34e8e41fea6031908b66dc6c3c537f3c1cce5ac"
+  },
+  "run_host.py": {
+    "bytes": 1452,
+    "sha256": "b18f7185eb61c6f188a38a376d2b19b5389d29403065b0a4594af7614f0e9b5e"
+  }
+}

@@ -1,0 +1,68 @@
+make: Entering directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/writer-black-hold-d/worktree/tests/host'
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -Wno-unused-parameter -DSOLAR_OS_SSD1677_WRITER_D_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 \
+	-DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../components/u8g2/src/clib writer_d_driver_test.c ../../components/u8g2/src/clib/u8g2_setup.c ../../components/u8g2/src/clib/u8g2_buffer.c ../../components/u8g2/src/clib/u8g2_font.c ../../components/u8g2/src/clib/u8g2_ll_hvline.c ../../components/u8g2/src/clib/u8g2_hvline.c ../../components/u8g2/src/clib/u8g2_intersection.c ../../components/u8g2/src/clib/u8x8_setup.c ../../components/u8g2/src/clib/u8x8_display.c -Wl,--gc-sections -o writer_d_driver_test
+mkdir -p generated
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -pthread -DSOLAR_OS_SSD1677_WRITER_D_TRIAL=1 \
+	-Iasync_stubs -I. -I../../src/services -c writer_d_async_test.c -o generated/writer-d-async.o
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_SSD1677_WRITER_D_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 \
+	-DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../components/u8g2/src/clib -c writer_d_panel_fixture.c -o generated/writer-d-panel.o
+cc -pthread -Wl,--gc-sections generated/writer-d-async.o generated/writer-d-panel.o -o writer_d_async_test
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_SSD1677_WRITER_D_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 \
+	-DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../components/u8g2/src/clib writer_d_shell_test.c -Wl,--gc-sections -o writer_d_shell_test
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_SSD1677_WAVEFORM_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../components/u8g2/src/clib \
+	epd_ssd1677_test.c -Wl,--gc-sections -o epd_ssd1677_waveform_trial_test
+make: 'input_test' is up to date.
+make: 'input_action_match_test' is up to date.
+make: 'hid_keyboard_report_test' is up to date.
+make: 'ble_keyboard_scan_policy_test' is up to date.
+make: 'ble_keyboard_reconnect_test' is up to date.
+make: 'ble_service_test' is up to date.
+make: 'ble_multi_peer_test' is up to date.
+make: 'ble_nimble_test' is up to date.
+make: 'ble_hid_test' is up to date.
+make: 'ble_server_test' is up to date.
+make: Leaving directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/writer-black-hold-d/worktree/tests/host'
+RUN writer_d_driver_test
+writer D: A/D payload, rows-dual, transition RAM/Shadow, restore, R0/R2 retain/swap PASS
+writer D: A/D payload, rows-dual, transition RAM/Shadow, restore, R0/R2 retain/swap PASS
+writer D: A/D payload, rows-dual, transition RAM/Shadow, restore, R0/R2 retain/swap PASS
+writer D: A/D payload, rows-dual, transition RAM/Shadow, restore, R0/R2 retain/swap PASS
+writer D: explicit source, no-op, six reservations, seventh A, no refund, boot baseline PASS
+writer D: LUT/BUSY/post-sync failure latches, no retries/refund PASS
+writer_d_driver_test: PASS
+RUN writer_d_async_test
+writer D async: D->A switch waits through restore; pending coalesced Writer chooses A PASS
+writer D async: A->D switch, busy non-Writer replacement stays A PASS
+writer D async: six physical budget, seventh baseline, app-exit pending cancellation PASS
+writer_d_async_test: PASS
+RUN writer_d_shell_test
+writer_d_shell_test: USB gating, controls/status/trace, no physical updates, cap PASS
+RUN epd_ssd1677_waveform_trial_test
+epd_ssd1677_test: PASS
+RUN input_test
+input_test: ok
+RUN input_action_match_test
+input action match tests: ok
+RUN hid_keyboard_report_test
+HID keyboard report tests: ok
+RUN ble_keyboard_scan_policy_test
+BLE keyboard scan policy tests: ok
+RUN ble_keyboard_reconnect_test
+production keyboard worker: absence, late appearance, failures, disconnect, cancel, suspend/resume: ok
+RUN ble_service_test
+BLE sessions: ownership, cancellation, timeout, stale events, sleep and compatibility OK
+RUN ble_multi_peer_test
+BLE multi-peer: dynamic allocation, ownership, independent I/O, capacity, timeout, close and sleep OK
+BLE notifications: owned queues, binary copy, overflow, unsubscribe, timeout and cleanup OK
+RUN ble_nimble_test
+NimBLE adapter: cancellation, request identity, bounds, MTU and byte-copy tests passed
+RUN ble_hid_test
+HID client: failure, cancellation, bounds, subscription, input lifetime and stale callback tests passed
+RUN ble_server_test
+BLE server: generic ownership plus encrypted keyboard, mouse and gamepad HOGP lifecycle OK
+writer D async: actual Baseline restore failure stops worker/pending, no refund PASS
+writer_d_async_test: PASS

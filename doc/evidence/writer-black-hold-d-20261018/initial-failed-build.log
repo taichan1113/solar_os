@@ -1,0 +1,309 @@
+Processing esp32_s3_devkitc1_n16r8 (board: esp32-s3-devkitc1-n16r8; platform: https://github.com/pioarduino/platform-espressif32/releases/download/55.03.312-1/platform-espressif32.zip; framework: espidf)
+--------------------------------------------------------------------------------
+Verbose mode can be enabled via `-v, --verbose` option
+SolarOS build locking is unavailable on Windows; do not run concurrent PlatformIO builds from the same checkout
+CONFIGURATION: https://docs.platformio.org/page/boards/espressif32/esp32-s3-devkitc1-n16r8.html
+PLATFORM: Espressif 32 (55.3.312) > Espressif ESP32-S3-DevKitC-1-N16R8V (16 MB Flash Quad, 8 MB PSRAM Octal)
+HARDWARE: ESP32S3 240MHz, 320KB RAM, 7MB Flash
+DEBUG: Current (esp-builtin) On-board (esp-builtin) External (cmsis-dap, esp-bridge, esp-prog, esp-prog-2, iot-bus-jtag, jlink, minimodule, olimex-arm-usb-ocd, olimex-arm-usb-ocd-h, olimex-arm-usb-tiny-h, olimex-jtag-tiny, tumpa)
+PACKAGES: 
+ - contrib-piohome @ 3.4.4 
+ - framework-espidf @ 3.50505.0 (5.5.5) 
+ - tool-cmake @ 4.0.3 
+ - tool-esp-rom-elfs @ 2026.5.28 
+ - tool-esptoolpy @ 5.4.0 
+ - tool-ninja @ 1.13.1 
+ - tool-scons @ 4.41101.0 (4.11.1) 
+ - tool-xtensa-esp-elf-gdb @ 17.1.0+20260402 
+ - toolchain-xtensa-esp-elf @ 14.2.0+20260121
+Using Python 3.11.7 environment at: C:\Users\takec\.platformio\penv\.espidf-5.5.5
+Reading CMake configuration...
+Generating assembly for certificate bundle...
+LDF: Library Dependency Finder -> https://bit.ly/configure-pio-ldf
+LDF Modes: Finder ~ chain, Compatibility ~ soft
+Found 0 compatible libraries
+Scanning dependencies...
+No dependencies
+Building in release mode
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\drivers\cdc_port.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\drivers\uart_port.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\drivers\i2c_bus.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\drivers\gpio_port.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\main.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\solar_os.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\solar_os_jobs.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\solar_os_queue.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\solar_os_scheduler.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\solar_os_task.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\drivers\flash_storage.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_app_file_types.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_app_registry.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\jobs\solar_os_job_registry.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_board_caps.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_board_boot.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_boot_services.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_cdc.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_clipboard.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_display.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_display_layout.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_display_layout_core.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_frame_presenter.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_gfx.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_gfx_icons.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_identity.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_input.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\drivers\ft6336_frame.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_input_touch_core.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_sessions_touch.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_input_action_match.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_input_actions.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_input_composition.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_keys.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_log.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_manual.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_memory.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_messaging_types.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_nvs_backup.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_port.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_port_shell.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_parameters.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_power.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ramfs.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_sessions.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_splash.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_storage.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_terminal.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_terminal_geometry.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_terminal_preferences.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ui_scale.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_time.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_timezone.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_tui.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_tui_widgets.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ota.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_module_packages.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_native.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_native_media.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_native_elf.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_native.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_pkg_tui.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_shell.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_shell_startup_policy.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_common.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_launch.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_parse.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_commands.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_input.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_completion.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_gesture_completion.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_rtspd_completion.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_io.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_manual.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_line.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_setterm_tui.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_system.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_schedule.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_vt100.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_transfer.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_zmodem.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_hardware.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_inbox.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_contacts.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_credentials.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_fs.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_zip.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_lwip_route.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_network.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_network_status.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_network_tui.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_wifi.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_wifi_repeater.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_network.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_wifi_tui.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_wireguard.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_wireguard.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_espnow.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_espnow.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_net.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_net_session.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_script_media.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ftp.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_scp.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ssh.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ssh_keys.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ssh_transport.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_sftpsync.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_sftp.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_chat.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_gateway.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_messaging.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_chat_transport_gateway.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_http_client.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_http_stream.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_playground.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_http_server.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_agent.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_agent_conversation.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_agent_reference.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_agent_openai.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_agent_tools.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_script_lifecycle.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_script_runner.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_mjpeg.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_raster_image.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_media.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_rtp.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_rtp_jpeg.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_rtsp.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_doc.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_html.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_xml.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_text_search.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ble.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ble_nimble.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ble_hid.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ble_hid_report_map.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ble_keyboard.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ble_keyboard_scan_policy.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_hid_keyboard_report.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_ble_tui.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_audio.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_audio_player.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_audio_pcm.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_audio_codec.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_webradio_catalog.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_controls.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_controls.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_stream.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\drivers\routed_spi_bus.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_buses.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_resources.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_pins.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_engines.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_vector.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_dsp.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_signal_widgets.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_media_widgets.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_storage_browser.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_gpio.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_status_led.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_onewire.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_i2c.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_spi.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_expansion.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_gpio_controller.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_expansion.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_expansion_command.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_expansion_manifest.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_expansion_tui.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_charger.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_charger.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_link.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_link_repeater.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_link_stream.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_link_messaging.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_link.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\board\solar_os_board_display_expansion.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\drivers\epd_ssd1677.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ssd1677.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_display_async.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ssd1677_driver.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\drivers\axp2101.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_axp2101.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_axp2101_driver.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_bq27220.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_bq27220_driver.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\drivers\max17048.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_max17048.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_max17048_driver.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_gpio_keys.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_gpio_keys_driver.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\drivers\ft6336.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ft6336.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_ft6336_driver.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_touchraw.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\drivers\rtc_rx8130ce.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_rx8130ce.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_json.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_json_scan.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_crypto.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_uart.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_battery.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_battery_trend.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_rtc.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_schedule.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_buttons.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_audio_apps.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_ssh.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_scp.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_sftpsync.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_sftp_app.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_curl.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_webradio.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_rtsp_receiver.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_rtsp_client.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_rtsp_app.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_telnet.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_web.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_chat.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_messages.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_agent_app.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_agent.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_inbox_app.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_inbox.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_contacts.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\shell\solar_os_shell_contacts.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_view.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_sketch.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_sketch_canvas.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_type_mouse.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_type_mouse_engine.cpp.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_python.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_playground_app.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_clock.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_com.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_edit.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_syntax.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_less.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_ltop.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_docs_app.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_reader.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_epub.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_writer.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_writer_buffer.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_writer_files.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_writer_checkpoint.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_files.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_launcher.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_launcher_layout.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_ftp_app.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_io.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_notes.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\services\solar_os_expr.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_calc.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_plot.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_sheet.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\jobs\solar_os_httpd_job.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\jobs\solar_os_rtspd_job.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\jobs\solar_os_rtspd_options.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\jobs\solar_os_chatd_job.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\jobs\solar_os_telnetd_job.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\jobs\solar_os_ftpd_job.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\jobs\solar_os_gateway_sync_job.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\jobs\solar_os_bridge_job.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\jobs\solar_os_log_job.c.o
+Compiling .pio\build\esp32_s3_devkitc1_n16r8\src\jobs\solar_os_batmon_job.c.o
+src/apps/solar_os_writer.c: In function 'writer_render':
+src/apps/solar_os_writer.c:121:16: error: expected identifier before '(' token
+  121 | #define writer (*(writer_state_t *)writer_state)
+      |                ^
+src/apps/solar_os_writer.c:1481:29: note: in expansion of macro 'writer'
+ 1481 |         writer.trial_origin.writer = true;
+      |                             ^~~~~~
+*** [.pio\build\esp32_s3_devkitc1_n16r8\src\apps\solar_os_writer.c.o] Error 1
+========================= [FAILED] Took 130.85 seconds =========================
+
+Environment              Status    Duration
+-----------------------  --------  ------------
+esp32_s3_devkitc1_n16r8  FAILED    00:02:10.849
+==================== 1 failed, 0 succeeded in 00:02:10.849 ====================
