@@ -1,0 +1,94 @@
+{
+  "result": "PRIME_AA_HOST_BUILD_PASS_AWAITING_EXPLICIT_FLASH_APPROVAL",
+  "branch": "experiment/papermono-black-hold-d-prime-aa",
+  "base_commit": "42aec97cb19db5b920b3d29a8923e3a2e2724737",
+  "implementation_commit": "47921bc7d963d8ddad1a6dfd77f3a50fbeb22c67",
+  "board": "m5paper_mono",
+  "flavor": "writerdeck",
+  "layout": "ota",
+  "esp_idf": "5.5.5",
+  "compiler": "GCC 14.2.0",
+  "flags": {
+    "BLACK_HOLD_SINGLE_TRIAL": 1,
+    "BLACK_HOLD_REPEAT3_TRIAL": 1,
+    "BLACK_HOLD_PRIME_AA_TRIAL": 1,
+    "DIRTY_HOLD_TRIAL": 1,
+    "SPI20_TRIAL": 1,
+    "HYBRID_TRIAL": 1,
+    "WAVEFORM_TRIAL": 0,
+    "SKETCH_LATENCY_TRIAL": 0
+  },
+  "application": "firmware-app-only.bin",
+  "application_bytes": 3459312,
+  "sha256": "3e7f89ddaa64d3adb946ca0f1e13a3b48ae28fe03c875771f8ca914b6fd6649d",
+  "ota_slot_bytes": 7340032,
+  "ota_remaining_bytes": 3880720,
+  "partitions": {
+    "nvs": {
+      "offset": 36864,
+      "size": 16384
+    },
+    "otadata": {
+      "offset": 53248,
+      "size": 8192
+    },
+    "phy_init": {
+      "offset": 61440,
+      "size": 4096
+    },
+    "ota_0": {
+      "offset": 65536,
+      "size": 7340032
+    },
+    "ota_1": {
+      "offset": 7405568,
+      "size": 7340032
+    },
+    "flash": {
+      "offset": 14745600,
+      "size": 2031616
+    }
+  },
+  "baseline_LUT_sha256": "e8a7abbb2110cb8d941e80cc2869bbe1d0814e1d4a38e5d0cc5173b10f39ce50",
+  "D_LUT_sha256": "9be4bea8b9a07fef33834293d25979a9b0f3fc820d3e9912a1fc106532ef1832",
+  "LUT_voltage_physical_refresh_files_unchanged": true,
+  "normal_apps_services_board_unchanged": true,
+  "B_C_waveforms_absent_in_binary": true,
+  "old_single_repeat3_commands_not_registered": true,
+  "fixed_measurement_sequence": [
+    "D",
+    "A",
+    "A"
+  ],
+  "max_counted_attempts": 3,
+  "max_D_attempts": 1,
+  "max_A_attempts": 2,
+  "cancel_terminates_sequence": true,
+  "session_restart_allowed": false,
+  "budget_persists_display_reinitialization": true,
+  "budget_survives_whole_device_reboot": false,
+  "trial_persisted_in_NVS_startup": false,
+  "timing_ms": {
+    "T0_after_preparation": 5000,
+    "end_to_next_start_goal": 60000,
+    "minimum_after_operator_approval": 5000,
+    "Tn_after_completion": 2000
+  },
+  "planned_diagnostic_cmd20": 10,
+  "planned_measured_cmd20": 3,
+  "planned_D_cmd20": 1,
+  "intermediate_OTP_between_measurements": false,
+  "sdk_config_equal_to_previous_repeat3": true,
+  "build_seconds": 292.9679999999935,
+  "compiler_warning_count": 0,
+  "compiler_error_count": 0,
+  "device_accessed": false,
+  "COM_enumerated": false,
+  "flash_performed": false,
+  "physical_quality_tested": false,
+  "P_classification": "not measured",
+  "effective_DC_balance_proven": false,
+  "manufacturer_validated": false,
+  "rollback_reference_commit": "391925abff2d261d1d5856711aa0a1f101ac435a",
+  "rollback_reference_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6"
+}

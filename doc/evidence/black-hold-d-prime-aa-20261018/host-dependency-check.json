@@ -1,0 +1,10 @@
+﻿{
+    "result":  "PASS",
+    "returncode":  0,
+    "change":  "Host Makefile now explicitly depends on reused repeat3 fixture",
+    "command":  "make -C tests/host epd_ssd1677_black_prime_aa_test black_prime_aa_shell_test; epd_ssd1677_black_prime_aa_test; black_prime_aa_shell_test normal",
+    "driver":  "PASS",
+    "shell_normal":  "PASS",
+    "application_source_unchanged":  true,
+    "device_accessed":  false
+}

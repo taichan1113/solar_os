@@ -1,0 +1,8 @@
+{
+  "returncode": 134,
+  "command": [
+    "sh",
+    ".research/black-hold-d-prime-aa/run_single_host.sh"
+  ],
+  "log": ".research\\black-hold-d-prime-aa\\host-single-verified.log"
+}

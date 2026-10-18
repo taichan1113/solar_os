@@ -1,0 +1,188 @@
+[
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS",
+    "head": "31abd6db216bd94833ae092f6948438f8f1e4256",
+    "branch": "refs/heads/experiment/papermono-sketch-latency-measurement",
+    "status": [
+      "?? .vscode/"
+    ],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/worktree",
+    "head": "a65d8ec83b5ae2bff5ace40e8032f047657a0ffd",
+    "branch": "refs/heads/experiment/papermono-black-hold-bd-compare",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/worktree",
+    "head": "42aec97cb19db5b920b3d29a8923e3a2e2724737",
+    "branch": "refs/heads/experiment/papermono-black-hold-d-repeat3",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/black-hold-repro-b/worktree",
+    "head": "affd31987f81c7249473d64ae3957be199d6ed14",
+    "branch": "refs/heads/experiment/papermono-black-hold-repro-b",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/black-hold-single/worktree",
+    "head": "8f060acae3bbece08934985d85092ace3e2ae53b",
+    "branch": "refs/heads/experiment/papermono-black-hold-single",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/black-hold-timing-c/worktree",
+    "head": "20bc672b0b3a72a29f7759c0647b38cdb28824ed",
+    "branch": "refs/heads/experiment/papermono-black-hold-timing-c",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/black-hold-timing-d/worktree",
+    "head": "be172606ee54c174a0b2601f3002386d9261c60e",
+    "branch": "refs/heads/experiment/papermono-black-hold-timing-d",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/dirty-rectangle-hardware/worktree",
+    "head": "148ea7e8554d4556f338cdd4e038a07daa57d584",
+    "branch": "refs/heads/experiment/papermono-dirty-rectangle-hardware",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/dirty-rectangle-live/worktree",
+    "head": "0a652729852dca910273b18809a01de162b34271",
+    "branch": "refs/heads/feature/papermono-dirty-rectangle-live",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/dirty-sketch-integration/worktree",
+    "head": "391925abff2d261d1d5856711aa0a1f101ac435a",
+    "branch": "refs/heads/integration/papermono-dirty-sketch",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/display-update-mvp/worktree",
+    "head": "b6e8d1c5f3a5a5c7b7c0f0efafb6379ad0b1213c",
+    "branch": "refs/heads/feature/papermono-display-update-mvp",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/epd-quality-mvp/worktree",
+    "head": "b1e7e2f69c675a6d9f38f0899e6494b50308d43a",
+    "branch": "refs/heads/feature/papermono-epd-quality-mvp",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/fastest-fixed-black-cause/worktree",
+    "head": "da7b0584fc1acb57afc945d1847adb97cbd954d5",
+    "branch": "refs/heads/experiment/papermono-fastest-fixed-black-cause",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/hybrid-refresh/worktree",
+    "head": "ea5fb5afd323e4298463e9e176a674cf44f902f6",
+    "branch": "refs/heads/experiment/papermono-hybrid-refresh-host",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/lh",
+    "head": "82c87470e6cad25626bbdfb36a23ad4632b3ccfa",
+    "branch": "refs/heads/feature/papermono-launcher-typemouse-hybrid",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/m5gfx-fastest-diff/worktree",
+    "head": "911a50e15838f092205c05ae68f001dc859f798e",
+    "branch": "refs/heads/experiment/papermono-m5gfx-fastest-diff",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/shell-completion/worktree",
+    "head": "e2167bc307a49512e3f9e19f7ea954ce835b6ee3",
+    "branch": "refs/heads/fix/papermono-shell-display-completion",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/sketch-latency-live/worktree",
+    "head": "82d20c242897187366b7bdbb255c97e1a0ae0589",
+    "branch": "refs/heads/feature/papermono-sketch-latency-live",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/ssd1677-dirty-hold/worktree",
+    "head": "305ab1a731d28596752d326cd345d9889a3a8fb1",
+    "branch": "refs/heads/experiment/papermono-ssd1677-dirty-hold-host",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/type-mouse-mvp/worktree",
+    "head": "c356b83e5727271701ab5099e60bcf9ff54732f5",
+    "branch": "refs/heads/feature/papermono-type-mouse-mvp",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/type-mouse-phase1a/worktree",
+    "head": "254abcf1bd9ec83755f377d2852bc482d101486f",
+    "branch": "refs/heads/experiment/papermono-type-mouse-phase1a",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/type-mouse-phase1b1/worktree",
+    "head": "6c544febc636cedfca32297eb4b802bff1961df9",
+    "branch": "refs/heads/experiment/papermono-type-mouse-phase1b1",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/type-mouse-phase1b2/worktree",
+    "head": "6ac4bf5ed4cbf0cfd8310099c75ac8a4035c517b",
+    "branch": "refs/heads/experiment/papermono-type-mouse-phase1b2",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/type-mouse-toggle/worktree",
+    "head": "d93f23ded692fbf5498507d2e6f7374e7df58770",
+    "branch": "refs/heads/feature/papermono-type-mouse-hold-toggle",
+    "status": [],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/ui",
+    "head": "a8d4fb3fad8578eee48fedac6033e62d6d7e8896",
+    "branch": "refs/heads/feature/papermono-launcher-typemouse-ui",
+    "status": [
+      "?? hardware-20261016/"
+    ],
+    "changed_file_hashes": {}
+  },
+  {
+    "path": "E:/ESP32/M5PapserMono-SolarOS/.research/voltage-register-hold/worktree",
+    "head": "a8ede6d6c9284c51bf996bdcb4589f2eddc82a02",
+    "branch": "refs/heads/experiment/papermono-voltage-register-hold",
+    "status": [],
+    "changed_file_hashes": {}
+  }
+]

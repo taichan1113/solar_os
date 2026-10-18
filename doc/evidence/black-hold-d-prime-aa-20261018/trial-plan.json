@@ -1,0 +1,28 @@
+{
+  "state": "HOST_BUILD_COMPLETE_AWAITING_EXPLICIT_FLASH_APPROVAL",
+  "sequence": [
+    "D",
+    "A",
+    "A"
+  ],
+  "measurement_limit": 3,
+  "D_limit": 1,
+  "normal_waveform": "baseline",
+  "no_intermediate_OTP": true,
+  "operator_gate_each_measurement": true,
+  "goal_from_previous_end_ms": 60000,
+  "minimum_from_authorization_ms": 5000,
+  "first_goal_from_preparation_end": true,
+  "planned_start_formula": "max(previous_end+60000000, operator_request+5000000) microseconds",
+  "stable_measurement_after_end_ms": 2000,
+  "diagnostic_cmd20_if_complete": 10,
+  "current_task_COM_accessed": false,
+  "primary_optical_metrics": [
+    "dC2=C2-C1",
+    "dC3=C3-C2"
+  ],
+  "C3_above_C0_alone_proves_sufficient_priming": false,
+  "future_flash": "New physical device/partition/running+boot-slot check, new full and app backup, app-only write/readback/protection, return to original app",
+  "physical_lut_readback": false,
+  "P_classification": "not measured"
+}

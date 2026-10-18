@@ -1239,7 +1239,7 @@ black_repeat3_shell_test: Makefile black_repeat3_shell_test.c black_single_shell
 		$(ROOT)/fonts/build/u8g2/u8g2_font_solar_os_default_r_20_tf.c -Wl,--gc-sections -o $@
 
 
-epd_ssd1677_black_prime_aa_test: Makefile epd_ssd1677_black_prime_aa_test.c epd_ssd1677_dirty_hold_test.c epd_ssd1677_test.c $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677.h $(ROOT)/src/drivers/epd_ssd1677_reference.inc $(ROOT)/src/drivers/epd_ssd1677_waveform_trial.inc $(EPD_U8G2_TEST_SOURCES)
+epd_ssd1677_black_prime_aa_test: Makefile epd_ssd1677_black_prime_aa_test.c epd_ssd1677_black_repeat3_test.c epd_ssd1677_dirty_hold_test.c epd_ssd1677_test.c $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677.h $(ROOT)/src/drivers/epd_ssd1677_reference.inc $(ROOT)/src/drivers/epd_ssd1677_waveform_trial.inc $(EPD_U8G2_TEST_SOURCES)
 	$(CC) $(CFLAGS) -DSOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 -DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -DSOLAR_OS_SSD1677_HYBRID_TRIAL=1 -ffunction-sections -fdata-sections \
 		-Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib \
 		epd_ssd1677_black_prime_aa_test.c $(EPD_U8G2_TEST_SOURCES) -Wl,--gc-sections -o $@
