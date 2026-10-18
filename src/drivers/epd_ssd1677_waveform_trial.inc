@@ -38,6 +38,7 @@ static const uint8_t ssd1677_trial_hold_lut[110] = {
 #endif
 
 #if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+#if !SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
 /* Candidate B: VSL*2 -> HOLD*2 -> VSH2*6; previously tested bytes. */
 static const uint8_t ssd1677_trial_black_hold_b_lut[110] = {
     0x8f,0xf0,0,0,0,0,0,0,0,0,
@@ -51,6 +52,8 @@ static const uint8_t ssd1677_trial_black_hold_b_lut[110] = {
     0x8f,0x8f,0x8f,0x8f,0x8f,
     0x17,0x46,0xa8,0x32,0x30,
 };
+
+#endif
 
 /* Candidate D: SSD1677 Rev1.0 6.6/6.7, Fig6-6:
  * group0 00/10/11/11, group1 11/11/00/00 (HOLD*2 -> VSL*2 -> VSH2*6).

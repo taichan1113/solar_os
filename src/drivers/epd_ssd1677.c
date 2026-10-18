@@ -1020,22 +1020,45 @@ esp_err_t epd_ssd1677_resume(epd_ssd1677_t *display)
 }
 
 #if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
-static bool black_hold_candidate_spent[2]; /* survives display deinit/reset within this boot */
+static uint8_t black_hold_candidate_spent[2]; /* boot-global nonrefundable attempts */
 static bool black_hold_failed;
 bool epd_ssd1677_black_hold_blocked(void) { return black_hold_failed; }
+static unsigned black_hold_index(epd_ssd1677_black_hold_t candidate)
+{
+#if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
+    return candidate == EPD_SSD1677_BLACK_HOLD_A ? 0U :
+           candidate == EPD_SSD1677_BLACK_HOLD_D ? 1U : 2U;
+#else
+    return candidate == EPD_SSD1677_BLACK_HOLD_B ? 0U :
+           candidate == EPD_SSD1677_BLACK_HOLD_D ? 1U : 2U;
+#endif
+}
 bool epd_ssd1677_black_hold_spent(epd_ssd1677_black_hold_t candidate)
 {
-    return candidate == EPD_SSD1677_BLACK_HOLD_B ? black_hold_candidate_spent[0] :
-           candidate == EPD_SSD1677_BLACK_HOLD_D ? black_hold_candidate_spent[1] :
-           candidate != EPD_SSD1677_BLACK_HOLD_BASELINE;
+    if (candidate == EPD_SSD1677_BLACK_HOLD_BASELINE) return false;
+    const unsigned index = black_hold_index(candidate);
+#if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
+    const unsigned limit = 3U;
+#else
+    const unsigned limit = 1U;
+#endif
+    return index >= 2U || black_hold_candidate_spent[index] >= limit;
 }
+#if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
+unsigned epd_ssd1677_black_hold_attempts(epd_ssd1677_black_hold_t candidate)
+{
+    const unsigned index = black_hold_index(candidate);
+    return index < 2U ? black_hold_candidate_spent[index] : 0U;
+}
+#endif
 void epd_ssd1677_black_hold_cancel(epd_ssd1677_t *d)
 {
     if (d) d->black_hold_pending = 0;
 }
 esp_err_t epd_ssd1677_black_hold_arm(epd_ssd1677_t *d, epd_ssd1677_black_hold_t candidate)
 {
-    if (candidate < EPD_SSD1677_BLACK_HOLD_BASELINE || candidate > EPD_SSD1677_BLACK_HOLD_D)
+    const unsigned index = black_hold_index(candidate);
+    if (candidate != EPD_SSD1677_BLACK_HOLD_BASELINE && index >= 2U)
         return ESP_ERR_INVALID_ARG;
     if (!d || black_hold_failed || !d->papermono_otp || d->faulted || !d->powered ||
         !d->shadow_valid || !d->papermono_baseline_valid ||
@@ -1045,7 +1068,7 @@ esp_err_t epd_ssd1677_black_hold_arm(epd_ssd1677_t *d, epd_ssd1677_black_hold_t 
         d->black_hold_pending || d->black_hold_active ||
         (candidate && (!d->reference_awake || !d->controller_ready || epd_ssd1677_black_hold_spent(candidate))))
         return ESP_ERR_INVALID_STATE;
-    if (candidate) black_hold_candidate_spent[candidate - 1U] = true;
+    if (candidate) ++black_hold_candidate_spent[index]; /* cancel/failure never refunds */
     d->black_hold_lut_ready_us = d->black_hold_restore_start_us = d->black_hold_restore_end_us = 0;
     d->black_hold_pending = (uint8_t)candidate + 1U;
     return ESP_OK;

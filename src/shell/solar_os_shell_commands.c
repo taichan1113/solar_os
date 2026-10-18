@@ -653,7 +653,11 @@ static void display_cmd_test(solar_os_shell_io_t *term, int argc, char **argv)
     static const char owner[] = "shell:display-test";
 
 #if defined(SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL) && SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+#if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
+    if (argc >= 4 && strcmp(argv[3], "black-hold-repeat3") == 0) {
+#else
     if (argc >= 4 && strcmp(argv[3], "black-hold-single") == 0) {
+#endif
         display_cmd_black_hold_single(term, argc, argv);
         return;
     }

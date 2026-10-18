@@ -15,6 +15,12 @@
 #ifndef SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
 #define SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL 0
 #endif
+#ifndef SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
+#define SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL 0
+#endif
+#if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL && !SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+#error Repeat3 requires the existing bounded diagnostic backend
+#endif
 #if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
 #error Single-shot compensation must not enable persistent dose/hold selection
 #endif
@@ -181,13 +187,21 @@ typedef enum {
     EPD_SSD1677_BLACK_HOLD_BASELINE = 0,
     EPD_SSD1677_BLACK_HOLD_B,
     EPD_SSD1677_BLACK_HOLD_D,
+#if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
+    EPD_SSD1677_BLACK_HOLD_A, /* counted warm Baseline, distinct from preparation */
+#endif
 } epd_ssd1677_black_hold_t;
-/* Caller claims/drains the executor. B/D each have a boot-global, nonrefundable
+/* Caller claims/drains the executor. Counted conditions have boot-global, nonrefundable
  * budget. A failed forced snapshot blocks both candidates until reboot. */
 esp_err_t epd_ssd1677_black_hold_arm(epd_ssd1677_t *, epd_ssd1677_black_hold_t);
 void epd_ssd1677_black_hold_cancel(epd_ssd1677_t *);
 bool epd_ssd1677_black_hold_spent(epd_ssd1677_black_hold_t);
 bool epd_ssd1677_black_hold_blocked(void);
+#if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
+/* Attempted/reserved updates, not completed physical activations. Volatile:
+ * retained across display init/deinit, lost at whole-device reboot. */
+unsigned epd_ssd1677_black_hold_attempts(epd_ssd1677_black_hold_t);
+#endif
 #endif
 #if SOLAR_OS_SSD1677_HYBRID_TRIAL
 /* Worker-only: explicitly activate one same-frame OTP partial update. */

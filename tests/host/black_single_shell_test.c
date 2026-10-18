@@ -24,6 +24,10 @@ typedef struct {
 static epd_ssd1677_t fixture;
 static unsigned submitted, fast_updates, otp_updates, claims, releases, gate_reads, redraws;
 static unsigned failure_at, restore_failure_at;
+#if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
+static unsigned submission_failure_at;
+static int64_t repeat_request_us[3], repeat_end_us[3], gate_delay_us;
+#endif
 static bool operator_gate, abort_wait;
 static int64_t prepared_end_us, measured_end_us, measure_request_us;
 
@@ -61,6 +65,9 @@ static esp_err_t solar_os_port_read(int *port, uint8_t *key, size_t len,
         return ESP_OK;
     }
     assert(*keys);
+#if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
+    time_us += gate_delay_us; /* operator response latency, not Driver work */
+#endif
     *key = (uint8_t)*keys++;
     *n = 1;
     gate_reads++;
@@ -91,6 +98,10 @@ static esp_err_t solar_os_display_submit(u8g2_t *g, int mode, uint64_t *id)
 {
     assert(g==&fixture.u8g2 && mode==1);
     *id=++submitted;
+#if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
+    if (submitted>=4 && submitted<=6) repeat_request_us[submitted-4]=time_us;
+    if (submitted==submission_failure_at) { last_error=ESP_FAIL; return last_error; }
+#endif
     if (submitted == 4) measure_request_us = time_us;
     memcpy(immutable,frame,sizeof(frame)); memcpy(previous,shadow,sizeof(shadow));
     controller_ram_t *m=malloc(sizeof(*m)); assert(m);
@@ -102,6 +113,9 @@ static esp_err_t solar_os_display_submit(u8g2_t *g, int mode, uint64_t *id)
     last_error=epd_ssd1677_present_snapshot(&fixture,immutable,sizeof(immutable));
     if (submitted == 3) prepared_end_us = fixture.timing.end_us;
     if (submitted == 4) measured_end_us = fixture.timing.end_us;
+#if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
+    if (submitted>=4 && submitted<=6) repeat_end_us[submitted-4]=fixture.timing.end_us;
+#endif
     if(last_error==ESP_OK) {
         assert(!memcmp(shadow,immutable,sizeof(shadow)) && fixture.snapshot==NULL);
         if(forced) {
@@ -164,7 +178,10 @@ static void check_trace(char condition)
     assert(lut<=activate && activate<=ready && ready<=restore_start && restore_start<=restore_end);
     assert(restore_end<=measured_end_us && strstr(line,"busy_edge_measured=0"));
 }
-int main(int argc,char **argv)
+#ifndef BLACK_SINGLE_SHELL_MAIN
+#define BLACK_SINGLE_SHELL_MAIN main
+#endif
+int BLACK_SINGLE_SHELL_MAIN(int argc,char **argv)
 {
     const char *arg=argc>1?argv[1]:"normal";
     const bool fail=!strncmp(arg,"fail",4), restore=!strncmp(arg,"restore",7);

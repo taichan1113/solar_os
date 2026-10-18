@@ -28,10 +28,12 @@ static const uint8_t *ssd1677_selected_lut(const epd_ssd1677_t *d, const char **
 {
     *name = "baseline";
 #if SOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL
+#if !SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
     if (d->black_hold_active == EPD_SSD1677_BLACK_HOLD_B + 1U) {
         *name = "black-hold-B";
         return ssd1677_trial_black_hold_b_lut;
     }
+#endif
     if (d->black_hold_active == EPD_SSD1677_BLACK_HOLD_D + 1U) {
         *name = "black-hold-D";
         return ssd1677_trial_black_hold_d_lut;
