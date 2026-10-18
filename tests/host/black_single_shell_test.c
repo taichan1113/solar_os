@@ -29,6 +29,9 @@ static unsigned submission_failure_at;
 static int64_t repeat_request_us[3], repeat_end_us[3], gate_delay_us;
 #endif
 static bool operator_gate, abort_wait;
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+static unsigned abort_submission_at=3;
+#endif
 static int64_t prepared_end_us, measured_end_us, measure_request_us;
 
 static const char *keys;
@@ -46,6 +49,9 @@ static esp_err_t solar_os_shell_io_printf(solar_os_shell_io_t *io, const char *f
     int n = vsnprintf(output + output_len, sizeof(output) - output_len, format, ap);
     va_end(ap);
     assert(n >= 0 && (size_t)n < sizeof(output) - output_len);
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+    assert(n < 256); /* Match the real Shell's per-call formatting bound. */
+#endif
     output_len += (size_t)n;
     if (!strncmp(format, "BH gate=", 8)) operator_gate = true;
     return ESP_OK;
@@ -59,7 +65,17 @@ static esp_err_t solar_os_port_read(int *port, uint8_t *key, size_t len,
     assert(*port == 2 && len == 1 && timeout == 0);
     if (!operator_gate) {
         *n = 0;
-        if (abort_wait && submitted == 3 && time_us >= prepared_end_us + 7500000) {
+        if (abort_wait &&
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+            fixture.black_hold_pending &&
+#endif
+            submitted ==
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+            abort_submission_at
+#else
+            3
+#endif
+            && time_us >= prepared_end_us + 7500000) {
             *key = 'q'; *n = 1; abort_wait = false;
         }
         return ESP_OK;
@@ -111,6 +127,13 @@ static esp_err_t solar_os_display_submit(u8g2_t *g, int mode, uint64_t *id)
     if(submitted==failure_at) busy_on_activation=true;
     if(submitted==restore_failure_at) fail_lut_restore=true;
     last_error=epd_ssd1677_present_snapshot(&fixture,immutable,sizeof(immutable));
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+    if(last_error==ESP_OK && forced && submitted>=4 && submitted<=6) {
+        expect_data(0x32,submitted==4?ssd1677_trial_black_hold_d_lut:ssd1677_reference_lut,105);
+        assert(!memcmp(find_command(0x32,1)->data,ssd1677_reference_lut,105));
+        assert(fixture.timing.activations==1);
+    }
+#endif
     if (submitted == 3) prepared_end_us = fixture.timing.end_us;
     if (submitted == 4) measured_end_us = fixture.timing.end_us;
 #if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL

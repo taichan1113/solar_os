@@ -122,7 +122,10 @@ static void test_periodic_resync(void)
     }
     free(m);
 }
-int main(void)
+#ifndef BLACK_REPEAT3_DRIVER_MAIN
+#define BLACK_REPEAT3_DRIVER_MAIN main
+#endif
+int BLACK_REPEAT3_DRIVER_MAIN(void)
 {
     for(unsigned r=0;r<2;++r) for(unsigned s=0;s<2;++s) test_three(r,s);
     for(unsigned c=0;c<2;++c) {

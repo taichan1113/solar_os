@@ -66,6 +66,19 @@ static bool black_single_wait_until(solar_os_shell_io_t *io, const char *stage,
     return true;
 }
 
+#if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
+static unsigned black_single_attempts(epd_ssd1677_black_hold_t candidate)
+{
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+    (void)candidate;
+    return epd_ssd1677_black_hold_attempts(EPD_SSD1677_BLACK_HOLD_A) +
+           epd_ssd1677_black_hold_attempts(EPD_SSD1677_BLACK_HOLD_D);
+#else
+    return epd_ssd1677_black_hold_attempts(candidate);
+#endif
+}
+#endif
+
 static esp_err_t black_single_present(solar_os_shell_io_t *io,
     solar_os_display_target_t *target, epd_ssd1677_t *d, const char *phase,
     const uint8_t *image, bool forced, epd_ssd1677_black_hold_t candidate, bool prearmed)
@@ -96,6 +109,22 @@ static esp_err_t black_single_present(solar_os_shell_io_t *io,
         delta[3] != 2 || delta[4] != 1 || d->timing.activations != 1 ||
         d->actual_spi_hz != 20000000 || !d->reference_awake)) err = ESP_ERR_INVALID_STATE;
     const epd_ssd1677_timing_t *t = &d->timing;
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+    /* Separate bounded records: the old preparation line exceeded 256 bytes. */
+    solar_os_shell_io_printf(io,
+        "BH phase=%s err=%d candidate=%u spi_hz=%d cmd03=%u cmd04=%u cmd2c=%u cmd32=%u cmd20=%u\n",
+        phase, err, candidate, d->actual_spi_hz, delta[0], delta[1], delta[2], delta[3], delta[4]);
+    solar_os_shell_io_printf(io,
+        "BH timing phase=%s start_us=%lld end_us=%lld total_us=%lld busy_us=%lld spi_us=%lld ram_bytes=%u\n",
+        phase, (long long)t->start_us, (long long)t->end_us, (long long)(t->end_us-t->start_us),
+        (long long)(t->ready_us[0]-t->activate_us[0]),
+        (long long)(t->spi_us[0]+t->spi_us[1]+t->spi_us[2]+t->spi_us[3]),
+        (unsigned)(t->ram_data_bytes[0]+t->ram_data_bytes[1]+t->ram_data_bytes[2]+t->ram_data_bytes[3]));
+    if (forced) solar_os_shell_io_printf(io,
+        "BH lut phase=%s requested_lut0=%s lut_send_ok=%u baseline_restore_ok=%u physical_readback=0\n",
+        phase, candidate == EPD_SSD1677_BLACK_HOLD_D ? "2FF0" : "0000",
+        d->black_hold_lut_ready_us > 0, err == ESP_OK);
+#else
     solar_os_shell_io_printf(io,
         "BH phase=%s err=%d candidate=%u spi_hz=%d cmd03=%u cmd04=%u cmd2c=%u "
         "cmd32=%u cmd20=%u start_us=%lld end_us=%lld total_us=%lld busy_us=%lld spi_us=%lld ram_bytes=%u\n",
@@ -104,6 +133,7 @@ static esp_err_t black_single_present(solar_os_shell_io_t *io,
         (long long)(t->ready_us[0]-t->activate_us[0]),
         (long long)(t->spi_us[0]+t->spi_us[1]+t->spi_us[2]+t->spi_us[3]),
         (unsigned)(t->ram_data_bytes[0]+t->ram_data_bytes[1]+t->ram_data_bytes[2]+t->ram_data_bytes[3]));
+#endif
     if (forced) solar_os_shell_io_printf(io,
         "BH trace phase=%s lut_ready_us=%lld activate_call_us=%lld busy_wait_end_us=%lld "
         "restore_start_us=%lld restore_end_us=%lld busy_edge_measured=0\n", phase,
@@ -118,6 +148,17 @@ static void display_cmd_black_hold_single(solar_os_shell_io_t *io, int argc, cha
     static bool started[2]; /* one diagnostic session per condition and boot */
     static bool failed; /* no next condition after a diagnostic failure */
     static const char owner[] = "shell:black-single";
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+    const char *usage = "usage (USB serial): display test display0 black-hold-d-prime-aa";
+    if (argc != 4 || strcmp(argv[2], "display0") || strcmp(argv[3], "black-hold-d-prime-aa") ||
+        solar_os_shell_io_kind(io) != SOLAR_OS_SHELL_IO_KIND_PORT) {
+        solar_os_shell_io_writeln(io, usage);
+        return;
+    }
+    const unsigned index = 0;
+    const epd_ssd1677_black_hold_t candidate = EPD_SSD1677_BLACK_HOLD_D;
+    const char *condition = "DAA";
+#else
 #if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
     const char *first = "A";
     const char *usage = "usage (USB serial): display test display0 black-hold-repeat3 A|D";
@@ -136,6 +177,8 @@ static void display_cmd_black_hold_single(solar_os_shell_io_t *io, int argc, cha
     const epd_ssd1677_black_hold_t candidate = index ? EPD_SSD1677_BLACK_HOLD_D : EPD_SSD1677_BLACK_HOLD_A;
 #else
     const epd_ssd1677_black_hold_t candidate = index ? EPD_SSD1677_BLACK_HOLD_D : EPD_SSD1677_BLACK_HOLD_B;
+#endif
+    const char *condition = argv[4];
 #endif
     if (started[index] || failed || epd_ssd1677_black_hold_blocked() || epd_ssd1677_black_hold_spent(candidate) ||
         !solar_os_sessions_foreground_is_shell()) {
@@ -204,8 +247,11 @@ static void display_cmd_black_hold_single(solar_os_shell_io_t *io, int argc, cha
 #if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
     if (!black_single_wait_until(io, "T0", prepared_us, 5000)) goto done;
     solar_os_shell_io_printf(io,
-        "BH progress condition=%c completed=0 boot_attempts=%u measured_cmd20=0\n",
-        argv[4][0], epd_ssd1677_black_hold_attempts(candidate));
+        "BH progress condition=%s completed=0 boot_attempts=%u measured_cmd20=0\n",
+        condition, black_single_attempts(candidate));
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+    int64_t previous_end_us = prepared_us;
+#endif
     for (unsigned step = 1; step <= 3; ++step) {
         char gate[24], mark[16], phase[24];
         snprintf(gate, sizeof(gate), "T%u-next", step-1);
@@ -213,22 +259,43 @@ static void display_cmd_black_hold_single(solar_os_shell_io_t *io, int argc, cha
         const int64_t requested_us = esp_timer_get_time();
         /* Reserve before the cancellable wait. No register is written by arm;
          * cancelling now still consumes one boot-global attempt. */
-        err = epd_ssd1677_black_hold_arm(d, candidate);
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+        const epd_ssd1677_black_hold_t step_candidate = step == 1 ? EPD_SSD1677_BLACK_HOLD_D : EPD_SSD1677_BLACK_HOLD_A;
+#else
+        const epd_ssd1677_black_hold_t step_candidate = candidate;
+#endif
+        err = epd_ssd1677_black_hold_arm(d, step_candidate);
         if (err != ESP_OK) { healthy = false; goto done; }
         solar_os_shell_io_printf(io,
-            "BH request condition=%c step=%u requested_us=%lld boot_attempts=%u\n",
-            argv[4][0], step, (long long)requested_us, epd_ssd1677_black_hold_attempts(candidate));
+            "BH request condition=%s step=%u requested_us=%lld boot_attempts=%u\n",
+            condition, step, (long long)requested_us, black_single_attempts(candidate));
         snprintf(mark, sizeof(mark), "measure%u", step);
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+        const int64_t goal_us = previous_end_us + 60000000;
+        const int64_t approved_us = requested_us + 5000000;
+        const int64_t planned_us = goal_us > approved_us ? goal_us : approved_us;
+        solar_os_shell_io_printf(io,
+            "BH schedule condition=DAA step=%u previous_end_us=%lld goal_us=%lld requested_us=%lld planned_us=%lld\n",
+            step, (long long)previous_end_us, (long long)goal_us, (long long)requested_us, (long long)planned_us);
+        if (!black_single_wait_until(io, mark, planned_us, 0)) goto done;
+#else
         if (!black_single_wait_until(io, mark, requested_us, 5000)) goto done;
-        snprintf(phase, sizeof(phase), "%c-repeat-%u", argv[4][0], step);
-        err = black_single_present(io, &target, d, phase, image, true, candidate, true);
+#endif
+        snprintf(phase, sizeof(phase), "%s-repeat-%u", condition, step);
+        err = black_single_present(io, &target, d, phase, image, true, step_candidate, true);
         if (err != ESP_OK) { healthy = false; goto done; }
         completed = step;
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+        solar_os_shell_io_printf(io,
+            "BH interval condition=DAA step=%u end_to_start_us=%lld lateness_us=%lld\n",
+            step, (long long)(d->timing.start_us-previous_end_us), (long long)(d->timing.start_us-goal_us));
+        previous_end_us = d->timing.end_us;
+#endif
         snprintf(mark, sizeof(mark), "T%u", step);
         if (!black_single_wait_until(io, mark, d->timing.end_us, 2000)) goto done;
         solar_os_shell_io_printf(io,
-            "BH progress condition=%c completed=%u boot_attempts=%u measured_cmd20=%u\n",
-            argv[4][0], completed, epd_ssd1677_black_hold_attempts(candidate), completed);
+            "BH progress condition=%s completed=%u boot_attempts=%u measured_cmd20=%u\n",
+            condition, completed, black_single_attempts(candidate), completed);
     }
     (void)black_single_gate(io, "T3-cleanup");
 #else
@@ -262,11 +329,11 @@ done:
     if (healthy && err == ESP_OK && !d->faulted) solar_os_sessions_mark_foreground_dirty();
 #if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
     solar_os_shell_io_printf(io,
-        "BH end condition=%c err=%d healthy=%u completed=%u boot_attempts=%u diagnostic_cmd20=%u\n",
-        argv[4][0], err, healthy, completed, epd_ssd1677_black_hold_attempts(candidate),
+        "BH end condition=%s err=%d healthy=%u completed=%u boot_attempts=%u diagnostic_cmd20=%u\n",
+        condition, err, healthy, completed, black_single_attempts(candidate),
         (unsigned)(d->black_hold_commands[4] - diagnostic_cmd20_start));
 #else
-    solar_os_shell_io_printf(io, "BH end condition=%c err=%d healthy=%u candidate_spent=%u\n",
-                            argv[4][0], err, healthy, epd_ssd1677_black_hold_spent(candidate));
+    solar_os_shell_io_printf(io, "BH end condition=%s err=%d healthy=%u candidate_spent=%u\n",
+                            condition, err, healthy, epd_ssd1677_black_hold_spent(candidate));
 #endif
 }

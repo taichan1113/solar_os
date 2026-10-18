@@ -1037,12 +1037,20 @@ bool epd_ssd1677_black_hold_spent(epd_ssd1677_black_hold_t candidate)
 {
     if (candidate == EPD_SSD1677_BLACK_HOLD_BASELINE) return false;
     const unsigned index = black_hold_index(candidate);
-#if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+    /* One fixed boot-global sequence, not independent A/D budgets. */
+    if (index >= 2U) return true;
+    return black_hold_candidate_spent[0] + black_hold_candidate_spent[1] >= 3U ||
+        (index == 1U ? black_hold_candidate_spent[1] != 0U || black_hold_candidate_spent[0] != 0U :
+                       black_hold_candidate_spent[1] != 1U || black_hold_candidate_spent[0] >= 2U);
+#elif SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
     const unsigned limit = 3U;
 #else
     const unsigned limit = 1U;
 #endif
+#if !SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
     return index >= 2U || black_hold_candidate_spent[index] >= limit;
+#endif
 }
 #if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
 unsigned epd_ssd1677_black_hold_attempts(epd_ssd1677_black_hold_t candidate)
@@ -1053,6 +1061,10 @@ unsigned epd_ssd1677_black_hold_attempts(epd_ssd1677_black_hold_t candidate)
 #endif
 void epd_ssd1677_black_hold_cancel(epd_ssd1677_t *d)
 {
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+    /* A cancelled reserved step terminates this sequence; never skip D. */
+    if (d && d->black_hold_pending) black_hold_failed = true;
+#endif
     if (d) d->black_hold_pending = 0;
 }
 esp_err_t epd_ssd1677_black_hold_arm(epd_ssd1677_t *d, epd_ssd1677_black_hold_t candidate)
@@ -1068,6 +1080,11 @@ esp_err_t epd_ssd1677_black_hold_arm(epd_ssd1677_t *d, epd_ssd1677_black_hold_t 
         d->black_hold_pending || d->black_hold_active ||
         (candidate && (!d->reference_awake || !d->controller_ready || epd_ssd1677_black_hold_spent(candidate))))
         return ESP_ERR_INVALID_STATE;
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+    if (candidate == EPD_SSD1677_BLACK_HOLD_BASELINE &&
+        (black_hold_candidate_spent[0] || black_hold_candidate_spent[1]))
+        return ESP_ERR_INVALID_STATE; /* no new preparation between D and A */
+#endif
     if (candidate) ++black_hold_candidate_spent[index]; /* cancel/failure never refunds */
     d->black_hold_lut_ready_us = d->black_hold_restore_start_us = d->black_hold_restore_end_us = 0;
     d->black_hold_pending = (uint8_t)candidate + 1U;

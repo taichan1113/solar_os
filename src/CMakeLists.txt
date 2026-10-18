@@ -533,6 +533,9 @@ endif()
 if("$ENV{SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL}" STREQUAL "1")
     target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL=1)
 endif()
+if("$ENV{SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL}" STREQUAL "1")
+    target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL=1)
+endif()
 # Host-qualified RAM-window experiment; normal PaperMono builds keep it off.
 if(SOLAR_OS_BOARD_ID STREQUAL "m5paper_mono" AND
         "$ENV{SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL}" STREQUAL "1")

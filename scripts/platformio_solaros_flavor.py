@@ -102,6 +102,11 @@ if black_hold_single_trial not in ("0", "1"):
 black_hold_repeat3_trial = os.environ.get("SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL", "0")
 if black_hold_repeat3_trial not in ("0", "1"):
     raise SystemExit("SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL must be 0 or 1")
+black_hold_prime_aa_trial = os.environ.get("SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL", "0")
+if black_hold_prime_aa_trial not in ("0", "1"):
+    raise SystemExit("SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL must be 0 or 1")
+if black_hold_prime_aa_trial == "1" and black_hold_repeat3_trial != "1":
+    raise SystemExit("D-prime-AA requires BLACK_HOLD_REPEAT3_TRIAL=1")
 if black_hold_repeat3_trial == "1" and black_hold_single_trial != "1":
     raise SystemExit("Repeat3 requires BLACK_HOLD_SINGLE_TRIAL=1")
 if black_hold_single_trial == "1" and waveform_trial == "1":
@@ -212,6 +217,7 @@ stamp = (
     f"ssd1677_waveform_trial={waveform_trial}\n"
     f"ssd1677_black_hold_single_trial={black_hold_single_trial}\n"
     f"ssd1677_black_hold_repeat3_trial={black_hold_repeat3_trial}\n"
+    f"ssd1677_black_hold_prime_aa_trial={black_hold_prime_aa_trial}\n"
     f"ssd1677_hybrid_trial={hybrid_trial}\n"
     f"ssd1677_dirty_hold_trial={dirty_hold_trial}\n"
     f"ssd1677_spi20_trial={spi20_trial}\n"
