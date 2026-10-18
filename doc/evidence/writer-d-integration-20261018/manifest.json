@@ -1,0 +1,86 @@
+{
+  "result": "CONTINUOUS_WRITER_D_HOST_BUILD_PASS",
+  "source_branch": "feature/papermono-writer-candidate-d",
+  "base_integration_commit": "391925abff2d261d1d5856711aa0a1f101ac435a",
+  "implementation_commit": "fb417d06ce4718913ea0ae402600987cacf159dd",
+  "board": "m5paper_mono",
+  "flavor": "writerdeck",
+  "layout": "ota",
+  "esp_idf": "5.5.5",
+  "compiler": "GCC 14.2.0",
+  "effective_flags": {
+    "SOLAR_OS_SSD1677_WRITER_D": 1,
+    "SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL": 1,
+    "SOLAR_OS_SSD1677_SPI20_TRIAL": 1,
+    "SOLAR_OS_SSD1677_HYBRID_TRIAL": 1,
+    "SOLAR_OS_SSD1677_WAVEFORM_TRIAL": 0,
+    "SOLAR_OS_SKETCH_LATENCY_TRIAL": 0
+  },
+  "PaperMono_defaults_verified_without_opt_in": true,
+  "default_Writer_mode": "D",
+  "other_origins": "Baseline A",
+  "cumulative_D_limit": null,
+  "periodic_D_thinning": false,
+  "counters": "saturating uint64 diagnostic only",
+  "counter_saturation_does_not_stop_D": true,
+  "initial_cold_fastest_uses_D": true,
+  "initial_OTP_unchanged": true,
+  "baseline_restore_extra_cmd20": 0,
+  "no_op_and_queue_coalescing_preserved": true,
+  "application": "firmware-app-only.bin",
+  "application_bytes": 3459904,
+  "sha256": "6e3c6a02b701bf5b5b41a02c36e767ce7dbd4efdda338223c1f7f93f689551a1",
+  "ota_slot_bytes": 7340032,
+  "ota_remaining_bytes": 3880128,
+  "partitions": {
+    "nvs": {
+      "offset": 36864,
+      "size": 16384
+    },
+    "otadata": {
+      "offset": 53248,
+      "size": 8192
+    },
+    "phy_init": {
+      "offset": 61440,
+      "size": 4096
+    },
+    "ota_0": {
+      "offset": 65536,
+      "size": 7340032
+    },
+    "ota_1": {
+      "offset": 7405568,
+      "size": 7340032
+    },
+    "flash": {
+      "offset": 14745600,
+      "size": 2031616
+    }
+  },
+  "baseline_LUT_sha256": "e8a7abbb2110cb8d941e80cc2869bbe1d0814e1d4a38e5d0cc5173b10f39ce50",
+  "D_LUT_sha256": "9be4bea8b9a07fef33834293d25979a9b0f3fc820d3e9912a1fc106532ef1832",
+  "LUT_bytes_2_through_109_unchanged": true,
+  "Host_major_executables": 19,
+  "Sketch_Python_tests": 9,
+  "Host_extra_executables": 14,
+  "Host_default_and_updates_1_6_7_20_21_D": true,
+  "Host_async_through_D_23": true,
+  "Host_Baseline_switch_and_restore_fault_PASS": true,
+  "Host_RAM_Shadow_R0_R2_retain_swap_PASS": true,
+  "build_seconds": 254.59399999998277,
+  "final_build_warning_count": 0,
+  "final_build_warnings": [],
+  "final_build_error_count": 0,
+  "COM_enumerated": false,
+  "device_accessed": false,
+  "flash_performed": false,
+  "physical_continuous_Writer_D_verified": false,
+  "long_term_DC_lifetime_verified": false,
+  "known_practical_rollback_commit": "391925abff2d261d1d5856711aa0a1f101ac435a",
+  "known_practical_rollback_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6",
+  "integration_reflected": true,
+  "integration_branch": "integration/papermono-dirty-sketch",
+  "integration_source_commit": "fb417d06ce4718913ea0ae402600987cacf159dd",
+  "integration_worktree": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\dirty-sketch-integration\\worktree"
+}
