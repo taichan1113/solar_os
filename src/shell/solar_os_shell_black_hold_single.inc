@@ -1,3 +1,13 @@
+#if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+#if SOLAR_OS_SSD1677_BLACK_HOLD_DAD_TRIAL
+#define BLACK_HOLD_FIXED_COMMAND "black-hold-dad"
+#define BLACK_HOLD_FIXED_CONDITION "DAD"
+#else
+#define BLACK_HOLD_FIXED_COMMAND "black-hold-d-prime-aa"
+#define BLACK_HOLD_FIXED_CONDITION "DAA"
+#endif
+#endif
+
 /* Bounded operator-gated diagnostic, reusing the fixed-black image and
  * existing display claim / immutable executor submission / OTP cleanup. */
 #include "epd_ssd1677.h"
@@ -149,15 +159,15 @@ static void display_cmd_black_hold_single(solar_os_shell_io_t *io, int argc, cha
     static bool failed; /* no next condition after a diagnostic failure */
     static const char owner[] = "shell:black-single";
 #if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
-    const char *usage = "usage (USB serial): display test display0 black-hold-d-prime-aa";
-    if (argc != 4 || strcmp(argv[2], "display0") || strcmp(argv[3], "black-hold-d-prime-aa") ||
+    const char *usage = "usage (USB serial): display test display0 " BLACK_HOLD_FIXED_COMMAND;
+    if (argc != 4 || strcmp(argv[2], "display0") || strcmp(argv[3], BLACK_HOLD_FIXED_COMMAND) ||
         solar_os_shell_io_kind(io) != SOLAR_OS_SHELL_IO_KIND_PORT) {
         solar_os_shell_io_writeln(io, usage);
         return;
     }
     const unsigned index = 0;
     const epd_ssd1677_black_hold_t candidate = EPD_SSD1677_BLACK_HOLD_D;
-    const char *condition = "DAA";
+    const char *condition = BLACK_HOLD_FIXED_CONDITION;
 #else
 #if SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
     const char *first = "A";
@@ -260,7 +270,7 @@ static void display_cmd_black_hold_single(solar_os_shell_io_t *io, int argc, cha
         /* Reserve before the cancellable wait. No register is written by arm;
          * cancelling now still consumes one boot-global attempt. */
 #if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
-        const epd_ssd1677_black_hold_t step_candidate = step == 1 ? EPD_SSD1677_BLACK_HOLD_D : EPD_SSD1677_BLACK_HOLD_A;
+        const epd_ssd1677_black_hold_t step_candidate = (step == 1 || (SOLAR_OS_SSD1677_BLACK_HOLD_DAD_TRIAL && step == 3)) ? EPD_SSD1677_BLACK_HOLD_D : EPD_SSD1677_BLACK_HOLD_A;
 #else
         const epd_ssd1677_black_hold_t step_candidate = candidate;
 #endif
@@ -275,7 +285,7 @@ static void display_cmd_black_hold_single(solar_os_shell_io_t *io, int argc, cha
         const int64_t approved_us = requested_us + 5000000;
         const int64_t planned_us = goal_us > approved_us ? goal_us : approved_us;
         solar_os_shell_io_printf(io,
-            "BH schedule condition=DAA step=%u previous_end_us=%lld goal_us=%lld requested_us=%lld planned_us=%lld\n",
+            "BH schedule condition=" BLACK_HOLD_FIXED_CONDITION " step=%u previous_end_us=%lld goal_us=%lld requested_us=%lld planned_us=%lld\n",
             step, (long long)previous_end_us, (long long)goal_us, (long long)requested_us, (long long)planned_us);
         if (!black_single_wait_until(io, mark, planned_us, 0)) goto done;
 #else
@@ -287,7 +297,7 @@ static void display_cmd_black_hold_single(solar_os_shell_io_t *io, int argc, cha
         completed = step;
 #if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
         solar_os_shell_io_printf(io,
-            "BH interval condition=DAA step=%u end_to_start_us=%lld lateness_us=%lld\n",
+            "BH interval condition=" BLACK_HOLD_FIXED_CONDITION " step=%u end_to_start_us=%lld lateness_us=%lld\n",
             step, (long long)(d->timing.start_us-previous_end_us), (long long)(d->timing.start_us-goal_us));
         previous_end_us = d->timing.end_us;
 #endif

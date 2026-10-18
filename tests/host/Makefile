@@ -1249,3 +1249,14 @@ black_prime_aa_shell_test: Makefile black_prime_aa_shell_test.c black_single_she
 		-Iepd_stubs -I. -I$(ROOT)/src/drivers -I$(ROOT)/src/services -I$(ROOT)/components/u8g2/src/clib \
 		black_prime_aa_shell_test.c $(EPD_U8G2_TEST_SOURCES) $(ROOT)/components/u8g2/src/clib/u8g2_box.c $(ROOT)/components/u8g2/src/clib/u8x8_8x8.c \
 		$(ROOT)/fonts/build/u8g2/u8g2_font_solar_os_default_r_20_tf.c -Wl,--gc-sections -o $@
+
+epd_ssd1677_black_dad_test: Makefile epd_ssd1677_black_dad_test.c epd_ssd1677_black_repeat3_test.c epd_ssd1677_dirty_hold_test.c epd_ssd1677_test.c $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677.h $(ROOT)/src/drivers/epd_ssd1677_reference.inc $(ROOT)/src/drivers/epd_ssd1677_waveform_trial.inc $(EPD_U8G2_TEST_SOURCES)
+	$(CC) $(CFLAGS) -DSOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_DAD_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 -DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -DSOLAR_OS_SSD1677_HYBRID_TRIAL=1 -ffunction-sections -fdata-sections \
+		-Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib \
+		epd_ssd1677_black_dad_test.c $(EPD_U8G2_TEST_SOURCES) -Wl,--gc-sections -o $@
+
+black_dad_shell_test: Makefile black_dad_shell_test.c black_single_shell_test.c epd_ssd1677_test.c epd_ssd1677_dirty_hold_test.c $(ROOT)/src/shell/solar_os_shell_black_hold_single.inc $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677_reference.inc $(ROOT)/src/drivers/epd_ssd1677_waveform_trial.inc $(EPD_U8G2_TEST_SOURCES)
+	$(CC) $(CFLAGS) -DSOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_DAD_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 -DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -DSOLAR_OS_SSD1677_HYBRID_TRIAL=1 -ffunction-sections -fdata-sections \
+		-Iepd_stubs -I. -I$(ROOT)/src/drivers -I$(ROOT)/src/services -I$(ROOT)/components/u8g2/src/clib \
+		black_dad_shell_test.c $(EPD_U8G2_TEST_SOURCES) $(ROOT)/components/u8g2/src/clib/u8g2_box.c $(ROOT)/components/u8g2/src/clib/u8x8_8x8.c \
+		$(ROOT)/fonts/build/u8g2/u8g2_font_solar_os_default_r_20_tf.c -Wl,--gc-sections -o $@

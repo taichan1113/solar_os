@@ -129,7 +129,7 @@ static esp_err_t solar_os_display_submit(u8g2_t *g, int mode, uint64_t *id)
     last_error=epd_ssd1677_present_snapshot(&fixture,immutable,sizeof(immutable));
 #if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
     if(last_error==ESP_OK && forced && submitted>=4 && submitted<=6) {
-        expect_data(0x32,submitted==4?ssd1677_trial_black_hold_d_lut:ssd1677_reference_lut,105);
+        expect_data(0x32,(submitted==4 || (SOLAR_OS_SSD1677_BLACK_HOLD_DAD_TRIAL && submitted==6))?ssd1677_trial_black_hold_d_lut:ssd1677_reference_lut,105);
         assert(!memcmp(find_command(0x32,1)->data,ssd1677_reference_lut,105));
         assert(fixture.timing.activations==1);
     }

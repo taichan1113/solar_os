@@ -21,6 +21,13 @@
 #ifndef SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
 #define SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL 0
 #endif
+/* D/A/D reuses the fixed-sequence, gated Prime-AA diagnostic backend. */
+#ifndef SOLAR_OS_SSD1677_BLACK_HOLD_DAD_TRIAL
+#define SOLAR_OS_SSD1677_BLACK_HOLD_DAD_TRIAL 0
+#endif
+#if SOLAR_OS_SSD1677_BLACK_HOLD_DAD_TRIAL && !SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
+#error DAD requires the existing fixed-sequence Prime-AA backend
+#endif
 #if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL && !SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
 #error D-prime-AA requires the existing Repeat3 backend
 #endif

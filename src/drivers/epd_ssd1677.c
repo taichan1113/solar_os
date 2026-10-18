@@ -1040,9 +1040,16 @@ bool epd_ssd1677_black_hold_spent(epd_ssd1677_black_hold_t candidate)
 #if SOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL
     /* One fixed boot-global sequence, not independent A/D budgets. */
     if (index >= 2U) return true;
+#if SOLAR_OS_SSD1677_BLACK_HOLD_DAD_TRIAL
+    const unsigned a = black_hold_candidate_spent[0], d = black_hold_candidate_spent[1];
+    /* Only (A=0,D=0)->D, (0,1)->A, (1,1)->D. No budget refund. */
+    return a + d >= 3U || (index == 1U ? !((a == 0U && d == 0U) || (a == 1U && d == 1U)) :
+                                                   !(a == 0U && d == 1U));
+#else
     return black_hold_candidate_spent[0] + black_hold_candidate_spent[1] >= 3U ||
         (index == 1U ? black_hold_candidate_spent[1] != 0U || black_hold_candidate_spent[0] != 0U :
                        black_hold_candidate_spent[1] != 1U || black_hold_candidate_spent[0] >= 2U);
+#endif
 #elif SOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL
     const unsigned limit = 3U;
 #else
