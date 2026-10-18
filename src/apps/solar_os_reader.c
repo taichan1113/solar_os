@@ -847,7 +847,8 @@ static void reader_draw_header(solar_os_gfx_t *gfx)
     } else {
         snprintf(title, sizeof(title), "reader z%d %s", reader.zoom, reader.display_name);
     }
-    reader_draw_text_clipped(gfx, 3, solar_os_ui_px(11), screen_w - 6, title, 0);
+    solar_os_gfx_text(gfx,4,solar_os_ui_px(11),"Files");
+    reader_draw_text_clipped(gfx, 78, solar_os_ui_px(11), screen_w - 81, title, 0);
 }
 
 static void reader_draw_scrollbar(solar_os_gfx_t *gfx, const solar_os_doc_view_t *view)
@@ -1258,11 +1259,6 @@ static void reader_render(solar_os_context_t *ctx)
     }
 
     reader_draw_header(gfx);
-    solar_os_gfx_set_color(gfx,SOLAR_OS_GFX_COLOR_WHITE);
-    solar_os_gfx_fill_rect(gfx,0,0,70,READER_HEADER_H);
-    solar_os_gfx_set_color(gfx,SOLAR_OS_GFX_COLOR_BLACK);
-    solar_os_gfx_set_font(gfx,SOLAR_OS_GFX_FONT_SMALL);
-    solar_os_gfx_text(gfx,4,READER_HEADER_H-4,"Files");
     solar_os_gfx_present(gfx);
 }
 
