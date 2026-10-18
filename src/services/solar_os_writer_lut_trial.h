@@ -10,7 +10,7 @@
 /* Explicit origin, copied WITH each immutable snapshot. No foreground lookup.
  * Times begin at Writer event acceptance, not BLE reception; no key text. */
 typedef struct {
-    bool writer;
+    bool is_writer;
     uint32_t inputs, coalesced;
     uint64_t generation;
     int64_t input_first_us, input_last_us, render_start_us, rendered_us;

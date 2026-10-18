@@ -50,7 +50,7 @@
 #endif
 #define WRITER_MESSAGE_MAX 96
 #define WRITER_DIALOG_INPUT_MAX SOLAR_OS_STORAGE_PATH_MAX
-#define WRITER_STATE_DIR ".writer"
+#define WRITER_STATE_DIR ".is_writer"
 #define WRITER_META_SUFFIX ".meta"
 #define WRITER_RECOVERY_SUFFIX ".recovery"
 
@@ -1478,7 +1478,7 @@ static void writer_render(solar_os_context_t *ctx)
 #endif
 #if SOLAR_OS_SSD1677_WRITER_D_TRIAL
     {
-        writer.trial_origin.writer = true;
+        writer.trial_origin.is_writer = true;
         writer.trial_origin.rendered_us = esp_timer_get_time();
         submit_error = solar_os_gfx_submit_writer(gfx, &generation, &writer.trial_origin);
         if (submit_error == ESP_OK) writer.trial_origin = (solar_os_writer_frame_t){0};

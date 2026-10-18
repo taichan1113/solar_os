@@ -6,7 +6,7 @@ static atomic_bool writer_d_failed;
 static void writer_d_activation(epd_ssd1677_t *d)
 {
     epd_ssd1677_writer_trial_t *t = &d->writer_trial;
-    if (t->origin.writer) {
+    if (t->origin.is_writer) {
         t->current.physical++;
         t->status.writer_physical++;
         if (t->used_d) t->status.d_physical++;
@@ -20,7 +20,7 @@ static bool writer_d_reserve(epd_ssd1677_t *d, bool cold)
     epd_ssd1677_writer_trial_t *t = &d->writer_trial;
     t->used_d = t->restored = t->cap_transition = false;
     t->reference = true;
-    if (!t->origin.writer || !t->enabled || cold || atomic_load(&writer_d_failed)) return false;
+    if (!t->origin.is_writer || !t->enabled || cold || atomic_load(&writer_d_failed)) return false;
     /* D is restricted to the requested, unchanged normal rows-dual backend. */
     if (d->faulted || !d->powered || !d->controller_ready || !d->shadow_valid ||
         d->refresh_mode != EPD_SSD1677_REFRESH_FASTEST || !d->fastest_tiles ||
@@ -66,7 +66,7 @@ static void writer_d_finish(epd_ssd1677_t *d, esp_err_t err)
             d->shadow_valid = d->papermono_baseline_valid = d->controller_ready = d->reference_awake = false;
         }
     }
-    if (!t->origin.writer) return;
+    if (!t->origin.is_writer) return;
     epd_ssd1677_writer_record_t *r = &t->current;
     r->origin = t->origin;
     r->candidate_d = t->used_d;
