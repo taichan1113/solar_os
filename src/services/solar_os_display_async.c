@@ -16,6 +16,9 @@ struct solar_os_display_async {
     TaskHandle_t task;
     uint8_t *buffers[2];
     int pending_slot, active_slot;
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+    solar_os_writer_frame_t origins[2], executing_origin;
+#endif
     int completed_slot;
     uint32_t frame_ms, idle_ms, budget, updates;
     int64_t next_frame_us, last_submit_us;
@@ -35,6 +38,9 @@ static void discard_pending(solar_os_display_async_t *a)
 {
     if (a->pending_slot < 0) return;
     a->status.cancelled++;
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+    if (a->origins[a->pending_slot].writer) a->status.writer_cancelled++;
+#endif
     a->status.cancelled_id = a->pending_id;
     a->pending_slot = -1;
     a->status.pending = false;
@@ -80,6 +86,9 @@ static void worker(void *arg)
         const uint64_t id = maintenance ? a->status.completed_id : a->pending_id;
         if (!maintenance) a->pending_slot = -1;
         const uint8_t *frame = a->buffers[a->active_slot];
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+        a->executing_origin = maintenance ? (solar_os_writer_frame_t){0} : a->origins[a->active_slot];
+#endif
         if (!maintenance) a->status.pending = false;
         a->status.busy = true;
         if (maintenance) a->status.maintenance_started++; else a->status.started++;
@@ -155,8 +164,12 @@ fail:
     return ESP_ERR_NO_MEM;
 }
 
-esp_err_t solar_os_display_async_submit(solar_os_display_async_t *a, const uint8_t *src,
-                                       size_t size, uint64_t *id)
+static esp_err_t submit_snapshot(solar_os_display_async_t *a, const uint8_t *src,
+                                       size_t size, uint64_t *id
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+                                       , const solar_os_writer_frame_t *origin
+#endif
+                                       )
 {
     if (!a || !src || size != a->size) return ESP_ERR_INVALID_ARG;
     const bool perf = solar_os_perf_enabled();
@@ -170,10 +183,32 @@ esp_err_t solar_os_display_async_submit(solar_os_display_async_t *a, const uint8
     }
     const uint64_t replaced = a->pending_slot >= 0 ? a->pending_id : 0;
     const int slot = a->pending_slot >= 0 ? a->pending_slot : (a->active_slot == 0 ? 1 : 0);
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+    solar_os_writer_frame_t next = origin ? *origin : (solar_os_writer_frame_t){0};
+    const int64_t queued = esp_timer_get_time();
+    next.queued_us = next.queued_first_us = queued;
+    if (next.writer) a->status.writer_submitted++;
+    if (replaced && a->origins[slot].writer) {
+        if (next.writer) {
+            const solar_os_writer_frame_t *old = &a->origins[slot];
+            if (old->input_first_us && (!next.input_first_us || old->input_first_us < next.input_first_us))
+                next.input_first_us = old->input_first_us;
+            if (old->input_last_us > next.input_last_us) next.input_last_us = old->input_last_us;
+            next.inputs += old->inputs;
+            next.coalesced += old->coalesced + 1;
+            next.queued_first_us = old->queued_first_us;
+            a->status.writer_coalesced++;
+        } else a->status.writer_superseded++;
+    }
+    a->origins[slot] = next;
+#endif
     memcpy(a->buffers[slot], src, size);
     a->pending_slot = slot;
     a->pending_id = ++a->status.submitted_id;
     const uint64_t generation = a->pending_id;
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+    a->origins[slot].generation = generation;
+#endif
     a->status.submitted++;
     if (replaced) a->status.replaced++;
     a->status.pending = true;
@@ -191,6 +226,28 @@ esp_err_t solar_os_display_async_submit(solar_os_display_async_t *a, const uint8
     xTaskNotifyGive(a->task);
     return ESP_OK;
 }
+
+esp_err_t solar_os_display_async_submit(solar_os_display_async_t *a, const uint8_t *src,
+    size_t size, uint64_t *id)
+{
+    return submit_snapshot(a, src, size, id
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+        , NULL
+#endif
+    );
+}
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+esp_err_t solar_os_display_async_submit_writer(solar_os_display_async_t *a, const uint8_t *src,
+    size_t size, uint64_t *id, const solar_os_writer_frame_t *origin)
+{
+    if (!origin || !origin->writer) return ESP_ERR_INVALID_ARG;
+    return submit_snapshot(a, src, size, id, origin);
+}
+void solar_os_display_async_execution_origin(solar_os_display_async_t *a, solar_os_writer_frame_t *origin)
+{
+    lock(a); *origin = a->executing_origin; unlock(a);
+}
+#endif
 
 void solar_os_display_async_status(solar_os_display_async_t *a, solar_os_display_submission_status_t *s)
 {

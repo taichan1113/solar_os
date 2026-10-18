@@ -187,6 +187,9 @@ bool solar_os_gfx_supports_frame_format(const solar_os_gfx_t *gfx,
 bool solar_os_gfx_needs_present(const solar_os_gfx_t *gfx);
 void solar_os_gfx_present(solar_os_gfx_t *gfx);
 /* Opt-in submission; generation 0 means the synchronous fallback was used. */
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+esp_err_t solar_os_gfx_submit_writer(solar_os_gfx_t *, uint64_t *, const solar_os_writer_frame_t *);
+#endif
 esp_err_t solar_os_gfx_submit(solar_os_gfx_t *gfx, uint64_t *generation);
 esp_err_t solar_os_gfx_submission_status(solar_os_gfx_t *, solar_os_display_submission_status_t *);
 

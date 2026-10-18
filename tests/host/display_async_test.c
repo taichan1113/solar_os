@@ -340,7 +340,10 @@ static void test_discard_during_pace_window(void)
     solar_os_display_async_destroy(a);reap();free_panel(&p);
 }
 
-int main(void)
+#ifndef DISPLAY_ASYNC_TEST_MAIN
+#define DISPLAY_ASYNC_TEST_MAIN main
+#endif
+int DISPLAY_ASYNC_TEST_MAIN(void)
 {
     for(int n=0;n<3;n++) {
         allocation_count=0; fail_allocation=n;

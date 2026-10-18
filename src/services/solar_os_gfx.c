@@ -1696,6 +1696,18 @@ esp_err_t solar_os_gfx_submit(solar_os_gfx_t *gfx, uint64_t *generation)
     return err;
 }
 
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+esp_err_t solar_os_gfx_submit_writer(solar_os_gfx_t *gfx, uint64_t *generation,
+    const solar_os_writer_frame_t *origin)
+{
+    if (!gfx_ready(gfx)) return ESP_ERR_INVALID_ARG;
+    if (gfx_uses_index8(gfx)) return solar_os_gfx_submit(gfx, generation);
+    const esp_err_t err = solar_os_display_submit_writer(gfx->u8g2, generation, origin);
+    if (err == ESP_OK) gfx->dirty = false;
+    return err;
+}
+#endif
+
 esp_err_t solar_os_gfx_submission_status(solar_os_gfx_t *gfx, solar_os_display_submission_status_t *status)
 {
     return gfx_ready(gfx) ? solar_os_display_submission_status(gfx->u8g2, status) : ESP_ERR_INVALID_ARG;

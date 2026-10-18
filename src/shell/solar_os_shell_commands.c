@@ -644,9 +644,17 @@ static void display_draw_test_pattern(u8g2_t *u8g2, const char *name)
 #include "solar_os_writer.h"
 #endif
 
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#include "epd_ssd1677.h"
+#include "solar_os_shell_writer_lut.inc"
+#endif
+
 static void display_cmd_test(solar_os_shell_io_t *term, int argc, char **argv)
 {
     static const char owner[] = "shell:display-test";
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+    if (argc >= 4 && !strcmp(argv[3], "writer-lut")) { display_cmd_writer_lut(term, argc, argv); return; }
+#endif
 
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     if (argc >= 4 && strcmp(argv[3], "writer-quality") == 0) {
