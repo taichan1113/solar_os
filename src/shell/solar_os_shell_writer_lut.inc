@@ -1,4 +1,4 @@
-/* USB-only read/control: never paints the panel or changes startup/NVS. */
+/* USB-only read/control: Writer scope, no panel update, no startup/NVS write. */
 static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **argv)
 {
     if (argc != 5 || strcmp(argv[2], "display0") ||
@@ -22,14 +22,15 @@ static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **arg
     epd_ssd1677_writer_status_t s;
     const esp_err_t err = epd_ssd1677_writer_lut(d, argv[4], &s, records);
     solar_os_shell_io_printf(io,
-        "writer-lut err=%d mode=%s attempt=%u/6 D0x20=%u success=%u error=%u failed=%u cap=%u\n",
-        (int)err, s.enabled ? "D" : "A", (unsigned)s.attempts, (unsigned)s.d_physical,
-        (unsigned)s.d_success, (unsigned)s.d_errors, s.failed, s.cap_reached);
+        "writer-lut err=%d mode=%s scope=writer attempts=%llu D0x20=%llu success=%llu error=%llu driver_error=%llu failed=%u\n",
+        (int)err, s.enabled ? "D" : "A", (unsigned long long)s.attempts, (unsigned long long)s.d_physical,
+        (unsigned long long)s.d_success, (unsigned long long)s.d_errors,
+        (unsigned long long)s.driver_errors, s.failed);
     solar_os_shell_io_printf(io,
-        "writer physical=%u A=%u D=%u OTP=%u noop=%u other0x20=%u power0x20=%u records=%u\n",
-        (unsigned)s.writer_physical, (unsigned)s.writer_a, (unsigned)s.d_physical,
-        (unsigned)s.writer_otp, (unsigned)s.writer_noop, (unsigned)s.other_physical,
-        (unsigned)s.power_controls, (unsigned)s.records);
+        "writer physical=%llu A=%llu D=%llu OTP=%llu noop=%llu other0x20=%llu power0x20=%llu records=%llu\n",
+        (unsigned long long)s.writer_physical, (unsigned long long)s.writer_a, (unsigned long long)s.d_physical,
+        (unsigned long long)s.writer_otp, (unsigned long long)s.writer_noop, (unsigned long long)s.other_physical,
+        (unsigned long long)s.power_controls, (unsigned long long)s.records);
     solar_os_display_submission_status_t queue;
     if (solar_os_display_submission_status(target.u8g2, &queue) == ESP_OK)
         solar_os_shell_io_printf(io,
@@ -38,24 +39,24 @@ static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **arg
             (unsigned)queue.writer_coalesced, (unsigned)queue.writer_cancelled,
             (unsigned)queue.writer_superseded, (int)queue.error);
     if (records) {
-        const uint32_t first = s.records > SSD1677_WRITER_D_RECORDS ? s.records - SSD1677_WRITER_D_RECORDS : 0;
-        for (uint32_t i = first; i < s.records; i++) {
-            const epd_ssd1677_writer_record_t *r = &records[i % SSD1677_WRITER_D_RECORDS];
+        const unsigned first = (s.trace_next + SSD1677_WRITER_D_RECORDS - s.trace_count) % SSD1677_WRITER_D_RECORDS;
+        for (unsigned i = 0; i < s.trace_count; i++) {
+            const epd_ssd1677_writer_record_t *r = &records[(first + i) % SSD1677_WRITER_D_RECORDS];
             solar_os_shell_io_printf(io,
-                "WL seq=%u gen=%llu mode=%s 0x20=%u err=%d restored=%u cap_to_A=%u input=%u merged=%u ram=%u region=%u,%u,%u,%u\n",
-                (unsigned)r->seq, (unsigned long long)r->origin.generation,
+                "WL seq=%llu gen=%llu mode=%s 0x20=%u err=%d restored=%u input=%u merged=%u ram=%u region=%u,%u,%u,%u\n",
+                (unsigned long long)r->seq, (unsigned long long)r->origin.generation,
                 r->candidate_d ? "D" : r->reference ? "A" : "OTP/noop", (unsigned)r->physical,
-                (int)r->error, r->restored, r->cap_transition, (unsigned)r->origin.inputs,
+                (int)r->error, r->restored, (unsigned)r->origin.inputs,
                 (unsigned)r->origin.coalesced, (unsigned)r->ram_bytes, r->x, r->y, r->width, r->height);
             solar_os_shell_io_printf(io,
-                "WL time seq=%u input=%lld,%lld render=%lld,%lld queue=%lld,%lld execute=%lld,%lld\n",
-                (unsigned)r->seq, (long long)r->origin.input_first_us, (long long)r->origin.input_last_us,
+                "WL time seq=%llu input=%lld,%lld render=%lld,%lld queue=%lld,%lld execute=%lld,%lld\n",
+                (unsigned long long)r->seq, (long long)r->origin.input_first_us, (long long)r->origin.input_last_us,
                 (long long)r->origin.render_start_us, (long long)r->origin.rendered_us,
                 (long long)r->origin.queued_first_us, (long long)r->origin.queued_us,
                 (long long)r->start_us, (long long)r->end_us);
             solar_os_shell_io_printf(io,
-                "WL panel seq=%u ram=%lld,%lld activate=%lld ready=%lld spi_us=%lld lut_us=%lld restore_us=%lld\n",
-                (unsigned)r->seq, (long long)r->ram_start_us, (long long)r->ram_end_us,
+                "WL panel seq=%llu ram=%lld,%lld activate=%lld ready=%lld spi_us=%lld lut_us=%lld restore_us=%lld\n",
+                (unsigned long long)r->seq, (long long)r->ram_start_us, (long long)r->ram_end_us,
                 (long long)r->activation_us, (long long)r->ready_us, (long long)r->spi_us,
                 (long long)r->lut_us, (long long)r->restore_us);
         }

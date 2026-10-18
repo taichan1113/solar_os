@@ -1696,7 +1696,7 @@ esp_err_t solar_os_gfx_submit(solar_os_gfx_t *gfx, uint64_t *generation)
     return err;
 }
 
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
 esp_err_t solar_os_gfx_submit_writer(solar_os_gfx_t *gfx, uint64_t *generation,
     const solar_os_writer_frame_t *origin)
 {

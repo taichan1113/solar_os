@@ -523,20 +523,29 @@ if(SOLAR_OS_PACKAGE_SERVICE_BLE AND "$ENV{SOLAR_OS_BLE_SECURITY_TRACE}" STREQUAL
     target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_BLE_SECURITY_TRACE=1)
 endif()
 
-# Temporary opt-in waveform laboratory; normal builds retain the M5GFX LUT.
-if("$ENV{SOLAR_OS_SSD1677_WRITER_D_TRIAL}" STREQUAL "1")
+# PaperMono Integration defaults: standard Writer D, existing rows-dual and
+# SPI20 backends. Explicit 0 is respected (D also needs its dependencies).
+if(SOLAR_OS_BOARD_ID STREQUAL "m5paper_mono")
+    foreach(_papermono_default SOLAR_OS_SSD1677_WRITER_D SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL SOLAR_OS_SSD1677_SPI20_TRIAL)
+        if("$ENV{${_papermono_default}}" STREQUAL "")
+            set(ENV{${_papermono_default}} "1")
+        endif()
+    endforeach()
+endif()
+# Other waveform experiments remain explicitly opt-in.
+if("$ENV{SOLAR_OS_SSD1677_WRITER_D}" STREQUAL "1")
     if(NOT SOLAR_OS_BOARD_ID STREQUAL "m5paper_mono" OR
        NOT "$ENV{SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL}" STREQUAL "1" OR
        NOT "$ENV{SOLAR_OS_SSD1677_SPI20_TRIAL}" STREQUAL "1" OR
        "$ENV{SOLAR_OS_SSD1677_WAVEFORM_TRIAL}" STREQUAL "1")
         message(FATAL_ERROR "Writer D requires PaperMono, Dirty, SPI20 and no waveform diagnostic")
     endif()
-    target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_SSD1677_WRITER_D_TRIAL=1)
+    target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_SSD1677_WRITER_D=1)
 endif()
 if("$ENV{SOLAR_OS_SSD1677_WAVEFORM_TRIAL}" STREQUAL "1")
     target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_SSD1677_WAVEFORM_TRIAL=1)
 endif()
-# Host-qualified RAM-window experiment; normal PaperMono builds keep it off.
+# Existing rows-dual backend; enabled by default for PaperMono Integration.
 if(SOLAR_OS_BOARD_ID STREQUAL "m5paper_mono" AND
         "$ENV{SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL}" STREQUAL "1")
     target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1)

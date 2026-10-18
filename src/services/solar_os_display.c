@@ -1829,7 +1829,7 @@ esp_err_t solar_os_display_wait(u8g2_t *u8g2, uint32_t timeout_ms)
 }
 
 static esp_err_t display_submit_origin(u8g2_t *u8g2, solar_os_display_present_mode_t mode, uint64_t *id
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
     , const solar_os_writer_frame_t *origin
 #endif
     )
@@ -1866,7 +1866,7 @@ static esp_err_t display_submit_origin(u8g2_t *u8g2, solar_os_display_present_mo
     if (blocked) err = ESP_ERR_INVALID_STATE;
     else {
         const size_t size = (size_t)u8g2->pixel_buf_width * u8g2_GetBufferTileHeight(u8g2);
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
         if (origin && submission.submit_writer)
             err = submission.submit_writer(submission.context, u8g2_GetBufferPtr(u8g2), size, id, origin);
         else
@@ -1884,12 +1884,12 @@ static esp_err_t display_submit_origin(u8g2_t *u8g2, solar_os_display_present_mo
 esp_err_t solar_os_display_submit(u8g2_t *g, solar_os_display_present_mode_t mode, uint64_t *id)
 {
     return display_submit_origin(g, mode, id
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
         , NULL
 #endif
     );
 }
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
 esp_err_t solar_os_display_submit_writer(u8g2_t *g, uint64_t *id, const solar_os_writer_frame_t *origin)
 {
     if (!origin || !origin->is_writer) return ESP_ERR_INVALID_ARG;

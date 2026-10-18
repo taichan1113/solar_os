@@ -14,13 +14,13 @@ writer_d_driver_test writer_d_async_test writer_d_shell_test: \
     $(ROOT)/src/services/solar_os_display_async.h
 writer_d_shell_test: writer_d_shell_test.c $(ROOT)/src/shell/solar_os_shell_writer_lut.inc \
     $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677_writer_d.inc
-	$(CC) $(CFLAGS) -DSOLAR_OS_SSD1677_WRITER_D_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 \
+	$(CC) $(CFLAGS) -DSOLAR_OS_SSD1677_WRITER_D=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 \
 		-DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -ffunction-sections -fdata-sections \
 		-Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib $< -Wl,--gc-sections -o $@
 writer_d_driver_test: writer_d_driver_test.c epd_ssd1677_dirty_hold_test.c epd_ssd1677_test.c \
     $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677_reference.inc \
     $(ROOT)/src/drivers/epd_ssd1677_writer_d.inc $(ROOT)/src/drivers/epd_ssd1677_writer_d.h
-	$(CC) $(CFLAGS) -Wno-unused-parameter -DSOLAR_OS_SSD1677_WRITER_D_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 \
+	$(CC) $(CFLAGS) -Wno-unused-parameter -DSOLAR_OS_SSD1677_WRITER_D=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 \
 		-DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -ffunction-sections -fdata-sections \
 		-Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib $< $(EPD_U8G2_TEST_SOURCES) -Wl,--gc-sections -o $@
 
@@ -28,9 +28,9 @@ writer_d_async_test: writer_d_async_test.c writer_d_panel_fixture.c display_asyn
     epd_ssd1677_test.c epd_ssd1677_dirty_hold_test.c $(ROOT)/src/services/solar_os_display_async.c \
     $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677_writer_d.inc
 	mkdir -p generated
-	$(CC) $(CFLAGS) -pthread -DSOLAR_OS_SSD1677_WRITER_D_TRIAL=1 \
+	$(CC) $(CFLAGS) -pthread -DSOLAR_OS_SSD1677_WRITER_D=1 \
 		-Iasync_stubs -I. -I$(ROOT)/src/services -c writer_d_async_test.c -o generated/writer-d-async.o
-	$(CC) $(CFLAGS) -DSOLAR_OS_SSD1677_WRITER_D_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 \
+	$(CC) $(CFLAGS) -DSOLAR_OS_SSD1677_WRITER_D=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 \
 		-DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -ffunction-sections -fdata-sections \
 		-Iepd_stubs -I. -I$(ROOT)/components/u8g2/src/clib -c writer_d_panel_fixture.c -o generated/writer-d-panel.o
 	$(CC) -pthread -Wl,--gc-sections generated/writer-d-async.o generated/writer-d-panel.o -o $@

@@ -9,7 +9,7 @@ typedef esp_err_t (*solar_os_display_async_execute_t)(void *, const uint8_t *, s
 esp_err_t solar_os_display_async_create(size_t size, solar_os_display_async_execute_t execute,
                                       void *context, solar_os_display_async_t **out);
 esp_err_t solar_os_display_async_submit(solar_os_display_async_t *, const uint8_t *, size_t, uint64_t *);
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
 esp_err_t solar_os_display_async_submit_writer(solar_os_display_async_t *, const uint8_t *, size_t,
     uint64_t *, const solar_os_writer_frame_t *);
 /* Worker callback only; maintenance deliberately has no Writer provenance. */

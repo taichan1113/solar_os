@@ -40,14 +40,18 @@ int main(void)
     assert(epd_ssd1677_set_controller_mode(&device,"refresh=fastest")==ESP_OK);
     assert(epd_ssd1677_set_controller_mode(&device,"dirty-window=rows-dual")==ESP_OK);
     device.execution_context=&device; device.operation_begin=begin; device.operation_end=end;
-    command("status",2); assert(strstr(output,"mode=A attempt=0/6"));
-    command("candidate_d",2); assert(device.writer_trial.enabled && strstr(output,"mode=D"));
-    command("disable",2); assert(!device.writer_trial.enabled);
-    command("candidate_d",1); assert(!device.writer_trial.enabled && strstr(output,"USB:"));
+    command("status",2); assert(strstr(output,"mode=D scope=writer attempts=0"));
+    command("baseline",2); assert(device.writer_trial.baseline_selected && strstr(output,"mode=A"));
+    command("candidate_d",2); assert(!device.writer_trial.baseline_selected && strstr(output,"mode=D"));
+    command("disable",2); assert(!!device.writer_trial.baseline_selected);
+    command("candidate_d",1); assert(!!device.writer_trial.baseline_selected && strstr(output,"USB:"));
     command("unknown",2); assert(strstr(output,"err="));
     command("trace",2); assert(strstr(output,"queue submitted="));
-    atomic_store(&writer_d_attempts,6);
-    command("candidate_d",2); assert(!device.writer_trial.enabled && strstr(output,"cap=1"));
-    puts("writer_d_shell_test: USB gating, controls/status/trace, no physical updates, cap PASS");
+    device.writer_trial.status.attempts=1000;
+    command("candidate_d",2); assert(!device.writer_trial.baseline_selected && strstr(output,"attempts=1000"));
+    device.writer_trial.status.records=UINT64_MAX;
+    device.writer_trial.status.trace_count=0;
+    command("trace",2); assert(strstr(output,"records=18446744073709551615"));
+    puts("writer_d_shell_test: USB gating, controls/status/trace, no physical updates, default D and no cumulative cap PASS");
     return 0;
 }

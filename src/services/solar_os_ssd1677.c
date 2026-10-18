@@ -73,13 +73,13 @@ static esp_err_t execute_frame(void *context, const uint8_t *frame, size_t size,
 #if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
     const int64_t start = esp_timer_get_time();
 #endif
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
     solar_os_writer_frame_t origin;
     solar_os_display_async_execution_origin(device->executor, &origin);
     device->driver.writer_trial.origin = origin;
 #endif
     const esp_err_t err = epd_ssd1677_present_snapshot(&device->driver, frame, size);
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
     device->driver.writer_trial.origin = (solar_os_writer_frame_t){0};
 #endif
     *physical = err == ESP_OK && device->driver.timing.end_us != previous;
@@ -170,7 +170,7 @@ static esp_err_t submit_frame(void *context, const uint8_t *frame, size_t size, 
     return solar_os_display_async_submit(((solar_os_ssd1677_device_t *)context)->executor, frame, size, id);
 }
 
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
 static esp_err_t submit_writer_frame(void *context, const uint8_t *frame, size_t size,
     uint64_t *id, const solar_os_writer_frame_t *origin)
 {
@@ -561,7 +561,7 @@ esp_err_t solar_os_ssd1677_attach(const char *name,
             device->driver.operation_end = end_operation;
             device->display.submission = (solar_os_display_submission_t) {
                 .context = device, .submit = submit_frame, .wait = wait_frame, .status = frame_status,
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
                 .submit_writer = submit_writer_frame,
 #endif
             };

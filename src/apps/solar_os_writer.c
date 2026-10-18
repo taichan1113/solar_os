@@ -104,7 +104,7 @@ typedef struct {
     uint32_t last_edit_ms;
     uint32_t last_recovery_attempt_ms;
     uint32_t cursor_blink_ms;
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
     solar_os_writer_frame_t trial_origin;
 #endif
     uint32_t perf_frame;
@@ -1435,7 +1435,7 @@ static void writer_render(solar_os_context_t *ctx)
     const bool perf = solar_os_perf_enabled();
     const uint32_t frame = ++writer.perf_frame;
     const int64_t start = perf ? esp_timer_get_time() : 0;
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
     writer.trial_origin.render_start_us = esp_timer_get_time();
 #endif
     solar_os_gfx_clear(gfx, SOLAR_OS_GFX_COLOR_WHITE);
@@ -1476,7 +1476,7 @@ static void writer_render(solar_os_context_t *ctx)
         writer_quality_render_end(gfx, &generation, &submit_error);
     else
 #endif
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
     {
         writer.trial_origin.is_writer = true;
         writer.trial_origin.rendered_us = esp_timer_get_time();
@@ -1668,11 +1668,11 @@ static bool writer_event(solar_os_context_t *ctx, const solar_os_event_t *event)
 #endif
         const bool perf = solar_os_perf_enabled();
         const int64_t start = perf ? esp_timer_get_time() : 0;
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
         const int64_t accepted = esp_timer_get_time();
         if (!writer.trial_origin.input_first_us) writer.trial_origin.input_first_us = accepted;
         writer.trial_origin.input_last_us = accepted;
-        writer.trial_origin.inputs++;
+        writer.trial_origin.inputs = solar_os_writer_count_add(writer.trial_origin.inputs, 1);
 #endif
         const bool handled = writer_handle_char(ctx, (uint8_t)event->data.ch);
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL

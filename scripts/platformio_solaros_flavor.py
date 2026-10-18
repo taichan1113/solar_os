@@ -96,20 +96,25 @@ maximum_size = update_layout.app_bytes
 cvbs_mode = _selected_cvbs_mode()
 vga_mode = _selected_vga_mode()
 waveform_trial = os.environ.get("SOLAR_OS_SSD1677_WAVEFORM_TRIAL", "0")
-writer_d_trial = os.environ.get("SOLAR_OS_SSD1677_WRITER_D_TRIAL", "0")
+writer_d_trial = os.environ.get("SOLAR_OS_SSD1677_WRITER_D", "1" if board == "m5paper_mono" else "0")
 if writer_d_trial not in ("0", "1"):
-    raise SystemExit("SOLAR_OS_SSD1677_WRITER_D_TRIAL must be 0 or 1")
+    raise SystemExit("SOLAR_OS_SSD1677_WRITER_D must be 0 or 1")
 if waveform_trial not in ("0", "1"):
     raise SystemExit("SOLAR_OS_SSD1677_WAVEFORM_TRIAL must be 0 or 1")
 hybrid_trial = os.environ.get("SOLAR_OS_SSD1677_HYBRID_TRIAL", "0")
 if hybrid_trial not in ("0", "1"):
     raise SystemExit("SOLAR_OS_SSD1677_HYBRID_TRIAL must be 0 or 1")
-spi20_trial = os.environ.get("SOLAR_OS_SSD1677_SPI20_TRIAL", "0")
+spi20_trial = os.environ.get("SOLAR_OS_SSD1677_SPI20_TRIAL", "1" if board == "m5paper_mono" else "0")
 if spi20_trial not in ("0", "1"):
     raise SystemExit("SOLAR_OS_SSD1677_SPI20_TRIAL must be 0 or 1")
-dirty_hold_trial = os.environ.get("SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL", "0")
+dirty_hold_trial = os.environ.get("SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL", "1" if board == "m5paper_mono" else "0")
 if dirty_hold_trial not in ("0", "1"):
     raise SystemExit("SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL must be 0 or 1")
+
+# Export effective defaults to all component-discovery processes.
+os.environ["SOLAR_OS_SSD1677_WRITER_D"] = writer_d_trial
+os.environ["SOLAR_OS_SSD1677_SPI20_TRIAL"] = spi20_trial
+os.environ["SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL"] = dirty_hold_trial
 
 # ESP-IDF runs component discovery in child CMake processes that do not always
 # inherit PlatformIO's CMake cache arguments. Export the resolved selection so
@@ -203,7 +208,7 @@ stamp = (
     f"cvbs={cvbs_mode}\n"
     f"vga={vga_mode}\n"
     f"ssd1677_waveform_trial={waveform_trial}\n"
-    f"ssd1677_writer_d_trial={writer_d_trial}\n"
+    f"ssd1677_writer_d={writer_d_trial}\n"
     f"ssd1677_hybrid_trial={hybrid_trial}\n"
     f"ssd1677_dirty_hold_trial={dirty_hold_trial}\n"
     f"ssd1677_spi20_trial={spi20_trial}\n"

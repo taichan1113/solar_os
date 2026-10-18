@@ -73,7 +73,8 @@ int main(int argc,char **argv)
     const bool failure=argc>1 && !strcmp(argv[1],"restore-fail");
     uint8_t image[48000]; wd_panel_init(image);
     assert(solar_os_display_async_create(48000,panel_execute,NULL,&live.a)==ESP_OK);
-    assert(wd_mode("candidate_d")==ESP_OK);
+    epd_ssd1677_writer_status_t initial; wd_status(&initial);
+    assert(initial.enabled); /* No manual activation after ordinary boot. */
     if(failure) {
         wd_fail_restore(); input(image,0,true); wait_count(&live.activations,1);
         input(image,1,true); release_panel(1);
@@ -112,21 +113,21 @@ int main(int argc,char **argv)
         assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
         wd_status(&s); assert(s.attempts==1 && !live.seen[3].is_writer);
         puts("writer D async: A->D switch, busy non-Writer replacement stays A PASS");
-        /* Remaining D budget: pending snapshots do not reserve or double count. */
-        for(unsigned i=0;i<5;i++) {
+        /* Continued physical D updates: no cumulative limit or thinning. */
+        for(unsigned i=0;i<20;i++) {
             input(image,6+i,true); wait_count(&live.activations,5+i); release_panel(1);
             assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
         }
-        wd_status(&s); assert(s.attempts==6 && s.d_physical==6 && s.d_success==6 && s.cap_reached && !s.enabled);
-        assert(wd_mode("candidate_d")==ESP_ERR_INVALID_STATE);
-        input(image,11,true); wait_count(&live.activations,10); release_panel(1);
+        wd_status(&s); assert(s.attempts==21 && s.d_physical==21 && s.d_success==21 && s.enabled);
+        assert(wd_mode("candidate_d")==ESP_OK);
+        input(image,26,true); wait_count(&live.activations,25); release_panel(1);
         assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
-        wd_status(&s); assert(s.attempts==6 && s.writer_a==3);
+        wd_status(&s); assert(s.attempts==22 && s.writer_a==2 && s.enabled);
         /* App-exit/synchronous-present barrier discards pending Writer while
          * joining active work. No source or stale D escapes into next app. */
         solar_os_display_async_control_begin(live.a,false);
-        input(image,12,true); solar_os_display_async_control_end(live.a,-1,ESP_OK);
-        wait_count(&live.activations,11); input(image,13,true);
+        input(image,27,true); solar_os_display_async_control_end(live.a,-1,ESP_OK);
+        wait_count(&live.activations,26); input(image,28,true);
         /* The discard control must run on a separate thread while active. */
         pthread_mutex_lock(&live.mutex); live.control_done=false; pthread_mutex_unlock(&live.mutex);
         extern void *exit_app(void *);
@@ -134,7 +135,7 @@ int main(int argc,char **argv)
         pthread_join(control,NULL);
         solar_os_display_submission_status_t q; solar_os_display_async_status(live.a,&q);
         assert(!q.pending && !q.busy && q.writer_cancelled==1 && q.writer_coalesced==1 && q.writer_superseded==1);
-        puts("writer D async: six physical budget, seventh baseline, app-exit pending cancellation PASS");
+        puts("writer D async: continuous through update 23, no thinning, app-exit cancellation PASS");
     }
     solar_os_display_async_destroy(live.a); reap();
     puts("writer_d_async_test: PASS"); return 0;

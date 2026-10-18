@@ -104,7 +104,7 @@ typedef struct {
     void *trial_observer_context;
     esp_err_t (*trial_observer)(void *, const uint8_t *, bool, esp_err_t);
 #endif
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
     epd_ssd1677_writer_trial_t writer_trial;
 #endif
     void *execution_context;
@@ -173,7 +173,7 @@ esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *, const uint8_t *, size_t)
 /* Worker-only: explicitly activate one same-frame OTP partial update. */
 esp_err_t epd_ssd1677_present_quality_snapshot(epd_ssd1677_t *, const uint8_t *, size_t);
 #endif
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
 /* records, when non-NULL, points to SSD1677_WRITER_D_RECORDS entries. */
 esp_err_t epd_ssd1677_writer_lut(epd_ssd1677_t *, const char *,
     epd_ssd1677_writer_status_t *, epd_ssd1677_writer_record_t *);

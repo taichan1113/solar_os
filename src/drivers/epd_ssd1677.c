@@ -4,7 +4,7 @@
 #include <inttypes.h>
 #include <string.h>
 #include <stdlib.h>
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
 #include <stdatomic.h>
 #if !SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL || SOLAR_OS_SSD1677_WAVEFORM_TRIAL
 #error Writer D requires Dirty rows-dual and excludes other waveform trials
@@ -49,7 +49,7 @@ static void operation_end(epd_ssd1677_t *d, epd_ssd1677_operation_t op, esp_err_
     if (d->operation_end) d->operation_end(d->execution_context, op, err);
 }
 
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
 #include "epd_ssd1677_writer_d.inc"
 #endif
 
@@ -172,7 +172,7 @@ static esp_err_t ssd1677_cmd_data(epd_ssd1677_t *display,
 static esp_err_t ssd1677_cmd(epd_ssd1677_t *display, uint8_t command)
 {
     const esp_err_t err = ssd1677_cmd_data(display, command, NULL, 0);
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
     if (command == 0x20 && err == ESP_OK) writer_d_activation(display);
 #endif
     return err;
@@ -737,11 +737,11 @@ static esp_err_t ssd1677_sleep(epd_ssd1677_t *display)
             const int64_t start = esp_timer_get_time();
             (void)start; /* Also builds when logging is compiled out. */
             esp_err_t err = ssd1677_cmd_data(display, 0x22, &power_off, 1);
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
             display->writer_trial.power_control = true;
 #endif
             if (err == ESP_OK) err = ssd1677_cmd(display, 0x20);
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
             display->writer_trial.power_control = false;
 #endif
             if (err == ESP_OK) err = ssd1677_wait_ready(display);
@@ -1035,10 +1035,10 @@ esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *display, const uint8_t *fr
     if (!display || !display->buffer || !frame || size != display->buffer_size)
         return ESP_ERR_INVALID_ARG;
     display->snapshot = frame;
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
     display->writer_trial.current = (epd_ssd1677_writer_record_t){.start_us = esp_timer_get_time()};
     display->writer_trial.used_d = display->writer_trial.reference = false;
-    display->writer_trial.restored = display->writer_trial.cap_transition = false;
+    display->writer_trial.restored = false;
 #endif
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     if (display->trial_observer) {
@@ -1051,7 +1051,7 @@ esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *display, const uint8_t *fr
     }
 #endif
     const esp_err_t err = ssd1677_refresh(display);
-#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+#if SOLAR_OS_SSD1677_WRITER_D
     writer_d_finish(display, err);
 #endif
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL

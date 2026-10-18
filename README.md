@@ -218,3 +218,24 @@ components remain applicable and must be preserved in redistributions.
 | [Peanut-GB `8e65698`](https://github.com/deltabeard/Peanut-GB/commit/8e656982f08663785794b84823d3e27f856fdb7f) | Game Boy emulation and `minigb_apu` audio | MIT; Mahyar Koshkouei, Alex Baines, and contributors. See the retained [provenance and notices](src/vendor/peanut_gb/README.solaros.md). |
 
  _Third-party code is adapted and modified it where needed, and integrated it into a shared system designed for constrained hardware by the authors of SolarOS._
+
+### PaperMono Writer black compensation (Integration)
+
+PaperMono uses Candidate D for every actual Writer `refresh=fastest` update,
+with tile transport, 20 MHz SPI and Dirty rows-dual. There is no cumulative
+update limit or periodic thinning. Other applications keep the Baseline LUT.
+Existing no-op suppression and snapshot coalescing remain enabled.
+
+To select Baseline A for Writer, use the USB Shell while Writer is open:
+
+```text
+display test display0 writer-lut baseline
+```
+
+`display test display0 writer-lut candidate_d` selects D again;
+`status` shows the selected Writer mode and cumulative counts, and `trace`
+shows recent detailed updates. `disable` is an alias for `baseline`.
+These commands do not request a panel update. Selection is volatile; boot
+defaults to D. A driver fault stops further updates when controller state is
+unknown. Initial OTP preparation remains unchanged. Long-term panel effects
+remain unverified; brief whitening is a known, accepted behavior.
