@@ -16,11 +16,11 @@ typedef struct {
 typedef struct {
     bool enabled, failed, cap_reached;
     uint32_t attempts, d_physical, d_success, d_errors;
-    uint32_t writer_physical, writer_a, writer_otp, other_physical, writer_noop;
+    uint32_t writer_physical, writer_a, writer_otp, other_physical, writer_noop, power_controls;
     uint32_t records;
 } epd_ssd1677_writer_status_t;
 typedef struct {
-    bool enabled, used_d, reference, restored, cap_transition;
+    bool enabled, used_d, reference, restored, cap_transition, power_control;
     solar_os_writer_frame_t origin;
     epd_ssd1677_writer_status_t status;
     epd_ssd1677_writer_record_t current, records[SSD1677_WRITER_D_RECORDS];

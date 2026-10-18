@@ -111,6 +111,10 @@ static void test_budget_and_sources(void)
     assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
     assert(count_command(0x20)==1 && count_command(0x32)==1);
     expect_data(0x32,ssd1677_reference_lut,105);
+    const uint32_t previous_physical=d.writer_trial.status.writer_physical;
+    assert(ssd1677_sleep(&d)==ESP_OK);
+    assert(d.writer_trial.status.power_controls==1 &&
+           d.writer_trial.status.writer_physical==previous_physical);
     /* A new Driver instance / detach/reset is NOT a reboot and grants no budget. */
     d=prepare(); assert(epd_ssd1677_writer_lut(&d,"candidate_d",NULL,NULL)==ESP_ERR_INVALID_STATE);
     boot(); d=prepare();

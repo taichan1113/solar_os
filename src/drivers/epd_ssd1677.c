@@ -737,7 +737,13 @@ static esp_err_t ssd1677_sleep(epd_ssd1677_t *display)
             const int64_t start = esp_timer_get_time();
             (void)start; /* Also builds when logging is compiled out. */
             esp_err_t err = ssd1677_cmd_data(display, 0x22, &power_off, 1);
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+            display->writer_trial.power_control = true;
+#endif
             if (err == ESP_OK) err = ssd1677_cmd(display, 0x20);
+#if SOLAR_OS_SSD1677_WRITER_D_TRIAL
+            display->writer_trial.power_control = false;
+#endif
             if (err == ESP_OK) err = ssd1677_wait_ready(display);
             if (display->timing_enabled || err != ESP_OK)
                 ESP_LOGI(TAG, "REF power_off err=%d us=%" PRId64,

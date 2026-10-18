@@ -6,6 +6,7 @@ static atomic_bool writer_d_failed;
 static void writer_d_activation(epd_ssd1677_t *d)
 {
     epd_ssd1677_writer_trial_t *t = &d->writer_trial;
+    if (t->power_control) { t->status.power_controls++; return; }
     if (t->origin.is_writer) {
         t->current.physical++;
         t->status.writer_physical++;
