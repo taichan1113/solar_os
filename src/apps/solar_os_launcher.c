@@ -481,8 +481,8 @@ static __attribute__((unused)) esp_err_t launcher_write_default_config(const cha
 static esp_err_t launcher_load_config(void)
 {
 #if SOLAR_OS_BOARD_LAUNCHER_TOUCH_GRID
-    static const char *names[]={"Files","Reader","Clock","Keyboard","Sketch","Shell"};
-    static const char *commands[]={"files","files --reader","clock","typemouse","sketch","shell"};
+    static const char *const names[]={"Files","Reader","Clock","Keyboard","Sketch","Shell"};
+    static const char *const commands[]={"files","files --reader","clock","typemouse","sketch","shell"};
     static const solar_os_gfx_icon_t icons[]={SOLAR_OS_GFX_ICON_FOLDER,SOLAR_OS_GFX_ICON_BOOK,
         SOLAR_OS_GFX_ICON_CLOCK,SOLAR_OS_GFX_ICON_KEYBOARD,SOLAR_OS_GFX_ICON_PENCIL,SOLAR_OS_GFX_ICON_TERMINAL};
     launcher.config=(launcher_config_t){.columns=3,.rows=2,.item_count=6};

@@ -75,7 +75,7 @@ int solar_os_shell_launch_path_arg(const char *app_name,
         return mixed_ui_path_arg(argc, argv);
     }
     if (strcmp(app_name, "files") == 0) {
-        return strcmp(argv[1], "--launcher") == 0 ?
+        return (strcmp(argv[1], "--launcher") == 0 || strcmp(argv[1], "--reader") == 0) ?
             (argc >= 3 ? 2 : -1) : 1;
     }
     if (strcmp(app_name, "less") == 0) {
@@ -83,7 +83,8 @@ int solar_os_shell_launch_path_arg(const char *app_name,
     }
     if (strcmp(app_name, "reader") == 0) {
         for (int i = 1; i < argc; i++) {
-            if (strcmp(argv[i], "--pager") == 0) {
+            if (strcmp(argv[i], "--pager") == 0 || strcmp(argv[i], "--from-files") == 0 ||
+                strcmp(argv[i], "--pager-files") == 0) {
                 continue;
             }
             return strncmp(argv[i], "man:", 4U) == 0 ? -1 : i;

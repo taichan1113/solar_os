@@ -83,7 +83,7 @@ esp_err_t solar_os_context_request_launch_ex(solar_os_context_t *c,const solar_o
     c->requested_app=a; launch_policy=p; return ESP_OK;
 }
 esp_err_t solar_os_shell_resolve_path(solar_os_context_t *c,const char *p,char *o,size_t n)
-{ (void)c; return strlcpy(o,p,n)<n ? ESP_OK : ESP_ERR_INVALID_SIZE; }
+{ (void)c; assert(p[0]!='-'); return strlcpy(o,p,n)<n ? ESP_OK : ESP_ERR_INVALID_SIZE; }
 esp_err_t solar_os_shell_execute_command(solar_os_context_t *c,const char *s)
 { (void)c; (void)s; assert(false); return ESP_FAIL; }
 /* Unused script branch must never be taken by a TypeMouse launch. */

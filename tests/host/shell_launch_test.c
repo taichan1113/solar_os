@@ -47,6 +47,10 @@ int main(void)
     char *reader_pager_file[] = {"reader", "--pager", "books/manual.md"};
     char *reader_file_pager[] = {"reader", "books/manual.md", "--pager"};
     char *reader_pager_manual[] = {"reader", "--pager", "man:storage"};
+    char *reader_browser_file[] = {"reader", "--from-files", "books/manual.md"};
+    char *reader_pager_browser[] = {"reader", "--pager-files", "books/manual.md"};
+    assert(path_arg(3, reader_browser_file) == 2);
+    assert(path_arg(3, reader_pager_browser) == 2);
     assert(path_arg(2, reader_file) == 1);
     assert(path_arg(2, reader_manual) == -1);
     assert(path_arg(3, reader_pager_file) == 2);
@@ -107,6 +111,10 @@ int main(void)
     char *files[] = {"files", "projects"};
     char *launcher[] = {"files", "--launcher"};
     char *launcher_path[] = {"files", "--launcher", "projects"};
+    char *reader_browser[] = {"files", "--reader"};
+    char *reader_browser_path[] = {"files", "--reader", "Books"};
+    assert(path_arg(2, reader_browser) == -1);
+    assert(path_arg(3, reader_browser_path) == 2);
     assert(path_arg(2, files) == 1);
     assert(path_arg(2, launcher) == -1);
     assert(path_arg(3, launcher_path) == 2);
