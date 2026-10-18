@@ -21,10 +21,10 @@
 | ESP32-S3 Build | PASS、ESP-IDF5.5.5 / GCC14.2.0、warning/error 0/0 |
 | Flash | 最終修正版をApplication-onlyで書込み、読戻しSHA一致 |
 | 保護 | bootloader/PT/NVS/otadata/PHY/FAT/非対象OTAの7領域一致（書込み後・再起動前） |
-| 目視 | 最終除外版は目視確認待ち。USB側の起動・Launcher・display0は正常 |
-| Shell入力・削除 | 初期共通D版で入力・表示・削除すべて正常。最終除外版の手入力は未確認 |
-| Sketch等の操作確認 | 初期共通D版ではSketchの線が黒くならないと申告。Sketch除外版の黒線復旧は目視確認待ち |
-| 最終実測カウンタ | 最終起動ではD 0回 / A 0回 / OTP 5回、エラー0。scope=all-apps-except-sketch。最終版でのSketch A実更新は操作確認待ち |
+| 目視 | 修正版の表示正常（ユーザー確認） |
+| Shell入力・削除 | 最終修正版でも入力・削除・表示正常（ユーザー確認） |
+| Sketch等の操作確認 | Sketchの黒線・Shell表示・Launcher復帰すべて正常（ユーザー確認）。TypeMouseの最終修正版でのPC操作は再確認していない |
+| 最終実測カウンタ | D 18回・成功18回 / A 54回 / OTP 5回、Driverエラー0。Sketch A trace確認=True、他アプリD復帰trace正常 |
 
 実装Worktree：`E:\ESP32\M5PapserMono-SolarOS\.research\fastest-d-all-apps\worktree`
 

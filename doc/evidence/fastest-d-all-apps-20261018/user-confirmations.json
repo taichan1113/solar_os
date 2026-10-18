@@ -1,9 +1,10 @@
 {
-  "visual": "最終除外版は目視確認待ち。USB側の起動・Launcher・display0は正常",
-  "shell": "初期共通D版で入力・表示・削除すべて正常。最終除外版の手入力は未確認",
-  "apps": "初期共通D版ではSketchの線が黒くならないと申告。Sketch除外版の黒線復旧は目視確認待ち",
-  "runtime": "最終起動ではD 0回 / A 0回 / OTP 5回、エラー0。scope=all-apps-except-sketch。最終版でのSketch A実更新は操作確認待ち",
+  "visual": "修正版の表示正常（ユーザー確認）",
+  "shell": "最終修正版でも入力・削除・表示正常（ユーザー確認）",
+  "apps": "Sketchの黒線・Shell表示・Launcher復帰すべて正常（ユーザー確認）。TypeMouseの最終修正版でのPC操作は再確認していない",
+  "runtime": "D 18回・成功18回 / A 54回 / OTP 5回、Driverエラー0。Sketch A trace確認=True、他アプリD復帰trace正常",
   "initial_user_report": "Sketchだけ線が黒くならない。今後の研究対象とし、例外的にBaselineへ戻す",
   "final_manual_check_requested": true,
-  "final_manual_check_answer_received": false
+  "final_manual_check_answer_received": true,
+  "final_user_answer": "Sketch黒線・Shell表示・Launcher復帰すべて正常"
 }

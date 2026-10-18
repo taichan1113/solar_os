@@ -1,0 +1,116 @@
+sessions
+ID  TITLE        APP      STATE     OWNER    TIME
+0   shell        shell    active    display0 25/25ms 25/418us n=1312 !0
+16  cdc0/dumb    shell    active    cdc0     100/25ms 18/43us n=3626 !0
+user@sol:/ display test display0 fastest-lut status
+fastest-lut err=0 mode=D scope=all-apps-except-sketch attempts=18 D0x20=18 success=18 error=0 driver_error=0 failed=0
+display physical=77 A=54 D=18 OTP=5 noop=1
+writer physical=0 A=0 OTP=0 noop=0 other0x20=77 power0x20=0 records=76
+queue submitted=64 replaced=9 writer=0 coalesced=0 cancelled=0 superseded=0 error=0
+user@sol:/ display test display0 fastest-lut trace
+fastest-lut err=0 mode=D scope=all-apps-except-sketch attempts=18 D0x20=18 success=18 error=0 driver_error=0 failed=0
+display physical=77 A=54 D=18 OTP=5 noop=1
+writer physical=0 A=0 OTP=0 noop=0 other0x20=77 power0x20=0 records=76
+queue submitted=64 replaced=9 writer=0 coalesced=0 cancelled=0 superseded=0 error=0
+WL seq=45 gen=41 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=10200 region=480,107,104,34
+WL time seq=45 input=0,0 render=0,0 queue=310973051,310973051 execute=311005875,311073859
+WL panel seq=45 ram=311010211,311071225 activate=311013980 ready=311065496 spi_us=4416 lut_us=122 restore_us=0
+WL seq=46 gen=42 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=9600 region=576,138,56,32
+WL time seq=46 input=0,0 render=0,0 queue=311024945,311024945 execute=311073943,311142445
+WL panel seq=46 ram=311079305,311140067 activate=311082831 ready=311134496 spi_us=4369 lut_us=137 restore_us=0
+WL seq=47 gen=43 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=19500 region=616,168,24,65
+WL time seq=47 input=0,0 render=0,0 queue=311078801,311078801 execute=311143045,311220821
+WL panel seq=47 ram=311148485,311216508 activate=311154500 ready=311205496 spi_us=8376 lut_us=120 restore_us=0
+WL seq=48 gen=45 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=36000 region=320,232,312,120
+WL time seq=48 input=0,0 render=0,0 queue=311217279,311217279 execute=311220890,311307460
+WL panel seq=48 ram=311225654,311305287 activate=311235214 ready=311286501 spi_us=15753 lut_us=126 restore_us=0
+WL seq=49 gen=46 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=12900 region=192,309,136,43
+WL time seq=49 input=0,0 render=0,0 queue=311284714,311284714 execute=311307547,311378122
+WL panel seq=49 ram=311312608,311375600 activate=311316635 ready=311368496 spi_us=5545 lut_us=140 restore_us=0
+WL seq=50 gen=47 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=9000 region=160,281,40,30
+WL time seq=50 input=0,0 render=0,0 queue=311350690,311350690 execute=311378204,311444813
+WL panel seq=50 ram=311383691,311442815 activate=311386559 ready=311437657 spi_us=3863 lut_us=113 restore_us=0
+WL seq=51 gen=48 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=2400 region=536,328,8,8
+WL time seq=51 input=0,0 render=0,0 queue=315497102,315497102 execute=315498576,315560701
+WL panel seq=51 ram=315504190,315558354 activate=315505319 ready=315556771 spi_us=1032 lut_us=107 restore_us=0
+WL seq=52 gen=49 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=12900 region=536,285,8,43
+WL time seq=52 input=0,0 render=0,0 queue=315561855,315561855 execute=315563243,315634697
+WL panel seq=52 ram=315568706,315632292 activate=315572548 ready=315625001 spi_us=5534 lut_us=108 restore_us=0
+WL seq=53 gen=50 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=21300 region=528,214,16,71
+WL time seq=53 input=0,0 render=0,0 queue=315625840,315625840 execute=315634774,315712084
+WL panel seq=53 ram=315639932,315709537 activate=315645947 ready=315697496 spi_us=9757 lut_us=107 restore_us=0
+WL seq=54 gen=51 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=11700 region=480,177,56,39
+WL time seq=54 input=0,0 render=0,0 queue=315688317,315688317 execute=315712168,315780991
+WL panel seq=54 ram=315716651,315777787 activate=315720214 ready=315771496 spi_us=5144 lut_us=112 restore_us=0
+WL seq=55 gen=52 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=3600 region=376,171,112,12
+WL time seq=55 input=0,0 render=0,0 queue=315753973,315753973 execute=315781077,315843808
+WL panel seq=55 ram=315785445,315841256 activate=315787008 ready=315838797 spi_us=1569 lut_us=109 restore_us=0
+WL seq=56 gen=53 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=14400 region=304,180,80,48
+WL time seq=56 input=0,0 render=0,0 queue=315819229,315819229 execute=315843892,315915676
+WL panel seq=56 ram=315849086,315913418 activate=315853437 ready=315904496 spi_us=6199 lut_us=109 restore_us=0
+WL seq=57 gen=54 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=14700 region=296,226,16,49
+WL time seq=57 input=0,0 render=0,0 queue=315884690,315884690 execute=315915762,315987445
+WL panel seq=57 ram=315920653,315984688 activate=315925152 ready=315976498 spi_us=6379 lut_us=122 restore_us=0
+WL seq=58 gen=55 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=6000 region=304,271,112,20
+WL time seq=58 input=0,0 render=0,0 queue=315950387,315950387 execute=315987552,316054619
+WL panel seq=58 ram=315993263,316051592 activate=315995673 ready=316047496 spi_us=2657 lut_us=108 restore_us=0
+WL seq=59 gen=56 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=9900 region=408,241,56,33
+WL time seq=59 input=0,0 render=0,0 queue=316003390,316003390 execute=316054708,316125485
+WL panel seq=59 ram=316060628,316121920 activate=316063814 ready=316115496 spi_us=4540 lut_us=107 restore_us=0
+WL seq=60 gen=58 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=36300 region=456,122,40,121
+WL time seq=60 input=0,0 render=0,0 queue=316121475,316121475 execute=316125558,316212462
+WL panel seq=60 ram=316129608,316209637 activate=316139470 ready=316190562 spi_us=16040 lut_us=126 restore_us=0
+WL seq=61 gen=59 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=3900 region=368,111,104,13
+WL time seq=61 input=0,0 render=0,0 queue=316185984,316185984 execute=316212580,316276365
+WL panel seq=61 ram=316216826,316273999 activate=316218705 ready=316270807 spi_us=1746 lut_us=108 restore_us=0
+WL seq=62 gen=60 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=15300 region=296,121,80,51
+WL time seq=62 input=0,0 render=0,0 queue=316250439,316250439 execute=316276449,316348688
+WL panel seq=62 ram=316281200,316346501 activate=316285718 ready=316337778 spi_us=6862 lut_us=109 restore_us=0
+WL seq=63 gen=61 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=18300 region=256,170,48,61
+WL time seq=63 input=0,0 render=0,0 queue=316314302,316314302 execute=316348773,316422724
+WL panel seq=63 ram=316353082,316419211 activate=316358360 ready=316409496 spi_us=7815 lut_us=123 restore_us=0
+WL seq=64 gen=63 source=sketch mode=A 0x20=1 err=0 restored=0 input=0 merged=0 ram=12900 region=256,230,112,43
+WL time seq=64 input=0,0 render=0,0 queue=316422165,316422165 execute=316423856,316494733
+WL panel seq=64 ram=316429008,316492570 activate=316433204 ready=316484845 spi_us=5648 lut_us=120 restore_us=0
+WL seq=65 gen=64 source=sketch mode=OTP/noop 0x20=0 err=0 restored=0 input=0 merged=0 ram=0 region=0,0,0,0
+WL time seq=65 input=0,0 render=0,0 queue=325139871,325139871 execute=325140923,325144240
+WL panel seq=65 ram=0,0 activate=0 ready=0 spi_us=0 lut_us=0 restore_us=0
+WL seq=66 gen=0 source=other mode=D 0x20=1 err=0 restored=1 input=0 merged=0 ram=143400 region=0,2,800,478
+WL time seq=66 input=0,0 render=0,0 queue=0,0 execute=325183373,325344933
+WL panel seq=66 ram=325188172,325343821 activate=325223396 ready=325274496 spi_us=61137 lut_us=108 restore_us=106
+WL seq=67 gen=0 source=other mode=D 0x20=1 err=0 restored=1 input=0 merged=0 ram=5100 region=608,273,40,17
+WL time seq=67 input=0,0 render=0,0 queue=0,0 execute=337170409,337231851
+WL panel seq=67 ram=337174216,337230750 activate=337176218 ready=337227496 spi_us=2222 lut_us=108 restore_us=107
+WL seq=68 gen=0 source=other mode=D 0x20=1 err=0 restored=1 input=0 merged=0 ram=5100 region=600,273,32,17
+WL time seq=68 input=0,0 render=0,0 queue=0,0 execute=337627574,337688854
+WL panel seq=68 ram=337631252,337687750 activate=337633275 ready=337684496 spi_us=2243 lut_us=108 restore_us=108
+WL seq=69 gen=0 source=other mode=D 0x20=1 err=0 restored=1 input=0 merged=0 ram=192000 region=584,273,32,17
+WL time seq=69 input=0,0 render=0,0 queue=0,0 execute=337831584,338024010
+WL panel seq=69 ram=337835829,338022895 activate=337904022 ready=337955496 spi_us=78000 lut_us=124 restore_us=107
+WL seq=70 gen=0 source=other mode=D 0x20=1 err=0 restored=1 input=0 merged=0 ram=5100 region=568,273,32,17
+WL time seq=70 input=0,0 render=0,0 queue=0,0 execute=338057762,338120286
+WL panel seq=70 ram=338061513,338119160 activate=338063520 ready=338115496 spi_us=2229 lut_us=108 restore_us=119
+WL seq=71 gen=0 source=other mode=D 0x20=1 err=0 restored=1 input=0 merged=0 ram=5100 region=552,273,40,17
+WL time seq=71 input=0,0 render=0,0 queue=0,0 execute=338154010,338215851
+WL panel seq=71 ram=338157691,338214750 activate=338159698 ready=338211496 spi_us=2223 lut_us=115 restore_us=107
+WL seq=72 gen=0 source=other mode=D 0x20=1 err=0 restored=1 input=0 merged=0 ram=5100 region=544,273,32,17
+WL time seq=72 input=0,0 render=0,0 queue=0,0 execute=338417785,338481044
+WL panel seq=72 ram=338422781,338479928 activate=338424784 ready=338476496 spi_us=2224 lut_us=114 restore_us=107
+WL seq=73 gen=0 source=other mode=D 0x20=1 err=0 restored=1 input=0 merged=0 ram=6900 region=488,273,72,23
+WL time seq=73 input=0,0 render=0,0 queue=0,0 execute=338515932,338578401
+WL panel seq=73 ram=338519615,338577286 activate=338521858 ready=338573496 spi_us=2943 lut_us=108 restore_us=107
+WL seq=74 gen=0 source=other mode=D 0x20=1 err=0 restored=1 input=0 merged=0 ram=7200 region=432,272,72,24
+WL time seq=74 input=0,0 render=0,0 queue=0,0 execute=338616372,338679131
+WL panel seq=74 ram=338620052,338678016 activate=338622340 ready=338673496 spi_us=3075 lut_us=108 restore_us=107
+WL seq=75 gen=0 source=other mode=D 0x20=1 err=0 restored=1 input=0 merged=0 ram=7200 region=360,272,88,24
+WL time seq=75 input=0,0 render=0,0 queue=0,0 execute=338715026,338777543
+WL panel seq=75 ram=338718838,338776363 activate=338721116 ready=338772496 spi_us=3065 lut_us=108 restore_us=107
+WL seq=76 gen=0 source=other mode=D 0x20=1 err=0 restored=1 input=0 merged=0 ram=7200 region=360,272,288,24
+WL time seq=76 input=0,0 render=0,0 queue=0,0 execute=339483756,339546554
+WL panel seq=76 ram=339487466,339545443 activate=339489758 ready=339541496 spi_us=3062 lut_us=115 restore_us=114
+user@sol:/ display async display0
+async enabled=1 busy=0 pending=0 suspended=0 error=0
+submitted=64 replaced=9 cancelled=0 rejected=0 started=55 completed=55 physical=54
+maintenance_started=0 maintenance_completed=0
+generation=64 completed_generation=64 cancelled_generation=0 snapshots=96000 peak=2
+user@sol:/ 

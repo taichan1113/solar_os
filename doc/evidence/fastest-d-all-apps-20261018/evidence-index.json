@@ -39,9 +39,17 @@
     "bytes": 646,
     "sha256": "dd50e4f3e2f749d242bb8859ef3d167195a4fd1af3d2b4630a4922074a187fa3"
   },
+  "confirm_recovery.py": {
+    "bytes": 2508,
+    "sha256": "1602e8977b55c989f0a5f79fbaa922719dbe518f70de5a6074237d9194bc0142"
+  },
+  "confirmed-runtime-usb.log": {
+    "bytes": 11095,
+    "sha256": "78b0a0ec64016e16d1138e0793699cc4994c8d0d135f01dc68ed487d4305cb20"
+  },
   "deployment-audit.json": {
-    "bytes": 1797,
-    "sha256": "ce2872914aa9007ea14186abd85b8db8591f9565fc7d1ad1a7e85644c1b34f00"
+    "bytes": 2260,
+    "sha256": "2228918af6b73518c9d0c601471c246597b5822b5516e8e7861fae88bb67b65c"
   },
   "device_query.py": {
     "bytes": 1271,
@@ -140,8 +148,8 @@
     "sha256": "bc2ca12f32ebb691b6ba729f4923a073fe2f9648f5bc40560b8d95862a2b032a"
   },
   "package_report.py": {
-    "bytes": 3339,
-    "sha256": "c63e8c1612d33bb22eb0e841c5ef621a5a4ad9383627e4b3dc50fa4ba04511f6"
+    "bytes": 3404,
+    "sha256": "b6744dd053d6f9e365bbe95745beaed6d781892a7b1549a0109518ccb215bbee"
   },
   "post-flash-usb.log": {
     "bytes": 2009,
@@ -176,8 +184,8 @@
     "sha256": "6b6f52c8ed677c6f938ee8d2fc0452ec93041140ac482e9e62d53090cedee522"
   },
   "user-confirmations.json": {
-    "bytes": 726,
-    "sha256": "a0415972ad576829477da683c3cbefd22dfb7cd140a9fa1f32276e4a7d902dac"
+    "bytes": 772,
+    "sha256": "b4095bb0f443b290e950ab3961e50de81dfccea953dfd527c19ce03010785c0a"
   },
   "verify_flash.py": {
     "bytes": 3777,

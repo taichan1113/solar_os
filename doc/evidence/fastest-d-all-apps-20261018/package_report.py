@@ -17,13 +17,14 @@ ev=wt/'doc/evidence/fastest-d-all-apps-20261018';ev.mkdir(parents=True,exist_ok=
 for name in ('build.log','build-result.json','host-main.log','host-main-result.json','host-extra.log',
              'host-extra-result.json','worktrees-before.json','worktrees-after.json','run_host.py',
              'build_candidate.py','audit_candidate.py','audit_worktrees.py','verify_flash.py',
-             'prepare_flash.py','package_report.py','report-template-final.md','sketch_exception.py'):
+             'prepare_flash.py','package_report.py','report-template-final.md','sketch_exception.py',
+             'confirm_recovery.py'):
  shutil.copyfile(base/name,ev/name)
 for name in ('manifest.json','build-selection.txt'):shutil.copyfile(base/'artifacts'/name,ev/name)
 for name in ('preflight-usb.log','prewrite-usb.log','flash.log','boot.log','post-flash-usb.log',
              'backup-audit.json','flash-summary.json','deployment-audit.json','user-authorization.json',
              'user-confirmations.json','manual-shell-usb.log','runtime-inspect-usb.log',
-             'manual-apps-usb.log','final-runtime-usb.log'):
+             'manual-apps-usb.log','final-runtime-usb.log','confirmed-runtime-usb.log'):
  if (a/name).exists():shutil.copyfile(a/name,ev/name)
 for name in ('flash_writer_guarded.py','restore_writer_guarded.py','device_query.py'):
  shutil.copyfile(base/name,ev/name)
