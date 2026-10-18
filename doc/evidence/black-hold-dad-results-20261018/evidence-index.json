@@ -1,0 +1,190 @@
+{
+  "files": {
+    ".gitattributes": {
+      "bytes": 41,
+      "sha256": "898fc2da01b20487ea0b1e7243ca918ee7538eaeb39a3f080b7d01193074e161"
+    },
+    "analyze_video_roi.py": {
+      "bytes": 9137,
+      "sha256": "339c668a0c899afe6b56549c605aeacc59f084429c704dead374b5ee752229df"
+    },
+    "approval-T0-D1.json": {
+      "bytes": 239,
+      "sha256": "864c332e9aeb08fa131fb301fc169b6aba8043c3a5e544616f5e370c4fa8c54f"
+    },
+    "approval-T1-A2.json": {
+      "bytes": 268,
+      "sha256": "bb7c0cdbebf25fc215205ddeafb23d07ec4113c2cf52619702f2ff238e87cadb"
+    },
+    "approval-T2-D3.json": {
+      "bytes": 312,
+      "sha256": "ed20d64ec59e65504a45e4b7ea407116d56b26f04958963952131a02862d4b59"
+    },
+    "approval-T3-cleanup.json": {
+      "bytes": 282,
+      "sha256": "144a9677ec585e41b690403b2ea7c3b28a59564014d641e028f4a210f24bebdc"
+    },
+    "approval-white.json": {
+      "bytes": 215,
+      "sha256": "7fc2c1159f9ceb8da4e84f6f6dfd4cb2044c4b5aa14a83516217d4813eeddb6c"
+    },
+    "camera-settings.json": {
+      "bytes": 500,
+      "sha256": "38c7a0ea164fe5c905b5484a53f3b8e10ef77bfdb19eefd93f2f05ce90217e20"
+    },
+    "capture_dad.py": {
+      "bytes": 5124,
+      "sha256": "f9b8102598a384d21534df5763231926f9053aae1c2f71c88da48bae44ed1d83"
+    },
+    "check_optical_robustness.py": {
+      "bytes": 2372,
+      "sha256": "728701ed73a70532b8c2288a66b38fa8850edcd4b77e725747d0924645425ebf"
+    },
+    "classification.json": {
+      "bytes": 947,
+      "sha256": "f7e16a951c928a5d7591b3dbbf3258ce510d480b8b31b641dca8c0ad5019c461"
+    },
+    "comparison.json": {
+      "bytes": 992,
+      "sha256": "ff859a3ec115532f2f2edac871382474898dd47cb9bd720d8081221f9b806caf"
+    },
+    "contrast-summary-qualified.png": {
+      "bytes": 171612,
+      "sha256": "d4b1c4b544c173ec2a286475ae322773c6f76a591e55d396d40af8e9dae15562"
+    },
+    "dad-control.txt": {
+      "bytes": 5,
+      "sha256": "5e77061a9b955ac03d9a574a8a68d8a58005949fa4fdd3d9e38dbd263028ffe8"
+    },
+    "DAD-event-contact.png": {
+      "bytes": 887254,
+      "sha256": "2204ae8f65ea675e434c76ee63a609cef42c7db23f7d3b0ae8a5ce0016a58ba4"
+    },
+    "DAD-measurements.json": {
+      "bytes": 8197,
+      "sha256": "6a683447bf01a3bc7889527af5b719be0709abe71fe9e9cd8a0b1f7f6205dffe"
+    },
+    "DAD-roi-overlay.png": {
+      "bytes": 707422,
+      "sha256": "2cc6e2daa3a8a31828e4639d68ae8668a801b1ad98def253b4d9061412892cea"
+    },
+    "DAD-roi.json": {
+      "bytes": 420230,
+      "sha256": "0680fe6699501973efd2a241002dd0eb552664f77050f373875034b62ca9f98d"
+    },
+    "dad-status.json": {
+      "bytes": 10527,
+      "sha256": "c5607e73a96cdb78ff7697b883c4fc8bdb9593fdebf87b642a6b3c4ba38b07cd"
+    },
+    "dad-usb.log": {
+      "bytes": 15243,
+      "sha256": "b628b2b82727a054c28c565c869bd04362d0fd954086098c776921229e30fef9"
+    },
+    "DAD_T0_preview.png": {
+      "bytes": 488173,
+      "sha256": "a07b01c37c76b96a212204044281b8995522a65149fa1da922b1f7ef4057765e"
+    },
+    "DAD_T1_preview.png": {
+      "bytes": 481110,
+      "sha256": "7a8aac425785bf4d00bb04a2f9acc676706a1db281bb87addb1b5ba10a47887c"
+    },
+    "DAD_T2_preview.png": {
+      "bytes": 480331,
+      "sha256": "0f638faf45925e0485612ed797a8c97bab1c0e5d79a41c0051c6dae07d51f582"
+    },
+    "DAD_T3_preview.png": {
+      "bytes": 479313,
+      "sha256": "f805b6c250636fff0b193df11b9ef0106ad71079456051c5f655ab905fcdd13d"
+    },
+    "deployment-audit.json": {
+      "bytes": 1076,
+      "sha256": "1e19b01747867bbc6f6be61920cc2c99a218610f65c79e68a8968a529c7ff51f"
+    },
+    "extraction.json": {
+      "bytes": 6218,
+      "sha256": "a295bde622b095b9b100a90e69421f31f2cedce194926059833b6e3c8f22890b"
+    },
+    "final-deployment-audit.json": {
+      "bytes": 922,
+      "sha256": "9cfd39970efcc87ac221b91f5dee9b747190b009e329490efb16b72d5fafe4b1"
+    },
+    "flash-summary.json": {
+      "bytes": 2433,
+      "sha256": "28d68eaf6714348ce4938a8e71846c55a72c92f9797785b287daa4ad559f7dbc"
+    },
+    "flash_single_guarded.py": {
+      "bytes": 6483,
+      "sha256": "50ac6c7e7dbf93839a2cf7b1d2598e10e7ec9a4ac354bf5b796be59e9340b6fc"
+    },
+    "other-worktrees-after.json": {
+      "bytes": 22376,
+      "sha256": "37c0be107801a5bf5c86c2d1e12c24cf3614e1e82b48d01115a8b6ec1ea9e237"
+    },
+    "plot_qualified_result.py": {
+      "bytes": 1245,
+      "sha256": "260d31e22c04dee1e13507ab9e4728302a660e140c88e891465d4d5588eedbc1"
+    },
+    "post-flash-usb.log": {
+      "bytes": 1327,
+      "sha256": "a67131558f9e333b61a0becfa575fb9508cbf6e9615c8705c89562468a414536"
+    },
+    "post-restore-usb.log": {
+      "bytes": 1079,
+      "sha256": "df9ce71775d65e1f0e12b349cde6d44282db36c0d61858ba5216e4735278a27c"
+    },
+    "pre-restore-usb.log": {
+      "bytes": 803,
+      "sha256": "a03ab68d4781af29b56bc2d09890c6160f3f2a393e6fbdf5eab919cfe3d213dc"
+    },
+    "preflight-usb.log": {
+      "bytes": 1341,
+      "sha256": "425495852d7e9e5a8e5357ae7cf0e20ba75b339d408904fab0d461ae43ebdcf3"
+    },
+    "prepare_video_analysis.py": {
+      "bytes": 3264,
+      "sha256": "9827324f4b15a5d32293899427e99866488f6af0cae897cd19a29a87d3a10e2b"
+    },
+    "record_measurements.py": {
+      "bytes": 4542,
+      "sha256": "89f19701820d9c5a1f15841dc63dcc1a2d9ad51bc40255d6e8e06d7305d42afe"
+    },
+    "restore-summary.json": {
+      "bytes": 965,
+      "sha256": "1a103efb013e7c35bc2de08d938a7b12951aa81903ff4024853cb564d87a2693"
+    },
+    "restore_single_guarded.py": {
+      "bytes": 2847,
+      "sha256": "c1d3b706c96d371bdacae540959b451281170690c797bf14b0766e950e015849"
+    },
+    "robustness.json": {
+      "bytes": 2371,
+      "sha256": "e10c97e2f3295a7c6ca390a91a0e1a226cbaded9b9e403f4db29728a35936e40"
+    },
+    "roi-config.json": {
+      "bytes": 336,
+      "sha256": "af089efd22cb8c7f925d4016dcb6825d3170985b53291e9ca9c8b9411803f16b"
+    },
+    "run_guarded_helper.py": {
+      "bytes": 408,
+      "sha256": "af396a889da543edc4b80b85a9a68bf07360db909c295a00e382efc1f17b8cc1"
+    },
+    "shell-foreground.log": {
+      "bytes": 662,
+      "sha256": "09e629f227e9ab6e0a1ae422fea14e757a8ffa6e5983ae15f96a7bdd571cea06"
+    },
+    "user-readiness.json": {
+      "bytes": 363,
+      "sha256": "ae8f7e41c1b3abe6f223d59d621e6d3ffe7a2fa10dd5b3a9db49e0ac2c8d0164"
+    },
+    "verify_deployment.py": {
+      "bytes": 2366,
+      "sha256": "9c95f9fd36c828bf09b27100021b6ae2f9050f3ee9168862ba4220c61042d64a"
+    },
+    "video-sources.json": {
+      "bytes": 388,
+      "sha256": "10c27c2b894e4549e8a3e4de42cdfd1007c77a7eb6995b30adea849035ad9ccb"
+    }
+  },
+  "original_video_or_flash_or_firmware_included": false,
+  "evidence_copies_notes": "Raw bytes retained by evidence-local .gitattributes. Actual helpers run from .research/black-hold-dad, not from this evidence-copy directory."
+}

@@ -1,0 +1,24 @@
+{
+  "classification": "DAD-1",
+  "primary_ROI": "fixed text; immutable T0 mask; zero clipping in sampled/native analyzed frames",
+  "primary_text_dC_pp": [
+    null,
+    6.454162143912601,
+    -2.7725538462234245,
+    3.368313422693181
+  ],
+  "text_C3_minus_C1_pp": 0.5957595764697565,
+  "text_recovery_ratio_reference_only": 1.2148775495492208,
+  "square_recovery_ratio": null,
+  "square_recovery_ratio_reason": "Black floor saturation after D: cannot measure exact D1 vs D3 darkness or quantitative recovery",
+  "square_black_clipping_fraction": [
+    0.0,
+    0.8862222222222222,
+    0.019244444444444446,
+    0.9509333333333333
+  ],
+  "scope": "Single short session, uncalibrated 8-bit video; visual change nearly unchanged",
+  "frequency_or_long_term_safety_established": false,
+  "Writer_Trial_implementation_authorized": false,
+  "next_gate": "Gate 2: user reviews DAD result before any Writer Trial implementation"
+}

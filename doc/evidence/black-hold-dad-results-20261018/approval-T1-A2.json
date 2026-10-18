@@ -1,0 +1,7 @@
+{
+  "at_utc": "2026-10-18T09:17:11.793666+00:00",
+  "gate": "T1-next",
+  "visual": "Fixed black nearly unchanged from T0; white background normal",
+  "reply": "User explicitly approved next Baseline A update",
+  "authorized": "Baseline A once only; stop at T2"
+}

@@ -1,0 +1,26 @@
+{
+  "result": "FLASH_READBACK_AND_PROTECTION_PASS",
+  "port": "COM39",
+  "mac": "28:84:85:44:79:68",
+  "slot": "ota_0",
+  "offset": "0x10000",
+  "application_sha256": "647534b1231faf8945f0fb15566ab0be1eb21d62715cd612aedcd92533a6ddc0",
+  "full_backup_sha256": "cc3283ab125f3ddfc5063a17f2edf7e4295ca73ae6b4eaf48ccd2d0d43e5c6db",
+  "rollback_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6",
+  "protected_regions_unchanged": true,
+  "post_boot_usb_shell": true,
+  "launcher_started": true,
+  "startup_fastest_tile_preserved": true,
+  "measured_A_updates": 0,
+  "measured_D_updates": 0,
+  "fixed_sequence": [
+    "D",
+    "A",
+    "D"
+  ],
+  "post_flash_visual_status": "User confirmed normal Launcher or Shell",
+  "trial_started": false,
+  "current_firmware": "DAD trial; normal waveform remains Baseline; do not reboot to renew trial budget",
+  "restore_helper": "restore_single_guarded.py; run after trial with current slot checked; application-only",
+  "post_flash_visual_confirmed_utc": "2026-10-18T09:12:12.180653+00:00"
+}

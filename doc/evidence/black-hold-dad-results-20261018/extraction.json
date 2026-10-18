@@ -1,0 +1,132 @@
+[
+  {
+    "source_created_utc": "2026-10-18T09:13:35.0736659Z",
+    "condition": "DAD",
+    "source": "C:\\Users\\takec\\Videos\\DAD\\20261018-181335.avi",
+    "source_bytes": 2470595708,
+    "source_modified_utc": "2026-10-18T09:18:59.7175452Z",
+    "source_sha256": "445b38761b6e1a3a3ef45cd640d7f85ea63578c27f8fd283f7c3ffc1660270b7",
+    "probe": {
+      "duration_s": 324.48,
+      "decoded_size": [
+        3840,
+        2160
+      ],
+      "nominal_fps": 30.0,
+      "variable_frame_rate_assumed_possible": true,
+      "decoder_log": "Input #0, avi, from '/mnt/c/Users/takec/Videos/DAD/20261018-181335.avi':\n  Metadata:\n    software        : Lavf58.13.101\n  Duration: 00:05:24.48, start: 0.000000, bitrate: 60912 kb/s\n  Stream #0:0: Video: mjpeg (Baseline) (MJPG / 0x47504A4D), yuvj420p(pc, bt470bg/unknown/unknown), 3840x2160 [SAR 1:1 DAR 16:9], 60717 kb/s, 30 fps, 30 tbr, 30 tbn\n  Stream #0:1: Audio: ac3 ([0] [0][0] / 0x2000), 44100 Hz, stereo, fltp, 192 kb/s\nStream mapping:\n  Stream #0:0 -> #0:0 (mjpeg (native) -> wrapped_avframe (native))\n[Parsed_showinfo_0 @ 0x749770002ec0] config in time_base: 333333/10000000, frame_rate: 10000000/333333\n[Parsed_showinfo_0 @ 0x749770002ec0] config out time_base: 0/0, frame_rate: 0/0\n[Parsed_showinfo_0 @ 0x749770002ec0] n:   0 pts:      0 pts_time:0       duration:      1 duration_time:0.0333333 fmt:yuvj420p cl:center sar:1/1 s:3840x2160 i:P iskey:1 type:I checksum:6199896A plane_checksum:[0C05AEB0 790FED4E 790FED4E] mean:[126 128 128] stdev:[35.3 0.0 0.0]\n[Parsed_showinfo_0 @ 0x749770002ec0] color_range:pc color_space:bt470bg color_primaries:unknown color_trc:unknown\nOutput #0, null, to 'pipe:':\n  Metadata:\n    software        : Lavf58.13.101\n    encoder         : Lavf61.1.100\n  Stream #0:0: Video: wrapped_avframe, yuvj420p(pc, bt470bg/unknown/unknown, progressive), 3840x2160 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 30 fps, 30 tbn\n      Metadata:\n        encoder         : Lavc61.3.100 wrapped_avframe\n[out#0/null @ 0x15824b80] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown\nframe=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:00.03 bitrate=N/A speed=0.944x    "
+    },
+    "marker_locator_s": {
+      "T0": 111.35870265960693,
+      "T1": 168.5245397090912,
+      "T2": 228.7034628391266,
+      "T3": 288.8747208118439
+    },
+    "events": [
+      {
+        "step": 1,
+        "end_locator_s": 166.5308337211609,
+        "start_locator_s": 166.36227172116088
+      },
+      {
+        "step": 2,
+        "end_locator_s": 226.7008354663849,
+        "start_locator_s": 226.5340324663849
+      },
+      {
+        "step": 3,
+        "end_locator_s": 286.8719279766083,
+        "start_locator_s": 286.7040769766083
+      }
+    ],
+    "samples": [
+      {
+        "label": "T0",
+        "offset_s": 0,
+        "requested_s": 111.35870265960693,
+        "decoded_pts_s": 111.366555,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/archive/20261018-dad/analysis/DAD_T0_0.png"
+      },
+      {
+        "label": "T0",
+        "offset_s": 0.5,
+        "requested_s": 111.85870265960693,
+        "decoded_pts_s": 111.866555,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/archive/20261018-dad/analysis/DAD_T0_1.png"
+      },
+      {
+        "label": "T0",
+        "offset_s": 1,
+        "requested_s": 112.35870265960693,
+        "decoded_pts_s": 112.366554,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/archive/20261018-dad/analysis/DAD_T0_2.png"
+      },
+      {
+        "label": "T1",
+        "offset_s": 0,
+        "requested_s": 168.5245397090912,
+        "decoded_pts_s": 168.533165,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/archive/20261018-dad/analysis/DAD_T1_0.png"
+      },
+      {
+        "label": "T1",
+        "offset_s": 0.5,
+        "requested_s": 169.0245397090912,
+        "decoded_pts_s": 169.033164,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/archive/20261018-dad/analysis/DAD_T1_1.png"
+      },
+      {
+        "label": "T1",
+        "offset_s": 1,
+        "requested_s": 169.5245397090912,
+        "decoded_pts_s": 169.533164,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/archive/20261018-dad/analysis/DAD_T1_2.png"
+      },
+      {
+        "label": "T2",
+        "offset_s": 0,
+        "requested_s": 228.7034628391266,
+        "decoded_pts_s": 228.699771,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/archive/20261018-dad/analysis/DAD_T2_0.png"
+      },
+      {
+        "label": "T2",
+        "offset_s": 0.5,
+        "requested_s": 229.2034628391266,
+        "decoded_pts_s": 229.199771,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/archive/20261018-dad/analysis/DAD_T2_1.png"
+      },
+      {
+        "label": "T2",
+        "offset_s": 1,
+        "requested_s": 229.7034628391266,
+        "decoded_pts_s": 229.69977,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/archive/20261018-dad/analysis/DAD_T2_2.png"
+      },
+      {
+        "label": "T3",
+        "offset_s": 0,
+        "requested_s": 288.8747208118439,
+        "decoded_pts_s": 288.866378,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/archive/20261018-dad/analysis/DAD_T3_0.png"
+      },
+      {
+        "label": "T3",
+        "offset_s": 0.5,
+        "requested_s": 289.3747208118439,
+        "decoded_pts_s": 289.366377,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/archive/20261018-dad/analysis/DAD_T3_1.png"
+      },
+      {
+        "label": "T3",
+        "offset_s": 1,
+        "requested_s": 289.8747208118439,
+        "decoded_pts_s": 289.866377,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/archive/20261018-dad/analysis/DAD_T3_2.png"
+      }
+    ],
+    "metadata_elapsed_s": 324.6438801288605,
+    "duration_minus_metadata_elapsed_s": -0.16388012886045544,
+    "locator_method": "USB receipt wallclock minus PC original-file creation time; approximate, no calibrated camera synchronization; visually verify stable images/events"
+  }
+]

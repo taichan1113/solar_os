@@ -1,0 +1,355 @@
+{
+  "condition": "DAD",
+  "sequence": [
+    "D",
+    "A",
+    "D"
+  ],
+  "phases": [
+    {
+      "err": 0,
+      "candidate": 0,
+      "spi_hz": 20000000,
+      "cmd03": 0,
+      "cmd04": 0,
+      "cmd2c": 0,
+      "cmd32": 0,
+      "cmd20": 2,
+      "phase": "white-otp",
+      "start_us": 270460543,
+      "end_us": 274937393,
+      "total_us": 4476850,
+      "busy_us": 100005,
+      "spi_us": 93757,
+      "ram_bytes": 0
+    },
+    {
+      "err": 0,
+      "candidate": 0,
+      "spi_hz": 20000000,
+      "cmd03": 0,
+      "cmd04": 0,
+      "cmd2c": 0,
+      "cmd32": 0,
+      "cmd20": 2,
+      "phase": "image-otp",
+      "start_us": 355077425,
+      "end_us": 359551039,
+      "total_us": 4473614,
+      "busy_us": 99272,
+      "spi_us": 90316,
+      "ram_bytes": 0
+    },
+    {
+      "err": 0,
+      "candidate": 0,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "phase": "prepare-baseline",
+      "start_us": 359561054,
+      "end_us": 360102833,
+      "total_us": 541779,
+      "busy_us": 134301,
+      "spi_us": 78448,
+      "ram_bytes": 192000
+    },
+    {
+      "err": 0,
+      "candidate": 2,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "phase": "DAD-repeat-1",
+      "start_us": 420107806,
+      "end_us": 420276368,
+      "total_us": 168562,
+      "busy_us": 51582,
+      "spi_us": 62755,
+      "ram_bytes": 144000
+    },
+    {
+      "err": 0,
+      "candidate": 3,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "phase": "DAD-repeat-2",
+      "start_us": 480281623,
+      "end_us": 480448426,
+      "total_us": 166803,
+      "busy_us": 51687,
+      "spi_us": 61721,
+      "ram_bytes": 144000
+    },
+    {
+      "err": 0,
+      "candidate": 2,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "phase": "DAD-repeat-3",
+      "start_us": 540454027,
+      "end_us": 540621878,
+      "total_us": 167851,
+      "busy_us": 51363,
+      "spi_us": 61635,
+      "ram_bytes": 144000
+    },
+    {
+      "err": 0,
+      "candidate": 0,
+      "spi_hz": 20000000,
+      "cmd03": 0,
+      "cmd04": 0,
+      "cmd2c": 0,
+      "cmd32": 0,
+      "cmd20": 2,
+      "phase": "exit-otp",
+      "start_us": 594584179,
+      "end_us": 599060397,
+      "total_us": 4476218,
+      "busy_us": 99869,
+      "spi_us": 92778,
+      "ram_bytes": 0
+    }
+  ],
+  "measured": [
+    {
+      "err": 0,
+      "candidate": 2,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "phase": "DAD-repeat-1",
+      "start_us": 420107806,
+      "end_us": 420276368,
+      "total_us": 168562,
+      "busy_us": 51582,
+      "spi_us": 62755,
+      "ram_bytes": 144000
+    },
+    {
+      "err": 0,
+      "candidate": 3,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "phase": "DAD-repeat-2",
+      "start_us": 480281623,
+      "end_us": 480448426,
+      "total_us": 166803,
+      "busy_us": 51687,
+      "spi_us": 61721,
+      "ram_bytes": 144000
+    },
+    {
+      "err": 0,
+      "candidate": 2,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "phase": "DAD-repeat-3",
+      "start_us": 540454027,
+      "end_us": 540621878,
+      "total_us": 167851,
+      "busy_us": 51363,
+      "spi_us": 61635,
+      "ram_bytes": 144000
+    }
+  ],
+  "markers": {
+    "T0": {
+      "anchor_us": 360102833,
+      "target_us": 365102833,
+      "actual_us": 365103014
+    },
+    "measure1": {
+      "anchor_us": 420102833,
+      "target_us": 420102833,
+      "actual_us": 420103015
+    },
+    "T1": {
+      "anchor_us": 420276368,
+      "target_us": 422276368,
+      "actual_us": 422277017
+    },
+    "measure2": {
+      "anchor_us": 480276368,
+      "target_us": 480276368,
+      "actual_us": 480277014
+    },
+    "T2": {
+      "anchor_us": 480448426,
+      "target_us": 482448426,
+      "actual_us": 482449015
+    },
+    "measure3": {
+      "anchor_us": 540448426,
+      "target_us": 540448426,
+      "actual_us": 540449014
+    },
+    "T3": {
+      "anchor_us": 540621878,
+      "target_us": 542621878,
+      "actual_us": 542622017
+    }
+  },
+  "traces": {
+    "prepare-baseline": {
+      "lut_ready_us": 359894708,
+      "activate_call_us": 359894908,
+      "busy_wait_end_us": 360029209,
+      "restore_start_us": 360102694,
+      "restore_end_us": 360102830,
+      "busy_edge_measured": 0
+    },
+    "DAD-repeat-1": {
+      "lut_ready_us": 420147237,
+      "activate_call_us": 420147446,
+      "busy_wait_end_us": 420199028,
+      "restore_start_us": 420276224,
+      "restore_end_us": 420276366,
+      "busy_edge_measured": 0
+    },
+    "DAD-repeat-2": {
+      "lut_ready_us": 480321141,
+      "activate_call_us": 480321341,
+      "busy_wait_end_us": 480373028,
+      "restore_start_us": 480448287,
+      "restore_end_us": 480448423,
+      "busy_edge_measured": 0
+    },
+    "DAD-repeat-3": {
+      "lut_ready_us": 540493460,
+      "activate_call_us": 540493665,
+      "busy_wait_end_us": 540545028,
+      "restore_start_us": 540621737,
+      "restore_end_us": 540621875,
+      "busy_edge_measured": 0
+    }
+  },
+  "luts": {
+    "prepare-baseline": {
+      "requested_lut0": "0000",
+      "lut_send_ok": 1,
+      "baseline_restore_ok": 1,
+      "physical_readback": 0
+    },
+    "DAD-repeat-1": {
+      "lut_send_ok": 1,
+      "baseline_restore_ok": 1,
+      "physical_readback": 0,
+      "requested_lut0": "2FF0"
+    },
+    "DAD-repeat-2": {
+      "requested_lut0": "0000",
+      "lut_send_ok": 1,
+      "baseline_restore_ok": 1,
+      "physical_readback": 0
+    },
+    "DAD-repeat-3": {
+      "lut_send_ok": 1,
+      "baseline_restore_ok": 1,
+      "physical_readback": 0,
+      "requested_lut0": "2FF0"
+    }
+  },
+  "requests": {
+    "1": {
+      "step": 1,
+      "requested_us": 392603053,
+      "boot_attempts": 1
+    },
+    "2": {
+      "step": 2,
+      "requested_us": 470497042,
+      "boot_attempts": 2
+    },
+    "3": {
+      "step": 3,
+      "requested_us": 517989036,
+      "boot_attempts": 3
+    }
+  },
+  "schedules": {
+    "1": {
+      "step": 1,
+      "previous_end_us": 360102833,
+      "goal_us": 420102833,
+      "requested_us": 392603053,
+      "planned_us": 420102833
+    },
+    "2": {
+      "step": 2,
+      "previous_end_us": 420276368,
+      "goal_us": 480276368,
+      "requested_us": 470497042,
+      "planned_us": 480276368
+    },
+    "3": {
+      "step": 3,
+      "previous_end_us": 480448426,
+      "goal_us": 540448426,
+      "requested_us": 517989036,
+      "planned_us": 540448426
+    }
+  },
+  "actual_intervals_us": [
+    {
+      "step": 1,
+      "waveform": "D",
+      "previous_completion_to_driver_start_us": 60004973,
+      "target_lateness_us": 4973,
+      "measurement_end_to_Tn_us": 2000649
+    },
+    {
+      "step": 2,
+      "waveform": "A",
+      "previous_completion_to_driver_start_us": 60005255,
+      "target_lateness_us": 5255,
+      "measurement_end_to_Tn_us": 2000589
+    },
+    {
+      "step": 3,
+      "waveform": "D",
+      "previous_completion_to_driver_start_us": 60005601,
+      "target_lateness_us": 5601,
+      "measurement_end_to_Tn_us": 2000139
+    }
+  ],
+  "diagnostic_cmd20": 10,
+  "measured_cmd20": 3,
+  "D_cmd20": 2,
+  "A_cmd20": 1,
+  "means_us": {
+    "total_us": 167738.66666666666,
+    "busy_us": 51544,
+    "spi_us": 62037
+  },
+  "physical_lut_readback": false,
+  "intermediate_OTP_or_image_reinitialization": false,
+  "visual": "T0 normal; T1,T2,T3 nearly unchanged; white normal; no conspicuous flicker",
+  "scope": "Diagnostic only; normal UI and reboot updates excluded; optical video pending"
+}

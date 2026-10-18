@@ -1,0 +1,30 @@
+{
+  "result": "PASS",
+  "rollback_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6",
+  "protected_regions": {
+    "bootloader": {
+      "unchanged": true,
+      "sha256": "3ae58d175ec0f7e3d2ae412ffcce00819578af7aa327b02ec72c33aab838e947"
+    },
+    "partition_table": {
+      "unchanged": true,
+      "sha256": "5e3ed4b37934b0b91570d25452be2d1b5dce204ffe049febf7b6a9e6e696f97d"
+    },
+    "nvs": {
+      "unchanged": true,
+      "sha256": "bb3f2f313338566e5726c9b2b01878c860fe64c0dc06352e7f67e5cc6d8e170f"
+    },
+    "otadata": {
+      "unchanged": true,
+      "sha256": "8ba3b110139f45443d4f268d1a3373ef99a1718b71d51664531b83ee2d4b91a3"
+    },
+    "phy_init": {
+      "unchanged": true,
+      "sha256": "58b59eb397fcc8b699d265a18af84e063dc9bab0bd03632ad2f91e70038aa788"
+    },
+    "fat": {
+      "unchanged": true,
+      "sha256": "5b9e1ecc6f4af0ee371b41e5fec1f2167a1aad048d4a47528e7b71c00be21474"
+    }
+  }
+}

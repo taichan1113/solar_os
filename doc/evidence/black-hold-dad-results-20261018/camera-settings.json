@@ -1,0 +1,16 @@
+{
+  "recorded_utc": "2026-10-18T09:05:58.075667+00:00",
+  "reply": "User confirmed same fixed camera settings as previous trial",
+  "camera": "Insta360 Link",
+  "resolution_fps": "4K30",
+  "exposure_gain": "manual fixed",
+  "WB": "fixed; numeric value not reconfirmed",
+  "focus": "previous setting 9%; same settings declared",
+  "natural_light": "previously cannot block; no new declaration",
+  "temperature": "not measured",
+  "continuous_sequence": [
+    "D",
+    "A",
+    "D"
+  ]
+}
