@@ -1,0 +1,26 @@
+[
+  {
+    "port": "COM16",
+    "description": "Bluetooth \u30ea\u30f3\u30af\u7d4c\u7531\u306e\u6a19\u6e96\u30b7\u30ea\u30a2\u30eb (COM16)",
+    "hwid": "BTHENUM\\{00001101-0000-1000-8000-00805F9B34FB}_LOCALMFG&0002\\7&1651D211&0&8CA96F1E5770_C00000000",
+    "serial": null
+  },
+  {
+    "port": "COM1",
+    "description": "\u901a\u4fe1\u30dd\u30fc\u30c8 (COM1)",
+    "hwid": "ACPI\\PNP0501\\0",
+    "serial": null
+  },
+  {
+    "port": "COM39",
+    "description": "USB \u30b7\u30ea\u30a2\u30eb \u30c7\u30d0\u30a4\u30b9 (COM39)",
+    "hwid": "USB VID:PID=303A:1001 SER=28:84:85:44:79:68",
+    "serial": "28:84:85:44:79:68"
+  },
+  {
+    "port": "COM15",
+    "description": "Bluetooth \u30ea\u30f3\u30af\u7d4c\u7531\u306e\u6a19\u6e96\u30b7\u30ea\u30a2\u30eb (COM15)",
+    "hwid": "BTHENUM\\{00001101-0000-1000-8000-00805F9B34FB}_LOCALMFG&0000\\7&1651D211&0&000000000000_00000000",
+    "serial": null
+  }
+]

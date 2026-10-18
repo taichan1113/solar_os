@@ -1,0 +1,66 @@
+{
+  ".gitattributes": {
+    "bytes": 41,
+    "sha256": "898fc2da01b20487ea0b1e7243ca918ee7538eaeb39a3f080b7d01193074e161"
+  },
+  "backup-audit.json": {
+    "bytes": 2068,
+    "sha256": "6e80d6c30d3f652c66b914d6f5920be56fef934a1e4bb4a64c371739b53eab07"
+  },
+  "boot.log": {
+    "bytes": 8000,
+    "sha256": "24b6b0a2b2474dbea1242dee473d5f8ee4457ba97db08fa643a337b95a3bd8ce"
+  },
+  "deployment-audit.json": {
+    "bytes": 1080,
+    "sha256": "c3a517b6cfbd8b7b447bc62352259093a3a6bfefadaa1a2f7f28dba43690e0dc"
+  },
+  "device_query.py": {
+    "bytes": 1166,
+    "sha256": "c4b4842640935d93fcbaeb1b6ccca3a2c356fe6f0fa338f22cca385fa457776a"
+  },
+  "flash-summary.json": {
+    "bytes": 3109,
+    "sha256": "58203646e04c13234c1efae69f8c4005dcec2722264b70c9455d312df7c89c8a"
+  },
+  "flash.log": {
+    "bytes": 7849,
+    "sha256": "e9c439b7ffb24981c9e755eec86d88e198f84497b5cdade5a00fe5a0eb6ecf9c"
+  },
+  "flash_writer_guarded.py": {
+    "bytes": 7509,
+    "sha256": "d4e4066ed9cd040e14e5b33b686a4831b65e55bbfd2bca1f40b780e266f7de83"
+  },
+  "other-worktrees-after.json": {
+    "bytes": 22684,
+    "sha256": "ad7cd6ebef24f7d77ecfb48b4915b21ed17a84d4041efdce2801132784b32170"
+  },
+  "package_flash_report.py": {
+    "bytes": 2021,
+    "sha256": "8b8e99e0288cd3f7ffd18346fbd88e155ed984522edf71df1e95f87b7bc2634e"
+  },
+  "post-flash-usb.log": {
+    "bytes": 2343,
+    "sha256": "c3b7f9a20e71ddc10231ea63c47c24ce0ecb647656184af7575ce3caa24e6b0d"
+  },
+  "preflight-usb.log": {
+    "bytes": 1805,
+    "sha256": "6900a6d4401112db3c6b6d7367cb811739ef1a2a0ffdacf996dec60e2aa7d36a"
+  },
+  "restore_writer_guarded.py": {
+    "bytes": 3666,
+    "sha256": "b0762d93470685c6a255672f1fa36b7352cc514bb8d5b6abbe0f7817403bd404"
+  },
+  "usb-ports.json": {
+    "bytes": 925,
+    "sha256": "c7af1aeb87305e6d7cdff05ed97a83e54049c77e70ecd06db386e6e8f61bb844"
+  },
+  "user-confirmations.json": {
+    "bytes": 324,
+    "sha256": "52fde6e164a4cc358d4fb0e0283ea12771a8bb8f4d013aae85a889cf64390738"
+  },
+  "verify_deployment.py": {
+    "bytes": 3356,
+    "sha256": "0a8387e6564fa24a34f8a4426cfa6b153079722d8b1805babc079a65e0cf41e0"
+  }
+}

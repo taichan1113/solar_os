@@ -1,0 +1,9 @@
+{
+  "flash_authorized": true,
+  "preflight_user_confirmation": "USB接続・未保存なし・競合なし・表示正常",
+  "post_flash_user_confirmation": "表示正常",
+  "confirmation_recorded_UTC": "2026-10-18T12:41:44.379674+00:00",
+  "Writer_trial_started": false,
+  "D_selected": false,
+  "D_attempts": 0
+}

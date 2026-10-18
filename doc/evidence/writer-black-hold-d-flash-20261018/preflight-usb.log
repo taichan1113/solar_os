@@ -1,0 +1,37 @@
+version
+SolarOS 4.16.1
+Flavor: writerdeck
+user@sol:/ sessions
+ID  TITLE        APP      STATE     OWNER    TIME
+0   shell        shell    suspended display0 0/0ms 0/0us n=0 !0
+1   launcher     launcher active    display0 40/25ms 21/486us n=158713 !0
+16  cdc0/dumb    shell    active    cdc0     100/25ms 23/415us n=114413 !0
+user@sol:/ ota status
+SolarOS: 4.16.1
+Compiled flavor: writerdeck
+OTA flavor: writerdeck
+URL: https://solar-os.eu/ota/latest
+OTA partitions: 2
+Running: ota_0 (slot 0) addr 0x010000 size 7.0 MiB state valid version 4.16.1
+Boot: ota_0 (slot 0) addr 0x010000 size 7.0 MiB state valid version 4.16.1
+Next update: ota_1 (slot 1) addr 0x710000 size 7.0 MiB state unknown
+user@sol:/ display list
+TARGET   SOURCE    DRIVER     SIZE      ROLE     READY BRIGHT OWNER
+display0 board     ssd1677    480x800   primary  yes   no     -
+user@sol:/ I (11458649) NimBLE: GAP procedure initiated: discovery; 
+I (11458649) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (11458649) NimBLE: duration=8000ms
+I (11458649) NimBLE: 
+
+display mode display0
+mode: refresh=fastest
+values: refresh=<auto,partial,full,cleanup,fastest,typing,hybrid> timing=<on,off> hybrid-idle-ms=<500..30000> hybrid-max-updates=<1..10> spi-mhz=<10,20> fastest-path=<scalar,tile> typing-framuser@sol:/ display async display0
+async enabled=1 busy=0 pending=0 suspended=0 error=0
+submitted=0 replaced=0 cancelled=0 rejected=0 started=0 completed=0 physical=0
+maintenance_started=0 maintenance_completed=0
+generation=0 completed_generation=0 cancelled_generation=0 snapshots=96000 peak=0
+user@sol:/ cat /.shell/startup
+session create shell cdc0 --term dumb --size 80x25
+display mode display0 refresh=fastest
+display mode display0 fastest-path=tile
+user@sol:/ 

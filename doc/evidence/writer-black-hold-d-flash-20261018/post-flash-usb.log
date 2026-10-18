@@ -1,0 +1,45 @@
+I (8314) epd_ssd1677: PaperMono SSD1677 init complete: OTP full version
+SolarOS 4.16.1
+Flavor: writerdeck
+user@sol:/ sessions
+ID  TITLE        APP      STATE     OWNER    TIME
+0   shell        shell    suspended display0 0/0ms 0/0us n=0 !0
+1   launcher     launcher active    display0 40/25ms 21/369us n=329 !0
+16  cdc0/dumb    shell    active    cdc0     100/25ms 15/51us n=282 !0
+user@sol:/ ota status
+SolarOS: 4.16.1
+Compiled flavor: writerdeck
+OTA flavor: writerdeck
+URL: https://solar-os.eu/ota/latest
+OTA partitions: 2
+Running: ota_0 (slot 0) addr 0x010000 size 7.0 MiB state valid version 4.16.1
+Boot: ota_0 (slot 0) addr 0x010000 size 7.0 MiB state valid version 4.16.1
+Next update: ota_1 (slot 1) addr 0x710000 size 7.0 MiB state unknown
+user@sol:/ display list
+TARGET   SOURCE    DRIVER     SIZE      ROLE     READY BRIGHT OWNER
+display0 board     ssd1677    480x800   primary  yes   no     -
+user@sol:/ I (42407) NimBLE: GAP procedure initiated: discovery; 
+I (42407) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (42407) NimBLE: duration=8000ms
+I (42408) NimBLE: 
+
+display mode display0
+mode: refresh=fastest
+values: refresh=<auto,partial,full,cleanup,fastest,typing,hybrid> timing=<on,off> hybrid-idle-ms=<500..30000> hybrid-max-updates=<1..10> spi-mhz=<10,20> fastest-path=<scalar,tile> typing-framuser@sol:/ display async display0
+async enabled=1 busy=0 pending=0 suspended=0 error=0
+submitted=0 replaced=0 cancelled=0 rejected=0 started=0 completed=0 physical=0
+maintenance_started=0 maintenance_completed=0
+generation=0 completed_generation=0 cancelled_generation=0 snapshots=96000 peak=0
+user@sol:/ cat /.shell/startup
+session create shell cdc0 --term dumb --size 80x25
+display mode display0 refresh=fastest
+display mode display0 fastest-path=tile
+user@sol:/ display test display0 writer-lut status
+writer-lut err=0 mode=A attempt=0/6 D0x20=0 success=0 error=0 failed=0 cap=0
+writer physical=0 A=0 D=0 OTP=0 noop=0 other0x20=5 power0x20=0 records=0
+queue submitted=0 replaced=0 writer=0 coalesced=0 cancelled=0 superseded=0 error=0
+user@sol:/ I (55410) NimBLE: GAP procedure initiated: discovery; 
+I (55410) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (55410) NimBLE: duration=8000ms
+I (55411) NimBLE: 
+
