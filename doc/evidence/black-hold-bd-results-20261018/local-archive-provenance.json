@@ -1,0 +1,26 @@
+{
+  "archive\\20261018-bd-compare\\full-flash-before.bin": {
+    "bytes": 16777216,
+    "sha256": "966928988e11d318b9bf77fd17de267a674e71cc2eb004ac74ae69118d5db271"
+  },
+  "archive\\20261018-bd-compare\\ota0-app-rollback.bin": {
+    "bytes": 3455712,
+    "sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6"
+  },
+  "archive\\20261018-bd-compare\\flash.log": {
+    "bytes": 6028,
+    "sha256": "c52a877077f270d4a60c166179c13c7b25074a00835dec6ad268e99e041455d3"
+  },
+  "archive\\20261018-bd-compare\\restore.log": {
+    "bytes": 2734,
+    "sha256": "590a253a0ab58fbd5269b63eab1545cdc903568ab8c646f80a834c65d60b93e1"
+  },
+  "analyze_video_roi.py": {
+    "bytes": 7769,
+    "sha256": "2b4ca85cad32675de747397d1861e01f7e3f990aea09936949cf5ee228b3fc66"
+  },
+  "analyze_bd_stability.py": {
+    "bytes": 5507,
+    "sha256": "0412315ec5438f0a55d4f30c21590ed39dd05868107bd8faf9c810635e1a35ba"
+  }
+}

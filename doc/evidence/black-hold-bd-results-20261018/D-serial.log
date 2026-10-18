@@ -1,0 +1,69 @@
+display test display0 black-hold-single D
+I (189145) papermono-power: IOE PYG3=1
+I (189171) papermono-power: IOE PYG5=0
+I (189187) papermono-power: IOE PYG5=1
+I (189398) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+I (193611) epd_ssd1677: OTP full err=0 start=188107109 end=192578038 total_us=4470929
+I (193611) epd_ssd1677: OTP write0 start=188365870 end=188434547 us=68677
+I (193611) epd_ssd1677: OTP phases0 convert_start=188366104 convert_end=188434485 convert_us=36428 spi_us=31559
+I (193612) epd_ssd1677: OTP write1 start=188534093 end=188595627 us=61534
+I (193612) epd_ssd1677: OTP phases1 convert_start=188534292 convert_end=188595563 convert_us=31121 spi_us=29458
+I (193612) epd_ssd1677: OTP write2 start=188595630 end=188656195 us=60565
+I (193612) epd_ssd1677: OTP phases2 convert_start=188595846 convert_end=188656133 convert_us=31081 spi_us=28809
+I (193613) epd_ssd1677: OTP activate0 start=188434554 ready=188534029 us=99475
+I (193613) epd_ssd1677: OTP activate1 start=188656202 ready=192476032 us=3819830
+BH phase=white-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2 start_us=188107109 end_us=192578038 total_us=4470929 busy_us=99475 spi_us=89826
+BH gate=white g=next q=stop
+I (215699) papermono-power: IOE PYG3=1
+I (215724) papermono-power: IOE PYG5=0
+I (215740) papermono-power: IOE PYG5=1
+I (215951) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+I (220171) epd_ssd1677: OTP full err=0 start=214658439 end=219138031 total_us=4479592
+I (220171) epd_ssd1677: OTP write0 start=214918956 end=214987290 us=68334
+I (220171) epd_ssd1677: OTP phases0 convert_start=214919187 convert_end=214987228 convert_us=36061 spi_us=31573
+I (220172) epd_ssd1677: OTP write1 start=215087093 end=215151639 us=64546
+I (220172) epd_ssd1677: OTP phases1 convert_start=215087289 convert_end=215151577 convert_us=32227 spi_us=31672
+I (220172) epd_ssd1677: OTP write2 start=215151643 end=215216147 us=64504
+I (220172) epd_ssd1677: OTP phases2 convert_start=215151853 convert_end=215216085 convert_us=33447 spi_us=30391
+I (220173) epd_ssd1677: OTP activate0 start=214987296 ready=215087029 us=99733
+I (220173) epd_ssd1677: OTP activate1 start=215216154 ready=219036029 us=3819875
+BH phase=image-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2 start_us=214658439 end_us=219138031 total_us=4479592 busy_us=99733 spi_us=93636
+I (220190) papermono-power: IOE PYG3=1
+I (220215) papermono-power: IOE PYG5=0
+I (220231) papermono-power: IOE PYG5=1
+I (220442) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+I (220718) epd_ssd1677: REF err=0 cold=1 region=0,0,800,480 ram_bytes=192000 0x20=1 start=219147858 end=219685214 total_us=537356 busy_us=133534
+I (220718) epd_ssd1677: REF phases path=tile spi_khz=20000 diff_us=3442 promote_us=1998 waveform=baseline
+I (220719) epd_ssd1677: REF write0 ram_bytes=48000 us=34929 convert_us=15163 spi_us=19503
+I (220719) epd_ssd1677: REF write1 ram_bytes=48000 us=34337 convert_us=14591 spi_us=19506
+I (220719) epd_ssd1677: REF write2 ram_bytes=48000 us=35231 convert_us=15013 spi_us=19899
+I (220719) epd_ssd1677: REF write3 ram_bytes=48000 us=34948 convert_us=15123 spi_us=19587
+BH phase=prepare-baseline err=0 candidate=0 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1 start_us=219147858 end_us=219687345 total_us=539487 busy_us=133534 spi_us=78631
+BH trace phase=prepare-baseline lut_ready_us=219479289 activate_call_us=219479490 busy_wait_end_us=219613024 restore_start_us=219687207 restore_end_us=219687342 busy_edge_measured=0
+BH mark=T0 anchor_us=219687345 target_us=224687345 actual_us=224688010
+BH mark=measure anchor_us=219687345 target_us=229687345 actual_us=229688010
+I (230892) epd_ssd1677: REF err=0 cold=0 region=0,0,800,480 ram_bytes=144000 0x20=1 start=229692343 end=229859508 total_us=167165 busy_us=51225
+I (230893) epd_ssd1677: REF phases path=tile spi_khz=20000 diff_us=3624 promote_us=2067 waveform=black-hold-D
+I (230893) epd_ssd1677: REF write0 ram_bytes=48000 us=35472 convert_us=14740 spi_us=20420
+I (230893) epd_ssd1677: REF write1 ram_bytes=48000 us=37400 convert_us=16409 spi_us=20638
+I (230894) epd_ssd1677: REF write2 ram_bytes=48000 us=37006 convert_us=16174 spi_us=20530
+BH phase=D-single err=0 candidate=2 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1 start_us=229692343 end_us=229861840 total_us=169497 busy_us=51225 spi_us=61724
+BH trace phase=D-single lut_ready_us=229731597 activate_call_us=229731798 busy_wait_end_us=229783023 restore_start_us=229861702 restore_end_us=229861837 busy_edge_measured=0
+BH mark=T1 anchor_us=229861840 target_us=231861840 actual_us=231862011
+BH gate=T1-photograph g=next q=stop
+I (279003) papermono-power: IOE PYG3=1
+I (279028) papermono-power: IOE PYG5=0
+I (279043) papermono-power: IOE PYG5=1
+I (279254) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+I (283467) epd_ssd1677: OTP full err=0 start=277964222 end=282434101 total_us=4469879
+I (283467) epd_ssd1677: OTP write0 start=278221891 end=278290214 us=68323
+I (283467) epd_ssd1677: OTP phases0 convert_start=278222122 convert_end=278290153 convert_us=35692 spi_us=31941
+I (283468) epd_ssd1677: OTP write1 start=278390100 end=278451860 us=61760
+I (283468) epd_ssd1677: OTP phases1 convert_start=278390298 convert_end=278451797 convert_us=31756 spi_us=29322
+I (283468) epd_ssd1677: OTP write2 start=278451864 end=278512366 us=60502
+I (283468) epd_ssd1677: OTP phases2 convert_start=278452081 convert_end=278512304 convert_us=30966 spi_us=28849
+I (283469) epd_ssd1677: OTP activate0 start=278290221 ready=278390029 us=99808
+I (283469) epd_ssd1677: OTP activate1 start=278512373 ready=282332035 us=3819662
+BH phase=exit-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2 start_us=277964222 end_us=282434101 total_us=4469879 busy_us=99808 spi_us=90112
+BH end condition=D err=0 healthy=1 candidate_spent=1
+user@sol:/ 

@@ -1,0 +1,10 @@
+close 1
+I (57096) papermono-power: IOE PYG6=0
+I (57102) papermono-power: IOE PYG13=0
+I (57103) ft6336: touch0 disabled: worker stopped, power OFF
+closed session 1
+user@sol:/ sessions
+ID  TITLE        APP      STATE     OWNER    TIME
+0   shell        shell    active    display0 25/25ms 279/335us n=82 !0
+16  cdc0/dumb    shell    active    cdc0     100/25ms 3/34us n=509 !0
+user@sol:/ 

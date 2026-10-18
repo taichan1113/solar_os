@@ -1,0 +1,29 @@
+version
+SolarOS 4.16.1
+Flavor: writerdeck
+user@sol:/ I (18968) papermono-power: IOE PYG3=1
+I (18994) papermono-power: IOE PYG5=0
+I (19011) papermono-power: IOE PYG5=1
+I (19121) epd_ssd1677: SPI requested_khz=20000 actual_khz=20000
+I (19221) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+sessions
+ID  TITLE        APP      STATE     OWNER    TIME
+0   shell        shell    suspended display0 0/0ms 0/0us n=0 !0
+1   launcher     launcher active    display0 40/25ms 21/777446us n=116 !2
+16  cdc0/dumb    shell    active    cdc0     100/25ms 20/29us n=141 !0
+user@sol:/ ota status
+SolarOS: 4.16.1
+Compiled flavor: writerdeck
+OTA flavor: writerdeck
+URL: https://solar-os.eu/ota/latest
+OTA partitions: 2
+Running: ota_0 (slot 0) addr 0x010000 size 7.0 MiB state valid version 4.16.1
+Boot: ota_0 (slot 0) addr 0x010000 size 7.0 MiB state valid version 4.16.1
+Next update: ota_1 (slot 1) addr 0x710000 size 7.0 MiB state unknown
+user@sol:/ display mode display0
+mode: refresh=fastest
+values: refresh=<auto,partial,full,cleanup,fastest,typing,hybrid> timing=<on,off> hybrid-idle-ms=<500..30000> hybrid-max-updates=<1..10> spi-mhz=<10,20> fastest-path=<scalar,tile> typing-framuser@sol:/ cat /.shell/startup
+session create shell cdc0 --term dumb --size 80x25
+display mode display0 refresh=fastest
+display mode display0 fastest-path=tile
+user@sol:/ 

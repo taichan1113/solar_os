@@ -1,0 +1,12 @@
+{
+  "classification": "D-4",
+  "reason": "Possible photographer reflection during B plus measured pre/post white variation. D also has pre-update drift. Relative contrast suggests blackening in both and a smaller single-frame D dip, but optical nuisance and 30fps limit causal ranking.",
+  "preferred_short_repeat_candidate": "ranking deferred",
+  "automatic_retake": false,
+  "new_candidate": false,
+  "candidate_updates": {
+    "B": 1,
+    "D": 1
+  },
+  "final_firmware": "original Integration application restored and visually normal"
+}

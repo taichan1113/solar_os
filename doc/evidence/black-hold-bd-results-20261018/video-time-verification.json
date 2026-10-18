@@ -1,0 +1,43 @@
+{
+  "source": "C:\\Users\\takec\\Videos\\BD\\20261018-095642.avi",
+  "bytes": 970237386,
+  "source_created_utc": "2026-10-18T00:56:42.5815717Z",
+  "source_modified_utc": "2026-10-18T00:59:43.3617304Z",
+  "sha256": "e211cae667b4700410e40bc81b5fa81e87ae53a5d5aaad00842499c2c9a0a26d",
+  "created_JST": "2026-10-18T09:56:42.581571+09:00",
+  "modified_JST": "2026-10-18T09:59:43.361730+09:00",
+  "duration_s": 180.59,
+  "probe_resolution": [
+    3840,
+    2160
+  ],
+  "probe_fps": 30.0,
+  "source_hash_unchanged": true,
+  "conditions_in_order": [
+    "B",
+    "D"
+  ],
+  "conditions": {
+    "B": {
+      "warm_end_receipt_JST": "2026-10-18T09:57:38.111944+09:00",
+      "event_start_locator_s": 55.361537334884645,
+      "event_end_locator_s": 55.530373334884644,
+      "marker_locator_s": {
+        "T0": 50.357209334884644,
+        "measure": 55.35721033488464,
+        "T1": 57.53120933488464
+      }
+    },
+    "D": {
+      "warm_end_receipt_JST": "2026-10-18T09:59:17.769645+09:00",
+      "event_start_locator_s": 155.01857711193847,
+      "event_end_locator_s": 155.18807411193848,
+      "marker_locator_s": {
+        "T0": 150.01424411193847,
+        "measure": 155.01424411193847,
+        "T1": 157.18824511193847
+      }
+    }
+  },
+  "synchronization": "USB receipt relative to file creation is approximate. Same video eliminates independent video time-origin mismatch, but no calibrated camera/driver sync."
+}

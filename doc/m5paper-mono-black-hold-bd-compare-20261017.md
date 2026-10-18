@@ -1,5 +1,7 @@
 # SSD1677 Candidate B/D：同一Firmware比較準備（2026-10-17）
 
+> 準備完了時点の記録。翌日の承認済み単発比較と復元・D-4判定は[実機結果](m5paper-mono-black-hold-bd-results-20261018.md)を参照。
+
 **Phase 1・2完了：B/D比較実装・Host・ESP32-S3ビルドPASS。Phase 3の実機Flash承認待ちで停止。** 今回はCOM接続・port走査・Flash読取り/書込み・EPD試験を行っていない。D-1〜D-5の実機判定はまだ付けない。新Candidate、反復試験、実用Branchへのmerge、pushなし。
 
 ## Git・実装

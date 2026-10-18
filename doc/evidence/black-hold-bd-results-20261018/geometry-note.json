@@ -1,0 +1,5 @@
+{
+  "selection_before_quantification": "Current B/D T0 previews inspected: matching geometry within continuous video; new common coordinates selected because camera geometry differs from previous A/D. Frozen per-video T0 text masks; same method.",
+  "original_modified": false,
+  "user_caveat": "Possible photographer reflection during B; D reported stable. Evaluate native timeline before ranking."
+}

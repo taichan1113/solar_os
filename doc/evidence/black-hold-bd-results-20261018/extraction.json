@@ -1,0 +1,136 @@
+[
+  {
+    "condition": "B",
+    "source": "C:\\Users\\takec\\Videos\\BD\\20261018-095642.avi",
+    "capture_directory": ".research/black-hold-bd-compare/archive/20261018-bd-compare/B",
+    "probe": {
+      "duration_s": 180.59,
+      "decoded_size": [
+        3840,
+        2160
+      ],
+      "nominal_fps": 30.0,
+      "variable_frame_rate_assumed_possible": true,
+      "decoder_log": "Input #0, avi, from '/mnt/c/Users/takec/Videos/BD/20261018-095642.avi':\n  Metadata:\n    software        : Lavf58.13.101\n  Duration: 00:03:00.59, start: 0.000000, bitrate: 42980 kb/s\n  Stream #0:0: Video: mjpeg (Baseline) (MJPG / 0x47504A4D), yuvj420p(pc, bt470bg/unknown/unknown), 3840x2160 [SAR 1:1 DAR 16:9], 42798 kb/s, 30 fps, 30 tbr, 30 tbn\n  Stream #0:1: Audio: ac3 ([0] [0][0] / 0x2000), 44100 Hz, stereo, fltp, 192 kb/s\nStream mapping:\n  Stream #0:0 -> #0:0 (mjpeg (native) -> wrapped_avframe (native))\n[Parsed_showinfo_0 @ 0x7507c8002ec0] config in time_base: 333333/10000000, frame_rate: 10000000/333333\n[Parsed_showinfo_0 @ 0x7507c8002ec0] config out time_base: 0/0, frame_rate: 0/0\n[Parsed_showinfo_0 @ 0x7507c8002ec0] n:   0 pts:      0 pts_time:0       duration:      1 duration_time:0.0333333 fmt:yuvj420p cl:center sar:1/1 s:3840x2160 i:P iskey:1 type:I checksum:9C218BA8 plane_checksum:[85B9B0EE 790FED4E 790FED4E] mean:[181 128 128] stdev:[29.6 0.0 0.0]\n[Parsed_showinfo_0 @ 0x7507c8002ec0] color_range:pc color_space:bt470bg color_primaries:unknown color_trc:unknown\nOutput #0, null, to 'pipe:':\n  Metadata:\n    software        : Lavf58.13.101\n    encoder         : Lavf61.1.100\n  Stream #0:0: Video: wrapped_avframe, yuvj420p(pc, bt470bg/unknown/unknown, progressive), 3840x2160 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 30 fps, 30 tbn\n      Metadata:\n        encoder         : Lavc61.3.100 wrapped_avframe\n[out#0/null @ 0x153f7b00] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown\nframe=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:00.03 bitrate=N/A speed=0.748x    "
+    },
+    "event_end_locator_s": 55.530373334884644,
+    "event_start_locator_s": 55.361537334884645,
+    "marker_locator_s": {
+      "T0": 50.357209334884644,
+      "measure": 55.35721033488464,
+      "T1": 57.53120933488464
+    },
+    "locator_method": "USB phase receipt wallclock minus original PC file creation time; approximate and requires visual verification; no calibrated sync bound",
+    "samples": [
+      {
+        "label": "T0",
+        "offset_s": 0,
+        "requested_s": 50.357209334884644,
+        "decoded_pts_s": 50.366616,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/archive/20261018-bd-compare/analysis/B_T0_0.png"
+      },
+      {
+        "label": "T0",
+        "offset_s": 0.5,
+        "requested_s": 50.857209334884644,
+        "decoded_pts_s": 50.866616,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/archive/20261018-bd-compare/analysis/B_T0_1.png"
+      },
+      {
+        "label": "T0",
+        "offset_s": 1,
+        "requested_s": 51.357209334884644,
+        "decoded_pts_s": 51.399949,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/archive/20261018-bd-compare/analysis/B_T0_2.png"
+      },
+      {
+        "label": "T1",
+        "offset_s": 0,
+        "requested_s": 57.53120933488464,
+        "decoded_pts_s": 57.533276,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/archive/20261018-bd-compare/analysis/B_T1_0.png"
+      },
+      {
+        "label": "T1",
+        "offset_s": 0.5,
+        "requested_s": 58.03120933488464,
+        "decoded_pts_s": 58.033275,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/archive/20261018-bd-compare/analysis/B_T1_1.png"
+      },
+      {
+        "label": "T1",
+        "offset_s": 1,
+        "requested_s": 58.53120933488464,
+        "decoded_pts_s": 58.533275,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/archive/20261018-bd-compare/analysis/B_T1_2.png"
+      }
+    ]
+  },
+  {
+    "condition": "D",
+    "source": "C:\\Users\\takec\\Videos\\BD\\20261018-095642.avi",
+    "capture_directory": ".research/black-hold-bd-compare/archive/20261018-bd-compare/D",
+    "probe": {
+      "duration_s": 180.59,
+      "decoded_size": [
+        3840,
+        2160
+      ],
+      "nominal_fps": 30.0,
+      "variable_frame_rate_assumed_possible": true,
+      "decoder_log": "Input #0, avi, from '/mnt/c/Users/takec/Videos/BD/20261018-095642.avi':\n  Metadata:\n    software        : Lavf58.13.101\n  Duration: 00:03:00.59, start: 0.000000, bitrate: 42980 kb/s\n  Stream #0:0: Video: mjpeg (Baseline) (MJPG / 0x47504A4D), yuvj420p(pc, bt470bg/unknown/unknown), 3840x2160 [SAR 1:1 DAR 16:9], 42798 kb/s, 30 fps, 30 tbr, 30 tbn\n  Stream #0:1: Audio: ac3 ([0] [0][0] / 0x2000), 44100 Hz, stereo, fltp, 192 kb/s\nStream mapping:\n  Stream #0:0 -> #0:0 (mjpeg (native) -> wrapped_avframe (native))\n[Parsed_showinfo_0 @ 0x750438002ec0] config in time_base: 333333/10000000, frame_rate: 10000000/333333\n[Parsed_showinfo_0 @ 0x750438002ec0] config out time_base: 0/0, frame_rate: 0/0\n[Parsed_showinfo_0 @ 0x750438002ec0] n:   0 pts:      0 pts_time:0       duration:      1 duration_time:0.0333333 fmt:yuvj420p cl:center sar:1/1 s:3840x2160 i:P iskey:1 type:I checksum:9C218BA8 plane_checksum:[85B9B0EE 790FED4E 790FED4E] mean:[181 128 128] stdev:[29.6 0.0 0.0]\n[Parsed_showinfo_0 @ 0x750438002ec0] color_range:pc color_space:bt470bg color_primaries:unknown color_trc:unknown\nOutput #0, null, to 'pipe:':\n  Metadata:\n    software        : Lavf58.13.101\n    encoder         : Lavf61.1.100\n  Stream #0:0: Video: wrapped_avframe, yuvj420p(pc, bt470bg/unknown/unknown, progressive), 3840x2160 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 30 fps, 30 tbn\n      Metadata:\n        encoder         : Lavc61.3.100 wrapped_avframe\n[out#0/null @ 0x137e8b00] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown\nframe=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:00.03 bitrate=N/A speed= 1.3x    "
+    },
+    "event_end_locator_s": 155.18807411193848,
+    "event_start_locator_s": 155.01857711193847,
+    "marker_locator_s": {
+      "T0": 150.01424411193847,
+      "measure": 155.01424411193847,
+      "T1": 157.18824511193847
+    },
+    "locator_method": "USB phase receipt wallclock minus original PC file creation time; approximate and requires visual verification; no calibrated sync bound",
+    "samples": [
+      {
+        "label": "T0",
+        "offset_s": 0,
+        "requested_s": 150.01424411193847,
+        "decoded_pts_s": 149.99985,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/archive/20261018-bd-compare/analysis/D_T0_0.png"
+      },
+      {
+        "label": "T0",
+        "offset_s": 0.5,
+        "requested_s": 150.51424411193847,
+        "decoded_pts_s": 150.49985,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/archive/20261018-bd-compare/analysis/D_T0_1.png"
+      },
+      {
+        "label": "T0",
+        "offset_s": 1,
+        "requested_s": 151.01424411193847,
+        "decoded_pts_s": 150.999849,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/archive/20261018-bd-compare/analysis/D_T0_2.png"
+      },
+      {
+        "label": "T1",
+        "offset_s": 0,
+        "requested_s": 157.18824511193847,
+        "decoded_pts_s": 157.199843,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/archive/20261018-bd-compare/analysis/D_T1_0.png"
+      },
+      {
+        "label": "T1",
+        "offset_s": 0.5,
+        "requested_s": 157.68824511193847,
+        "decoded_pts_s": 157.699842,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/archive/20261018-bd-compare/analysis/D_T1_1.png"
+      },
+      {
+        "label": "T1",
+        "offset_s": 1,
+        "requested_s": 158.18824511193847,
+        "decoded_pts_s": 158.199842,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/archive/20261018-bd-compare/analysis/D_T1_2.png"
+      }
+    ]
+  }
+]

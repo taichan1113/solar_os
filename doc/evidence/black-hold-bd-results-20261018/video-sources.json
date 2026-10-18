@@ -1,0 +1,20 @@
+[
+  {
+    "source": "C:\\Users\\takec\\Videos\\BD\\20261018-095642.avi",
+    "bytes": 970237386,
+    "source_created_utc": "2026-10-18T00:56:42.5815717Z",
+    "source_modified_utc": "2026-10-18T00:59:43.3617304Z",
+    "sha256": "e211cae667b4700410e40bc81b5fa81e87ae53a5d5aaad00842499c2c9a0a26d",
+    "condition": "B",
+    "capture_directory": ".research/black-hold-bd-compare/archive/20261018-bd-compare/B"
+  },
+  {
+    "source": "C:\\Users\\takec\\Videos\\BD\\20261018-095642.avi",
+    "bytes": 970237386,
+    "source_created_utc": "2026-10-18T00:56:42.5815717Z",
+    "source_modified_utc": "2026-10-18T00:59:43.3617304Z",
+    "sha256": "e211cae667b4700410e40bc81b5fa81e87ae53a5d5aaad00842499c2c9a0a26d",
+    "condition": "D",
+    "capture_directory": ".research/black-hold-bd-compare/archive/20261018-bd-compare/D"
+  }
+]

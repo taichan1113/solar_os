@@ -1,0 +1,286 @@
+{
+  "B": {
+    "local_windows_relative_approximate_end_s": {
+      "before": [
+        -0.75,
+        -0.5
+      ],
+      "after": [
+        0.2,
+        0.45
+      ]
+    },
+    "local_before": {
+      "square_black": 96.48128888888888,
+      "square_white": 198.23111111111112,
+      "square_contrast": 0.5133220371509588,
+      "text_black": 120.25471698113208,
+      "text_white": 198.1418663761801,
+      "text_contrast": 0.3931378404174138
+    },
+    "local_after": {
+      "square_black": 72.59486666666666,
+      "square_white": 195.4685333333333,
+      "square_contrast": 0.6286110903328963,
+      "text_black": 103.63657804459692,
+      "text_white": 195.1883079157589,
+      "text_contrast": 0.46904326691569304
+    },
+    "requested_pre5_window_s": [
+      50.361537334884645,
+      55.361537334884645
+    ],
+    "guarded_pre_window_s": [
+      50.361537334884645,
+      55.030373334884644
+    ],
+    "guard_reason": "Optical update can precede metadata/USB locator; exclude last uncertain portion when assessing pre-update drift. Full requested interval remains recorded.",
+    "native_frames_in_requested_pre5": 149,
+    "guarded_pre": {
+      "square": {
+        "white_range_percent": 1.0939511514804774,
+        "white_early_to_late_percent": -1.0254739699325666,
+        "white_largest_adjacent_quarter_second_step_percent": 0.2708001535748729,
+        "black_early_to_late_percent": 0.06177312850470518,
+        "C_range_pp": 0.9518186267256645,
+        "C_early_to_late_pp": -0.5339890457546126,
+        "C_largest_adjacent_quarter_second_step_pp": 0.4709070535083182,
+        "early_medians": {
+          "square_black": 96.41013333333333,
+          "square_white": 200.28462222222223,
+          "square_contrast": 0.5186619276085049,
+          "text_black": 123.21751715265866,
+          "text_white": 200.37879448075526,
+          "text_contrast": 0.3851116029007663
+        },
+        "late_medians": {
+          "square_black": 96.46968888888888,
+          "square_white": 198.23075555555556,
+          "square_contrast": 0.5133220371509588,
+          "text_black": 120.2944897084048,
+          "text_white": 198.15116194625998,
+          "text_contrast": 0.3929109473145268
+        }
+      },
+      "text": {
+        "white_range_percent": 1.169819884874862,
+        "white_early_to_late_percent": -1.1117107178270969,
+        "white_largest_adjacent_quarter_second_step_percent": 0.2816547004872546,
+        "black_early_to_late_percent": -2.372249913648572,
+        "C_range_pp": 0.9651151336026287,
+        "C_early_to_late_pp": 0.7799344413760512,
+        "C_largest_adjacent_quarter_second_step_pp": 0.27295180308246625,
+        "early_medians": {
+          "square_black": 96.41013333333333,
+          "square_white": 200.28462222222223,
+          "square_contrast": 0.5186619276085049,
+          "text_black": 123.21751715265866,
+          "text_white": 200.37879448075526,
+          "text_contrast": 0.3851116029007663
+        },
+        "late_medians": {
+          "square_black": 96.46968888888888,
+          "square_white": 198.23075555555556,
+          "square_contrast": 0.5133220371509588,
+          "text_black": 120.2944897084048,
+          "text_white": 198.15116194625998,
+          "text_contrast": 0.3929109473145268
+        }
+      }
+    },
+    "local_dip": {
+      "square": {
+        "local_pre_C": 0.5133220371509588,
+        "raw_min_C": 0.434521035784312,
+        "median3_min_C": 0.5098042028129317,
+        "raw_drop_from_local_pp": 7.88010013666468,
+        "median3_drop_from_local_pp": 0.3517834338027104,
+        "raw_recovery_to_T1_pp": 14.007311525287747,
+        "median3_recovery_to_T1_pp": 6.4789948224257765,
+        "near_step_pp": 11.52890531819375,
+        "near_white_change_percent": -1.3936146361149926
+      },
+      "text": {
+        "local_pre_C": 0.3931378404174138,
+        "raw_min_C": 0.342034583475666,
+        "median3_min_C": 0.3891124138808119,
+        "raw_drop_from_local_pp": 5.110325694174778,
+        "median3_drop_from_local_pp": 0.40254265366018727,
+        "raw_recovery_to_T1_pp": 9.095943123578348,
+        "median3_recovery_to_T1_pp": 4.388160083063758,
+        "near_step_pp": 7.590542649827925,
+        "near_white_change_percent": -1.490628161750407
+      }
+    },
+    "native_PTS": {
+      "frames": 278,
+      "min_interval_s": 0.03333299999999895,
+      "max_interval_s": 0.06666700000000247,
+      "gaps_gt_50ms": 1,
+      "limitation": "PTS gaps are reported for the analyzed interval; camera-internal lost/duplicated exposures are not independently measured.",
+      "gap_pairs_s": [
+        [
+          51.333282,
+          51.399949
+        ]
+      ]
+    },
+    "clip_max_fraction": {
+      "square_black_clip_fraction": 0.0,
+      "text_black_clip_fraction": 0.0,
+      "square_white_clip_fraction": 0.0,
+      "text_white_clip_fraction": 0.0
+    },
+    "contact_native_pts_s": [
+      55.199945,
+      55.233278,
+      55.266611,
+      55.299945,
+      55.333278,
+      55.366611,
+      55.399945
+    ]
+  },
+  "D": {
+    "local_windows_relative_approximate_end_s": {
+      "before": [
+        -0.75,
+        -0.5
+      ],
+      "after": [
+        0.2,
+        0.45
+      ]
+    },
+    "local_before": {
+      "square_black": 97.30586666666666,
+      "square_white": 195.8816,
+      "square_contrast": 0.5032414138608902,
+      "text_black": 122.0734618916437,
+      "text_white": 196.15925925925927,
+      "text_contrast": 0.377689365401481
+    },
+    "local_after": {
+      "square_black": 82.57402222222223,
+      "square_white": 195.7247111111111,
+      "square_contrast": 0.5781130690481593,
+      "text_black": 113.0658287419651,
+      "text_white": 196.05021786492375,
+      "text_contrast": 0.4232177435251092
+    },
+    "requested_pre5_window_s": [
+      150.01857711193847,
+      155.01857711193847
+    ],
+    "guarded_pre_window_s": [
+      150.01857711193847,
+      154.68807411193848
+    ],
+    "guard_reason": "Optical update can precede metadata/USB locator; exclude last uncertain portion when assessing pre-update drift. Full requested interval remains recorded.",
+    "native_frames_in_requested_pre5": 149,
+    "guarded_pre": {
+      "square": {
+        "white_range_percent": 1.5113777929143,
+        "white_early_to_late_percent": -1.3345212857644895,
+        "white_largest_adjacent_quarter_second_step_percent": 0.3329591678366744,
+        "black_early_to_late_percent": 0.0424892292088197,
+        "C_range_pp": 0.7705314050455936,
+        "C_early_to_late_pp": -0.6774287202889195,
+        "C_largest_adjacent_quarter_second_step_pp": 0.21695361623172982,
+        "early_medians": {
+          "square_black": 97.27955555555556,
+          "square_white": 198.53644444444444,
+          "square_contrast": 0.5099482061647296,
+          "text_black": 122.69088613406795,
+          "text_white": 198.4667392883079,
+          "text_contrast": 0.38205092838347904
+        },
+        "late_medians": {
+          "square_black": 97.32088888888889,
+          "square_white": 195.88693333333333,
+          "square_contrast": 0.5031739189618404,
+          "text_black": 122.09377869605143,
+          "text_white": 196.16379811183734,
+          "text_contrast": 0.37760897565072254
+        }
+      },
+      "text": {
+        "white_range_percent": 1.2907583074612887,
+        "white_early_to_late_percent": -1.1603663085959948,
+        "white_largest_adjacent_quarter_second_step_percent": 0.3623539034014258,
+        "black_early_to_late_percent": -0.4866762779462297,
+        "C_range_pp": 0.6229572259350558,
+        "C_early_to_late_pp": -0.44419527327564934,
+        "C_largest_adjacent_quarter_second_step_pp": 0.19533144227997234,
+        "early_medians": {
+          "square_black": 97.27955555555556,
+          "square_white": 198.53644444444444,
+          "square_contrast": 0.5099482061647296,
+          "text_black": 122.69088613406795,
+          "text_white": 198.4667392883079,
+          "text_contrast": 0.38205092838347904
+        },
+        "late_medians": {
+          "square_black": 97.32088888888889,
+          "square_white": 195.88693333333333,
+          "square_contrast": 0.5031739189618404,
+          "text_black": 122.09377869605143,
+          "text_white": 196.16379811183734,
+          "text_contrast": 0.37760897565072254
+        }
+      }
+    },
+    "local_dip": {
+      "square": {
+        "local_pre_C": 0.5032414138608902,
+        "raw_min_C": 0.4600231255422885,
+        "median3_min_C": 0.5016151337235382,
+        "raw_drop_from_local_pp": 4.321828831860164,
+        "median3_drop_from_local_pp": 0.16262801373519986,
+        "raw_recovery_to_T1_pp": 11.202264259468786,
+        "median3_recovery_to_T1_pp": 7.043063441343822,
+        "near_step_pp": 7.487165518726913,
+        "near_white_change_percent": -0.08009373462790625
+      },
+      "text": {
+        "local_pre_C": 0.377689365401481,
+        "raw_min_C": 0.34392171143218836,
+        "median3_min_C": 0.37719814976163923,
+        "raw_drop_from_local_pp": 3.3767653969292653,
+        "median3_drop_from_local_pp": 0.049121563984177996,
+        "raw_recovery_to_T1_pp": 7.412236729404831,
+        "median3_recovery_to_T1_pp": 4.0845928964597435,
+        "near_step_pp": 4.55283781236282,
+        "near_white_change_percent": -0.055588196421252345
+      }
+    },
+    "native_PTS": {
+      "frames": 278,
+      "min_interval_s": 0.03333299999999895,
+      "max_interval_s": 0.06666699999999537,
+      "gaps_gt_50ms": 1,
+      "limitation": "PTS gaps are reported for the analyzed interval; camera-internal lost/duplicated exposures are not independently measured.",
+      "gap_pairs_s": [
+        [
+          152.033181,
+          152.099848
+        ]
+      ]
+    },
+    "clip_max_fraction": {
+      "square_black_clip_fraction": 0.0,
+      "text_black_clip_fraction": 0.0,
+      "square_white_clip_fraction": 0.0,
+      "text_white_clip_fraction": 0.0
+    },
+    "contact_native_pts_s": [
+      154.866512,
+      154.899845,
+      154.933178,
+      154.966512,
+      154.999845,
+      155.033178,
+      155.066512
+    ]
+  }
+}
