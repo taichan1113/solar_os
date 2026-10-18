@@ -279,8 +279,8 @@ static void display_print_usage(solar_os_shell_io_t *term)
     solar_os_shell_io_writeln(term, "  display layouts");
     solar_os_shell_io_writeln(term, "  display test <target> [white|black|half|box-left|box-right|corners|fine]");
 #if SOLAR_OS_SSD1677_WRITER_D
-    solar_os_shell_io_writeln(term, "  display test display0 writer-lut status|baseline|candidate_d|disable|trace (USB)");
-    solar_os_shell_io_writeln(term, "    Writer defaults to D on every fastest update; baseline/disable selects A; no cumulative limit");
+    solar_os_shell_io_writeln(term, "  display test display0 fastest-lut status|baseline|candidate_d|disable|trace (USB; writer-lut alias)");
+    solar_os_shell_io_writeln(term, "    All apps default to D on every fastest update; baseline/disable selects A globally; no cumulative limit");
 #endif
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     solar_os_shell_io_writeln(term, "  display test display0 ab-a|ab-b baseline|dose (serial, operator-stepped)");
@@ -657,7 +657,7 @@ static void display_cmd_test(solar_os_shell_io_t *term, int argc, char **argv)
 {
     static const char owner[] = "shell:display-test";
 #if SOLAR_OS_SSD1677_WRITER_D
-    if (argc >= 4 && !strcmp(argv[3], "writer-lut")) { display_cmd_writer_lut(term, argc, argv); return; }
+    if (argc >= 4 && (!strcmp(argv[3], "fastest-lut") || !strcmp(argv[3], "writer-lut"))) { display_cmd_writer_lut(term, argc, argv); return; }
 #endif
 
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL

@@ -35,6 +35,7 @@ esp_err_t ssd1677_test_transport_hook(bool command, uint8_t cmd)
 void wd_panel_init(uint8_t *out)
 {
     device=make_display(); device.papermono_otp=true; device.band_buffer=band;
+    device.writer_trial.baseline_selected=true; /* Fixture preparation only. */
     device.fastest_tiles=true; device.fastest_spi_hz=20000000;
     assert(epd_ssd1677_set_controller_mode(&device,"refresh=fastest")==ESP_OK);
     assert(epd_ssd1677_set_controller_mode(&device,"dirty-window=rows-dual")==ESP_OK);
@@ -43,6 +44,7 @@ void wd_panel_init(uint8_t *out)
     assert(epd_ssd1677_present_snapshot(&device,frame,sizeof(frame))==ESP_OK);
     controller_seed(&model,&device); model.swap_after_activation=true;
     device.execution_context=&device; device.operation_begin=bridge_begin; device.operation_end=bridge_end;
+    device.writer_trial.baseline_selected=false; /* Display-wide default D. */
     memcpy(out,frame,sizeof(frame)); observing=true;
 }
 esp_err_t wd_mode(const char *mode)
@@ -54,9 +56,9 @@ esp_err_t wd_panel_execute(const uint8_t *data,size_t size,const solar_os_writer
 {
     command_count=0; memcpy(frame,data,size); /* Only Host model expected-frame input. */
     device.writer_trial.origin=*origin;
-    const uint32_t before=device.writer_trial.status.writer_physical+device.writer_trial.status.other_physical;
+    const uint64_t before=device.writer_trial.status.writer_physical+device.writer_trial.status.other_physical;
     const esp_err_t err=epd_ssd1677_present_snapshot(&device,data,size);
-    const uint32_t after=device.writer_trial.status.writer_physical+device.writer_trial.status.other_physical;
+    const uint64_t after=device.writer_trial.status.writer_physical+device.writer_trial.status.other_physical;
     *physical=after!=before;
     if(err==ESP_OK && *physical) {
         const transfer_t t=controller_apply(&model,&device);

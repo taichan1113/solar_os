@@ -207,9 +207,9 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
 #if SOLAR_OS_SSD1677_WRITER_D
     if (writer_d_select(d, cold)) {
         lut = ssd1677_trial_black_hold_d_lut;
-        waveform_name = "writer_candidate_d";
+        waveform_name = "candidate_d";
     }
-    if (d->writer_trial.origin.is_writer) {
+    { /* Record all app updates; the source never gates compensation. */
         d->writer_trial.current.x = dirty.x_start_byte * 8;
         d->writer_trial.current.y = dirty.y_start;
         d->writer_trial.current.width = (dirty.x_end_byte - dirty.x_start_byte + 1) * 8;

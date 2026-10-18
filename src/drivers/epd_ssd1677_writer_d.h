@@ -16,6 +16,7 @@ typedef struct {
 typedef struct {
     bool enabled, failed;
     uint64_t attempts, d_physical, d_success, d_errors, driver_errors;
+    uint64_t a_physical, otp_physical, noop; /* Display-wide totals. */
     uint64_t writer_physical, writer_a, writer_otp, other_physical, writer_noop, power_controls;
     uint64_t records;
     uint8_t trace_next, trace_count;

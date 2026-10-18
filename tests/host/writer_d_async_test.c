@@ -76,7 +76,7 @@ int main(int argc,char **argv)
     epd_ssd1677_writer_status_t initial; wd_status(&initial);
     assert(initial.enabled); /* No manual activation after ordinary boot. */
     if(failure) {
-        wd_fail_restore(); input(image,0,true); wait_count(&live.activations,1);
+        wd_fail_restore(); input(image,0,false); wait_count(&live.activations,1);
         input(image,1,true); release_panel(1);
         assert(solar_os_display_async_wait(live.a,2000)==ESP_FAIL);
         epd_ssd1677_writer_status_t s; wd_status(&s);
@@ -111,20 +111,20 @@ int main(int argc,char **argv)
         wait_control_barrier(); release_panel(1); pthread_join(control,NULL);
         wait_count(&live.activations,4); release_panel(1);
         assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
-        wd_status(&s); assert(s.attempts==1 && !live.seen[3].is_writer);
-        puts("writer D async: A->D switch, busy non-Writer replacement stays A PASS");
+        wd_status(&s); assert(s.attempts==2 && s.d_physical==2 && !live.seen[3].is_writer);
+        puts("writer D async: A->D switch, busy non-Writer replacement correctly uses global D PASS");
         /* Continued physical D updates: no cumulative limit or thinning. */
         for(unsigned i=0;i<20;i++) {
-            input(image,6+i,true); wait_count(&live.activations,5+i); release_panel(1);
+            input(image,6+i,(i%2)==0); wait_count(&live.activations,5+i); release_panel(1);
             assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
         }
-        wd_status(&s); assert(s.attempts==21 && s.d_physical==21 && s.d_success==21 && s.enabled);
+        wd_status(&s); assert(s.attempts==22 && s.d_physical==22 && s.d_success==22 && s.enabled);
         assert(wd_mode("candidate_d")==ESP_OK);
         input(image,26,true); wait_count(&live.activations,25); release_panel(1);
         assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
-        wd_status(&s); assert(s.attempts==22 && s.writer_a==2 && s.enabled);
+        wd_status(&s); assert(s.attempts==23 && s.writer_a==2 && s.enabled);
         /* App-exit/synchronous-present barrier discards pending Writer while
-         * joining active work. No source or stale D escapes into next app. */
+         * joining active work. No stale frame escapes into the next app; D is display-wide. */
         solar_os_display_async_control_begin(live.a,false);
         input(image,27,true); solar_os_display_async_control_end(live.a,-1,ESP_OK);
         wait_count(&live.activations,26); input(image,28,true);
@@ -135,7 +135,7 @@ int main(int argc,char **argv)
         pthread_join(control,NULL);
         solar_os_display_submission_status_t q; solar_os_display_async_status(live.a,&q);
         assert(!q.pending && !q.busy && q.writer_cancelled==1 && q.writer_coalesced==1 && q.writer_superseded==1);
-        puts("writer D async: continuous through update 23, no thinning, app-exit cancellation PASS");
+        puts("writer D async: all-app continuous through D update 24, no thinning, app-exit cancellation PASS");
     }
     solar_os_display_async_destroy(live.a); reap();
     puts("writer_d_async_test: PASS"); return 0;

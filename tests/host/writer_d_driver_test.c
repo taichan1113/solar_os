@@ -12,12 +12,14 @@ static epd_ssd1677_t prepare(void)
 {
     epd_ssd1677_t d=make_display();
     d.papermono_otp=true; d.band_buffer=band; d.fastest_tiles=true; d.fastest_spi_hz=20000000;
+    d.writer_trial.baseline_selected=true; /* Fixture preparation, not application policy. */
     assert(epd_ssd1677_set_controller_mode(&d,"refresh=fastest")==ESP_OK);
     assert(epd_ssd1677_set_controller_mode(&d,"dirty-window=rows-dual")==ESP_OK);
     assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
     flip(20,20); /* Fixed black pixel well outside later dirty rows. */
     assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
     d.execution_context=&d; d.operation_begin=fake_begin; d.operation_end=fake_end;
+    d.writer_trial.baseline_selected=false; /* Ordinary global default. */
     command_count=0;
     return d;
 }
@@ -93,43 +95,96 @@ static void test_continuous_and_sources(void)
     boot(); epd_ssd1677_t d=prepare();
     epd_ssd1677_writer_status_t status;
     assert(epd_ssd1677_writer_lut(&d,"status",&status,NULL)==ESP_OK && status.enabled);
-    flip(400,300);
-    assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
-    assert(!d.writer_trial.status.attempts); expect_data(0x32,ssd1677_reference_lut,105);
-    writer(&d);
+    const char *apps[]={"Shell","Launcher","Writer","Sketch","TypeMouse","untagged"};
+    /* Every non-Writer uses the ordinary untagged submission. App labels do
+     * not enter the Driver at all; origin metadata cannot gate the LUT. */
     for(unsigned i=0;i<21;i++) {
+        d.writer_trial.origin=(solar_os_writer_frame_t){.is_writer=(i%6==2),.inputs=1};
         command_count=0; flip(600+i,310);
         assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
         assert(count_command(0x20)==1 && count_command(0x32)==2);
         assert(d.writer_trial.status.attempts==i+1 && d.writer_trial.used_d);
+        assert(d.writer_trial.status.d_physical==i+1 && d.writer_trial.status.d_success==i+1);
         expect_data(0x32,ssd1677_trial_black_hold_d_lut,105);
+        assert(!memcmp(find_command(0x32,1)->data,ssd1677_reference_lut,105));
         assert(epd_ssd1677_writer_lut(&d,"status",&status,NULL)==ESP_OK && status.enabled);
-        if(i==0 || i==5 || i==6 || i==19 || i==20)
-            printf("Writer physical update %u: D, single 0x20, restored Baseline PASS\n",i+1);
+        if(i<6 || i==6 || i==19 || i==20)
+            printf("All-app physical update %u (%s): D, single 0x20, restore PASS\n",i+1,apps[i%6]);
     }
     command_count=0;
+    assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK && !command_count);
+    assert(d.writer_trial.status.attempts==21 && d.writer_trial.status.noop==1);
     assert(epd_ssd1677_writer_lut(&d,"baseline",NULL,NULL)==ESP_OK && !command_count);
-    flip(699,310);
-    assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
-    assert(count_command(0x20)==1 && count_command(0x32)==1);
-    expect_data(0x32,ssd1677_reference_lut,105);
+    const uint64_t old_a=d.writer_trial.status.a_physical;
+    for(unsigned origin=0;origin<2;origin++) {
+        d.writer_trial.origin=(solar_os_writer_frame_t){.is_writer=origin};
+        flip(699-origin,310); command_count=0;
+        assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+        assert(count_command(0x20)==1 && count_command(0x32)==1 && !d.writer_trial.used_d);
+        expect_data(0x32,ssd1677_reference_lut,105);
+    }
+    assert(d.writer_trial.status.a_physical==old_a+2 && d.writer_trial.status.attempts==21);
     command_count=0;
     assert(epd_ssd1677_writer_lut(&d,"candidate_d",NULL,NULL)==ESP_OK && !command_count);
-    flip(690,310);
-    assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
-    assert(count_command(0x20)==1 && count_command(0x32)==2);
-    const uint64_t previous_physical=d.writer_trial.status.writer_physical;
+    for(unsigned origin=0;origin<2;origin++) {
+        d.writer_trial.origin=(solar_os_writer_frame_t){.is_writer=origin};
+        flip(690-origin,310); command_count=0;
+        assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+        assert(count_command(0x20)==1 && count_command(0x32)==2 && d.writer_trial.used_d);
+    }
+    const uint64_t previous_physical=d.writer_trial.status.writer_physical+d.writer_trial.status.other_physical;
     assert(ssd1677_sleep(&d)==ESP_OK);
     assert(d.writer_trial.status.power_controls==1 &&
-           d.writer_trial.status.writer_physical==previous_physical);
-    /* Driver recreation/boot selects D. No persistent mode or count budget. */
+           d.writer_trial.status.writer_physical+d.writer_trial.status.other_physical==previous_physical);
     d=prepare();
     assert(epd_ssd1677_writer_lut(&d,"status",&status,NULL)==ESP_OK && status.enabled && !status.attempts);
-    puts("writer D: continuous past 6/7/20, explicit A/D, other sources A, boot D PASS");
+    puts("all-app D: continuous past 6/7/20, global A/D, no-op, power separation, boot D PASS");
+}
+static void test_otp_not_compensated(void)
+{
+    boot(); epd_ssd1677_t d=prepare();
+    assert(epd_ssd1677_set_controller_mode(&d,"refresh=full")==ESP_OK);
+    flip(480,310); command_count=0;
+    assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+    assert(!d.writer_trial.used_d && !d.writer_trial.status.attempts);
+    assert(count_command(0x32)==0 && d.writer_trial.status.otp_physical>0);
+    assert(epd_ssd1677_set_controller_mode(&d,"refresh=fastest")==ESP_OK);
+    flip(481,310); command_count=0;
+    assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+    /* Existing mode transition establishes an OTP baseline before fastest. */
+    assert(!d.writer_trial.used_d && !d.writer_trial.status.attempts && !count_command(0x32));
+    flip(482,310); command_count=0;
+    assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+    assert(d.writer_trial.used_d && d.writer_trial.status.d_physical==1 && count_command(0x20)==1);
+    puts("all-app D: full/OTP unchanged, next untagged cold fastest D PASS");
+}
+static void test_synchronous_u8g2(void)
+{
+    boot(); epd_ssd1677_t d=prepare();
+    u8g2_SetupDisplay(&d.u8g2,ssd1677_u8x8_display_cb,u8x8_dummy_cb,u8x8_dummy_cb,u8x8_dummy_cb);
+    u8g2_SetupBuffer(&d.u8g2,frame,60,u8g2_ll_hvline_vertical_top_lsb,U8G2_R2);
+    u8g2_SetDrawColor(&d.u8g2,2);
+    for(unsigned i=0;i<2;i++) {
+        u8g2_DrawPixel(&d.u8g2,400+i,250); command_count=0;
+        u8g2_SendBuffer(&d.u8g2);
+        assert(d.last_error==ESP_OK && count_command(0x20)==1 && count_command(0x32)==2);
+        assert(d.writer_trial.status.attempts==i+1 && d.writer_trial.status.d_success==i+1);
+        assert(d.writer_trial.status.other_physical>=i+1 && !d.writer_trial.origin.is_writer);
+        assert(d.writer_trial.current.restored && !memcmp(shadow,frame,sizeof(frame)));
+    }
+    command_count=0; u8g2_SendBuffer(&d.u8g2);
+    assert(!command_count && d.writer_trial.status.attempts==2 && d.writer_trial.status.noop==1);
+    fail_command=0x32; u8g2_DrawPixel(&d.u8g2,403,250); command_count=0;
+    u8g2_SendBuffer(&d.u8g2);
+    assert(d.last_error!=ESP_OK && d.faulted && atomic_load(&writer_d_failed));
+    assert(d.writer_trial.status.d_errors==1 && d.writer_trial.baseline_selected);
+    const size_t sent=command_count; u8g2_SendBuffer(&d.u8g2);
+    assert(d.last_error==ESP_ERR_INVALID_STATE && command_count==sent);
+    puts("all-app D: real synchronous u8g2 callback, no-op, trace, fault stop PASS");
 }
 static void test_cold_first_fastest(void)
 {
-    boot(); epd_ssd1677_t d=prepare(); writer(&d);
+    boot(); epd_ssd1677_t d=prepare(); /* No Writer tag, like Shell startup. */
     /* OTP/known Shadow retained, custom controller entry is cold. */
     d.reference_awake=false; d.controller_ready=false;
     flip(500,320); command_count=0;
@@ -189,6 +244,7 @@ int main(void)
 {
     test_lut();
     for(unsigned r=0;r<2;r++) for(unsigned swap=0;swap<2;swap++) test_normal_dirty(r,swap);
-    test_continuous_and_sources(); test_cold_first_fastest(); test_counter_saturation(); test_faults();
+    test_continuous_and_sources(); test_otp_not_compensated(); test_cold_first_fastest(); test_counter_saturation(); test_faults();
+    test_synchronous_u8g2();
     puts("writer_d_driver_test: PASS"); return 0;
 }

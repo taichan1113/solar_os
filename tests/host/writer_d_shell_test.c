@@ -28,7 +28,7 @@ static void end(void *p,epd_ssd1677_operation_t op,esp_err_t e) { (void)p; (void
 static void command(const char *mode,int port)
 {
     solar_os_shell_io_t io={port};
-    char *args[]={"display","test","display0","writer-lut",(char *)mode};
+    char *args[]={"display","test","display0","fastest-lut",(char *)mode};
     used=0; output[0]=0; command_count=0;
     display_cmd_writer_lut(&io,5,args);
     assert(!command_count); /* EVERY command, including rejected selects, is RAM-only. */
@@ -40,18 +40,18 @@ int main(void)
     assert(epd_ssd1677_set_controller_mode(&device,"refresh=fastest")==ESP_OK);
     assert(epd_ssd1677_set_controller_mode(&device,"dirty-window=rows-dual")==ESP_OK);
     device.execution_context=&device; device.operation_begin=begin; device.operation_end=end;
-    command("status",2); assert(strstr(output,"mode=D scope=writer attempts=0"));
+    command("status",2); assert(strstr(output,"mode=D scope=all-apps attempts=0"));
     command("baseline",2); assert(device.writer_trial.baseline_selected && strstr(output,"mode=A"));
     command("candidate_d",2); assert(!device.writer_trial.baseline_selected && strstr(output,"mode=D"));
     command("disable",2); assert(!!device.writer_trial.baseline_selected);
     command("candidate_d",1); assert(!!device.writer_trial.baseline_selected && strstr(output,"USB:"));
     command("unknown",2); assert(strstr(output,"err="));
-    command("trace",2); assert(strstr(output,"queue submitted="));
+    command("trace",2); assert(strstr(output,"queue submitted=") && strstr(output,"display physical="));
     device.writer_trial.status.attempts=1000;
     command("candidate_d",2); assert(!device.writer_trial.baseline_selected && strstr(output,"attempts=1000"));
     device.writer_trial.status.records=UINT64_MAX;
     device.writer_trial.status.trace_count=0;
     command("trace",2); assert(strstr(output,"records=18446744073709551615"));
-    puts("writer_d_shell_test: USB gating, controls/status/trace, no physical updates, default D and no cumulative cap PASS");
+    puts("writer_d_shell_test: USB gating, global controls/status/trace, no physical updates, default D and no cumulative cap PASS");
     return 0;
 }

@@ -7,7 +7,7 @@
 #if SOLAR_OS_SSD1677_WRITER_D
 #include <stdatomic.h>
 #if !SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL || SOLAR_OS_SSD1677_WAVEFORM_TRIAL
-#error Writer D requires Dirty rows-dual and excludes other waveform trials
+#error Fastest D requires Dirty rows-dual and excludes other waveform trials
 #endif
 #endif
 
@@ -818,7 +818,14 @@ static uint8_t ssd1677_u8x8_display_cb(u8x8_t *u8x8,
     case U8X8_MSG_DISPLAY_DRAW_TILE:
         return 1;
     case U8X8_MSG_DISPLAY_REFRESH:
+#if SOLAR_OS_SSD1677_WRITER_D
+        /* Synchronous apps share the same display-wide LUT lifecycle,
+         * diagnostics and fault handling as Executor snapshots. The outer
+         * operation barrier already owns this complete update interval. */
+        err = epd_ssd1677_present_snapshot(display, display->buffer, display->buffer_size);
+#else
         err = ssd1677_refresh(display);
+#endif
         break;
     default:
         return 0;

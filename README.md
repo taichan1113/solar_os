@@ -219,23 +219,27 @@ components remain applicable and must be preserved in redistributions.
 
  _Third-party code is adapted and modified it where needed, and integrated it into a shared system designed for constrained hardware by the authors of SolarOS._
 
-### PaperMono Writer black compensation (Integration)
+### PaperMono display-wide black compensation (Integration)
 
-PaperMono uses Candidate D for every actual Writer `refresh=fastest` update,
-with tile transport, 20 MHz SPI and Dirty rows-dual. There is no cumulative
-update limit or periodic thinning. Other applications keep the Baseline LUT.
-Existing no-op suppression and snapshot coalescing remain enabled.
+The common SSD1677 driver uses Candidate D for every actual `refresh=fastest`
+update from ALL applications, including Shell, Launcher, Writer, Sketch and
+TypeMouse. App origin tags are diagnostic only. Tile transport, 20 MHz SPI,
+Dirty rows-dual, no-op suppression and snapshot coalescing are unchanged.
+There is no cumulative update limit or periodic thinning. OTP initialization,
+full/cleanup and other refresh modes retain their existing waveforms.
 
-To select Baseline A for Writer, use the USB Shell while Writer is open:
+To select Baseline A globally, use the USB Shell:
 
 ```text
-display test display0 writer-lut baseline
+display test display0 fastest-lut baseline
 ```
 
-`display test display0 writer-lut candidate_d` selects D again;
-`status` shows the selected Writer mode and cumulative counts, and `trace`
-shows recent detailed updates. `disable` is an alias for `baseline`.
-These commands do not request a panel update. Selection is volatile; boot
-defaults to D. A driver fault stops further updates when controller state is
-unknown. Initial OTP preparation remains unchanged. Long-term panel effects
-remain unverified; brief whitening is a known, accepted behavior.
+`display test display0 fastest-lut candidate_d` selects D globally again;
+`status` shows the display-wide mode/totals and Writer diagnostic subtotals;
+`trace` shows recent updates from all apps. `disable` aliases `baseline`.
+The old `writer-lut` command remains an alias, now with the SAME GLOBAL scope.
+Commands do not request a panel update. Selection is volatile; boot defaults
+to D. A driver fault stops further updates when controller state is unknown.
+Long-term panel effects remain unverified; brief whitening is accepted.
+The existing `SOLAR_OS_SSD1677_WRITER_D` build flag/internal names are retained
+for build compatibility; they no longer restrict application scope.

@@ -1,5 +1,5 @@
-/* Standard Writer-only compensation. Counters are diagnostic, never a budget.
- * Zero-initialized mode selects D; other origins always keep Baseline. */
+/* Display-wide fastest compensation. Origin metadata is diagnostic only.
+ * Zero-initialized mode selects D; counters are never an update budget. */
 static atomic_bool writer_d_failed;
 
 static void writer_d_count(uint64_t *value)
@@ -11,12 +11,14 @@ static void writer_d_activation(epd_ssd1677_t *d)
 {
     epd_ssd1677_writer_trial_t *t = &d->writer_trial;
     if (t->power_control) { writer_d_count(&t->status.power_controls); return; }
+    t->current.physical++;
+    if (t->used_d) writer_d_count(&t->status.d_physical);
+    else if (t->reference) writer_d_count(&t->status.a_physical);
+    else writer_d_count(&t->status.otp_physical);
     if (t->origin.is_writer) {
-        t->current.physical++;
         writer_d_count(&t->status.writer_physical);
-        if (t->used_d) writer_d_count(&t->status.d_physical);
-        else if (t->reference) writer_d_count(&t->status.writer_a);
-        else writer_d_count(&t->status.writer_otp);
+        if (!t->used_d && t->reference) writer_d_count(&t->status.writer_a);
+        else if (!t->used_d) writer_d_count(&t->status.writer_otp);
     } else writer_d_count(&t->status.other_physical);
 }
 
@@ -25,7 +27,7 @@ static bool writer_d_select(epd_ssd1677_t *d, bool cold)
     epd_ssd1677_writer_trial_t *t = &d->writer_trial;
     t->used_d = t->restored = false;
     t->reference = true;
-    if (!t->origin.is_writer || t->baseline_selected || atomic_load(&writer_d_failed) ||
+    if (t->baseline_selected || atomic_load(&writer_d_failed) ||
         d->refresh_mode != EPD_SSD1677_REFRESH_FASTEST) return false;
     /* A known optical/Shadow baseline is required by the existing dispatcher.
      * Cold custom entry still performs its normal reset/full-RAM preparation,
@@ -68,7 +70,6 @@ static void writer_d_finish(epd_ssd1677_t *d, esp_err_t err)
             d->shadow_valid = d->papermono_baseline_valid = d->controller_ready = d->reference_awake = false;
         }
     }
-    if (!t->origin.is_writer) return;
     epd_ssd1677_writer_record_t *r = &t->current;
     r->origin = t->origin;
     r->candidate_d = t->used_d;
@@ -86,7 +87,10 @@ static void writer_d_finish(epd_ssd1677_t *d, esp_err_t err)
         r->activation_us = d->timing.activate_us[0];
         r->ready_us = d->timing.ready_us[0];
     }
-    if (!r->physical && err == ESP_OK) writer_d_count(&t->status.writer_noop);
+    if (!r->physical && err == ESP_OK) {
+        writer_d_count(&t->status.noop);
+        if (t->origin.is_writer) writer_d_count(&t->status.writer_noop);
+    }
     writer_d_count(&t->status.records);
     r->seq = t->status.records;
     /* Ring position is independent of the saturating total/sequence counter. */

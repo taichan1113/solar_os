@@ -523,7 +523,7 @@ if(SOLAR_OS_PACKAGE_SERVICE_BLE AND "$ENV{SOLAR_OS_BLE_SECURITY_TRACE}" STREQUAL
     target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_BLE_SECURITY_TRACE=1)
 endif()
 
-# PaperMono Integration defaults: standard Writer D, existing rows-dual and
+# PaperMono Integration defaults: display-wide D, existing rows-dual and
 # SPI20 backends. Explicit 0 is respected (D also needs its dependencies).
 if(SOLAR_OS_BOARD_ID STREQUAL "m5paper_mono")
     foreach(_papermono_default SOLAR_OS_SSD1677_WRITER_D SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL SOLAR_OS_SSD1677_SPI20_TRIAL)
@@ -538,7 +538,7 @@ if("$ENV{SOLAR_OS_SSD1677_WRITER_D}" STREQUAL "1")
        NOT "$ENV{SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL}" STREQUAL "1" OR
        NOT "$ENV{SOLAR_OS_SSD1677_SPI20_TRIAL}" STREQUAL "1" OR
        "$ENV{SOLAR_OS_SSD1677_WAVEFORM_TRIAL}" STREQUAL "1")
-        message(FATAL_ERROR "Writer D requires PaperMono, Dirty, SPI20 and no waveform diagnostic")
+        message(FATAL_ERROR "Fastest D requires PaperMono, Dirty, SPI20 and no waveform diagnostic")
     endif()
     target_compile_definitions(${COMPONENT_LIB} PRIVATE SOLAR_OS_SSD1677_WRITER_D=1)
 endif()
