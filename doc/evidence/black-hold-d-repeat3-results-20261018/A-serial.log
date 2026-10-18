@@ -1,0 +1,206 @@
+display test display0 black-hold-repeat3 A
+I (166898) papermono-power: IOE PYG3=1
+I (166923) papermono-power: IOE PYG5=0
+I (166938) papermono-power: IOE PYG5=1
+I (167149) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+I (171363) epd_ssd1677: OTP full err=0 start=165859461 end=170330021 total_us=4470560
+I (171363) epd_ssd1677: OTP write0 start=166116841 end=166184954 us=68113
+I (171363) epd_ssd1677: OTP phases0 convert_start=166117072 convert_end=166184891 convert_us=36387 spi_us=31035
+I (171364) epd_ssd1677: OTP write1 start=166285080 end=166348049 us=62969
+I (171364) epd_ssd1677: OTP phases1 convert_start=166285280 convert_end=166347987 convert_us=32319 spi_us=29976
+I (171364) epd_ssd1677: OTP write2 start=166348053 end=166408671 us=60618
+I (171364) epd_ssd1677: OTP phases2 convert_start=166348270 convert_end=166408609 convert_us=31142 spi_us=28802
+I (171365) epd_ssd1677: OTP activate0 start=166184959 ready=166285010 us=100051
+I (171365) epd_ssd1677: OTP activate1 start=166408678 ready=170228007 us=3819329
+BH phase=white-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2 start_us=165859461 end_us=170330021 total_us=4470560 busy_us=100051 spi_us=89813 ram_bytes=0
+BH gate=white g=next q=stop
+I (172615) NimBLE: GAP procedure initiated: discovery; 
+I (172615) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (172615) NimBLE: duration=8000ms
+I (172615) NimBLE: 
+
+I (185617) NimBLE: GAP procedure initiated: discovery; 
+I (185617) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (185617) NimBLE: duration=8000ms
+I (185617) NimBLE: 
+
+I (198619) NimBLE: GAP procedure initiated: discovery; 
+I (198619) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (198620) NimBLE: duration=8000ms
+I (198620) NimBLE: 
+
+I (211622) NimBLE: GAP procedure initiated: discovery; 
+I (211622) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (211622) NimBLE: duration=8000ms
+I (211622) NimBLE: 
+
+I (224625) NimBLE: GAP procedure initiated: discovery; 
+I (224625) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (224625) NimBLE: duration=8000ms
+I (224625) NimBLE: 
+
+I (237627) NimBLE: GAP procedure initiated: discovery; 
+I (237627) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (237627) NimBLE: duration=8000ms
+I (237628) NimBLE: 
+
+I (250630) NimBLE: GAP procedure initiated: discovery; 
+I (250630) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (250630) NimBLE: duration=8000ms
+I (250630) NimBLE: 
+
+I (260671) papermono-power: IOE PYG3=1
+I (260696) papermono-power: IOE PYG5=0
+I (260711) papermono-power: IOE PYG5=1
+I (260922) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+I (263633) NimBLE: GAP procedure initiated: discovery; 
+I (263633) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (263633) NimBLE: duration=8000ms
+I (263633) NimBLE: 
+
+I (265139) epd_ssd1677: OTP full err=0 start=259630356 end=264106025 total_us=4475669
+I (265139) epd_ssd1677: OTP write0 start=259889850 end=259957912 us=68062
+I (265139) epd_ssd1677: OTP phases0 convert_start=259890078 convert_end=259957849 convert_us=36968 spi_us=30414
+I (265140) epd_ssd1677: OTP write1 start=260057070 end=260120854 us=63784
+I (265140) epd_ssd1677: OTP phases1 convert_start=260057267 convert_end=260120792 convert_us=31586 spi_us=31515
+I (265140) epd_ssd1677: OTP write2 start=260120858 end=260184496 us=63638
+I (265141) epd_ssd1677: OTP phases2 convert_start=260121481 convert_end=260184434 convert_us=31466 spi_us=31088
+I (265141) epd_ssd1677: OTP activate0 start=259957917 ready=260057006 us=99089
+I (265141) epd_ssd1677: OTP activate1 start=260184503 ready=264004006 us=3819503
+BH phase=image-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2 start_us=259630356 end_us=264106025 total_us=4475669 busy_us=99089 spi_us=93017 ram_bytes=0
+I (265159) papermono-power: IOE PYG3=1
+I (265185) papermono-power: IOE PYG5=0
+I (265200) papermono-power: IOE PYG5=1
+I (265411) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+I (265687) epd_ssd1677: REF err=0 cold=1 region=0,0,800,480 ram_bytes=192000 0x20=1 start=264116853 end=264654457 total_us=537604 busy_us=133938
+I (265688) epd_ssd1677: REF phases path=tile spi_khz=20000 diff_us=4217 promote_us=1955 waveform=baseline
+I (265688) epd_ssd1677: REF write0 ram_bytes=48000 us=34758 convert_us=14742 spi_us=19762
+I (265688) epd_ssd1677: REF write1 ram_bytes=48000 us=34271 convert_us=14521 spi_us=19507
+I (265688) epd_ssd1677: REF write2 ram_bytes=48000 us=35423 convert_us=15629 spi_us=19542
+I (265689) epd_ssd1677: REF write3 ram_bytes=48000 us=34882 convert_us=15118 spi_us=19515
+BH phase=prepare-baseline err=0 candidate=0 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1 start_us=264116853 end_us=264656415 total_us=539562 busy_us=133938 spi_us=78469 ram_bytes=1BH trace phase=prepare-baseline lut_ready_us=264448035 activate_call_us=264448246 busy_wait_end_us=264582184 restore_start_us=264656271 restore_end_us=264656413 busy_edge_measured=0
+BH mark=T0 anchor_us=264656415 target_us=269656415 actual_us=269656989
+BH progress condition=A completed=0 boot_attempts=0 measured_cmd20=0
+BH gate=T0-next g=next q=stop
+I (276635) NimBLE: GAP procedure initiated: discovery; 
+I (276635) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (276635) NimBLE: duration=8000ms
+I (276635) NimBLE: 
+
+I (289638) NimBLE: GAP procedure initiated: discovery; 
+I (289638) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (289638) NimBLE: duration=8000ms
+I (289638) NimBLE: 
+
+I (302640) NimBLE: GAP procedure initiated: discovery; 
+I (302640) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (302640) NimBLE: duration=8000ms
+I (302640) NimBLE: 
+
+BH request condition=A step=1 requested_us=306677029 boot_attempts=1
+BH mark=measure1 anchor_us=306677029 target_us=311677029 actual_us=311677989
+I (312883) epd_ssd1677: REF err=0 cold=0 region=0,0,800,480 ram_bytes=144000 0x20=1 start=311682960 end=311850393 total_us=167433 busy_us=51201
+I (312884) epd_ssd1677: REF phases path=tile spi_khz=20000 diff_us=4028 promote_us=2357 waveform=baseline
+I (312884) epd_ssd1677: REF write0 ram_bytes=48000 us=35456 convert_us=14747 spi_us=20401
+I (312884) epd_ssd1677: REF write1 ram_bytes=48000 us=36916 convert_us=16137 spi_us=20492
+I (312884) epd_ssd1677: REF write2 ram_bytes=48000 us=37103 convert_us=15934 spi_us=20553
+BH phase=A-repeat-1 err=0 candidate=3 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1 start_us=311682960 end_us=311852204 total_us=169244 busy_us=51201 spi_us=61590 ram_bytes=144000
+BH trace phase=A-repeat-1 lut_ready_us=311722601 activate_call_us=311722802 busy_wait_end_us=311774003 restore_start_us=311852059 restore_end_us=311852202 busy_edge_measured=0
+BH mark=T1 anchor_us=311852204 target_us=313852204 actual_us=313852989
+BH progress condition=A completed=1 boot_attempts=1 measured_cmd20=1
+BH gate=T1-next g=next q=stop
+I (315642) NimBLE: GAP procedure initiated: discovery; 
+I (315642) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (315642) NimBLE: duration=8000ms
+I (315643) NimBLE: 
+
+I (328644) NimBLE: GAP procedure initiated: discovery; 
+I (328644) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (328644) NimBLE: duration=8000ms
+I (328644) NimBLE: 
+
+I (341646) NimBLE: GAP procedure initiated: discovery; 
+I (341646) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (341646) NimBLE: duration=8000ms
+I (341646) NimBLE: 
+
+I (354649) NimBLE: GAP procedure initiated: discovery; 
+I (354649) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (354649) NimBLE: duration=8000ms
+I (354649) NimBLE: 
+
+BH request condition=A step=2 requested_us=363933020 boot_attempts=2
+I (367651) NimBLE: GAP procedure initiated: discovery; 
+I (367651) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (367651) NimBLE: duration=8000ms
+I (367651) NimBLE: 
+
+BH mark=measure2 anchor_us=363933020 target_us=368933020 actual_us=368933990
+I (370139) epd_ssd1677: REF err=0 cold=0 region=0,0,800,480 ram_bytes=144000 0x20=1 start=368938982 end=369106966 total_us=167984 busy_us=51516
+I (370140) epd_ssd1677: REF phases path=tile spi_khz=20000 diff_us=3674 promote_us=2434 waveform=baseline
+I (370140) epd_ssd1677: REF write0 ram_bytes=48000 us=35471 convert_us=14759 spi_us=20402
+I (370141) epd_ssd1677: REF write1 ram_bytes=48000 us=37287 convert_us=16124 spi_us=20866
+I (370141) epd_ssd1677: REF write2 ram_bytes=48000 us=37231 convert_us=15990 spi_us=20958
+BH phase=A-repeat-2 err=0 candidate=3 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1 start_us=368938982 end_us=369108692 total_us=169710 busy_us=51516 spi_us=62368 ram_bytes=144000
+BH trace phase=A-repeat-2 lut_ready_us=368978280 activate_call_us=368978487 busy_wait_end_us=369030003 restore_start_us=369108548 restore_end_us=369108689 busy_edge_measured=0
+BH mark=T2 anchor_us=369108692 target_us=371108692 actual_us=371108989
+BH progress condition=A completed=2 boot_attempts=2 measured_cmd20=2
+BH gate=T2-next g=next q=stop
+I (380653) NimBLE: GAP procedure initiated: discovery; 
+I (380653) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (380653) NimBLE: duration=8000ms
+I (380654) NimBLE: 
+
+I (393655) NimBLE: GAP procedure initiated: discovery; 
+I (393655) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (393655) NimBLE: duration=8000ms
+I (393655) NimBLE: 
+
+BH request condition=A step=3 requested_us=396269018 boot_attempts=3
+BH mark=measure3 anchor_us=396269018 target_us=401269018 actual_us=401269989
+I (402475) epd_ssd1677: REF err=0 cold=0 region=0,0,800,480 ram_bytes=144000 0x20=1 start=401274951 end=401442519 total_us=167568 busy_us=51530
+I (402476) epd_ssd1677: REF phases path=tile spi_khz=20000 diff_us=3660 promote_us=2433 waveform=baseline
+I (402476) epd_ssd1677: REF write0 ram_bytes=48000 us=35505 convert_us=14789 spi_us=20409
+I (402476) epd_ssd1677: REF write1 ram_bytes=48000 us=37200 convert_us=16218 spi_us=20687
+I (402476) epd_ssd1677: REF write2 ram_bytes=48000 us=36871 convert_us=16025 spi_us=20563
+BH phase=A-repeat-3 err=0 candidate=3 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1 start_us=401274951 end_us=401444322 total_us=169371 busy_us=51530 spi_us=61797 ram_bytes=144000
+BH trace phase=A-repeat-3 lut_ready_us=401314271 activate_call_us=401314473 busy_wait_end_us=401366003 restore_start_us=401444183 restore_end_us=401444320 busy_edge_measured=0
+BH mark=T3 anchor_us=401444322 target_us=403444322 actual_us=403444989
+BH progress condition=A completed=3 boot_attempts=3 measured_cmd20=3
+BH gate=T3-cleanup g=next q=stop
+I (406657) NimBLE: GAP procedure initiated: discovery; 
+I (406657) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (406657) NimBLE: duration=8000ms
+I (406657) NimBLE: 
+
+I (419660) NimBLE: GAP procedure initiated: discovery; 
+I (419660) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (419660) NimBLE: duration=8000ms
+I (419660) NimBLE: 
+
+I (432662) NimBLE: GAP procedure initiated: discovery; 
+I (432662) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (432662) NimBLE: duration=8000ms
+I (432662) NimBLE: 
+
+I (445665) NimBLE: GAP procedure initiated: discovery; 
+I (445665) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (445665) NimBLE: duration=8000ms
+I (445666) NimBLE: 
+
+I (448346) papermono-power: IOE PYG3=1
+I (448371) papermono-power: IOE PYG5=0
+I (448386) papermono-power: IOE PYG5=1
+I (448597) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+I (452814) epd_ssd1677: OTP full err=0 start=447307160 end=451781199 total_us=4474039
+I (452814) epd_ssd1677: OTP write0 start=447564865 end=447631615 us=66750
+I (452814) epd_ssd1677: OTP phases0 convert_start=447565098 convert_end=447631553 convert_us=35166 spi_us=30888
+I (452815) epd_ssd1677: OTP write1 start=447731080 end=447795629 us=64549
+I (452815) epd_ssd1677: OTP phases1 convert_start=447731280 convert_end=447795566 convert_us=32414 spi_us=31469
+I (452815) epd_ssd1677: OTP write2 start=447795633 end=447859496 us=63863
+I (452815) epd_ssd1677: OTP phases2 convert_start=447795847 convert_end=447859434 convert_us=31171 spi_us=31976
+I (452816) epd_ssd1677: OTP activate0 start=447631620 ready=447731010 us=99390
+I (452816) epd_ssd1677: OTP activate1 start=447859503 ready=451679010 us=3819507
+BH phase=exit-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2 start_us=447307160 end_us=451781199 total_us=4474039 busy_us=99390 spi_us=94333 ram_bytes=0
+BH end condition=A err=0 healthy=1 completed=3 boot_attempts=3 diagnostic_cmd20=10
+user@sol:/ 

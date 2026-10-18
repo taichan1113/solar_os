@@ -1,0 +1,12 @@
+﻿{
+    "stage":  "A recording and white preparation",
+    "user_reply":  "Shell正常・Aの録画を開始した",
+    "recorded_local_time":  "2026-10-18T13:02:42.0906225+09:00",
+    "shell_gate":  "white",
+    "measured_updates_completed":  0,
+    "white_otp_cmd20":  2,
+    "spi_actual_hz":  20000000,
+    "driver_error":  0,
+    "video_path":  "awaiting file after A T3",
+    "capture_process_session":  38388
+}

@@ -1,0 +1,13 @@
+﻿{
+    "task":  "Candidate D bounded repeat3",
+    "user_flash_instruction":  "Flashしましょう",
+    "user_ready_reply":  "USB接続・未保存なし・競合なし・画面確認可能",
+    "recorded_local_time":  "2026-10-18T12:40:42.0079346+09:00",
+    "measured_updates_authorized_as_batch":  false,
+    "maximum_A_attempts":  3,
+    "maximum_D_attempts":  3,
+    "explicit_gate_each_update":  true,
+    "preflash_visual_status":  "User confirmed Shell text and white background normal; USB reports active Shell, not suspended",
+    "flash_started":  false,
+    "preflash_visual_confirmed_at":  "2026-10-18T12:55:58.4244356+09:00"
+}

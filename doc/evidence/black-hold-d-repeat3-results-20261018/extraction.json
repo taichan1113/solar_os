@@ -1,0 +1,264 @@
+[
+  {
+    "condition": "A",
+    "source": "C:\\Users\\takec\\Videos\\20261018-130142.avi",
+    "source_bytes": 2083059590,
+    "source_created_utc": "2026-10-18T04:01:42.9568475Z",
+    "source_modified_utc": "2026-10-18T04:06:15.1000944Z",
+    "source_sha256": "864d40e755cb2dcf4072f19e189c81d86bac27f8d71b8ad2b104ba170a76d8a4",
+    "correspondence": "user: older first; filename and local creation times verified against USB log before analysis",
+    "probe": {
+      "duration_s": 271.95,
+      "decoded_size": [
+        3840,
+        2160
+      ],
+      "nominal_fps": 30.0,
+      "variable_frame_rate_assumed_possible": true,
+      "decoder_log": "Input #0, avi, from '/mnt/c/Users/takec/Videos/20261018-130142.avi':\n  Metadata:\n    software        : Lavf58.13.101\n  Duration: 00:04:31.95, start: 0.000000, bitrate: 61277 kb/s\n  Stream #0:0: Video: mjpeg (Baseline) (MJPG / 0x47504A4D), yuvj420p(pc, bt470bg/unknown/unknown), 3840x2160 [SAR 1:1 DAR 16:9], 61085 kb/s, 30 fps, 30 tbr, 30 tbn\n  Stream #0:1: Audio: ac3 ([0] [0][0] / 0x2000), 44100 Hz, stereo, fltp, 192 kb/s\nStream mapping:\n  Stream #0:0 -> #0:0 (mjpeg (native) -> wrapped_avframe (native))\n[Parsed_showinfo_0 @ 0x76819c002ec0] config in time_base: 333333/10000000, frame_rate: 10000000/333333\n[Parsed_showinfo_0 @ 0x76819c002ec0] config out time_base: 0/0, frame_rate: 0/0\n[Parsed_showinfo_0 @ 0x76819c002ec0] n:   0 pts:      0 pts_time:0       duration:      1 duration_time:0.0333333 fmt:yuvj420p cl:center sar:1/1 s:3840x2160 i:P iskey:1 type:I checksum:904A4E48 plane_checksum:[198B738E 790FED4E 790FED4E] mean:[111 128 128] stdev:[30.5 0.0 0.0]\n[Parsed_showinfo_0 @ 0x76819c002ec0] color_range:pc color_space:bt470bg color_primaries:unknown color_trc:unknown\nOutput #0, null, to 'pipe:':\n  Metadata:\n    software        : Lavf58.13.101\n    encoder         : Lavf61.1.100\n  Stream #0:0: Video: wrapped_avframe, yuvj420p(pc, bt470bg/unknown/unknown, progressive), 3840x2160 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 30 fps, 30 tbn\n      Metadata:\n        encoder         : Lavc61.3.100 wrapped_avframe\n[out#0/null @ 0x10cc0b80] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown\nframe=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:00.03 bitrate=N/A speed=0.899x    "
+    },
+    "marker_locator_s": {
+      "T0": 123.2312593460083,
+      "T1": 167.42484211921692,
+      "T2": 224.68159365653992,
+      "T3": 257.0138454437256
+    },
+    "events": [
+      {
+        "step": 1,
+        "end_locator_s": 165.42218255996704,
+        "start_locator_s": 165.25293855996705
+      },
+      {
+        "step": 2,
+        "end_locator_s": 222.67847228050232,
+        "start_locator_s": 222.5087622805023
+      },
+      {
+        "step": 3,
+        "end_locator_s": 255.00991868972778,
+        "start_locator_s": 254.84054768972777
+      }
+    ],
+    "samples": [
+      {
+        "label": "T0",
+        "offset_s": 0,
+        "requested_s": 123.2312593460083,
+        "decoded_pts_s": 123.23321,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/A_T0_0.png"
+      },
+      {
+        "label": "T0",
+        "offset_s": 0.5,
+        "requested_s": 123.7312593460083,
+        "decoded_pts_s": 123.73321,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/A_T0_1.png"
+      },
+      {
+        "label": "T0",
+        "offset_s": 1,
+        "requested_s": 124.2312593460083,
+        "decoded_pts_s": 124.233209,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/A_T0_2.png"
+      },
+      {
+        "label": "T1",
+        "offset_s": 0,
+        "requested_s": 167.42484211921692,
+        "decoded_pts_s": 167.433166,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/A_T1_0.png"
+      },
+      {
+        "label": "T1",
+        "offset_s": 0.5,
+        "requested_s": 167.92484211921692,
+        "decoded_pts_s": 167.933165,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/A_T1_1.png"
+      },
+      {
+        "label": "T1",
+        "offset_s": 1,
+        "requested_s": 168.42484211921692,
+        "decoded_pts_s": 168.433165,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/A_T1_2.png"
+      },
+      {
+        "label": "T2",
+        "offset_s": 0,
+        "requested_s": 224.68159365653992,
+        "decoded_pts_s": 224.666442,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/A_T2_0.png"
+      },
+      {
+        "label": "T2",
+        "offset_s": 0.5,
+        "requested_s": 225.18159365653992,
+        "decoded_pts_s": 225.166442,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/A_T2_1.png"
+      },
+      {
+        "label": "T2",
+        "offset_s": 1,
+        "requested_s": 225.68159365653992,
+        "decoded_pts_s": 225.666441,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/A_T2_2.png"
+      },
+      {
+        "label": "T3",
+        "offset_s": 0,
+        "requested_s": 257.0138454437256,
+        "decoded_pts_s": 256.999743,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/A_T3_0.png"
+      },
+      {
+        "label": "T3",
+        "offset_s": 0.5,
+        "requested_s": 257.5138454437256,
+        "decoded_pts_s": 257.499743,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/A_T3_1.png"
+      },
+      {
+        "label": "T3",
+        "offset_s": 1,
+        "requested_s": 258.0138454437256,
+        "decoded_pts_s": 257.999742,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/A_T3_2.png"
+      }
+    ],
+    "metadata_elapsed_s": 272.14324712753296,
+    "duration_minus_metadata_elapsed_s": -0.19324712753297035,
+    "locator_method": "USB receipt wallclock minus PC original-file creation time; approximate, no calibrated camera synchronization; visually verify stable images/events"
+  },
+  {
+    "condition": "D",
+    "source": "C:\\Users\\takec\\Videos\\20261018-130712.avi",
+    "source_bytes": 1642382944,
+    "source_created_utc": "2026-10-18T04:07:12.4160280Z",
+    "source_modified_utc": "2026-10-18T04:10:46.4114255Z",
+    "source_sha256": "6042a348bdb31c0875fc771d5e0accfc097ad30b11914105ed59badc80b26407",
+    "correspondence": "user: older first; filename and local creation times verified against USB log before analysis",
+    "probe": {
+      "duration_s": 213.8,
+      "decoded_size": [
+        3840,
+        2160
+      ],
+      "nominal_fps": 30.0,
+      "variable_frame_rate_assumed_possible": true,
+      "decoder_log": "Input #0, avi, from '/mnt/c/Users/takec/Videos/20261018-130712.avi':\n  Metadata:\n    software        : Lavf58.13.101\n  Duration: 00:03:33.80, start: 0.000000, bitrate: 61454 kb/s\n  Stream #0:0: Video: mjpeg (Baseline) (MJPG / 0x47504A4D), yuvj420p(pc, bt470bg/unknown/unknown), 3840x2160 [SAR 1:1 DAR 16:9], 61259 kb/s, 30 fps, 30 tbr, 30 tbn\n  Stream #0:1: Audio: ac3 ([0] [0][0] / 0x2000), 44100 Hz, stereo, fltp, 192 kb/s\nStream mapping:\n  Stream #0:0 -> #0:0 (mjpeg (native) -> wrapped_avframe (native))\n[Parsed_showinfo_0 @ 0x75a150002ec0] config in time_base: 333333/10000000, frame_rate: 10000000/333333\n[Parsed_showinfo_0 @ 0x75a150002ec0] config out time_base: 0/0, frame_rate: 0/0\n[Parsed_showinfo_0 @ 0x75a150002ec0] n:   0 pts:      0 pts_time:0       duration:      1 duration_time:0.0333333 fmt:yuvj420p cl:center sar:1/1 s:3840x2160 i:P iskey:1 type:I checksum:5FF5A36A plane_checksum:[9D02C8B0 790FED4E 790FED4E] mean:[110 128 128] stdev:[30.6 0.0 0.0]\n[Parsed_showinfo_0 @ 0x75a150002ec0] color_range:pc color_space:bt470bg color_primaries:unknown color_trc:unknown\nOutput #0, null, to 'pipe:':\n  Metadata:\n    software        : Lavf58.13.101\n    encoder         : Lavf61.1.100\n  Stream #0:0: Video: wrapped_avframe, yuvj420p(pc, bt470bg/unknown/unknown, progressive), 3840x2160 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 30 fps, 30 tbn\n      Metadata:\n        encoder         : Lavc61.3.100 wrapped_avframe\n[out#0/null @ 0x95bbb80] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown\nframe=    1 fps=0.0 q=-0.0 Lsize=N/A time=00:00:00.03 bitrate=N/A speed=1.16x    "
+    },
+    "marker_locator_s": {
+      "T0": 64.84569334983826,
+      "T1": 112.62601470947266,
+      "T2": 151.2332136631012,
+      "T3": 189.87416005134583
+    },
+    "events": [
+      {
+        "step": 1,
+        "end_locator_s": 110.62902283668518,
+        "start_locator_s": 110.45914683668518
+      },
+      {
+        "step": 2,
+        "end_locator_s": 149.235089302063,
+        "start_locator_s": 149.065719302063
+      },
+      {
+        "step": 3,
+        "end_locator_s": 187.87619614601135,
+        "start_locator_s": 187.70656014601136
+      }
+    ],
+    "samples": [
+      {
+        "label": "T0",
+        "offset_s": 0,
+        "requested_s": 64.84569334983826,
+        "decoded_pts_s": 64.833269,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/D_T0_0.png"
+      },
+      {
+        "label": "T0",
+        "offset_s": 0.5,
+        "requested_s": 65.34569334983826,
+        "decoded_pts_s": 65.333268,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/D_T0_1.png"
+      },
+      {
+        "label": "T0",
+        "offset_s": 1,
+        "requested_s": 65.84569334983826,
+        "decoded_pts_s": 65.833268,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/D_T0_2.png"
+      },
+      {
+        "label": "T1",
+        "offset_s": 0,
+        "requested_s": 112.62601470947266,
+        "decoded_pts_s": 112.633221,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/D_T1_0.png"
+      },
+      {
+        "label": "T1",
+        "offset_s": 0.5,
+        "requested_s": 113.12601470947266,
+        "decoded_pts_s": 113.13322,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/D_T1_1.png"
+      },
+      {
+        "label": "T1",
+        "offset_s": 1,
+        "requested_s": 113.62601470947266,
+        "decoded_pts_s": 113.63322,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/D_T1_2.png"
+      },
+      {
+        "label": "T2",
+        "offset_s": 0,
+        "requested_s": 151.2332136631012,
+        "decoded_pts_s": 151.233182,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/D_T2_0.png"
+      },
+      {
+        "label": "T2",
+        "offset_s": 0.5,
+        "requested_s": 151.7332136631012,
+        "decoded_pts_s": 151.733182,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/D_T2_1.png"
+      },
+      {
+        "label": "T2",
+        "offset_s": 1,
+        "requested_s": 152.2332136631012,
+        "decoded_pts_s": 152.233181,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/D_T2_2.png"
+      },
+      {
+        "label": "T3",
+        "offset_s": 0,
+        "requested_s": 189.87416005134583,
+        "decoded_pts_s": 189.866477,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/D_T3_0.png"
+      },
+      {
+        "label": "T3",
+        "offset_s": 0.5,
+        "requested_s": 190.37416005134583,
+        "decoded_pts_s": 190.366476,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/D_T3_1.png"
+      },
+      {
+        "label": "T3",
+        "offset_s": 1,
+        "requested_s": 190.87416005134583,
+        "decoded_pts_s": 190.866476,
+        "file": "/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/archive/20261018-d-repeat3/analysis/D_T3_2.png"
+      }
+    ],
+    "metadata_elapsed_s": 213.99539709091187,
+    "duration_minus_metadata_elapsed_s": -0.19539709091185387,
+    "locator_method": "USB receipt wallclock minus PC original-file creation time; approximate, no calibrated camera synchronization; visually verify stable images/events"
+  }
+]

@@ -1,0 +1,144 @@
+{
+  "condition": "A",
+  "gate": null,
+  "fault": false,
+  "ended": true,
+  "done": true,
+  "completed": 3,
+  "markers": [
+    "BH mark=T0 anchor_us=264656415 target_us=269656415 actual_us=269656989",
+    "BH mark=measure1 anchor_us=306677029 target_us=311677029 actual_us=311677989",
+    "BH mark=T1 anchor_us=311852204 target_us=313852204 actual_us=313852989",
+    "BH mark=measure2 anchor_us=363933020 target_us=368933020 actual_us=368933990",
+    "BH mark=T2 anchor_us=369108692 target_us=371108692 actual_us=371108989",
+    "BH mark=measure3 anchor_us=396269018 target_us=401269018 actual_us=401269989",
+    "BH mark=T3 anchor_us=401444322 target_us=403444322 actual_us=403444989"
+  ],
+  "events": [
+    {
+      "line": "BH phase=white-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2 start_us=165859461 end_us=170330021 total_us=4470560 busy_us=100051 spi_us=89813 ram_bytes=0",
+      "received_unix_ns": 1792296126866802200,
+      "received_monotonic_ns": 278934296000000
+    },
+    {
+      "line": "BH phase=image-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2 start_us=259630356 end_us=264106025 total_us=4475669 busy_us=99089 spi_us=93017 ram_bytes=0",
+      "received_unix_ns": 1792296220636702400,
+      "received_monotonic_ns": 279028062000000
+    },
+    {
+      "line": "BH phase=prepare-baseline err=0 candidate=0 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1 start_us=264116853 end_us=264656415 total_us=539562 busy_us=133938 spi_us=78469 ram_bytes=1BH trace phase=prepare-baseline lut_ready_us=264448035 activate_call_us=264448246 busy_wait_end_us=264582184 restore_start_us=264656271 restore_end_us=264656413 busy_edge_measured=0",
+      "received_unix_ns": 1792296221182086600,
+      "received_monotonic_ns": 279028609000000
+    },
+    {
+      "line": "BH mark=T0 anchor_us=264656415 target_us=269656415 actual_us=269656989",
+      "received_unix_ns": 1792296226188106200,
+      "received_monotonic_ns": 279033609000000
+    },
+    {
+      "line": "BH progress condition=A completed=0 boot_attempts=0 measured_cmd20=0",
+      "received_unix_ns": 1792296226188106200,
+      "received_monotonic_ns": 279033609000000
+    },
+    {
+      "line": "BH request condition=A step=1 requested_us=306677029 boot_attempts=1",
+      "received_unix_ns": 1792296263201357400,
+      "received_monotonic_ns": 279070625000000
+    },
+    {
+      "line": "BH mark=measure1 anchor_us=306677029 target_us=311677029 actual_us=311677989",
+      "received_unix_ns": 1792296268206439600,
+      "received_monotonic_ns": 279075640000000
+    },
+    {
+      "line": "BH phase=A-repeat-1 err=0 candidate=3 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1 start_us=311682960 end_us=311852204 total_us=169244 busy_us=51201 spi_us=61590 ram_bytes=144000",
+      "received_unix_ns": 1792296268379029400,
+      "received_monotonic_ns": 279075812000000
+    },
+    {
+      "line": "BH trace phase=A-repeat-1 lut_ready_us=311722601 activate_call_us=311722802 busy_wait_end_us=311774003 restore_start_us=311852059 restore_end_us=311852202 busy_edge_measured=0",
+      "received_unix_ns": 1792296268379029400,
+      "received_monotonic_ns": 279075812000000
+    },
+    {
+      "line": "BH mark=T1 anchor_us=311852204 target_us=313852204 actual_us=313852989",
+      "received_unix_ns": 1792296270381689100,
+      "received_monotonic_ns": 279077812000000
+    },
+    {
+      "line": "BH progress condition=A completed=1 boot_attempts=1 measured_cmd20=1",
+      "received_unix_ns": 1792296270381689100,
+      "received_monotonic_ns": 279077812000000
+    },
+    {
+      "line": "BH request condition=A step=2 requested_us=363933020 boot_attempts=2",
+      "received_unix_ns": 1792296320463355100,
+      "received_monotonic_ns": 279127890000000
+    },
+    {
+      "line": "BH mark=measure2 anchor_us=363933020 target_us=368933020 actual_us=368933990",
+      "received_unix_ns": 1792296325463311600,
+      "received_monotonic_ns": 279132890000000
+    },
+    {
+      "line": "BH phase=A-repeat-2 err=0 candidate=3 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1 start_us=368938982 end_us=369108692 total_us=169710 busy_us=51516 spi_us=62368 ram_bytes=144000",
+      "received_unix_ns": 1792296325635319400,
+      "received_monotonic_ns": 279133062000000
+    },
+    {
+      "line": "BH trace phase=A-repeat-2 lut_ready_us=368978280 activate_call_us=368978487 busy_wait_end_us=369030003 restore_start_us=369108548 restore_end_us=369108689 busy_edge_measured=0",
+      "received_unix_ns": 1792296325635319400,
+      "received_monotonic_ns": 279133062000000
+    },
+    {
+      "line": "BH mark=T2 anchor_us=369108692 target_us=371108692 actual_us=371108989",
+      "received_unix_ns": 1792296327638440800,
+      "received_monotonic_ns": 279135062000000
+    },
+    {
+      "line": "BH progress condition=A completed=2 boot_attempts=2 measured_cmd20=2",
+      "received_unix_ns": 1792296327638440800,
+      "received_monotonic_ns": 279135062000000
+    },
+    {
+      "line": "BH request condition=A step=3 requested_us=396269018 boot_attempts=3",
+      "received_unix_ns": 1792296352792767100,
+      "received_monotonic_ns": 279160218000000
+    },
+    {
+      "line": "BH mark=measure3 anchor_us=396269018 target_us=401269018 actual_us=401269989",
+      "received_unix_ns": 1792296357796234600,
+      "received_monotonic_ns": 279165218000000
+    },
+    {
+      "line": "BH phase=A-repeat-3 err=0 candidate=3 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1 start_us=401274951 end_us=401444322 total_us=169371 busy_us=51530 spi_us=61797 ram_bytes=144000",
+      "received_unix_ns": 1792296357966765500,
+      "received_monotonic_ns": 279165390000000
+    },
+    {
+      "line": "BH trace phase=A-repeat-3 lut_ready_us=401314271 activate_call_us=401314473 busy_wait_end_us=401366003 restore_start_us=401444183 restore_end_us=401444320 busy_edge_measured=0",
+      "received_unix_ns": 1792296357978786500,
+      "received_monotonic_ns": 279165406000000
+    },
+    {
+      "line": "BH mark=T3 anchor_us=401444322 target_us=403444322 actual_us=403444989",
+      "received_unix_ns": 1792296359970692300,
+      "received_monotonic_ns": 279167406000000
+    },
+    {
+      "line": "BH progress condition=A completed=3 boot_attempts=3 measured_cmd20=3",
+      "received_unix_ns": 1792296359970692300,
+      "received_monotonic_ns": 279167406000000
+    },
+    {
+      "line": "BH phase=exit-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2 start_us=447307160 end_us=451781199 total_us=4474039 busy_us=99390 spi_us=94333 ram_bytes=0",
+      "received_unix_ns": 1792296408314531800,
+      "received_monotonic_ns": 279215750000000
+    }
+  ],
+  "last_control": "g",
+  "last_gate": "T3-cleanup",
+  "last_marker": "T3",
+  "boot_attempts": 3,
+  "diagnostic_cmd20": 10
+}

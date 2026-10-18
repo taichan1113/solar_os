@@ -1,0 +1,20 @@
+﻿[
+    {
+        "condition":  "A",
+        "source":  "C:\\Users\\takec\\Videos\\20261018-130142.avi",
+        "source_bytes":  2083059590,
+        "source_created_utc":  "2026-10-18T04:01:42.9568475Z",
+        "source_modified_utc":  "2026-10-18T04:06:15.1000944Z",
+        "source_sha256":  "864d40e755cb2dcf4072f19e189c81d86bac27f8d71b8ad2b104ba170a76d8a4",
+        "correspondence":  "user: older first; filename and local creation times verified against USB log before analysis"
+    },
+    {
+        "condition":  "D",
+        "source":  "C:\\Users\\takec\\Videos\\20261018-130712.avi",
+        "source_bytes":  1642382944,
+        "source_created_utc":  "2026-10-18T04:07:12.4160280Z",
+        "source_modified_utc":  "2026-10-18T04:10:46.4114255Z",
+        "source_sha256":  "6042a348bdb31c0875fc771d5e0accfc097ad30b11914105ed59badc80b26407",
+        "correspondence":  "user: older first; filename and local creation times verified against USB log before analysis"
+    }
+]

@@ -1,0 +1,33 @@
+version
+SolarOS 4.16.1
+Flavor: writerdeck
+user@sol:/ I (29487) NimBLE: GAP procedure initiated: discovery; 
+I (29487) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (29487) NimBLE: duration=8000ms
+I (29488) NimBLE: 
+
+sessions
+ID  TITLE        APP      STATE     OWNER    TIME
+0   shell        shell    suspended display0 0/0ms 0/0us n=0 !0
+1   launcher     launcher active    display0 40/25ms 18/18us n=249 !0
+16  cdc0/dumb    shell    active    cdc0     100/25ms 22/33us n=228 !0
+user@sol:/ ota status
+SolarOS: 4.16.1
+Compiled flavor: writerdeck
+OTA flavor: writerdeck
+URL: https://solar-os.eu/ota/latest
+OTA partitions: 2
+Running: ota_0 (slot 0) addr 0x010000 size 7.0 MiB state valid version 4.16.1
+Boot: ota_0 (slot 0) addr 0x010000 size 7.0 MiB state valid version 4.16.1
+Next update: ota_1 (slot 1) addr 0x710000 size 7.0 MiB state unknown
+user@sol:/ display mode display0
+mode: refresh=fastest
+values: refresh=<auto,partial,full,cleanup,fastest,typing,hybrid> timing=<on,off> hybrid-idle-ms=<500..30000> hybrid-max-updates=<1..10> spi-mhz=<10,20> fastest-path=<scalar,tile> typing-framuser@sol:/ cat /.shell/startup
+session create shell cdc0 --term dumb --size 80x25
+display mode display0 refresh=fastest
+display mode display0 fastest-path=tile
+user@sol:/ I (42490) NimBLE: GAP procedure initiated: discovery; 
+I (42490) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (42490) NimBLE: duration=8000ms
+I (42490) NimBLE: 
+

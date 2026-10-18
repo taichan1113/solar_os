@@ -1,0 +1,7 @@
+﻿{
+    "inspected":  "A_T0_preview.png and D_T0_preview.png",
+    "selection":  "Reuse previous fixed B/D pixel ROIs after visual verification of matching 3840x2160 framing; frozen before contrast calculation",
+    "square":  "interior of fixed left black square and nearby white to its right",
+    "text":  "both fixed text lines; immutable mask selected from each video T0 with 0.65 adjacent-white threshold",
+    "measured_before_ROI_selection":  false
+}

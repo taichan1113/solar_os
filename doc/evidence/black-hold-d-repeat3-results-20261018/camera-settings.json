@@ -1,0 +1,14 @@
+﻿{
+    "source":  "User reply: 固定できる・前回と同じ設定",
+    "camera":  "Insta360 Link",
+    "capture_app":  "Insta360 Link Controller (previous record)",
+    "resolution_fps":  "4K30",
+    "exposure_gain":  "manual fixed",
+    "focus_percent":  9,
+    "white_balance":  "fixed; same as previous, numeric value not rechecked this run",
+    "camera_panel_position":  "fixed",
+    "natural_light":  "previously not blocked; no new claim of blocking",
+    "panel_temperature":  "not measured / no new measurement",
+    "recorded_local_time":  "2026-10-18T12:57:12.4525481+09:00",
+    "recording_started":  false
+}

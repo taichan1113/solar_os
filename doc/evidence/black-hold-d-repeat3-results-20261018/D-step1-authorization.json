@@ -1,0 +1,8 @@
+﻿{
+    "gate":  "T0-next",
+    "user_reply":  "Aと同程度で正常・Dの1回目を実行してよい",
+    "recorded_local_time":  "2026-10-18T13:08:57.8103847+09:00",
+    "authorizes":  "D measurement 1 only",
+    "measurement_number":  1,
+    "lut0":  "2F F0"
+}

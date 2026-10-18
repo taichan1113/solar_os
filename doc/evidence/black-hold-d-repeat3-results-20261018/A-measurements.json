@@ -1,0 +1,318 @@
+{
+  "condition": "A",
+  "phases": [
+    {
+      "err": 0,
+      "candidate": 0,
+      "spi_hz": 20000000,
+      "cmd03": 0,
+      "cmd04": 0,
+      "cmd2c": 0,
+      "cmd32": 0,
+      "cmd20": 2,
+      "start_us": 165859461,
+      "end_us": 170330021,
+      "total_us": 4470560,
+      "busy_us": 100051,
+      "spi_us": 89813,
+      "ram_bytes": null,
+      "phase": "white-otp"
+    },
+    {
+      "err": 0,
+      "candidate": 0,
+      "spi_hz": 20000000,
+      "cmd03": 0,
+      "cmd04": 0,
+      "cmd2c": 0,
+      "cmd32": 0,
+      "cmd20": 2,
+      "start_us": 259630356,
+      "end_us": 264106025,
+      "total_us": 4475669,
+      "busy_us": 99089,
+      "spi_us": 93017,
+      "ram_bytes": null,
+      "phase": "image-otp"
+    },
+    {
+      "err": 0,
+      "candidate": 0,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "start_us": 264116853,
+      "end_us": 264656415,
+      "total_us": 539562,
+      "busy_us": 133938,
+      "spi_us": 78469,
+      "ram_bytes": 192000,
+      "phase": "prepare-baseline",
+      "ram_source": "complete REF line, checked against BH when available"
+    },
+    {
+      "err": 0,
+      "candidate": 3,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "start_us": 311682960,
+      "end_us": 311852204,
+      "total_us": 169244,
+      "busy_us": 51201,
+      "spi_us": 61590,
+      "ram_bytes": 144000,
+      "phase": "A-repeat-1",
+      "ram_source": "complete REF line, checked against BH when available"
+    },
+    {
+      "err": 0,
+      "candidate": 3,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "start_us": 368938982,
+      "end_us": 369108692,
+      "total_us": 169710,
+      "busy_us": 51516,
+      "spi_us": 62368,
+      "ram_bytes": 144000,
+      "phase": "A-repeat-2",
+      "ram_source": "complete REF line, checked against BH when available"
+    },
+    {
+      "err": 0,
+      "candidate": 3,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "start_us": 401274951,
+      "end_us": 401444322,
+      "total_us": 169371,
+      "busy_us": 51530,
+      "spi_us": 61797,
+      "ram_bytes": 144000,
+      "phase": "A-repeat-3",
+      "ram_source": "complete REF line, checked against BH when available"
+    },
+    {
+      "err": 0,
+      "candidate": 0,
+      "spi_hz": 20000000,
+      "cmd03": 0,
+      "cmd04": 0,
+      "cmd2c": 0,
+      "cmd32": 0,
+      "cmd20": 2,
+      "start_us": 447307160,
+      "end_us": 451781199,
+      "total_us": 4474039,
+      "busy_us": 99390,
+      "spi_us": 94333,
+      "ram_bytes": null,
+      "phase": "exit-otp"
+    }
+  ],
+  "measured": [
+    {
+      "err": 0,
+      "candidate": 3,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "start_us": 311682960,
+      "end_us": 311852204,
+      "total_us": 169244,
+      "busy_us": 51201,
+      "spi_us": 61590,
+      "ram_bytes": 144000,
+      "phase": "A-repeat-1",
+      "ram_source": "complete REF line, checked against BH when available"
+    },
+    {
+      "err": 0,
+      "candidate": 3,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "start_us": 368938982,
+      "end_us": 369108692,
+      "total_us": 169710,
+      "busy_us": 51516,
+      "spi_us": 62368,
+      "ram_bytes": 144000,
+      "phase": "A-repeat-2",
+      "ram_source": "complete REF line, checked against BH when available"
+    },
+    {
+      "err": 0,
+      "candidate": 3,
+      "spi_hz": 20000000,
+      "cmd03": 1,
+      "cmd04": 1,
+      "cmd2c": 1,
+      "cmd32": 2,
+      "cmd20": 1,
+      "start_us": 401274951,
+      "end_us": 401444322,
+      "total_us": 169371,
+      "busy_us": 51530,
+      "spi_us": 61797,
+      "ram_bytes": 144000,
+      "phase": "A-repeat-3",
+      "ram_source": "complete REF line, checked against BH when available"
+    }
+  ],
+  "markers": {
+    "T0": {
+      "anchor_us": 264656415,
+      "target_us": 269656415,
+      "actual_us": 269656989
+    },
+    "measure1": {
+      "anchor_us": 306677029,
+      "target_us": 311677029,
+      "actual_us": 311677989
+    },
+    "T1": {
+      "anchor_us": 311852204,
+      "target_us": 313852204,
+      "actual_us": 313852989
+    },
+    "measure2": {
+      "anchor_us": 363933020,
+      "target_us": 368933020,
+      "actual_us": 368933990
+    },
+    "T2": {
+      "anchor_us": 369108692,
+      "target_us": 371108692,
+      "actual_us": 371108989
+    },
+    "measure3": {
+      "anchor_us": 396269018,
+      "target_us": 401269018,
+      "actual_us": 401269989
+    },
+    "T3": {
+      "anchor_us": 401444322,
+      "target_us": 403444322,
+      "actual_us": 403444989
+    }
+  },
+  "traces": {
+    "prepare-baseline": {
+      "lut_ready_us": 264448035,
+      "activate_call_us": 264448246,
+      "busy_wait_end_us": 264582184,
+      "restore_start_us": 264656271,
+      "restore_end_us": 264656413,
+      "busy_edge_measured": 0
+    },
+    "A-repeat-1": {
+      "lut_ready_us": 311722601,
+      "activate_call_us": 311722802,
+      "busy_wait_end_us": 311774003,
+      "restore_start_us": 311852059,
+      "restore_end_us": 311852202,
+      "busy_edge_measured": 0
+    },
+    "A-repeat-2": {
+      "lut_ready_us": 368978280,
+      "activate_call_us": 368978487,
+      "busy_wait_end_us": 369030003,
+      "restore_start_us": 369108548,
+      "restore_end_us": 369108689,
+      "busy_edge_measured": 0
+    },
+    "A-repeat-3": {
+      "lut_ready_us": 401314271,
+      "activate_call_us": 401314473,
+      "busy_wait_end_us": 401366003,
+      "restore_start_us": 401444183,
+      "restore_end_us": 401444320,
+      "busy_edge_measured": 0
+    }
+  },
+  "requests": {
+    "1": {
+      "step": 1,
+      "requested_us": 306677029,
+      "boot_attempts": 1
+    },
+    "2": {
+      "step": 2,
+      "requested_us": 363933020,
+      "boot_attempts": 2
+    },
+    "3": {
+      "step": 3,
+      "requested_us": 396269018,
+      "boot_attempts": 3
+    }
+  },
+  "actual_intervals_us": [
+    {
+      "step": 1,
+      "operator_request_us": 306677029,
+      "request_to_driver_start_us": 5005931,
+      "previous_measurement_start_to_start_us": null,
+      "previous_completion_to_driver_start_us": 47026545,
+      "measurement_end_to_Tn_us": 2000785
+    },
+    {
+      "step": 2,
+      "operator_request_us": 363933020,
+      "request_to_driver_start_us": 5005962,
+      "previous_measurement_start_to_start_us": 57256022,
+      "previous_completion_to_driver_start_us": 57086778,
+      "measurement_end_to_Tn_us": 2000297
+    },
+    {
+      "step": 3,
+      "operator_request_us": 396269018,
+      "request_to_driver_start_us": 5005933,
+      "previous_measurement_start_to_start_us": 32335969,
+      "previous_completion_to_driver_start_us": 32166259,
+      "measurement_end_to_Tn_us": 2000667
+    }
+  ],
+  "prepare_to_T0_us": 5000574,
+  "diagnostic_cmd20": 10,
+  "measured_cmd20": 3,
+  "cmd32_measurement_total": 6,
+  "means_us": {
+    "total_us": 169441.66666666666,
+    "busy_us": 51415.666666666664,
+    "spi_us": 61918.333333333336
+  },
+  "log_quality_notes": [
+    {
+      "phase": "prepare-baseline",
+      "issue": "BH preparation RAM tail truncated; use complete REF line",
+      "raw_BH_ram_field": 1,
+      "REF_ram_bytes": 192000
+    }
+  ],
+  "optical_contrast": "not yet analyzed",
+  "physical_lut_readback": false,
+  "total_scope": "diagnostic only; normal Shell/Launcher/boot updates excluded"
+}

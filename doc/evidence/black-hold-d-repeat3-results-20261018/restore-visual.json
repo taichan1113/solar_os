@@ -1,0 +1,8 @@
+﻿{
+    "user_reply":  "Launcher（またはShell）の表示は正常",
+    "stage":  "after Integration restoration",
+    "recorded_local_time":  "2026-10-18T13:16:58.2778459+09:00",
+    "final_application_sha256":  "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6",
+    "final_commit":  "391925abff2d261d1d5856711aa0a1f101ac435a",
+    "further_device_tests":  false
+}

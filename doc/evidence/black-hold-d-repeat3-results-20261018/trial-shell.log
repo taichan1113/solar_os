@@ -1,0 +1,15 @@
+close 1
+I (123363) papermono-power: IOE PYG6=0
+I (123369) papermono-power: IOE PYG13=0
+I (123369) ft6336: touch0 disabled: worker stopped, power OFF
+closed session 1
+user@sol:/ I (123420) papermono-power: IOE PYG3=1
+I (123446) papermono-power: IOE PYG5=0
+I (123461) papermono-power: IOE PYG5=1
+I (123571) epd_ssd1677: SPI requested_khz=20000 actual_khz=20000
+I (123671) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+sessions
+ID  TITLE        APP      STATE     OWNER    TIME
+0   shell        shell    active    display0 25/25ms 29/357us n=69 !0
+16  cdc0/dumb    shell    active    cdc0     100/25ms 23/36us n=1172 !0
+user@sol:/ 
