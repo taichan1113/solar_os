@@ -1,1 +1,2 @@
 tests/host/run_launcher_touch_grid.sh text eol=lf
+doc/evidence/launcher-touch-grid-20261019/* -text
