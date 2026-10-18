@@ -95,7 +95,7 @@ static void test_continuous_and_sources(void)
     boot(); epd_ssd1677_t d=prepare();
     epd_ssd1677_writer_status_t status;
     assert(epd_ssd1677_writer_lut(&d,"status",&status,NULL)==ESP_OK && status.enabled);
-    const char *apps[]={"Shell","Launcher","Writer","Sketch","TypeMouse","untagged"};
+    const char *apps[]={"Shell","Launcher","Writer","OtherApp","TypeMouse","untagged"};
     /* Every non-Writer uses the ordinary untagged submission. App labels do
      * not enter the Driver at all; origin metadata cannot gate the LUT. */
     for(unsigned i=0;i<21;i++) {
@@ -157,6 +157,23 @@ static void test_otp_not_compensated(void)
     assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
     assert(d.writer_trial.used_d && d.writer_trial.status.d_physical==1 && count_command(0x20)==1);
     puts("all-app D: full/OTP unchanged, next untagged cold fastest D PASS");
+}
+static void test_sketch_exception(void)
+{
+    boot(); epd_ssd1677_t d=prepare();
+    uint64_t expected_d=0,expected_a=d.writer_trial.status.a_physical;
+    for(unsigned i=0;i<5;i++) {
+        const bool sketch=(i%2)==1;
+        d.writer_trial.origin=(solar_os_writer_frame_t){.is_sketch=sketch};
+        flip(470+i,310); command_count=0;
+        assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+        assert(count_command(0x20)==1 && count_command(0x32)==(sketch?1U:2U));
+        expect_data(0x32,sketch?ssd1677_reference_lut:ssd1677_trial_black_hold_d_lut,105);
+        if(sketch) expected_a++; else expected_d++;
+        assert(d.writer_trial.status.d_physical==expected_d && d.writer_trial.status.a_physical==expected_a);
+        assert(!d.writer_trial.baseline_selected && !memcmp(shadow,frame,sizeof(frame)));
+    }
+    puts("Sketch exception: other D -> Sketch A -> other D, unchanged global mode/Shadow PASS");
 }
 static void test_synchronous_u8g2(void)
 {
@@ -246,5 +263,6 @@ int main(void)
     for(unsigned r=0;r<2;r++) for(unsigned swap=0;swap<2;swap++) test_normal_dirty(r,swap);
     test_continuous_and_sources(); test_otp_not_compensated(); test_cold_first_fastest(); test_counter_saturation(); test_faults();
     test_synchronous_u8g2();
+    test_sketch_exception();
     puts("writer_d_driver_test: PASS"); return 0;
 }

@@ -120,7 +120,7 @@ TARGETS += ft6336_lifecycle_test
 TARGETS += ft6336_raw_test
 TARGETS += ft6336_raw_shell_test
 TARGETS += status_led_provider_test
-TARGETS += sketch_lifecycle_test sketch_scale140_lifecycle_test
+TARGETS += sketch_lifecycle_test sketch_scale140_lifecycle_test sketch_baseline_lifecycle_test
 TARGETS += sketch_trace_core_test
 
 sketch_trace_core_test: sketch_trace_core_test.c $(ROOT)/src/services/solar_os_sketch_trace_core.c
@@ -131,7 +131,8 @@ sketch_legacy_lifecycle_test: sketch_legacy_lifecycle_test.c sketch_lifecycle_te
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -include compat.h -I. -I$(ROOT)/src -I$(ROOT)/src/services \
 		-I$(ROOT)/src/apps -I$(ROOT)/components/stb_image/include $< $(ROOT)/src/apps/solar_os_sketch_canvas.c -lm -o $@
 
-sketch_lifecycle_test: sketch_lifecycle_test.c $(ROOT)/src/apps/solar_os_sketch.c $(ROOT)/src/apps/solar_os_sketch_canvas.c
+sketch_baseline_lifecycle_test: CFLAGS += -DSOLAR_OS_SSD1677_WRITER_D=1
+sketch_lifecycle_test sketch_baseline_lifecycle_test: sketch_lifecycle_test.c $(ROOT)/src/apps/solar_os_sketch.c $(ROOT)/src/apps/solar_os_sketch_canvas.c
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -DSOLAR_OS_PACKAGE_SERVICE_EXPANSION=1 \
 		-DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' -DSOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT=1 \
 		-include compat.h -I. -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/src/apps \

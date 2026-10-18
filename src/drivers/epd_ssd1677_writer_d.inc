@@ -27,7 +27,7 @@ static bool writer_d_select(epd_ssd1677_t *d, bool cold)
     epd_ssd1677_writer_trial_t *t = &d->writer_trial;
     t->used_d = t->restored = false;
     t->reference = true;
-    if (t->baseline_selected || atomic_load(&writer_d_failed) ||
+    if (t->origin.is_sketch || t->baseline_selected || atomic_load(&writer_d_failed) ||
         d->refresh_mode != EPD_SSD1677_REFRESH_FASTEST) return false;
     /* A known optical/Shadow baseline is required by the existing dispatcher.
      * Cold custom entry still performs its normal reset/full-RAM preparation,

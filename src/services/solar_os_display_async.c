@@ -241,7 +241,7 @@ esp_err_t solar_os_display_async_submit(solar_os_display_async_t *a, const uint8
 esp_err_t solar_os_display_async_submit_writer(solar_os_display_async_t *a, const uint8_t *src,
     size_t size, uint64_t *id, const solar_os_writer_frame_t *origin)
 {
-    if (!origin || !origin->is_writer) return ESP_ERR_INVALID_ARG;
+    if (!origin || (!origin->is_writer && !origin->is_sketch)) return ESP_ERR_INVALID_ARG;
     return submit_snapshot(a, src, size, id, origin);
 }
 void solar_os_display_async_execution_origin(solar_os_display_async_t *a, solar_os_writer_frame_t *origin)

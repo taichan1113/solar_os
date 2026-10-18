@@ -62,7 +62,20 @@ void solar_os_gfx_bitmap(solar_os_gfx_t *g,int x,int y,int w,int h,const uint8_t
 void solar_os_gfx_bitmap_2bpp(solar_os_gfx_t *g,int x,int y,int w,int h,const uint8_t *b,size_t n,const solar_os_gfx_color_t p[4])
 {(void)n;(void)p;solar_os_gfx_bitmap(g,x,y,w,h,b);}
 void solar_os_gfx_present(solar_os_gfx_t *g){(void)g;synchronous_presents++;}
-esp_err_t solar_os_gfx_submit(solar_os_gfx_t *g,uint64_t *n){(void)g;if(n)*n=submits+1;submits++;return submit_error;}
+#if SOLAR_OS_SSD1677_WRITER_D
+static bool sketch_source_submit;
+#endif
+esp_err_t solar_os_gfx_submit(solar_os_gfx_t *g,uint64_t *n)
+{
+#if SOLAR_OS_SSD1677_WRITER_D
+    assert(sketch_source_submit); /* Both Canvas and UI must carry Sketch identity. */
+#endif
+    (void)g;if(n)*n=submits+1;submits++;return submit_error;
+}
+#if SOLAR_OS_SSD1677_WRITER_D
+esp_err_t solar_os_gfx_submit_sketch(solar_os_gfx_t *g,uint64_t *n)
+{ sketch_source_submit=true; const esp_err_t e=solar_os_gfx_submit(g,n); sketch_source_submit=false; return e; }
+#endif
 
 esp_err_t solar_os_storage_resolve_path(const char *p,char *out,size_t n)
 {return strlcpy(out,p,n)<n?ESP_OK:ESP_ERR_INVALID_SIZE;}

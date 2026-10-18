@@ -40,7 +40,7 @@ int main(void)
     assert(epd_ssd1677_set_controller_mode(&device,"refresh=fastest")==ESP_OK);
     assert(epd_ssd1677_set_controller_mode(&device,"dirty-window=rows-dual")==ESP_OK);
     device.execution_context=&device; device.operation_begin=begin; device.operation_end=end;
-    command("status",2); assert(strstr(output,"mode=D scope=all-apps attempts=0"));
+    command("status",2); assert(strstr(output,"mode=D scope=all-apps-except-sketch attempts=0"));
     command("baseline",2); assert(device.writer_trial.baseline_selected && strstr(output,"mode=A"));
     command("candidate_d",2); assert(!device.writer_trial.baseline_selected && strstr(output,"mode=D"));
     command("disable",2); assert(!!device.writer_trial.baseline_selected);

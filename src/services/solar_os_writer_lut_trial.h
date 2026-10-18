@@ -13,7 +13,7 @@ static inline uint32_t solar_os_writer_count_add(uint32_t a, uint32_t b)
 /* Explicit origin, copied WITH each immutable snapshot. No foreground lookup.
  * Times begin at Writer event acceptance, not BLE reception; no key text. */
 typedef struct {
-    bool is_writer;
+    bool is_writer, is_sketch; /* Immutable source identity; Driver owns LUT policy. */
     uint32_t inputs, coalesced;
     uint64_t generation;
     int64_t input_first_us, input_last_us, render_start_us, rendered_us;

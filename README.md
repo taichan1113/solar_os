@@ -222,8 +222,10 @@ components remain applicable and must be preserved in redistributions.
 ### PaperMono display-wide black compensation (Integration)
 
 The common SSD1677 driver uses Candidate D for every actual `refresh=fastest`
-update from ALL applications, including Shell, Launcher, Writer, Sketch and
-TypeMouse. App origin tags are diagnostic only. Tile transport, 20 MHz SPI,
+update from ALL applications, including Shell, Launcher, Writer and TypeMouse. Sketch is temporarily
+EXCLUDED and uses Baseline A because strokes did not become black in the
+first all-app hardware check. Its source identity travels with the snapshot;
+the Driver owns this exception. Other origin tags are diagnostic only. Tile transport, 20 MHz SPI,
 Dirty rows-dual, no-op suppression and snapshot coalescing are unchanged.
 There is no cumulative update limit or periodic thinning. OTP initialization,
 full/cleanup and other refresh modes retain their existing waveforms.
@@ -234,10 +236,10 @@ To select Baseline A globally, use the USB Shell:
 display test display0 fastest-lut baseline
 ```
 
-`display test display0 fastest-lut candidate_d` selects D globally again;
+`display test display0 fastest-lut candidate_d` selects D again (Sketch remains Baseline);
 `status` shows the display-wide mode/totals and Writer diagnostic subtotals;
 `trace` shows recent updates from all apps. `disable` aliases `baseline`.
-The old `writer-lut` command remains an alias, now with the SAME GLOBAL scope.
+The old `writer-lut` command remains an alias, now with the SAME GLOBAL scope and Sketch exception.
 Commands do not request a panel update. Selection is volatile; boot defaults
 to D. A driver fault stops further updates when controller state is unknown.
 Long-term panel effects remain unverified; brief whitening is accepted.

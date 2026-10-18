@@ -1843,6 +1843,9 @@ static esp_err_t display_submit_origin(u8g2_t *u8g2, solar_os_display_present_mo
     uint32_t generation;
     err = display_submission_ref(u8g2, &submission, &index, &generation);
     if (err == ESP_ERR_NOT_SUPPORTED) {
+#if SOLAR_OS_SSD1677_WRITER_D
+        if (origin && origin->is_sketch) return err;
+#endif
         solar_os_display_present(u8g2, mode);
         return ESP_OK;
     }
@@ -1860,6 +1863,9 @@ static esp_err_t display_submit_origin(u8g2_t *u8g2, solar_os_display_present_mo
     if (synchronous_overlay) {
         xSemaphoreGive(slot->present_mutex);
         display_release_slot_ref(index, generation);
+#if SOLAR_OS_SSD1677_WRITER_D
+        if (origin && origin->is_sketch) return ESP_ERR_INVALID_STATE;
+#endif
         solar_os_display_present(u8g2, mode);
         return ESP_OK;
     }
@@ -1867,7 +1873,8 @@ static esp_err_t display_submit_origin(u8g2_t *u8g2, solar_os_display_present_mo
     else {
         const size_t size = (size_t)u8g2->pixel_buf_width * u8g2_GetBufferTileHeight(u8g2);
 #if SOLAR_OS_SSD1677_WRITER_D
-        if (origin && submission.submit_writer)
+        if (origin && origin->is_sketch && !submission.submit_writer) err = ESP_ERR_NOT_SUPPORTED;
+        else if (origin && submission.submit_writer)
             err = submission.submit_writer(submission.context, u8g2_GetBufferPtr(u8g2), size, id, origin);
         else
 #endif
@@ -1892,7 +1899,7 @@ esp_err_t solar_os_display_submit(u8g2_t *g, solar_os_display_present_mode_t mod
 #if SOLAR_OS_SSD1677_WRITER_D
 esp_err_t solar_os_display_submit_writer(u8g2_t *g, uint64_t *id, const solar_os_writer_frame_t *origin)
 {
-    if (!origin || !origin->is_writer) return ESP_ERR_INVALID_ARG;
+    if (!origin || (!origin->is_writer && !origin->is_sketch)) return ESP_ERR_INVALID_ARG;
     return display_submit_origin(g, SOLAR_OS_DISPLAY_PRESENT_GRAPHICS, id, origin);
 }
 #endif

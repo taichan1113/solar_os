@@ -775,6 +775,19 @@ static void sketch_render_popup(solar_os_gfx_t *gfx,
                        solar_os_ui_px(34), solar_os_ui_px(20), "OK", false);
 }
 
+/* Source identity travels with each submitted snapshot. The SSD1677
+ * Driver keeps Sketch on Baseline; this does not toggle the global D mode. */
+#if defined(SOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT) && SOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT
+static esp_err_t sketch_submit(solar_os_gfx_t *gfx, uint64_t *generation)
+{
+#if SOLAR_OS_SSD1677_WRITER_D
+    return solar_os_gfx_submit_sketch(gfx, generation);
+#else
+    return solar_os_gfx_submit(gfx, generation);
+#endif
+}
+#endif
+
 static bool sketch_render_paint(solar_os_gfx_t *gfx,
                                 const sketch_layout_t *layout)
 {
@@ -819,7 +832,7 @@ static bool sketch_render_paint(solar_os_gfx_t *gfx,
         (int32_t)(esp_timer_get_time() - bitmap_start), width * height);
 #endif
     uint64_t generation = 0;
-    const esp_err_t err = solar_os_gfx_submit(gfx, &generation);
+    const esp_err_t err = sketch_submit(gfx, &generation);
 #if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
     solar_os_sketch_trace_record(SKTRACE_SUBMIT, 0, sketch_canvas_version,
                                  generation, 0, err);
@@ -987,11 +1000,11 @@ static void sketch_render(solar_os_context_t *ctx)
         (int32_t)(esp_timer_get_time() - ui_start), 0);
     uint64_t generation = 0;
     const int64_t submit_start = esp_timer_get_time();
-    const esp_err_t err = solar_os_gfx_submit(gfx, &generation);
+    const esp_err_t err = sketch_submit(gfx, &generation);
     solar_os_sketch_trace_record(SKTRACE_SUBMIT, 0, sketch_canvas_version,
         generation, (int32_t)(esp_timer_get_time() - submit_start), err);
 #else
-    const esp_err_t err = solar_os_gfx_submit(gfx, NULL);
+    const esp_err_t err = sketch_submit(gfx, NULL);
 #endif
     if (err != ESP_OK) SOLAR_OS_LOGE("sketch", "display submit failed: %s", esp_err_to_name(err));
 #else

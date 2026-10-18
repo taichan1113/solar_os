@@ -43,11 +43,11 @@ static esp_err_t panel_execute(void *p,const uint8_t *data,size_t size,bool *phy
     pthread_mutex_lock(&live.mutex); live.seen[live.executed++]=origin; pthread_mutex_unlock(&live.mutex);
     return wd_panel_execute(data,size,&origin,physical);
 }
-static void input(uint8_t *image,unsigned n,bool writer_origin)
+static void input(uint8_t *image,unsigned n,unsigned source)
 {
     image[300U/8U*800U+500U+n]^=1U<<(300U&7U);
-    const solar_os_writer_frame_t origin={.is_writer=true,.inputs=1,.input_first_us=esp_timer_get_time()};
-    const esp_err_t err=writer_origin ? solar_os_display_async_submit_writer(live.a,image,48000,NULL,&origin) :
+    const solar_os_writer_frame_t origin={.is_writer=source==1,.is_sketch=source==2,.inputs=1,.input_first_us=esp_timer_get_time()};
+    const esp_err_t err=source ? solar_os_display_async_submit_writer(live.a,image,48000,NULL,&origin) :
         solar_os_display_async_submit(live.a,image,48000,NULL);
     assert(err==ESP_OK);
 }
@@ -136,6 +136,16 @@ int main(int argc,char **argv)
         solar_os_display_submission_status_t q; solar_os_display_async_status(live.a,&q);
         assert(!q.pending && !q.busy && q.writer_cancelled==1 && q.writer_coalesced==1 && q.writer_superseded==1);
         puts("writer D async: all-app continuous through D update 24, no thinning, app-exit cancellation PASS");
+        wd_status(&s); const uint64_t before_d=s.d_physical,before_a=s.a_physical;
+        const unsigned sources[]={2,0,2,1};
+        for(unsigned i=0;i<4;i++) {
+            input(image,29+i,sources[i]); wait_count(&live.activations,27+i); release_panel(1);
+            assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
+            assert(live.seen[26+i].is_sketch==(sources[i]==2));
+        }
+        wd_status(&s);
+        assert(s.d_physical==before_d+2 && s.a_physical==before_a+2 && s.enabled);
+        puts("Sketch origin survives actual Executor: Sketch A -> other D -> Sketch A -> Writer D PASS");
     }
     solar_os_display_async_destroy(live.a); reap();
     puts("writer_d_async_test: PASS"); return 0;

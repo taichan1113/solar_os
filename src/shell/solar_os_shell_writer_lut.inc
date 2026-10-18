@@ -22,7 +22,7 @@ static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **arg
     epd_ssd1677_writer_status_t s;
     const esp_err_t err = epd_ssd1677_writer_lut(d, argv[4], &s, records);
     solar_os_shell_io_printf(io,
-        "fastest-lut err=%d mode=%s scope=all-apps attempts=%llu D0x20=%llu success=%llu error=%llu driver_error=%llu failed=%u\n",
+        "fastest-lut err=%d mode=%s scope=all-apps-except-sketch attempts=%llu D0x20=%llu success=%llu error=%llu driver_error=%llu failed=%u\n",
         (int)err, s.enabled ? "D" : "A", (unsigned long long)s.attempts, (unsigned long long)s.d_physical,
         (unsigned long long)s.d_success, (unsigned long long)s.d_errors,
         (unsigned long long)s.driver_errors, s.failed);
@@ -52,7 +52,7 @@ static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **arg
             solar_os_shell_io_printf(io,
                 "WL seq=%llu gen=%llu source=%s mode=%s 0x20=%u err=%d restored=%u input=%u merged=%u ram=%u region=%u,%u,%u,%u\n",
                 (unsigned long long)r->seq, (unsigned long long)r->origin.generation,
-                r->origin.is_writer ? "writer" : "other",
+                r->origin.is_sketch ? "sketch" : r->origin.is_writer ? "writer" : "other",
                 r->candidate_d ? "D" : r->reference ? "A" : "OTP/noop", (unsigned)r->physical,
                 (int)r->error, r->restored, (unsigned)r->origin.inputs,
                 (unsigned)r->origin.coalesced, (unsigned)r->ram_bytes, r->x, r->y, r->width, r->height);
