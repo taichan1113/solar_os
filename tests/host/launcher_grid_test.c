@@ -13,6 +13,12 @@ int main(void)
     for (unsigned size=0;size<2;size++) {
         display.width=size?960:800; display.height=size?540:480;
         int header=launcher_header_height();
+        launcher.render_pending=false;
+        solar_os_input_pointer_event_t held={.mode=SOLAR_OS_INPUT_POINTER_ABSOLUTE,
+            .action=SOLAR_OS_INPUT_POINTER_PRESS,.x=display.width/2,.y=header+40};
+        launcher_pointer_event(&ctx,&held);
+        assert(!launcher.render_pending && !ctx.requested_app);
+        launcher_event(&ctx,&(solar_os_event_t){.type=SOLAR_OS_EVENT_TOUCH_CANCEL});
         for (size_t i=0;i<6;i++) {
             assert(!strcmp(launcher.config.items[i].name,labels[i]));
             int x0,y0,x1,y1; launcher_cell_bounds(i,display.width,display.height,&x0,&y0,&x1,&y1);

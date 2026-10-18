@@ -808,8 +808,10 @@ static bool launcher_pointer_event(solar_os_context_t *ctx,
         launcher.config.columns, launcher.config.rows,
         width, height-launcher_header_height(), launcher.pointer_x,
         launcher.pointer_y-launcher_header_height());
+    /* Touch opens on release: do not spend a physical update highlighting
+     * the Launcher immediately before the child draws its first frame. */
     if (hit != SIZE_MAX && hit != launcher.selected &&
-        (pointer->mode==SOLAR_OS_INPUT_POINTER_RELATIVE || pointer->action==SOLAR_OS_INPUT_POINTER_PRESS)) {
+        pointer->mode==SOLAR_OS_INPUT_POINTER_RELATIVE) {
         launcher.selected = hit;
         launcher.render_pending = true;
     } else if (pointer->mode == SOLAR_OS_INPUT_POINTER_RELATIVE) {
