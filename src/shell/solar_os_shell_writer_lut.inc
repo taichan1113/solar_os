@@ -26,9 +26,10 @@ static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **arg
         (int)err, s.enabled ? "D" : "A", (unsigned)s.attempts, (unsigned)s.d_physical,
         (unsigned)s.d_success, (unsigned)s.d_errors, s.failed, s.cap_reached);
     solar_os_shell_io_printf(io,
-        "writer physical=%u A=%u D=%u OTP=%u noop=%u other0x20=%u records=%u\n",
+        "writer physical=%u A=%u D=%u OTP=%u noop=%u other0x20=%u power0x20=%u records=%u\n",
         (unsigned)s.writer_physical, (unsigned)s.writer_a, (unsigned)s.d_physical,
-        (unsigned)s.writer_otp, (unsigned)s.writer_noop, (unsigned)s.other_physical, (unsigned)s.records);
+        (unsigned)s.writer_otp, (unsigned)s.writer_noop, (unsigned)s.other_physical,
+        (unsigned)s.power_controls, (unsigned)s.records);
     solar_os_display_submission_status_t queue;
     if (solar_os_display_submission_status(target.u8g2, &queue) == ESP_OK)
         solar_os_shell_io_printf(io,
