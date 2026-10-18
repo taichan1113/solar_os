@@ -56,6 +56,8 @@ typedef struct {
 typedef struct {
     launcher_config_t config;
     size_t selected;
+    bool pointer_pressed;
+    size_t pointer_hit;
     int pointer_x;
     int pointer_y;
     bool pointer_relative;
@@ -82,6 +84,15 @@ static const char launcher_default_config[] =
     "    {\"name\": \"Writer\", \"icon\": \"pencil\", \"command\": \"writer\", \"column\": 2, \"row\": 1}\n"
     "  ]\n"
     "}\n";
+
+static int launcher_header_height(void)
+{
+#if SOLAR_OS_BOARD_LAUNCHER_TOUCH_GRID
+    return solar_os_ui_font_profile()->heading_px + 20;
+#else
+    return 0;
+#endif
+}
 
 static void launcher_copy_cells(solar_os_launcher_cell_t *cells)
 {
@@ -178,8 +189,9 @@ static void launcher_cell_bounds(size_t item,
     const solar_os_launcher_cell_t *cell = &launcher.config.items[item].cell;
     *x0 = (int)cell->column * width / launcher.config.columns;
     *x1 = ((int)cell->column + 1) * width / launcher.config.columns;
-    *y0 = (int)cell->row * height / launcher.config.rows;
-    *y1 = ((int)cell->row + 1) * height / launcher.config.rows;
+    const int header=launcher_header_height();
+    *y0 = header + (int)cell->row * (height-header) / launcher.config.rows;
+    *y1 = header + ((int)cell->row + 1) * (height-header) / launcher.config.rows;
 }
 
 static void launcher_render(solar_os_context_t *ctx)
@@ -195,6 +207,13 @@ static void launcher_render(solar_os_context_t *ctx)
     const int height = (int)solar_os_gfx_height(gfx);
     solar_os_gfx_clear(gfx, SOLAR_OS_GFX_COLOR_WHITE);
     solar_os_gfx_set_color(gfx, SOLAR_OS_GFX_COLOR_BLACK);
+    const int header=launcher_header_height();
+    if (header) {
+        solar_os_gfx_set_font(gfx,solar_os_ui_font_profile()->heading);
+        solar_os_gfx_text(gfx,12,header-12,"SolarOS");
+        solar_os_gfx_text(gfx,width-100,header-12,"Sleep");
+        solar_os_gfx_line(gfx,0,header,width-1,header);
+    }
     solar_os_gfx_set_line_style(gfx, SOLAR_OS_GFX_LINE_DOTTED);
     solar_os_gfx_line(gfx, 0, 0, width - 1, 0);
     solar_os_gfx_line(gfx, 0, height - 1, width - 1, height - 1);
@@ -203,10 +222,10 @@ static void launcher_render(solar_os_context_t *ctx)
 
     for (uint8_t column = 1U; column < launcher.config.columns; column++) {
         const int x = (int)column * width / launcher.config.columns;
-        solar_os_gfx_line(gfx, x, 0, x, height - 1);
+        solar_os_gfx_line(gfx, x, header, x, height - 1);
     }
     for (uint8_t row = 1U; row < launcher.config.rows; row++) {
-        const int y = (int)row * height / launcher.config.rows;
+        const int y = header + (int)row * (height-header) / launcher.config.rows;
         solar_os_gfx_line(gfx, 0, y, width - 1, y);
     }
     solar_os_gfx_set_line_style(gfx, SOLAR_OS_GFX_LINE_SOLID);
@@ -318,7 +337,7 @@ static void launcher_add_type_mouse(void)
 #endif
 }
 
-static esp_err_t launcher_parse_config(const char *source, size_t source_len)
+static __attribute__((unused)) esp_err_t launcher_parse_config(const char *source, size_t source_len)
 {
     solar_os_json_doc_t *document = NULL;
     esp_err_t err = solar_os_json_parse(source, source_len, &document);
@@ -404,7 +423,7 @@ static esp_err_t launcher_parse_config(const char *source, size_t source_len)
     return err;
 }
 
-static esp_err_t launcher_write_default_config(const char *path)
+static __attribute__((unused)) esp_err_t launcher_write_default_config(const char *path)
 {
     char temporary[SOLAR_OS_STORAGE_PATH_MAX];
     char backup[SOLAR_OS_STORAGE_PATH_MAX];
@@ -461,6 +480,20 @@ static esp_err_t launcher_write_default_config(const char *path)
 
 static esp_err_t launcher_load_config(void)
 {
+#if SOLAR_OS_BOARD_LAUNCHER_TOUCH_GRID
+    static const char *names[]={"Files","Reader","Clock","Keyboard","Sketch","Shell"};
+    static const char *commands[]={"files","files --reader","clock","typemouse","sketch","shell"};
+    static const solar_os_gfx_icon_t icons[]={SOLAR_OS_GFX_ICON_FOLDER,SOLAR_OS_GFX_ICON_BOOK,
+        SOLAR_OS_GFX_ICON_CLOCK,SOLAR_OS_GFX_ICON_KEYBOARD,SOLAR_OS_GFX_ICON_PENCIL,SOLAR_OS_GFX_ICON_TERMINAL};
+    launcher.config=(launcher_config_t){.columns=3,.rows=2,.item_count=6};
+    for (size_t i=0;i<6;++i) {
+        launcher_item_t *item=&launcher.config.items[i];
+        item->cell=(solar_os_launcher_cell_t){i%3,i/3}; item->icon=icons[i];
+        strlcpy(item->name,names[i],sizeof(item->name));
+        strlcpy(item->command,commands[i],sizeof(item->command));
+    }
+    return ESP_OK;
+#else
     struct stat info;
     if (stat(launcher.config_path, &info) != 0) {
         if (errno != ENOENT) {
@@ -505,6 +538,7 @@ static esp_err_t launcher_load_config(void)
         launcher.selected = 0U;
     }
     return err;
+#endif
 }
 
 static void launcher_finish_error(solar_os_context_t *ctx,
@@ -596,6 +630,10 @@ static void launcher_activate(solar_os_context_t *ctx)
     }
 
     launcher.touch_handoff = false;
+    if (!strcmp(argv[0],"shell")) {
+        solar_os_context_finish(ctx,0,NULL); /* reveal the existing display shell */
+        return;
+    }
     esp_err_t err = ESP_OK;
     const solar_os_app_registry_entry_t *entry =
         solar_os_app_registry_find(argv[0]);
@@ -617,7 +655,8 @@ static void launcher_activate(solar_os_context_t *ctx)
         launcher_finish_error(ctx, "command failed", err);
     }
 #if SOLAR_OS_PACKAGE_APP_TYPE_MOUSE
-    if (err == ESP_OK && ctx->requested_app == &solar_os_type_mouse_app) {
+    if (err == ESP_OK && ctx->requested_app &&
+        (ctx->requested_app->flags & (SOLAR_OS_APP_FLAG_POINTER_EVENTS | SOLAR_OS_APP_FLAG_TOUCH_FRAMES))) {
         launcher.touch_handoff = true;
     }
 #endif
@@ -701,6 +740,7 @@ static void launcher_stop(solar_os_context_t *ctx)
 
 static void launcher_suspend(solar_os_context_t *ctx)
 {
+    launcher.pointer_pressed = false;
     launcher.suspended = true;
     launcher.pointer_relative = false;
     /* A touch CANCEL invokes a balanced suspend/resume before the real child
@@ -766,8 +806,10 @@ static bool launcher_pointer_event(solar_os_context_t *ctx,
     const size_t hit = solar_os_launcher_layout_hit(
         cells, launcher.config.item_count,
         launcher.config.columns, launcher.config.rows,
-        width, height, launcher.pointer_x, launcher.pointer_y);
-    if (hit != SIZE_MAX && hit != launcher.selected) {
+        width, height-launcher_header_height(), launcher.pointer_x,
+        launcher.pointer_y-launcher_header_height());
+    if (hit != SIZE_MAX && hit != launcher.selected &&
+        (pointer->mode==SOLAR_OS_INPUT_POINTER_RELATIVE || pointer->action==SOLAR_OS_INPUT_POINTER_PRESS)) {
         launcher.selected = hit;
         launcher.render_pending = true;
     } else if (pointer->mode == SOLAR_OS_INPUT_POINTER_RELATIVE) {
@@ -777,9 +819,20 @@ static bool launcher_pointer_event(solar_os_context_t *ctx,
     const bool primary_press = pointer->action == SOLAR_OS_INPUT_POINTER_PRESS &&
         (pointer->buttons == 0U ||
          (pointer->buttons & SOLAR_OS_INPUT_POINTER_BUTTON_PRIMARY) != 0U);
-    if (primary_press && hit != SIZE_MAX) {
-        launcher.selected = hit;
-        launcher_activate(ctx);
+    if (primary_press) {
+        launcher.pointer_pressed=true;
+        launcher.pointer_hit=launcher_header_height() && launcher.pointer_y<launcher_header_height() &&
+            launcher.pointer_x>=width-120 ? SIZE_MAX-1 : hit;
+    }
+    if (pointer->action==SOLAR_OS_INPUT_POINTER_RELEASE && launcher.pointer_pressed) {
+        launcher.pointer_pressed=false;
+        if (launcher_header_height() && launcher.pointer_y<launcher_header_height() &&
+            launcher.pointer_x>=width-120 && launcher.pointer_hit==SIZE_MAX-1) {
+            solar_os_context_request_sleep(ctx);
+        } else if (hit!=SIZE_MAX && hit==launcher.pointer_hit) {
+            launcher.selected=hit;
+            launcher_activate(ctx);
+        }
     }
     return true;
 }
@@ -824,6 +877,7 @@ static bool launcher_event(solar_os_context_t *ctx,
         return launcher_pointer_event(ctx, &event->data.pointer);
     }
     if (event->type == SOLAR_OS_EVENT_TOUCH_CANCEL) {
+        launcher.pointer_pressed = false;
         launcher.touch_canceling = true;
         return true;
     }

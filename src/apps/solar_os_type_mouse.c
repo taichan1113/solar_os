@@ -450,7 +450,7 @@ static bool type_mouse_event(solar_os_context_t *ctx, const solar_os_event_t *ev
 }
 
 const solar_os_app_t solar_os_type_mouse_app = {
-    .name = "type-mouse", .summary = "Touch keyboard and BLE mouse",
+    .name = "type-mouse", .summary = "Keyboard and BLE mouse",
     .app_class = SOLAR_OS_APP_CLASS_GUI,
     .flags = SOLAR_OS_APP_FLAG_RESUMABLE | SOLAR_OS_APP_FLAG_TOUCH_FRAMES,
     .start = type_mouse_start, .suspend = type_mouse_suspend,

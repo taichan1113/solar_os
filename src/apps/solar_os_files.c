@@ -1,4 +1,5 @@
 #include "solar_os_files.h"
+#include "solar_os_app_touch.h"
 
 #include <ctype.h>
 #include <dirent.h>
@@ -134,6 +135,8 @@ typedef struct {
     files_pane_t panes[2];
     uint8_t active;
     bool launcher_mode;
+    bool reader_mode;
+    solar_os_app_touch_t touch;
     bool show_hidden;
     files_input_mode_t input_mode;
     char input[FILES_INPUT_MAX];
@@ -1018,6 +1021,11 @@ static void files_render(solar_os_context_t *ctx)
                           SOLAR_OS_TUI_ATTR_INVERSE | SOLAR_OS_TUI_ATTR_BOLD);
     }
 
+#if SOLAR_OS_BOARD_LAUNCHER_TOUCH_GRID
+    solar_os_tui_write_cell(&files.tui,0,0,cols/3,"Up (parent)",SOLAR_OS_TUI_ATTR_INVERSE);
+    solar_os_tui_write_cell(&files.tui,0,cols/3,cols/3,"Prev (page)",SOLAR_OS_TUI_ATTR_INVERSE);
+    solar_os_tui_write_cell(&files.tui,0,2*(cols/3),cols-2*(cols/3),"Next (page)",SOLAR_OS_TUI_ATTR_INVERSE);
+#endif
     const size_t pane_row = 1;
     if (files.launcher_mode) {
         files_draw_pane(&files.panes[0], 0, pane_row, 0, layout.pane_height, cols);
@@ -1183,15 +1191,19 @@ static bool files_launch_app(solar_os_context_t *ctx,
 
 static bool files_open_file(solar_os_context_t *ctx, const char *path)
 {
+    if (files.reader_mode) {
+        if (!solar_os_app_file_types_match(".txt .text .md .markdown .epub",path)) {
+            files_set_message("Reader: choose txt / md / epub"); return false;
+        }
+        return files_launch_app(ctx,"reader","--from-files",path);
+    }
     if (solar_os_shell_path_is_script(path)) {
         (void)solar_os_shell_run_script(ctx, path, path, true);
         return true;
     }
     const char *app_name = files_default_viewer(path);
-    const char *option = files.launcher_mode && app_name != NULL &&
-                                 strcmp(app_name, "reader") == 0
-                             ? "--pager"
-                             : NULL;
+    const char *option = app_name && !strcmp(app_name,"reader") ?
+        (files.launcher_mode ? "--pager-files" : "--from-files") : NULL;
     return files_launch_app(ctx, app_name, option, path);
 }
 
@@ -2184,7 +2196,9 @@ static esp_err_t files_start(solar_os_context_t *ctx)
     memset(&files, 0, sizeof(files));
     const int argc = solar_os_context_argc(ctx);
     const char *arg = ".";
-    if (argc >= 2 && strcmp(solar_os_context_argv(ctx, 1), "--launcher") == 0) {
+    if (argc >= 2 && (strcmp(solar_os_context_argv(ctx, 1), "--launcher") == 0 ||
+                      strcmp(solar_os_context_argv(ctx, 1), "--reader") == 0)) {
+        files.reader_mode = !strcmp(solar_os_context_argv(ctx,1),"--reader");
         files.launcher_mode = true;
         if (argc >= 3) {
             arg = solar_os_context_argv(ctx, 2);
@@ -2229,6 +2243,8 @@ static esp_err_t files_start(solar_os_context_t *ctx)
         }
     }
 
+    err=solar_os_app_touch_acquire(&files.touch);
+    if (err!=ESP_OK) { solar_os_tui_end(&files.tui); return err; }
     files_set_message("");
     solar_os_tui_set_cursor_visible(&files.tui, false);
     files_render(ctx);
@@ -2238,6 +2254,7 @@ static esp_err_t files_start(solar_os_context_t *ctx)
 static void files_stop(solar_os_context_t *ctx)
 {
     (void)ctx;
+    solar_os_app_touch_release(&files.touch);
     if (files.worker.running) {
         files.worker.cancel_requested = true;
         if (!solar_os_task_wait_done(files.worker.task,
@@ -2259,10 +2276,55 @@ static void files_stop(solar_os_context_t *ctx)
     memset(&files, 0, sizeof(files));
 }
 
+static void files_suspend(solar_os_context_t *ctx)
+{ (void)ctx; solar_os_app_touch_suspend(&files.touch); }
+
 static void files_resume(solar_os_context_t *ctx)
 {
+    if (!solar_os_app_touch_resume(&files.touch)) return;
+    if (solar_os_app_touch_acquire(&files.touch)!=ESP_OK) return;
     files_refresh_all();
     solar_os_tui_set_cursor_visible(&files.tui, false);
+    files_render(ctx);
+}
+
+static bool files_touch_select(size_t row,size_t col,bool *open)
+{
+    size_t cols=solar_os_tui_cols(&files.tui);
+    files_layout_t layout=files_layout(solar_os_tui_rows(&files.tui),cols);
+    if (!layout.valid || row<2 || row>=layout.pane_height || col>=cols) return false;
+    uint8_t pane_index=files.launcher_mode ? 0 : col>=cols/2;
+    files_pane_t *pane=&files.panes[pane_index];
+    size_t index=pane->top+row-2;
+    if (index>=pane->count) return false;
+    *open=files.active==pane_index && pane->cursor==index;
+    files.active=pane_index; pane->cursor=index;
+    return true;
+}
+
+static void files_pointer(solar_os_context_t *ctx,const solar_os_input_pointer_event_t *p)
+{
+    if (!solar_os_app_touch_end(&files.touch,p) || files.worker.running ||
+        files.input_mode!=FILES_INPUT_NONE) return;
+    int dx=p->x-files.touch.x, dy=p->y-files.touch.y;
+    if (dy>=48 || dy<=-48) {
+        files_page(files_active_pane(),dy<0); files_render(ctx); return;
+    }
+    if (files.touch.moved || dx>=48 || dx<=-48) return;
+    size_t row,col;
+    if (!solar_os_terminal_hit_cell(files.tui.terminal,p->x,p->y,&row,&col)) return;
+    size_t cols=solar_os_tui_cols(&files.tui);
+    if (row==0) {
+        if (col<cols/3) {
+            char parent[SOLAR_OS_STORAGE_PATH_MAX];
+            if (files_parent_path(files_active_pane()->path,parent,sizeof(parent)))
+                files_change_dir(files_active_pane(),parent);
+        } else files_page(files_active_pane(),col>=2*(cols/3));
+        files_render(ctx); return;
+    }
+    bool open=false;
+    if (!files_touch_select(row,col,&open)) return;
+    if (open) files_open_selected(ctx);
     files_render(ctx);
 }
 
@@ -2271,6 +2333,10 @@ static bool files_event(solar_os_context_t *ctx, const solar_os_event_t *event)
     if (event == NULL) {
         return true;
     }
+    if (event->type==SOLAR_OS_EVENT_TOUCH_CANCEL) {
+        solar_os_app_touch_cancel(&files.touch); return true;
+    }
+    if (event->type==SOLAR_OS_EVENT_POINTER) { files_pointer(ctx,&event->data.pointer); return true; }
     if (event->type == SOLAR_OS_EVENT_TICK) {
         files_worker_poll(ctx);
         return true;
@@ -2480,6 +2546,7 @@ static void files_state_release_cleanup(void)
     if (files.worker.task_done || !files.worker.running) {
         files_worker_cleanup();
     }
+    solar_os_app_touch_release(&files.touch);
     solar_os_tui_end(&files.tui);
     files_pane_clear(&files.panes[0]);
     files_pane_clear(&files.panes[1]);
@@ -2489,8 +2556,9 @@ const solar_os_app_t solar_os_files_app = {
     .name = "files",
     .summary = "file manager and launcher",
     .app_class = SOLAR_OS_APP_CLASS_TUI,
-    .flags = SOLAR_OS_APP_FLAG_RESUMABLE | SOLAR_OS_APP_FLAG_KEY_EVENTS,
+    .flags = SOLAR_OS_APP_FLAG_RESUMABLE | SOLAR_OS_APP_FLAG_KEY_EVENTS | SOLAR_OS_APP_FLAG_POINTER_EVENTS,
     .start = files_start,
+    .suspend = files_suspend,
     .resume = files_resume,
     .stop = files_stop,
     .event = files_event,

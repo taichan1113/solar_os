@@ -8,9 +8,20 @@ static struct solar_os_gfx display = {800, 480};
 static bool leased, fail_enable;
 static unsigned acquires, releases, delays;
 static solar_os_launch_policy_t launch_policy;
-static unsigned writes;
+void solar_os_context_request_sleep(solar_os_context_t *c) { c->sleep_requested=true; }
+static unsigned writes, gfx_presents;
 static const char *config_file="launcher-touch-fixture.json";
-const solar_os_app_t solar_os_type_mouse_app = {.name = "type-mouse"};
+const solar_os_app_t solar_os_type_mouse_app = {.name = "type-mouse", .flags=SOLAR_OS_APP_FLAG_TOUCH_FRAMES};
+#ifdef LAUNCHER_GRID_FIXTURE
+static const solar_os_app_t fixture_apps[]={
+    {.name="files",.flags=SOLAR_OS_APP_FLAG_POINTER_EVENTS},
+    {.name="clock",.flags=SOLAR_OS_APP_FLAG_POINTER_EVENTS},
+    {.name="sketch",.flags=SOLAR_OS_APP_FLAG_POINTER_EVENTS}};
+static const solar_os_app_registry_entry_t fixture_entries[]={
+    {.name="files",.app=&fixture_apps[0],.min_argc=1,.max_argc=3},
+    {.name="clock",.app=&fixture_apps[1],.min_argc=1,.max_argc=1},
+    {.name="sketch",.app=&fixture_apps[2],.min_argc=1,.max_argc=2}};
+#endif
 static const solar_os_app_registry_entry_t child_entry = {
     .name = "typemouse", .app = &solar_os_type_mouse_app, .min_argc = 1, .max_argc = 1};
 
@@ -51,11 +62,26 @@ void solar_os_gfx_circle(solar_os_gfx_t *g,int x,int y,int r) { (void)g; (void)x
 void solar_os_gfx_fill_circle(solar_os_gfx_t *g,int x,int y,int r) { solar_os_gfx_circle(g,x,y,r); }
 void solar_os_gfx_icon(solar_os_gfx_t *g,int x,int y,solar_os_gfx_icon_t i,solar_os_gfx_icon_size_t z) { (void)g; (void)x; (void)y; (void)i; (void)z; }
 void solar_os_gfx_text(solar_os_gfx_t *g,int x,int y,const char *s) { (void)g; (void)x; (void)y; (void)s; }
-void solar_os_gfx_present(solar_os_gfx_t *g) { (void)g; }
+void solar_os_gfx_present(solar_os_gfx_t *g) { (void)g; ++gfx_presents; }
 const solar_os_app_registry_entry_t *solar_os_app_registry_find(const char *n)
-{ return !strcmp(n,"typemouse") ? &child_entry : NULL; }
+{
+#ifdef LAUNCHER_GRID_FIXTURE
+    for (unsigned i=0;i<3;i++) if (!strcmp(n,fixture_entries[i].name)) return &fixture_entries[i];
+#endif
+    return !strcmp(n,"typemouse") ? &child_entry : NULL;
+}
 esp_err_t solar_os_context_request_launch_ex(solar_os_context_t *c,const solar_os_app_t *a,int n,char **v,solar_os_launch_policy_t p)
-{ assert(n==1 && !strcmp(v[0],"typemouse") && p==SOLAR_OS_LAUNCH_CHILD_RETURN); c->requested_app=a; launch_policy=p; return ESP_OK; }
+{
+#ifdef LAUNCHER_GRID_FIXTURE
+    const solar_os_app_registry_entry_t *e=solar_os_app_registry_find(v[0]);
+    assert(e && e->app==a && n>=e->min_argc && n<=e->max_argc);
+    if (n==2) assert(!strcmp(v[1],"--reader"));
+#else
+    assert(n==1 && !strcmp(v[0],"typemouse"));
+#endif
+    assert(p==SOLAR_OS_LAUNCH_CHILD_RETURN);
+    c->requested_app=a; launch_policy=p; return ESP_OK;
+}
 esp_err_t solar_os_shell_resolve_path(solar_os_context_t *c,const char *p,char *o,size_t n)
 { (void)c; return strlcpy(o,p,n)<n ? ESP_OK : ESP_ERR_INVALID_SIZE; }
 esp_err_t solar_os_shell_execute_command(solar_os_context_t *c,const char *s)
@@ -113,6 +139,9 @@ int main(void)
     strlcpy(launcher.config.items[0].command,"typemouse",LAUNCHER_COMMAND_MAX);
     solar_os_input_pointer_event_t press={.mode=SOLAR_OS_INPUT_POINTER_ABSOLUTE,
         .action=SOLAR_OS_INPUT_POINTER_PRESS,.buttons=SOLAR_OS_INPUT_POINTER_BUTTON_PRIMARY,.x=100,.y=100};
+    assert(launcher_pointer_event(&ctx,&press));
+    assert(!ctx.requested_app);
+    press.action=SOLAR_OS_INPUT_POINTER_RELEASE;
     assert(launcher_pointer_event(&ctx,&press));
     assert(ctx.requested_app==&solar_os_type_mouse_app &&
            launch_policy==SOLAR_OS_LAUNCH_CHILD_RETURN && launcher.touch_handoff);

@@ -210,6 +210,18 @@ static size_t terminal_rows(const solar_os_terminal_t *terminal)
     return terminal != NULL && terminal->rows > 0 ? terminal->rows : 1;
 }
 
+bool solar_os_terminal_hit_cell(const solar_os_terminal_t *t, int x, int y,
+                                size_t *row, size_t *col)
+{
+    if (!t || !row || !col || !t->char_width || !t->line_height) return false;
+    int top=(int)t->baseline_offset-(int)t->cell_ascent;
+    if (x<TERM_MARGIN_X || y<top) return false;
+    size_t c=(size_t)(x-TERM_MARGIN_X)/t->char_width;
+    size_t r=(size_t)(y-top)/t->line_height;
+    if (r>=t->rows || c>=t->cols) return false;
+    *row=r; *col=c; return true;
+}
+
 static size_t terminal_cols(const solar_os_terminal_t *terminal)
 {
     return terminal != NULL && terminal->cols > 0 ? terminal->cols : 1;

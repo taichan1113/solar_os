@@ -1,4 +1,6 @@
 #include "solar_os_reader.h"
+#include "solar_os_app_touch.h"
+#include "solar_os_files.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -48,10 +50,12 @@ typedef struct {
     solar_os_doc_t doc;
     solar_os_doc_layout_t layout;
     solar_os_epub_book_t *epub_book;
+    solar_os_app_touch_t touch;
     bool loaded;
     bool suspended;
     bool epub;
     bool pager;
+    bool from_files;
     bool layout_valid;
     int scroll_y;
     int zoom;
@@ -1254,6 +1258,11 @@ static void reader_render(solar_os_context_t *ctx)
     }
 
     reader_draw_header(gfx);
+    solar_os_gfx_set_color(gfx,SOLAR_OS_GFX_COLOR_WHITE);
+    solar_os_gfx_fill_rect(gfx,0,0,70,READER_HEADER_H);
+    solar_os_gfx_set_color(gfx,SOLAR_OS_GFX_COLOR_BLACK);
+    solar_os_gfx_set_font(gfx,SOLAR_OS_GFX_FONT_SMALL);
+    solar_os_gfx_text(gfx,4,READER_HEADER_H-4,"Files");
     solar_os_gfx_present(gfx);
 }
 
@@ -1308,6 +1317,9 @@ static bool reader_parse_args(solar_os_context_t *ctx, const char **target)
                 return false;
             }
             reader.pager = true;
+        } else if (arg && (!strcmp(arg,"--from-files") || !strcmp(arg,"--pager-files"))) {
+            reader.from_files=true;
+            reader.pager=!strcmp(arg,"--pager-files");
         } else if (arg == NULL || *target != NULL) {
             return false;
         } else {
@@ -1415,6 +1427,8 @@ static esp_err_t reader_start(solar_os_context_t *ctx)
         return ESP_OK;
     }
 
+    err=solar_os_app_touch_acquire(&reader.touch);
+    if (err!=ESP_OK) return err;
     reader.loaded = true;
     solar_os_context_set_graphics_active(ctx, true);
     if (has_saved) {
@@ -1438,6 +1452,7 @@ static esp_err_t reader_start(solar_os_context_t *ctx)
 
 static void reader_stop(solar_os_context_t *ctx)
 {
+    solar_os_app_touch_release(&reader.touch);
     reader_save_position(ctx);
     solar_os_doc_free(&reader.doc);
     solar_os_doc_layout_free(&reader.layout);
@@ -1448,7 +1463,8 @@ static void reader_stop(solar_os_context_t *ctx)
 
 static void reader_suspend(solar_os_context_t *ctx)
 {
-    reader_save_position(ctx);
+    solar_os_app_touch_suspend(&reader.touch);
+    if (!reader.touch.canceling) reader_save_position(ctx);
     reader.suspended = true;
     solar_os_context_set_graphics_active(ctx, false);
 }
@@ -1457,6 +1473,8 @@ static void reader_resume(solar_os_context_t *ctx)
 {
     reader.suspended = false;
     solar_os_context_set_graphics_active(ctx, true);
+    if (!solar_os_app_touch_resume(&reader.touch)) return;
+    if (solar_os_app_touch_acquire(&reader.touch)!=ESP_OK) return;
     reader_render(ctx);
 }
 
@@ -1646,11 +1664,47 @@ static bool reader_handle_char(solar_os_context_t *ctx, char raw_ch)
     return true;
 }
 
+static uint8_t reader_touch_action(const solar_os_app_touch_t *t,
+                                   const solar_os_input_pointer_event_t *p,int width)
+{
+    int dx=p->x-t->x,dy=p->y-t->y;
+    if (!t->moved && p->y<READER_HEADER_H && p->x<70) return 'o';
+    if (dx<=-48 || dy<=-48) return SOLAR_OS_KEY_PAGE_DOWN;
+    if (dx>=48 || dy>=48) return SOLAR_OS_KEY_PAGE_UP;
+    if (!t->moved && p->y>=READER_HEADER_H)
+        return p->x>=width/2 ? SOLAR_OS_KEY_PAGE_DOWN : SOLAR_OS_KEY_PAGE_UP;
+    return 0;
+}
+
+static void reader_pointer(solar_os_context_t *ctx,const solar_os_input_pointer_event_t *p)
+{
+    if (!solar_os_app_touch_end(&reader.touch,p)) return;
+    uint8_t action=reader_touch_action(&reader.touch,p,(int)solar_os_gfx_width(solar_os_context_gfx(ctx)));
+    if (action=='o') {
+        if (reader.from_files) solar_os_context_finish(ctx,0,NULL);
+        else {
+#if SOLAR_OS_PACKAGE_APP_FILES
+            char *args[]={"files","--reader"};
+            (void)solar_os_context_request_launch_ex(ctx,&solar_os_files_app,2,args,SOLAR_OS_LAUNCH_CHILD_RETURN);
+#endif
+        }
+        return;
+    }
+    if (!action) return;
+    int before=reader.scroll_y; size_t chapter=reader.epub_chapter;
+    reader_page(ctx,action==SOLAR_OS_KEY_PAGE_DOWN);
+    if (before!=reader.scroll_y || chapter!=reader.epub_chapter) reader_render(ctx);
+}
+
 static bool reader_event(solar_os_context_t *ctx, const solar_os_event_t *event)
 {
     if (event == NULL) {
         return false;
     }
+    if (event->type==SOLAR_OS_EVENT_TOUCH_CANCEL) {
+        solar_os_app_touch_cancel(&reader.touch); return true;
+    }
+    if (event->type==SOLAR_OS_EVENT_POINTER) { reader_pointer(ctx,&event->data.pointer); return true; }
     if (event->type == SOLAR_OS_EVENT_RESUME) {
         reader_resume(ctx);
         return true;
@@ -1670,7 +1724,7 @@ const solar_os_app_t solar_os_reader_app = {
     .name = "reader",
     .summary = "graphics Markdown/text reader",
     .app_class = SOLAR_OS_APP_CLASS_GUI,
-    .flags = SOLAR_OS_APP_FLAG_RESUMABLE,
+    .flags = SOLAR_OS_APP_FLAG_RESUMABLE | SOLAR_OS_APP_FLAG_POINTER_EVENTS,
     .start = reader_start,
     .suspend = reader_suspend,
     .resume = reader_resume,

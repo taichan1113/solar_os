@@ -10,6 +10,11 @@ static uint8_t attrs[40][120];
 static bool too_small;
 static solar_os_tui_rect_t transaction_bounds;
 
+const char *solar_os_storage_mount_point(void) { return "/"; }
+bool solar_os_storage_root_is_mounted(void) { return true; }
+esp_err_t solar_os_storage_path_mount_point(const char *path, char *out, size_t size)
+{ (void)path; if (size<2) return ESP_ERR_INVALID_SIZE; strcpy(out,"/"); return ESP_OK; }
+
 size_t strlcpy(char *dst, const char *src, size_t size)
 {
     size_t len = strlen(src);
@@ -193,6 +198,19 @@ int main(void)
     for (unsigned flags = 1; flags <= 2; flags++) for (unsigned mode = 0; mode <= FILES_INPUT_SEARCH; mode++) {
         setup(15, 56, flags == 1, flags == 2, mode); paging();
     }
+    setup(20,80,false,false,FILES_INPUT_NONE);
+    bool open=false;
+    files.panes[0].count=20; files.panes[1].count=20;
+    files.panes[0].top=3;
+    assert(files_touch_select(3,10,&open) && !open && files.panes[0].cursor==4);
+    assert(files_touch_select(3,10,&open) && open);
+    assert(files_touch_select(4,60,&open) && files.active==1 && files.panes[1].cursor==2 && !open);
+    assert(!files_touch_select(1,10,&open));
+    assert(!files_touch_select(19,10,&open));
+    files.launcher_mode=true; files.active=0; files.panes[0].top=0;
+    assert(files_touch_select(4,60,&open) && files.active==0 && files.panes[0].cursor==2);
+    char parent[128];
+    assert(files_parent_path("/Books/Novel",parent,sizeof(parent)) && !strcmp(parent,"/Books"));
     puts("files_layout_test: PASS (bounded render, legend attributes, inputs, popups and paging)");
     return 0;
 }

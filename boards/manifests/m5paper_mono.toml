@@ -16,6 +16,7 @@ psram_bytes = 8388608
 [header]
 includes = ["solar_os_buttons.h", "solar_os_keys.h"]
 [defines]
+SOLAR_OS_BOARD_LAUNCHER_TOUCH_GRID = "1"
 SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE = '"touch0"'
 SOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT = "1"
 SOLAR_OS_BOARD_WRITER_DEFAULT_ZOOM = "4"

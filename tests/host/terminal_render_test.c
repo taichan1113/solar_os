@@ -267,6 +267,16 @@ int main(int argc, char **argv)
     assert(term->cols == large_cols && term->rows == large_rows);
     puts("UI scale real-font styles, width/raster, native document size, UTF-8 fit, wrap/scroll, runtime roundtrip: PASS");
 #endif
+    size_t hit_row,hit_col;
+    int hit_top=(int)term->baseline_offset-term->cell_ascent;
+    for (size_t r=0;r<term->rows;r++) for (size_t c=0;c<term->cols;c++) {
+        assert(solar_os_terminal_hit_cell(term,4+c*term->char_width+term->char_width/2,
+            hit_top+r*term->line_height+term->line_height/2,&hit_row,&hit_col));
+        assert(hit_row==r && hit_col==c);
+    }
+    assert(!solar_os_terminal_hit_cell(term,3,hit_top,&hit_row,&hit_col));
+    assert(!solar_os_terminal_hit_cell(term,4,hit_top-1,&hit_row,&hit_col));
+    assert(!solar_os_terminal_hit_cell(term,4,hit_top+term->rows*term->line_height,&hit_row,&hit_col));
     solar_os_terminal_deinit(term);
     free(term);
     return 0;

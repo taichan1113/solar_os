@@ -593,6 +593,17 @@ launcher_touch_test: launcher_touch_test.c $(WRITER_DIR)/solar_os_launcher.c $(W
 		-I$(CJSON_DIR) launcher_touch_test.c $(WRITER_DIR)/solar_os_launcher_layout.c $(ROOT)/src/shell/solar_os_shell_parse.c $(ROOT)/src/shell/solar_os_shell_launch.c \
 		$(ROOT)/src/services/solar_os_json.c $(ROOT)/src/services/solar_os_gfx_icons.c $(CJSON_DIR)/cJSON.c -Wl,--gc-sections -o $@
 
+launcher_grid_test: launcher_grid_test.c launcher_touch_test.c $(WRITER_DIR)/solar_os_launcher.c $(WRITER_DIR)/solar_os_launcher_layout.c $(ROOT)/src/shell/solar_os_shell_parse.c $(ROOT)/src/shell/solar_os_shell_launch.c $(ROOT)/src/services/solar_os_json.c $(ROOT)/src/services/solar_os_gfx_icons.c $(ROOT)/src/services/solar_os_gfx_icon_table.inc $(CJSON_DIR)/cJSON.c
+	$(CC) $(CFLAGS) -DSOLAR_OS_PACKAGE_APP_TYPE_MOUSE=1 -DSOLAR_OS_PACKAGE_SERVICE_EXPANSION=1 \
+		-DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' -include compat.h \
+		-ffunction-sections -fdata-sections -I. -I$(ROOT)/src -I$(WRITER_DIR) -I$(ROOT)/src/services -I$(ROOT)/src/shell \
+		-I$(CJSON_DIR) launcher_grid_test.c $(WRITER_DIR)/solar_os_launcher_layout.c $(ROOT)/src/shell/solar_os_shell_parse.c $(ROOT)/src/shell/solar_os_shell_launch.c \
+		$(ROOT)/src/services/solar_os_json.c $(ROOT)/src/services/solar_os_gfx_icons.c $(CJSON_DIR)/cJSON.c -Wl,--gc-sections -o $@
+
+app_touch_test: app_touch_test.c $(WRITER_DIR)/solar_os_app_touch.h
+	$(CC) $(CFLAGS) -DSOLAR_OS_PACKAGE_SERVICE_EXPANSION=1 -DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' \
+		-I. -I$(ROOT)/src -I$(WRITER_DIR) -I$(ROOT)/src/services $< -o $@
+
 type_mouse_engine_test: type_mouse_engine_test.cpp $(WRITER_DIR)/solar_os_type_mouse_engine.cpp
 	$(CXX) -std=c++17 -O2 -Wall -Wextra -Werror -I$(WRITER_DIR) $^ -o $@
 
@@ -1245,3 +1256,12 @@ clean:
 
 writer_checkpoint_test: writer_checkpoint_test.c $(ROOT)/src/services/solar_os_doc_zoom.h $(WRITER_DIR)/solar_os_writer_checkpoint.c $(WRITER_DIR)/solar_os_writer_checkpoint.h $(WRITER_DIR)/solar_os_writer_files.c $(WRITER_DIR)/solar_os_writer_buffer.c
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -DSOLAR_OS_WRITER_HOST_TEST -pthread -Iasync_stubs -I. -I$(WRITER_DIR) -I$(ROOT)/src/services -o $@ $< $(WRITER_DIR)/solar_os_writer_buffer.c -Wl,--wrap=rename
+
+reader_touch_test: reader_touch_test.c $(WRITER_DIR)/solar_os_reader.c $(WRITER_DIR)/solar_os_app_touch.h
+	$(CC) $(CFLAGS) -Wno-unused-function -D_GNU_SOURCE -include compat.h -ffunction-sections -fdata-sections \
+		-I. -I$(ROOT)/src -I$(WRITER_DIR) -I$(ROOT)/src/services $< -Wl,--gc-sections -o $@
+clock_touch_test: clock_touch_test.c launcher_touch_test.c $(WRITER_DIR)/solar_os_clock.c $(WRITER_DIR)/solar_os_launcher.c
+	$(CC) $(CFLAGS) -DSOLAR_OS_PACKAGE_APP_TYPE_MOUSE=1 -include compat.h -ffunction-sections -fdata-sections \
+		-I. -I$(ROOT)/src -I$(WRITER_DIR) -I$(ROOT)/src/services -I$(ROOT)/src/shell \
+		-I$(CJSON_DIR) $< $(WRITER_DIR)/solar_os_launcher_layout.c $(ROOT)/src/shell/solar_os_shell_parse.c $(ROOT)/src/shell/solar_os_shell_launch.c \
+		$(ROOT)/src/services/solar_os_json.c $(ROOT)/src/services/solar_os_gfx_icons.c $(CJSON_DIR)/cJSON.c -Wl,--gc-sections -o $@

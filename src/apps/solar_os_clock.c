@@ -1,4 +1,6 @@
 #include "solar_os_clock.h"
+#include "solar_os_app_touch.h"
+#include <stdio.h>
 
 #include <errno.h>
 #include <stdlib.h>
@@ -23,6 +25,7 @@ typedef enum {
 } clock_mode_t;
 
 typedef struct {
+    solar_os_app_touch_t touch;
     uint32_t last_second;
     clock_mode_t mode;
     uint32_t alarm_total_seconds;
@@ -357,6 +360,14 @@ static void clock_render_digits(solar_os_context_t *ctx,
     x += digit_width + gap;
     clock_draw_digit(gfx, right_valid ? right_value % 10 : -1, x, digit_y, digit_width, digit_height, thick);
 
+    if (clock_state.mode==CLOCK_MODE_TIME) {
+        solar_os_datetime_t dt;
+        char date[32]="RTC time unavailable";
+        if (solar_os_time_get_datetime(&dt)==ESP_OK && solar_os_time_datetime_is_valid(&dt) && dt.clock_integrity)
+            snprintf(date,sizeof(date),"%04u-%02u-%02u",dt.year,dt.month,dt.day);
+        solar_os_gfx_set_font(gfx,SOLAR_OS_GFX_FONT_SMALL);
+        solar_os_gfx_text(gfx,12,(int)solar_os_gfx_height(gfx)-12,date);
+    }
     solar_os_gfx_present(gfx);
 }
 
@@ -396,10 +407,12 @@ static void clock_render_time(solar_os_context_t *ctx)
         solar_os_time_datetime_is_valid(&datetime) &&
         datetime.clock_integrity;
 
+    clock_state.last_second=valid ?
+        (uint32_t)((((datetime.year*13U+datetime.month)*32U+datetime.day)*24U+datetime.hour)*60U+datetime.minute) : 0;
     clock_render_digits(ctx,
                         valid ? datetime.hour : -1,
                         valid ? datetime.minute : -1,
-                        !valid || (datetime.second % 2U) == 0);
+                        true);
 }
 
 static void clock_render(solar_os_context_t *ctx)
@@ -511,6 +524,8 @@ static esp_err_t clock_start(solar_os_context_t *ctx)
         return ESP_ERR_INVALID_ARG;
     }
 
+    esp_err_t touch_err=solar_os_app_touch_acquire(&clock_state.touch);
+    if (touch_err!=ESP_OK) return touch_err;
     clock_state.last_second = UINT32_MAX;
     clock_state.suspended = false;
     clock_state.stopwatch_running = false;
@@ -525,6 +540,7 @@ static esp_err_t clock_start(solar_os_context_t *ctx)
             NULL,
             false);
         if (err != ESP_OK) {
+            solar_os_app_touch_release(&clock_state.touch);
             return err;
         }
         clock_state.alarm_schedule_created = true;
@@ -536,6 +552,7 @@ static esp_err_t clock_start(solar_os_context_t *ctx)
 
 static void clock_stop(solar_os_context_t *ctx)
 {
+    solar_os_app_touch_release(&clock_state.touch);
     if (clock_state.alarm_schedule_created) {
         char alarm_name[SOLAR_OS_SCHEDULE_NAME_MAX];
         if (solar_os_schedule_alarm_active(alarm_name, sizeof(alarm_name)) &&
@@ -551,6 +568,7 @@ static void clock_stop(solar_os_context_t *ctx)
 
 static void clock_suspend(solar_os_context_t *ctx)
 {
+    solar_os_app_touch_suspend(&clock_state.touch);
     clock_state.suspended = true;
     solar_os_context_set_graphics_active(ctx, false);
 }
@@ -558,6 +576,9 @@ static void clock_suspend(solar_os_context_t *ctx)
 static void clock_resume(solar_os_context_t *ctx)
 {
     clock_state.suspended = false;
+    solar_os_context_set_graphics_active(ctx,true);
+    if (!solar_os_app_touch_resume(&clock_state.touch)) return;
+    if (solar_os_app_touch_acquire(&clock_state.touch)!=ESP_OK) return;
     clock_state.last_second = UINT32_MAX;
     solar_os_context_set_graphics_active(ctx, true);
     clock_render(ctx);
@@ -610,6 +631,14 @@ static bool clock_event(solar_os_context_t *ctx, const solar_os_event_t *event)
         return false;
     }
 
+    if (event->type==SOLAR_OS_EVENT_TOUCH_CANCEL) {
+        solar_os_app_touch_cancel(&clock_state.touch); return true;
+    }
+    if (event->type==SOLAR_OS_EVENT_POINTER) {
+        if (solar_os_app_touch_end(&clock_state.touch,&event->data.pointer) && !clock_state.touch.moved &&
+            clock_state.mode==CLOCK_MODE_STOPWATCH) { clock_stopwatch_toggle(); clock_render(ctx); }
+        return true;
+    }
     if (event->type == SOLAR_OS_EVENT_CHAR) {
         const uint8_t ch = (uint8_t)event->data.ch;
         if (ch == SOLAR_OS_KEY_APP_EXIT || ch == SOLAR_OS_KEY_ESCAPE) {
@@ -633,6 +662,11 @@ static bool clock_event(solar_os_context_t *ctx, const solar_os_event_t *event)
         } else if (clock_state.mode == CLOCK_MODE_STOPWATCH) {
             second = clock_stopwatch_elapsed_ms(event->data.tick_ms) / 1000U;
         }
+        if (clock_state.mode==CLOCK_MODE_TIME) {
+            solar_os_datetime_t dt;
+            second=solar_os_time_get_datetime(&dt)==ESP_OK && solar_os_time_datetime_is_valid(&dt) && dt.clock_integrity ?
+                (uint32_t)((((dt.year*13U+dt.month)*32U+dt.day)*24U+dt.hour)*60U+dt.minute) : 0;
+        }
         if (second != clock_state.last_second) {
             clock_state.last_second = second;
             if (!clock_state.suspended) {
@@ -654,7 +688,7 @@ const solar_os_app_t solar_os_clock_app = {
     .name = "clock",
     .summary = "clock, countdown alarm, stopwatch",
     .app_class = SOLAR_OS_APP_CLASS_GUI,
-    .flags = SOLAR_OS_APP_FLAG_RESUMABLE,
+    .flags = SOLAR_OS_APP_FLAG_RESUMABLE | SOLAR_OS_APP_FLAG_POINTER_EVENTS,
     .start = clock_start,
     .suspend = clock_suspend,
     .resume = clock_resume,
