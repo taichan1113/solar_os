@@ -1,0 +1,97 @@
+{
+  "result": "HOST_BUILD_COMPLETE_NO_DEVICE_ACCESS",
+  "implementation_commit": "e1935704df27d6d0e7e5cf25c7d63133c8c74faa",
+  "artifact_manifest": "manifest.json",
+  "initial_attempts_are_test_fixture_failures": true,
+  "helpers": "Local preparation scripts archived for provenance; paths assume .research/black-hold-d-repeat3, not this evidence directory. Capture was syntax-checked only, never opened a port.",
+  "files": {
+    ".gitattributes": {
+      "bytes": 103,
+      "sha256": "e5be307f3b795fa60c05c9f71f3aca27387275a98bd2d6254ea835d460d077a4"
+    },
+    "audit_candidate.py": {
+      "bytes": 6740,
+      "sha256": "1e5ec5c74ba81f56ad20c92a1477d3a480d9adde037d967acf0b4e49935e5afe"
+    },
+    "audit_worktrees.py": {
+      "bytes": 1216,
+      "sha256": "1abf829523d368d2ee5f7d0d382711eca402d9ce21d2d296a47bbdbb90b9d63f"
+    },
+    "build-result.json": {
+      "bytes": 918,
+      "sha256": "f9da48b6b6a3510b9b6757211e2ca27e4b6de8649f758585430db7db4d1611c8"
+    },
+    "build-selection.txt": {
+      "bytes": 6041,
+      "sha256": "12117e1fad685a5024a57d324450f1b40b3d84114f14c2f4bef15dc2c8755816"
+    },
+    "build.log": {
+      "bytes": 225565,
+      "sha256": "005d59c068cf5c88f43f71e2e6d6391b855a2038274912ca008d20ba8569c31e"
+    },
+    "build_candidate.py": {
+      "bytes": 1300,
+      "sha256": "a76c3528ccf3921435d2f6c373fd200ad02fe043de6294675002ca6217d0aa87"
+    },
+    "capture_repeat3.py": {
+      "bytes": 5299,
+      "sha256": "3f74c187233fb06881ab4534b644976f7eba90750ee7e8f15302a1a78a6326ba"
+    },
+    "host-regressions-result.json": {
+      "bytes": 322,
+      "sha256": "f906eae12de0c84db18eb3afbbca9a47f6e5b40b729d3e58e5177833108ae3ed"
+    },
+    "host-regressions.log": {
+      "bytes": 17389,
+      "sha256": "7b18df184e018d2543adc1a053a6dfa89265d63f4cda05370a4093adc6c423cd"
+    },
+    "host-single-result.attempt01.json": {
+      "bytes": 184,
+      "sha256": "67e7c25eaf9efcc1cf093f0bfb2500353d067ae560f87a1bf1ba49123fd862bd"
+    },
+    "host-single-result.attempt02.json": {
+      "bytes": 186,
+      "sha256": "02cea32a6297437883c3eaadb40f3b559f907c3df6b46b5247a32f19fd3a514d"
+    },
+    "host-single-result.json": {
+      "bytes": 184,
+      "sha256": "35432f88aa6f28ff64746d39d17ea07073afbafc33a4db66c139162118596093"
+    },
+    "host-single-verified.attempt01.log": {
+      "bytes": 4696,
+      "sha256": "b6dd11c8ee0acd058de3955fcf6167dca5c842b87f45ad9896903cdd2a2ac4c7"
+    },
+    "host-single-verified.attempt02.log": {
+      "bytes": 4228,
+      "sha256": "812759118954691db5fa4c0aa89f77c6fae0539064c8e08195758b4a2f561590"
+    },
+    "host-single-verified.log": {
+      "bytes": 6459,
+      "sha256": "59b21af78905dec6d8ab988a55fa3876880eb18869ac9063d556fa4a4f1b95c5"
+    },
+    "lut-decode.json": {
+      "bytes": 1082,
+      "sha256": "4908a086d70fc24d848abdaf47bf8e1c7ca8ec06d47f58ca8e28c111f9312cbe"
+    },
+    "manifest.json": {
+      "bytes": 2784,
+      "sha256": "4f1e8f038af1602625386a56379c3637abb594d21b83f306dbc3dd2b0608bf0b"
+    },
+    "other-worktrees-after.json": {
+      "bytes": 7998,
+      "sha256": "f46b1b094d3a3f570463ecf68cc995f6489b68c825116b44ceefbb8b18cbea44"
+    },
+    "other-worktrees-before.json": {
+      "bytes": 6907,
+      "sha256": "634a786478b861e4ec85eb9f43fd80be82620b2c0a65d8339b8719a29e384e09"
+    },
+    "run_host.py": {
+      "bytes": 863,
+      "sha256": "18ca6b9065cd8806fa21f5dbf5dfbeac785deaaaab50ab5fe0f409812902d263"
+    },
+    "run_single_host.sh": {
+      "bytes": 857,
+      "sha256": "a7ae1d322548720f40c4be15a8f8996c1c1cf6f875432719e6580d8a5c4f6fac"
+    }
+  }
+}

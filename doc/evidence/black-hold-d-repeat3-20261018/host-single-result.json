@@ -1,0 +1,8 @@
+{
+  "returncode": 0,
+  "command": [
+    "sh",
+    ".research/black-hold-d-repeat3/run_single_host.sh"
+  ],
+  "log": ".research\\black-hold-d-repeat3\\host-single-verified.log"
+}

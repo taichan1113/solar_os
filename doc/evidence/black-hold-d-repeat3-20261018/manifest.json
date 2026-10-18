@@ -1,0 +1,84 @@
+{
+  "result": "REPEAT3_HOST_BUILD_PASS_AWAITING_EXPLICIT_FLASH_APPROVAL",
+  "branch": "experiment/papermono-black-hold-d-repeat3",
+  "implementation_commit": "e1935704df27d6d0e7e5cf25c7d63133c8c74faa",
+  "base_commit": "a65d8ec83b5ae2bff5ace40e8032f047657a0ffd",
+  "board": "m5paper_mono",
+  "flavor": "writerdeck",
+  "layout": "ota",
+  "esp_idf": "5.5.5",
+  "compiler": "GCC 14.2.0",
+  "flags": {
+    "BLACK_HOLD_SINGLE_TRIAL": 1,
+    "BLACK_HOLD_REPEAT3_TRIAL": 1,
+    "DIRTY_HOLD_TRIAL": 1,
+    "SPI20_TRIAL": 1,
+    "HYBRID_TRIAL": 1,
+    "WAVEFORM_TRIAL": 0,
+    "SKETCH_LATENCY_TRIAL": 0
+  },
+  "application": "firmware-app-only.bin",
+  "application_bytes": 3460144,
+  "sha256": "26acd03ca96f608cf3602466c0efd239cdb6f17ac475e317e124c90904af8e4a",
+  "ota_slot_bytes": 7340032,
+  "ota_remaining_bytes": 3879888,
+  "partitions": {
+    "nvs": {
+      "offset": 36864,
+      "size": 16384
+    },
+    "otadata": {
+      "offset": 53248,
+      "size": 8192
+    },
+    "phy_init": {
+      "offset": 61440,
+      "size": 4096
+    },
+    "ota_0": {
+      "offset": 65536,
+      "size": 7340032
+    },
+    "ota_1": {
+      "offset": 7405568,
+      "size": 7340032
+    },
+    "flash": {
+      "offset": 14745600,
+      "size": 2031616
+    }
+  },
+  "baseline_LUT_sha256": "e8a7abbb2110cb8d941e80cc2869bbe1d0814e1d4a38e5d0cc5173b10f39ce50",
+  "D_LUT_sha256": "9be4bea8b9a07fef33834293d25979a9b0f3fc820d3e9912a1fc106532ef1832",
+  "LUT_bytes_changed_from_BD": false,
+  "normal_reference_refresh_function_unchanged": true,
+  "B_C_waveforms_absent_in_binary": true,
+  "maximum_boot_attempts": {
+    "A": 3,
+    "D": 3
+  },
+  "session_restart_allowed": false,
+  "budget_persists_display_reinitialization": true,
+  "budget_survives_whole_device_reboot": false,
+  "candidate_persisted_in_NVS": false,
+  "prepared_custom_excluded_from_measurements": true,
+  "timing_ms": {
+    "T0_from_prepare": 5000,
+    "measurement_from_operator_request": 5000,
+    "Tn_from_measurement_end": 2000
+  },
+  "planned_maximum_diagnostic_cmd20_each": 10,
+  "planned_maximum_diagnostic_cmd20_total": 20,
+  "sdk_config_equal_to_BD": true,
+  "build_seconds": 277.56199999997625,
+  "compiler_warning_count": 0,
+  "compiler_error_count": 0,
+  "effective_DC_balance_proven": false,
+  "manufacturer_validated": false,
+  "physical_quality_tested": false,
+  "device_accessed": false,
+  "flash_performed": false,
+  "runtime_note": "Normal waveform baseline; actual current device/slot/clock not queried. Existing startup selects fastest/tile; Dirty rows-dual retained.",
+  "rollback_reference_commit": "391925abff2d261d1d5856711aa0a1f101ac435a",
+  "rollback_reference_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6"
+}

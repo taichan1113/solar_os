@@ -1,0 +1,10 @@
+{
+  "returncode": 0,
+  "command": [
+    "env",
+    "CJSON_DIR=/mnt/c/Users/takec/.platformio/packages/framework-espidf/components/json/cJSON",
+    "sh",
+    ".research/black-hold-d-repeat3/worktree/tests/host/run_dirty_sketch_integration.sh"
+  ],
+  "log": ".research\\black-hold-d-repeat3\\host-regressions.log"
+}
