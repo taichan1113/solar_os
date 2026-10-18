@@ -1,0 +1,106 @@
+make: Entering directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/launcher-touch-grid/worktree/tests/host'
+make: 'epd_ssd1677_dirty_hold_test' is up to date.
+make: 'epd_ssd1677_test' is up to date.
+make: 'epd_ssd1677_spi_clock_dirty_20_test' is up to date.
+make: 'epd_ssd1677_hybrid_trial_test' is up to date.
+make: 'sketch_dirty_pipeline_test' is up to date.
+make: 'sketch_canvas_test' is up to date.
+make: 'sketch_lifecycle_test' is up to date.
+make: 'sketch_scale140_lifecycle_test' is up to date.
+make: 'sketch_legacy_lifecycle_test' is up to date.
+make: 'sketch_touch_projection_test' is up to date.
+make: 'sketch_trace_core_test' is up to date.
+make: 'display_async_test' is up to date.
+make: 'writer_quality_test' is up to date.
+make: 'writer_buffer_test' is up to date.
+make: 'writer_files_test' is up to date.
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_PACKAGE_APP_TYPE_MOUSE=1 -DSOLAR_OS_PACKAGE_SERVICE_EXPANSION=1 \
+	-DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' -include compat.h \
+	-ffunction-sections -fdata-sections -I. -I../../src -I../../src/apps -I../../src/services -I../../src/shell \
+	-I/mnt/c/Users/takec/.platformio/packages/framework-espidf/components/json/cJSON launcher_touch_test.c ../../src/apps/solar_os_launcher_layout.c ../../src/shell/solar_os_shell_parse.c ../../src/shell/solar_os_shell_launch.c \
+	../../src/services/solar_os_json.c ../../src/services/solar_os_gfx_icons.c /mnt/c/Users/takec/.platformio/packages/framework-espidf/components/json/cJSON/cJSON.c -Wl,--gc-sections -o launcher_touch_test
+make: 'type_mouse_engine_test' is up to date.
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_PACKAGE_SERVICE_EXPANSION=1 \
+	-DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' \
+	-I. -I../../src -I../../src/apps -I../../src/services -c type_mouse_lifecycle_test.c -o type_mouse_lifecycle_test.o
+g++ -std=c++17 -O2 -Wall -Wextra -Werror -I../../src/apps type_mouse_lifecycle_test.o ../../src/apps/solar_os_type_mouse_engine.cpp -o type_mouse_lifecycle_test
+make: 'shell_launch_test' is up to date.
+make: Leaving directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/launcher-touch-grid/worktree/tests/host'
+RUN epd_ssd1677_dirty_hold_test
+dirty-hold baseline: bw=480000 red=480000 spi=961571 converted=960000 updates=10 host_cpu_ms=0.954
+dirty-hold candidate: bw=70886 red=118886 spi=191360 converted=191584 updates=10 host_cpu_ms=0.403
+dirty-hold shared-bounds host_cpu_us=10.434 per call (500 calls)
+epd_ssd1677_dirty_hold_test: PASS
+RUN epd_ssd1677_test
+epd_ssd1677_test: PASS
+RUN epd_ssd1677_spi_clock_dirty_20_test
+epd_ssd1677_spi_clock_test: PASS
+RUN epd_ssd1677_hybrid_trial_test
+hybrid host: fastest=96194 SPI bytes, idle OTP partial=96045 SPI bytes
+epd_ssd1677_test: PASS
+RUN sketch_dirty_pipeline_test
+pipeline R0 swap=0 update=31 ram=1200 0x20=1
+pipeline R0 swap=0 update=32 ram=1200 0x20=1
+pipeline R0 swap=0 update=33 ram=192000 0x20=1
+pipeline R0 swap=0 update=64 ram=1200 0x20=1
+pipeline R0 swap=0 update=65 ram=192000 0x20=1
+pipeline R0 swap=1 update=31 ram=1200 0x20=1
+pipeline R0 swap=1 update=32 ram=1200 0x20=1
+pipeline R0 swap=1 update=33 ram=192000 0x20=1
+pipeline R0 swap=1 update=64 ram=1200 0x20=1
+pipeline R0 swap=1 update=65 ram=192000 0x20=1
+pipeline R2 swap=0 update=31 ram=1200 0x20=1
+pipeline R2 swap=0 update=32 ram=1200 0x20=1
+pipeline R2 swap=0 update=33 ram=192000 0x20=1
+pipeline R2 swap=0 update=64 ram=1200 0x20=1
+pipeline R2 swap=0 update=65 ram=192000 0x20=1
+pipeline R2 swap=1 update=31 ram=1200 0x20=1
+pipeline R2 swap=1 update=32 ram=1200 0x20=1
+pipeline R2 swap=1 update=33 ram=192000 0x20=1
+pipeline R2 swap=1 update=64 ram=1200 0x20=1
+pipeline R2 swap=1 update=65 ram=192000 0x20=1
+sketch_dirty_pipeline_test: PASS (real Canvas/GFX/U8g2/SSD1677, R0/R2, RAM models, OFF/ON, 32/64 boundaries)
+RUN sketch_canvas_test
+sketch canvas and PNG tests: ok
+RUN sketch_lifecycle_test
+sketch lifecycle, coalescing, color PNG save/open/import: PASS
+RUN sketch_scale140_lifecycle_test
+sketch lifecycle, coalescing, color PNG save/open/import: PASS
+RUN sketch_legacy_lifecycle_test
+legacy Sketch: no auto-pointer lease, synchronous presentation preserved: PASS
+RUN sketch_touch_projection_test
+sketch_touch_projection_test: PASS (actual projection + Sketch stroke/cancel)
+RUN sketch_trace_core_test
+sketch trace core: bounded IDs and overflow PASS
+RUN display_async_test
+display async: snapshots, replacements, pacing, idle cleanup, controls, suspend, shutdown, fault and allocation tests passed
+RUN writer_quality_test
+writer_quality_test: PASS (real editing/raster, planes, pacing, replacement, cap, abort/fault)
+RUN writer_buffer_test
+writer buffer tests: ok
+RUN writer_files_test
+writer FAT replacement/recovery retry tests: ok
+RUN launcher_touch_test
+launcher_touch_test: 64 grids, custom item, lease failure/lifecycle, TypeMouse child launch PASS
+launcher_touch_test: actual JSON load/start/resume preserves user file PASS
+launcher_touch_test: failed touch/config start signals session fallback; invalid user file preserved PASS
+RUN type_mouse_engine_test
+type_mouse_engine_test: PASS
+RUN type_mouse_lifecycle_test
+type_mouse_lifecycle_test: offline start/touch Exit, CANCEL, suspend/resume and HID release PASS
+RUN shell_launch_test
+shell_launch_test: ok
+test_complete_stroke_and_generation (tests.test_sketch_trace.SketchTraceTests.test_complete_stroke_and_generation) ... ok
+test_i2c_error_is_reported_separately (tests.test_sketch_trace.SketchTraceTests.test_i2c_error_is_reported_separately) ... ok
+test_missing_final_frame_is_not_success (tests.test_sketch_trace.SketchTraceTests.test_missing_final_frame_is_not_success) ... ok
+test_nonmonotonic_or_duplicate_row_is_rejected (tests.test_sketch_trace.SketchTraceTests.test_nonmonotonic_or_duplicate_row_is_rejected) ... ok
+test_nonphysical_completion_is_not_final_frame (tests.test_sketch_trace.SketchTraceTests.test_nonphysical_completion_is_not_final_frame) ... ok
+test_overflow_or_missing_dump_is_not_synthesized (tests.test_sketch_trace.SketchTraceTests.test_overflow_or_missing_dump_is_not_synthesized) ... ok
+test_release_fifo_failure_is_not_success (tests.test_sketch_trace.SketchTraceTests.test_release_fifo_failure_is_not_success) ... ok
+test_stroke_id_mismatch_is_rejected (tests.test_sketch_trace.SketchTraceTests.test_stroke_id_mismatch_is_rejected) ... ok
+test_unchanged_release_uses_completed_prior_canvas (tests.test_sketch_trace.SketchTraceTests.test_unchanged_release_uses_completed_prior_canvas) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.001s
+
+OK

@@ -1,0 +1,47 @@
+[
+  {
+    "file": "build.log",
+    "bytes": 2896,
+    "sha256": "3d24263cf66e9db54113d9ebeb5bcb06f3537b7c0a07f101f7dabde7d0868206"
+  },
+  {
+    "file": "build-result.json",
+    "bytes": 718,
+    "sha256": "470c6e0939e1c2e8434457d602f39dfc2d0b79b0580231133ae70847891d86f7"
+  },
+  {
+    "file": "host-main.log",
+    "bytes": 6629,
+    "sha256": "94a22da263b26475a748d8e88bf7426edb7e361df281a5d7e20d4ab972e5eb9d"
+  },
+  {
+    "file": "host-main-result.json",
+    "bytes": 244,
+    "sha256": "0dd3ee18d343803d23a67bbbc91d488df6a37243fea192ae69c7cc3ae8c485bc"
+  },
+  {
+    "file": "host-extra.log",
+    "bytes": 7394,
+    "sha256": "532f11cb65d9f7d8c7c19688fd91ec5142a759faf726e4aff3493ddd6e102481"
+  },
+  {
+    "file": "host-extra-result.json",
+    "bytes": 2665,
+    "sha256": "c29cd06c2561eb1555a1418a1e98cf38809bacded0dba2dcf07d2d6896b5f109"
+  },
+  {
+    "file": "worktrees-before.json",
+    "bytes": 22093,
+    "sha256": "7d17f185dc21b364d09eed69aed25dde760bec08466eb8480933168178a8222a"
+  },
+  {
+    "file": "worktrees-after.json",
+    "bytes": 25937,
+    "sha256": "41668675a68221e895af4f0051fd847cd55af5af97eae09ac5f3fdc2c6580722"
+  },
+  {
+    "file": "manifest.json",
+    "bytes": 4750,
+    "sha256": "757ea120bb189bec10ea2698d4c37c9d43b33ae3566b0b675231d2c4c99093ea"
+  }
+]

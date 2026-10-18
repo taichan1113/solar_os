@@ -1,0 +1,153 @@
+{
+  "result": "LAUNCHER_TOUCH_GRID_HOST_BUILD_PASS_HARDWARE_PENDING",
+  "base_commit": "8cf0bed5c198a94b010a3605edbf41c21223ace5",
+  "implementation_commit": "16b635c7b26a5e62fb2377cf4b285ef5ac1b84ab",
+  "source_branch": "feature/papermono-launcher-touch-grid",
+  "worktree": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\launcher-touch-grid\\worktree",
+  "board": "m5paper_mono",
+  "flavor": "writerdeck",
+  "layout": "ota",
+  "esp_idf": "5.5.5",
+  "gcc": "14.2.0",
+  "display": "800x480",
+  "touch": "FT6336G",
+  "launcher_grid": [
+    3,
+    2
+  ],
+  "launcher_order": [
+    "Files",
+    "Reader",
+    "Clock",
+    "Keyboard",
+    "Sketch",
+    "Shell"
+  ],
+  "reader_entry": "existing Files browser in --reader mode; selected document opens Reader",
+  "sleep_route": "existing explicit light sleep; KEY1 RTC wake; managed FT6336 worker/reset/power off",
+  "physical_KEY2": "unchanged; short Enter, 1200ms hold Esc",
+  "protected_paths_unchanged": [
+    "src/drivers",
+    "src/main.c",
+    "src/services/solar_os_display.c",
+    "src/services/solar_os_display_async.c",
+    "src/services/solar_os_gfx.c",
+    "src/services/solar_os_gfx.h",
+    "src/services/solar_os_input.c",
+    "src/services/solar_os_input_touch.inc",
+    "src/services/solar_os_sessions.c",
+    "src/services/solar_os_sessions_touch.c",
+    "src/services/solar_os_ft6336.c",
+    "src/services/solar_os_m5papermono_power.c",
+    "src/apps/solar_os_sketch.c",
+    "src/apps/solar_os_type_mouse_engine.cpp",
+    "scripts",
+    "platformio.ini",
+    "partitions.csv"
+  ],
+  "effective_flags": {
+    "SOLAR_OS_SSD1677_WRITER_D": 1,
+    "SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL": 1,
+    "SOLAR_OS_SSD1677_SPI20_TRIAL": 1,
+    "SOLAR_OS_SSD1677_HYBRID_TRIAL": 1
+  },
+  "baseline_LUT_sha256": "e8a7abbb2110cb8d941e80cc2869bbe1d0814e1d4a38e5d0cc5173b10f39ce50",
+  "D_LUT_sha256": "9be4bea8b9a07fef33834293d25979a9b0f3fc820d3e9912a1fc106532ef1832",
+  "Sketch_policy": "Baseline A",
+  "other_apps_fastest_policy": "Candidate D",
+  "application_bytes": 3460928,
+  "sha256": "667a9c2461ec93f34efba07d502af7890fe24b86055897fbd10a80571e7e9d31",
+  "ota_slot_bytes": 7340032,
+  "ota_remaining_bytes": 3879104,
+  "partitions": {
+    "nvs": {
+      "offset": 36864,
+      "size": 16384
+    },
+    "otadata": {
+      "offset": 53248,
+      "size": 8192
+    },
+    "phy_init": {
+      "offset": 61440,
+      "size": 4096
+    },
+    "ota_0": {
+      "offset": 65536,
+      "size": 7340032
+    },
+    "ota_1": {
+      "offset": 7405568,
+      "size": 7340032
+    },
+    "flash": {
+      "offset": 14745600,
+      "size": 2031616
+    }
+  },
+  "rollback_reference_sha256": "3374c584f1424829f262aeea61245e5bb5fc24fcd2bdd941619aef00a2004845",
+  "host": {
+    "main": {
+      "executables": [
+        "epd_ssd1677_dirty_hold_test",
+        "epd_ssd1677_test",
+        "epd_ssd1677_spi_clock_dirty_20_test",
+        "epd_ssd1677_hybrid_trial_test",
+        "sketch_dirty_pipeline_test",
+        "sketch_canvas_test",
+        "sketch_lifecycle_test",
+        "sketch_scale140_lifecycle_test",
+        "sketch_legacy_lifecycle_test",
+        "sketch_touch_projection_test",
+        "sketch_trace_core_test",
+        "display_async_test",
+        "writer_quality_test",
+        "writer_buffer_test",
+        "writer_files_test",
+        "launcher_touch_test",
+        "type_mouse_engine_test",
+        "type_mouse_lifecycle_test",
+        "shell_launch_test"
+      ]
+    },
+    "extra": {
+      "executables": [
+        "reader_touch_test",
+        "clock_touch_test",
+        "terminal_render_scale140_test",
+        "launcher_grid_test",
+        "app_touch_test",
+        "files_layout_test",
+        "ft6336_lifecycle_test",
+        "input_touch_adapter_test",
+        "input_touch_service_test",
+        "button_long_press_test",
+        "rtc_service_test",
+        "m5papermono_power_test",
+        "sketch_baseline_lifecycle_test",
+        "writer_d_driver_test",
+        "writer_d_async_test",
+        "writer_d_shell_test",
+        "epd_ssd1677_waveform_trial_test",
+        "input_test",
+        "input_action_match_test",
+        "hid_keyboard_report_test",
+        "ble_keyboard_scan_policy_test",
+        "ble_keyboard_reconnect_test",
+        "ble_service_test",
+        "ble_multi_peer_test",
+        "ble_nimble_test",
+        "ble_hid_test",
+        "ble_server_test"
+      ]
+    }
+  },
+  "Sketch_Python_tests": 9,
+  "build_seconds": 40.06300000002375,
+  "warnings": [],
+  "errors": [],
+  "flash_performed": false,
+  "device_accessed": false,
+  "physical_Sleep_Wake_test": "pending new Flash approval",
+  "startup_NVS_FAT_bonds_modified": false
+}

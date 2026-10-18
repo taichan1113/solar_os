@@ -1,0 +1,24 @@
+{
+  "returncode": 0,
+  "elapsed_seconds": 40.06300000002375,
+  "command": [
+    "C:\\Users\\takec\\.platformio\\penv\\Scripts\\python.exe",
+    "-m",
+    "platformio",
+    "run",
+    "-e",
+    "esp32_s3_devkitc1_n16r8"
+  ],
+  "cwd": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\launcher-touch-grid\\worktree",
+  "requested_environment": {
+    "SOLAR_OS_BOARD": "m5paper_mono",
+    "SOLAR_OS_FLAVOR": "writerdeck",
+    "SOLAR_OS_LAYOUT": "ota",
+    "SOLAR_OS_SSD1677_WAVEFORM_TRIAL": "0",
+    "SOLAR_OS_SSD1677_HYBRID_TRIAL": "1",
+    "SOLAR_OS_SKETCH_LATENCY_TRIAL": "0"
+  },
+  "source_commit": "16b635c7b26a5e62fb2377cf4b285ef5ac1b84ab",
+  "device_accessed": false,
+  "flash_performed": false
+}
