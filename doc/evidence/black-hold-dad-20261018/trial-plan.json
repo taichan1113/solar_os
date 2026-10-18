@@ -1,0 +1,37 @@
+{
+  "state": "HOST_BUILD_COMPLETE_STOPPED_AT_GATE_1",
+  "sequence": [
+    "D",
+    "A",
+    "D"
+  ],
+  "measurement_limit": 3,
+  "D_limit": 2,
+  "A_limit": 1,
+  "normal_waveform": "baseline",
+  "no_intermediate_OTP": true,
+  "operator_gate_each_measurement": true,
+  "goal_from_previous_end_ms": 60000,
+  "first_goal_from_preparation_end": true,
+  "T0_after_preparation_ms": 5000,
+  "stable_measurement_after_end_ms": 2000,
+  "planned_start_formula": "max(previous_end+60000000,operator_request+5000000) microseconds",
+  "diagnostic_cmd20_if_complete": 10,
+  "current_task_COM_accessed": false,
+  "primary_optical_metrics": [
+    "dC3=C3-C2",
+    "C3-C1"
+  ],
+  "recovery_ratio": "(C3-C2)/(C1-C2), reference only when denominator clearly exceeds optical fluctuation",
+  "future_flash": "Fresh device/slot/partition identification; new full/app backup; app-only write/readback/protection; return to original Application without data rollback",
+  "physical_lut_readback": false,
+  "DAD_classification": "not measured",
+  "brief_previously_tolerated_whitening_alone_is_failure": false,
+  "gates_remaining": [
+    "1 DAD flash authorization",
+    "2 DAD results reviewed, Writer implementation authorization",
+    "3 Writer host/build reviewed, separate flash authorization",
+    "4 Writer results reviewed, Integration adoption decision"
+  ],
+  "Writer_Trial_implementation_started": false
+}

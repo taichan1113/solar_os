@@ -1,0 +1,8 @@
+{
+  "returncode": 0,
+  "command": [
+    "sh",
+    ".research/black-hold-dad/run_single_host.sh"
+  ],
+  "log": ".research\\black-hold-dad\\host-single-verified.log"
+}

@@ -1,0 +1,185 @@
+make: Entering directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/worktree/tests/host'
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 -DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -DSOLAR_OS_SSD1677_HYBRID_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../components/u8g2/src/clib \
+	epd_ssd1677_black_single_test.c ../../components/u8g2/src/clib/u8g2_setup.c ../../components/u8g2/src/clib/u8g2_buffer.c ../../components/u8g2/src/clib/u8g2_font.c ../../components/u8g2/src/clib/u8g2_ll_hvline.c ../../components/u8g2/src/clib/u8g2_hvline.c ../../components/u8g2/src/clib/u8g2_intersection.c ../../components/u8g2/src/clib/u8x8_setup.c ../../components/u8g2/src/clib/u8x8_display.c -Wl,--gc-sections -o epd_ssd1677_black_single_test
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 -DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -DSOLAR_OS_SSD1677_HYBRID_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../src/drivers -I../../src/services -I../../components/u8g2/src/clib \
+	black_single_shell_test.c ../../components/u8g2/src/clib/u8g2_setup.c ../../components/u8g2/src/clib/u8g2_buffer.c ../../components/u8g2/src/clib/u8g2_font.c ../../components/u8g2/src/clib/u8g2_ll_hvline.c ../../components/u8g2/src/clib/u8g2_hvline.c ../../components/u8g2/src/clib/u8g2_intersection.c ../../components/u8g2/src/clib/u8x8_setup.c ../../components/u8g2/src/clib/u8x8_display.c ../../components/u8g2/src/clib/u8g2_box.c ../../components/u8g2/src/clib/u8x8_8x8.c \
+	../../fonts/build/u8g2/u8g2_font_solar_os_default_r_20_tf.c -Wl,--gc-sections -o black_single_shell_test
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_SSD1677_WAVEFORM_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../components/u8g2/src/clib \
+	epd_ssd1677_test.c -Wl,--gc-sections -o epd_ssd1677_waveform_trial_test
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 -DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -DSOLAR_OS_SSD1677_HYBRID_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../components/u8g2/src/clib \
+	epd_ssd1677_black_repeat3_test.c ../../components/u8g2/src/clib/u8g2_setup.c ../../components/u8g2/src/clib/u8g2_buffer.c ../../components/u8g2/src/clib/u8g2_font.c ../../components/u8g2/src/clib/u8g2_ll_hvline.c ../../components/u8g2/src/clib/u8g2_hvline.c ../../components/u8g2/src/clib/u8g2_intersection.c ../../components/u8g2/src/clib/u8x8_setup.c ../../components/u8g2/src/clib/u8x8_display.c -Wl,--gc-sections -o epd_ssd1677_black_repeat3_test
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 -DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -DSOLAR_OS_SSD1677_HYBRID_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../src/drivers -I../../src/services -I../../components/u8g2/src/clib \
+	black_repeat3_shell_test.c ../../components/u8g2/src/clib/u8g2_setup.c ../../components/u8g2/src/clib/u8g2_buffer.c ../../components/u8g2/src/clib/u8g2_font.c ../../components/u8g2/src/clib/u8g2_ll_hvline.c ../../components/u8g2/src/clib/u8g2_hvline.c ../../components/u8g2/src/clib/u8g2_intersection.c ../../components/u8g2/src/clib/u8x8_setup.c ../../components/u8g2/src/clib/u8x8_display.c ../../components/u8g2/src/clib/u8g2_box.c ../../components/u8g2/src/clib/u8x8_8x8.c \
+	../../fonts/build/u8g2/u8g2_font_solar_os_default_r_20_tf.c -Wl,--gc-sections -o black_repeat3_shell_test
+make: Leaving directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/worktree/tests/host'
+hybrid host: fastest=96194 SPI bytes, idle OTP partial=96045 SPI bytes
+epd_ssd1677_test: PASS
+black-single B/D: SPI differs only LUT byte0; R0/R2 retain/swap, independent budgets, cancel, fault/restore gates PASS
+RUN Shell normal
+black-single B/D Shell: explicit single starts, independent budgets, timed markers, cancel, trace and restore PASS
+RUN Shell r2
+black-single B/D Shell: explicit single starts, independent budgets, timed markers, cancel, trace and restore PASS
+RUN Shell fail-B
+black-single B/D Shell: failure blocks both candidates with no retry PASS
+RUN Shell fail-D
+black-single B/D Shell: failure blocks both candidates with no retry PASS
+RUN Shell restore-B
+black-single B/D Shell: failure blocks both candidates with no retry PASS
+RUN Shell restore-D
+black-single B/D Shell: failure blocks both candidates with no retry PASS
+RUN Shell abort-B
+black-single B/D Shell: explicit single starts, independent budgets, timed markers, cancel, trace and restore PASS
+RUN Shell abort-D
+black-single B/D Shell: explicit single starts, independent budgets, timed markers, cancel, trace and restore PASS
+RUN Shell cancel-B
+black-single B/D Shell: explicit single starts, independent budgets, timed markers, cancel, trace and restore PASS
+RUN Shell cancel-D
+black-single B/D Shell: explicit single starts, independent budgets, timed markers, cancel, trace and restore PASS
+epd_ssd1677_test: PASS
+test_B_to_D_only_reorders_first_two_phases (tests.test_black_hold_single_lut.BlackHoldLutTests.test_B_to_D_only_reorders_first_two_phases) ... ok
+test_spec_encoding_and_unchanged_baseline (tests.test_black_hold_single_lut.BlackHoldLutTests.test_spec_encoding_and_unchanged_baseline) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.009s
+
+OK
+repeat3 Driver: A/D 0..3, fourth/reinit refusal, cancel/fault budgets, identical payload, R0/R2 retain/swap, periodic RAM resync PASS
+RUN repeat3 Shell normal
+repeat3 Shell: explicit per-update gates, 0..3 markers/attempts, stop/cancel, restore and no session restart PASS
+RUN repeat3 Shell r2
+repeat3 Shell: explicit per-update gates, 0..3 markers/attempts, stop/cancel, restore and no session restart PASS
+RUN repeat3 Shell delay
+repeat3 Shell: explicit per-update gates, 0..3 markers/attempts, stop/cancel, restore and no session restart PASS
+RUN repeat3 Shell fail-A
+repeat3 Shell: failed second update blocks both conditions, no cleanup/retry/next step PASS
+RUN repeat3 Shell fail-D
+repeat3 Shell: failed second update blocks both conditions, no cleanup/retry/next step PASS
+RUN repeat3 Shell restore-A
+repeat3 Shell: failed second update blocks both conditions, no cleanup/retry/next step PASS
+RUN repeat3 Shell restore-D
+repeat3 Shell: failed second update blocks both conditions, no cleanup/retry/next step PASS
+RUN repeat3 Shell submit-A
+repeat3 Shell: failed second update blocks both conditions, no cleanup/retry/next step PASS
+RUN repeat3 Shell submit-D
+repeat3 Shell: failed second update blocks both conditions, no cleanup/retry/next step PASS
+RUN repeat3 Shell abort-A
+repeat3 Shell: explicit per-update gates, 0..3 markers/attempts, stop/cancel, restore and no session restart PASS
+RUN repeat3 Shell abort-D
+repeat3 Shell: explicit per-update gates, 0..3 markers/attempts, stop/cancel, restore and no session restart PASS
+RUN repeat3 Shell cancel-A
+repeat3 Shell: explicit per-update gates, 0..3 markers/attempts, stop/cancel, restore and no session restart PASS
+RUN repeat3 Shell cancel-D
+repeat3 Shell: explicit per-update gates, 0..3 markers/attempts, stop/cancel, restore and no session restart PASS
+RUN repeat3 Shell stop1-A
+repeat3 Shell: explicit per-update gates, 0..3 markers/attempts, stop/cancel, restore and no session restart PASS
+RUN repeat3 Shell stop1-D
+repeat3 Shell: explicit per-update gates, 0..3 markers/attempts, stop/cancel, restore and no session restart PASS
+RUN repeat3 Shell stop2-A
+repeat3 Shell: explicit per-update gates, 0..3 markers/attempts, stop/cancel, restore and no session restart PASS
+RUN repeat3 Shell stop2-D
+repeat3 Shell: explicit per-update gates, 0..3 markers/attempts, stop/cancel, restore and no session restart PASS
+make: Entering directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/worktree/tests/host'
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 -DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -DSOLAR_OS_SSD1677_HYBRID_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../components/u8g2/src/clib \
+	epd_ssd1677_black_prime_aa_test.c ../../components/u8g2/src/clib/u8g2_setup.c ../../components/u8g2/src/clib/u8g2_buffer.c ../../components/u8g2/src/clib/u8g2_font.c ../../components/u8g2/src/clib/u8g2_ll_hvline.c ../../components/u8g2/src/clib/u8g2_hvline.c ../../components/u8g2/src/clib/u8g2_intersection.c ../../components/u8g2/src/clib/u8x8_setup.c ../../components/u8g2/src/clib/u8x8_display.c -Wl,--gc-sections -o epd_ssd1677_black_prime_aa_test
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 -DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -DSOLAR_OS_SSD1677_HYBRID_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../src/drivers -I../../src/services -I../../components/u8g2/src/clib \
+	black_prime_aa_shell_test.c ../../components/u8g2/src/clib/u8g2_setup.c ../../components/u8g2/src/clib/u8g2_buffer.c ../../components/u8g2/src/clib/u8g2_font.c ../../components/u8g2/src/clib/u8g2_ll_hvline.c ../../components/u8g2/src/clib/u8g2_hvline.c ../../components/u8g2/src/clib/u8g2_intersection.c ../../components/u8g2/src/clib/u8x8_setup.c ../../components/u8g2/src/clib/u8x8_display.c ../../components/u8g2/src/clib/u8g2_box.c ../../components/u8g2/src/clib/u8x8_8x8.c \
+	../../fonts/build/u8g2/u8g2_font_solar_os_default_r_20_tf.c -Wl,--gc-sections -o black_prime_aa_shell_test
+make: Leaving directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/worktree/tests/host'
+prime-AA Driver: fixed D/A/A, one D, fourth/reinit/preparation refusal, cancel/fault stop, identical RAM/voltages, R0/R2 retain/swap and periodic resync PASS
+RUN prime Shell normal
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell r2
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell delay
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell clock
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell fail1
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell fail2
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell fail3
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell restore1
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell restore2
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell restore3
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell submit1
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell submit2
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell submit3
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell abort1
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell abort2
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell abort3
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell stop-white
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell stop0
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell stop1
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN prime Shell stop2
+prime-AA Shell: fixed real SPI D/A/A, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+make: Entering directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/worktree/tests/host'
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_DAD_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 -DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -DSOLAR_OS_SSD1677_HYBRID_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../components/u8g2/src/clib \
+	epd_ssd1677_black_dad_test.c ../../components/u8g2/src/clib/u8g2_setup.c ../../components/u8g2/src/clib/u8g2_buffer.c ../../components/u8g2/src/clib/u8g2_font.c ../../components/u8g2/src/clib/u8g2_ll_hvline.c ../../components/u8g2/src/clib/u8g2_hvline.c ../../components/u8g2/src/clib/u8g2_intersection.c ../../components/u8g2/src/clib/u8x8_setup.c ../../components/u8g2/src/clib/u8x8_display.c -Wl,--gc-sections -o epd_ssd1677_black_dad_test
+cc -std=c11 -O2 -Wall -Wextra -Werror -idirafter ../../include -DSOLAR_OS_SSD1677_BLACK_HOLD_SINGLE_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_REPEAT3_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_PRIME_AA_TRIAL=1 -DSOLAR_OS_SSD1677_BLACK_HOLD_DAD_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 -DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -DSOLAR_OS_SSD1677_HYBRID_TRIAL=1 -ffunction-sections -fdata-sections \
+	-Iepd_stubs -I. -I../../src/drivers -I../../src/services -I../../components/u8g2/src/clib \
+	black_dad_shell_test.c ../../components/u8g2/src/clib/u8g2_setup.c ../../components/u8g2/src/clib/u8g2_buffer.c ../../components/u8g2/src/clib/u8g2_font.c ../../components/u8g2/src/clib/u8g2_ll_hvline.c ../../components/u8g2/src/clib/u8g2_hvline.c ../../components/u8g2/src/clib/u8g2_intersection.c ../../components/u8g2/src/clib/u8x8_setup.c ../../components/u8g2/src/clib/u8x8_display.c ../../components/u8g2/src/clib/u8g2_box.c ../../components/u8g2/src/clib/u8x8_8x8.c \
+	../../fonts/build/u8g2/u8g2_font_solar_os_default_r_20_tf.c -Wl,--gc-sections -o black_dad_shell_test
+make: Leaving directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/worktree/tests/host'
+DAD Driver: fixed D/A/D, two D, fourth/reinit/preparation refusal, cancel/fault stop, identical RAM/voltages, R0/R2 retain/swap and periodic resync PASS
+RUN DAD Shell normal
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell r2
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell delay
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell clock
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell fail1
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell fail2
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell fail3
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell restore1
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell restore2
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell restore3
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell submit1
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell submit2
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell submit3
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell abort1
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell abort2
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell abort3
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell stop-white
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell stop0
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell stop1
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
+RUN DAD Shell stop2
+DAD Shell: fixed real SPI D/A/D, explicit gates, common 60s goal/late approval, bounded logs, no intermediate OTP, cancel/fault stop and no restart PASS
