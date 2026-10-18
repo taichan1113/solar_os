@@ -1,0 +1,163 @@
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x29 (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40378210
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x1780
+load:0x403c8700,len:0xe88
+load:0x403cb700,len:0x3184
+entry 0x403c8940
+I (24) boot: ESP-IDF 5.5.5 2nd stage bootloader
+I (24) boot: compile time Oct  6 2026 23:06:07
+I (25) boot: Multicore bootloader
+I (25) boot: chip revision: v0.2
+I (25) boot: efuse block revision: v1.4
+I (25) qio_mode: Enabling default flash chip QIO
+I (25) boot.esp32s3: Boot SPI Speed : 80MHz
+I (26) boot.esp32s3: SPI Mode       : QIO
+I (26) boot.esp32s3: SPI Flash Size : 16MB
+I (26) boot: Enabling RNG early entropy source...
+I (26) boot: Partition Table:
+I (26) boot: ## Label            Usage          Type ST Offset   Length
+I (27) boot:  0 nvs              WiFi data        01 02 00009000 00004000
+I (27) boot:  1 otadata          OTA data         01 00 0000d000 00002000
+I (27) boot:  2 phy_init         RF data          01 01 0000f000 00001000
+I (28) boot:  3 ota_0            OTA app          00 10 00010000 00700000
+I (28) boot:  4 ota_1            OTA app          00 11 00710000 00700000
+I (29) boot:  5 flash            Unknown data     01 81 00e10000 001f0000
+I (29) boot: End of partition table
+I (29) esp_image: segment 0: paddr=00010020 vaddr=3c250020 size=dab34h (895796) map
+I (168) esp_image: segment 1: paddr=000eab5c vaddr=3fca3d00 size=054bch ( 21692) load
+I (173) esp_image: segment 2: paddr=000f0020 vaddr=42000020 size=24b948h (2406728) map
+I (545) esp_image: segment 3: paddr=0033b970 vaddr=3fca91bc size=0170ch (  5900) load
+I (547) esp_image: segment 4: paddr=0033d084 vaddr=40374000 size=1fc60h (130144) load
+I (573) esp_image: segment 5: paddr=0035ccec vaddr=50000000 size=00020h (    32) load
+I (573) esp_image: segment 6: paddr=0035cd14 vaddr=600fe000 size=00060h (    96) load
+I (586) boot: Loaded app from partition at offset 0x10000
+I (586) boot: Disabling RNG early entropy source...
+I (587) octal_psram: vendor id    : 0x0d (AP)
+I (587) octal_psram: dev id       : 0x02 (generation 3)
+I (587) octal_psram: density      : 0x03 (64 Mbit)
+I (588) octal_psram: good-die     : 0x01 (Pass)
+I (588) octal_psram: Latency      : 0x01 (Fixed)
+I (588) octal_psram: VCC          : 0x01 (3V)
+I (588) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (588) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (589) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (589) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (589) octal_psram: DriveStrength: 0x00 (1/1)
+I (589) MSPI Timing: Enter psram timing tuning
+I (590) esp_psram: Found 8MB PSRAM device
+I (590) esp_psram: Speed: 80MHz
+I (591) cpu_start: Multicore app
+I (1014) esp_psram: SPI SRAM memory test OK
+I (1029) cpu_start: Pro cpu start user code
+I (1029) cpu_start: cpu freq: 240000000 Hz
+I (1029) app_init: Application information:
+I (1029) app_init: Project name:     solar_os
+I (1029) app_init: App version:      4.16.1
+I (1030) app_init: Compile time:     Oct 18 2026 23:06:54
+I (1030) app_init: ELF file SHA256:  a97e84ef4...
+I (1030) app_init: ESP-IDF:          5.5.5
+I (1030) efuse_init: Min chip rev:     v0.0
+I (1030) efuse_init: Max chip rev:     v0.99 
+I (1031) efuse_init: Chip rev:         v0.2
+I (1031) heap_init: Initializing. RAM available for dynamic allocation:
+I (1031) heap_init: At 3FCB0CB0 len 00038A60 (226 KiB): RAM
+I (1031) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (1032) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM
+I (1032) heap_init: At 600FE060 len 00001F88 (7 KiB): RTCRAM
+I (1032) esp_psram: Adding pool of 7972K of PSRAM memory to heap allocator
+I (1033) spi_flash: detected chip: generic
+I (1033) spi_flash: flash io: qio
+I (1033) sleep_gpio: Configure to isolate all GPIO pins in sleep state
+I (1034) sleep_gpio: Enable automatic switching of GPIO sleep configuration
+I (1035) main_task: Started on CPU0
+I (1035) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations
+I (1036) main_task: Calling app_main()
+I (1068) i2c_bus: I2C bus ready: port=0 SDA=47 SCL=48 speed=100000
+I (1068) papermono-power: stage 1: M5PM1/M5IOE1 settling
+I (1573) papermono-power: stage 2: M5PM1 ready (ID 2050)
+I (1600) papermono-power: stage 3: M5IOE1 ready (UID d75c), controller=ioe0, RGB OFF
+I (1608) papermono-power: IOE PYG3=1
+I (1634) papermono-power: IOE PYG5=0
+I (1649) papermono-power: IOE PYG5=1
+I (1759) epd_ssd1677: SPI requested_khz=10000 actual_khz=10000
+I (1859) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+I (1859) ssd1677: async snapshots=96000 internal=204839->197723 psram=8055196->7958932 minimum=165692/7958932
+I (1860) ssd1677: display0 attached on spi0 CS GPIO16 DC GPIO17 RST GPIO-1 BUSY GPIO18
+I (1867) papermono-power: IOE PYG3=1
+I (1892) papermono-power: IOE PYG5=0
+I (1907) papermono-power: IOE PYG5=1
+I (2117) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+I (6406) papermono-power: IOE PYG5=0
+I (6422) papermono-power: IOE PYG5=1
+I (7270) solar_os: boot milestone: jobs ready
+I (7271) solar_os: boot milestone: starting peripherals
+I (7271) pm: Frequency switching config: CPU_MAX: 240, APB_MAX: 240, APB_MIN: 240, Light sleep: DISABLED
+I (7287) flash_storage: mounted flash at /
+I (7296) pp: pp rom version: e7ae62f
+I (7296) net80211: net80211 rom version: e7ae62f
+I (7298) wifi:wifi driver task: 3fcd0074, prio:23, stack:6656, core=0
+I (7301) wifi:wifi firmware version: b9f67df
+I (7301) wifi:wifi certification version: v7.0
+I (7301) wifi:config NVS flash: enabled
+I (7301) wifi:config nano formatting: disabled
+I (7302) wifi:Init data frame dynamic rx buffer num: 32
+I (7302) wifi:Init static rx mgmt buffer num: 5
+I (7302) wifi:Init management short buffer num: 32
+I (7302) wifi:Init static tx buffer num: 12
+I (7303) wifi:Init tx cache buffer num: 32
+I (7303) wifi:Init static tx FG buffer num: 2
+I (7303) wifi:Init static rx buffer size: 1600
+I (7303) wifi:Init static rx buffer num: 10
+I (7304) wifi:Init dynamic rx buffer num: 32
+I (7304) wifi_init: rx ba win: 6
+I (7305) wifi_init: accept mbox: 6
+I (7305) wifi_init: tcpip mbox: 32
+I (7305) wifi_init: udp mbox: 6
+I (7305) wifi_init: tcp mbox: 6
+I (7305) wifi_init: tcp tx win: 5760
+I (7305) wifi_init: tcp rx win: 5760
+I (7305) wifi_init: tcp mss: 1440
+I (7305) wifi_init: WiFi/LWIP prefer SPIRAM
+I (7318) papermono-power: IOE PYG6=0
+I (7324) papermono-power: IOE PYG13=0
+I (7324) ft6336: touch0 disabled: worker stopped, power OFF
+I (7324) ft6336: touch0 disabled on i2c0 0x38: target=480x800 rotation=0
+I (7327) rx8130ce: UTC restored from RTC
+I (7330) BLE_INIT: BT controller compile version [51d9dfd]
+I (7330) BLE_INIT: Using main XTAL as clock source
+I (7331) BLE_INIT: Feature Config, ADV:1, BLE_50:1, DTM:1, SCAN:1, CCA:0, SMP:1, CONNECT:1
+I (7332) BLE_INIT: Bluetooth MAC: 28:84:85:44:79:6a
+I (7333) phy_init: phy_version 712,87e8c20e,Apr 13 2026,18:51:10
+I (7375) phy_init: Saving new calibration data due to checksum failure or outdated calibration data, mode(0)
+I (7434) NimBLE: GAP procedure initiated: stop advertising.
+
+I (7437) NimBLE: GAP procedure initiated: stop advertising.
+
+I (7441) NimBLE: GAP procedure initiated: stop advertising.
+
+I (7444) pm: Frequency switching config: CPU_MAX: 240, APB_MAX: 240, APB_MIN: 240, Light sleep: DISABLED
+I (7445) NimBLE: GAP procedure initiated: discovery; 
+I (7446) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (7446) NimBLE: duration=8000ms
+I (7446) NimBLE: 
+
+I (7449) solar_os: boot milestone: peripherals ready
+I (7453) solar_os: boot milestone: status ready
+Welcome to SolarOS
+user@sol:/ I (7504) papermono-power: IOE PYG13=1
+I (7520) papermono-power: IOE PYG6=0
+I (7545) papermono-power: IOE PYG6=1
+I (7648) NimBLE: GAP procedure initiated: connect; 
+I (7648) NimBLE: peer_addr_type=1 peer_addr=
+I (7648) NimBLE: ca:15:95:b4:20:02
+I (7648) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (7649) NimBLE: 
+
+I (8031) NimBLE: GATT procedure initiated: exchange mtu
+
+I (8047) ft6336: touch0 ready on i2c0 0x38
+I

@@ -1,0 +1,11 @@
+{
+  "returncode": 0,
+  "command": [
+    "env",
+    "CJSON_DIR=/mnt/c/Users/takec/.platformio/packages/framework-espidf/components/json/cJSON",
+    "sh",
+    "-c",
+    "set -eu\nmake -C tests/host writer_d_driver_test writer_d_async_test writer_d_shell_test epd_ssd1677_waveform_trial_test input_test input_action_match_test hid_keyboard_report_test ble_keyboard_scan_policy_test ble_keyboard_reconnect_test ble_service_test ble_multi_peer_test ble_nimble_test ble_hid_test ble_server_test\necho RUN writer_d_driver_test\n./tests/host/writer_d_driver_test\necho RUN writer_d_async_test\n./tests/host/writer_d_async_test\necho RUN writer_d_shell_test\n./tests/host/writer_d_shell_test\necho RUN epd_ssd1677_waveform_trial_test\n./tests/host/epd_ssd1677_waveform_trial_test\necho RUN input_test\n./tests/host/input_test\necho RUN input_action_match_test\n./tests/host/input_action_match_test\necho RUN hid_keyboard_report_test\n./tests/host/hid_keyboard_report_test\necho RUN ble_keyboard_scan_policy_test\n./tests/host/ble_keyboard_scan_policy_test\necho RUN ble_keyboard_reconnect_test\n./tests/host/ble_keyboard_reconnect_test\necho RUN ble_service_test\n./tests/host/ble_service_test\necho RUN ble_multi_peer_test\n./tests/host/ble_multi_peer_test\necho RUN ble_nimble_test\n./tests/host/ble_nimble_test\necho RUN ble_hid_test\n./tests/host/ble_hid_test\necho RUN ble_server_test\n./tests/host/ble_server_test\n./tests/host/writer_d_async_test restore-fail\n"
+  ],
+  "device_accessed": false
+}

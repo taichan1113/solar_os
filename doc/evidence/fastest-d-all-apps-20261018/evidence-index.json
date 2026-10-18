@@ -1,0 +1,194 @@
+{
+  ".gitattributes": {
+    "bytes": 43,
+    "sha256": "04d7b519e20e7ac40a7b554977f329244ddbaff07e166d17ae02ee5836176224"
+  },
+  "audit_candidate.py": {
+    "bytes": 6619,
+    "sha256": "869e5685f276716604faafe5559f84ee19704d76a7353910c3fa35c08d63fc5b"
+  },
+  "audit_worktrees.py": {
+    "bytes": 1828,
+    "sha256": "2b3b1f979a87fa8092cdb2238395ce7aa2aae476e244f83c1a6bf567c6b8e1e1"
+  },
+  "backup-audit.json": {
+    "bytes": 2130,
+    "sha256": "035545895dde1a72675564e3a4d8ba8a2919b54efd7cd6ab628762692de6092c"
+  },
+  "boot.log": {
+    "bytes": 8286,
+    "sha256": "1b4238bfb3bf16394afe3ed948ba91a16b61a036c9b58c7e5a5173083f18a55f"
+  },
+  "build-result.json": {
+    "bytes": 717,
+    "sha256": "8b2ba902b7443bf48e3e3fb37d2ddce3f4bc59ebd85a56fcc12f34ea7ad9f196"
+  },
+  "build-selection.txt": {
+    "bytes": 5988,
+    "sha256": "568ef8f213c6d82245cffb32662dcfd9d5530d060842017a6309fe97c5ac276e"
+  },
+  "build.log": {
+    "bytes": 5892,
+    "sha256": "24a5ca03aa790763e3ae83f379fa18c68daee944d6509e9d9ecddcee0377dfa1"
+  },
+  "build_candidate.py": {
+    "bytes": 1691,
+    "sha256": "67538fa45c4114821abbccbca197aa01b90cf7b68e8010e6bb7fed305a6ee4e8"
+  },
+  "changed-files.txt": {
+    "bytes": 646,
+    "sha256": "dd50e4f3e2f749d242bb8859ef3d167195a4fd1af3d2b4630a4922074a187fa3"
+  },
+  "deployment-audit.json": {
+    "bytes": 1797,
+    "sha256": "ce2872914aa9007ea14186abd85b8db8591f9565fc7d1ad1a7e85644c1b34f00"
+  },
+  "device_query.py": {
+    "bytes": 1271,
+    "sha256": "f4db8bd882d82fe21d6737d3fba3e8bfdec24d77c777b59d336ace29f4b30011"
+  },
+  "final-runtime-usb.log": {
+    "bytes": 2128,
+    "sha256": "af71ed47041e69a848921f77e72f535c0352a511f114c2838bed8850f73c36b6"
+  },
+  "flash-summary.json": {
+    "bytes": 3171,
+    "sha256": "36790bbe95c95930686ede929bb384acfaeeb689a9f1d533f30195e2974f4627"
+  },
+  "flash.log": {
+    "bytes": 7911,
+    "sha256": "a2e9cebe2f5d86c67bb124e6fb6e6cb30d3a11b009a892802164adb1945b9baa"
+  },
+  "flash_writer_guarded.py": {
+    "bytes": 8178,
+    "sha256": "a0a6a44731d402da843dca5d0434095b79930182b6df430c52d5f74dc2f0c325"
+  },
+  "host-extra-result.json": {
+    "bytes": 1621,
+    "sha256": "0e693bd9f23d2907142da216aadd25c1ae45cb5b61dfe2690e76cff1479e45eb"
+  },
+  "host-extra.log": {
+    "bytes": 6229,
+    "sha256": "72fa2c3e966d969ef8d6f159d82216b61fb7e5f1e9ae1dc546fd7a2d2f303f26"
+  },
+  "host-main-result.json": {
+    "bytes": 244,
+    "sha256": "0dd3ee18d343803d23a67bbbc91d488df6a37243fea192ae69c7cc3ae8c485bc"
+  },
+  "host-main.log": {
+    "bytes": 15831,
+    "sha256": "03cea4bd488e38caea90d7ad3d86d7a783b8aa4e290d2421469e6c12ee5f476b"
+  },
+  "initial-global/build-result.json": {
+    "bytes": 718,
+    "sha256": "b0f197284c7a54e0345c6da026235c2fab2fe8f8d0e254e5762e31e58809b992"
+  },
+  "initial-global/build.log": {
+    "bytes": 225565,
+    "sha256": "fb63fd227300cc0b8194e87ffc0cd6e9e5cf82921bd7bfa22f57486dc65114b8"
+  },
+  "initial-global/deployment-audit.json": {
+    "bytes": 1716,
+    "sha256": "e8a8340af3a6e11074748f41e0b50da585dd846239f1e1dc7e4d231ad75502b7"
+  },
+  "initial-global/flash-summary.json": {
+    "bytes": 3157,
+    "sha256": "afb34c1197049a064a7487d1879478589fd2c2d125625620738f88ec0460d1ea"
+  },
+  "initial-global/flash.log": {
+    "bytes": 7896,
+    "sha256": "0cb794066667dd39fb76a4898002987640db2ddc3f209f1c32269f0abdf5120f"
+  },
+  "initial-global/host-extra-result.json": {
+    "bytes": 1504,
+    "sha256": "30602cc9800315179ef5359b21dbc17ef51bf83b747910ef2dfc752d1b3fcb56"
+  },
+  "initial-global/host-extra.log": {
+    "bytes": 5698,
+    "sha256": "95919e1d5a6616fd50a50799e5d133a4843c74f31a4e4b8a848246d91d09eb96"
+  },
+  "initial-global/host-main-result.json": {
+    "bytes": 244,
+    "sha256": "0dd3ee18d343803d23a67bbbc91d488df6a37243fea192ae69c7cc3ae8c485bc"
+  },
+  "initial-global/host-main.log": {
+    "bytes": 17385,
+    "sha256": "2392c12a3b8f44739fbef27082c65fc5a33dd1037c28a557ed8ba54680dfbbb0"
+  },
+  "initial-global/manifest.json": {
+    "bytes": 2422,
+    "sha256": "e0d0119da1ab7e6b042a0fbc975511227513fbb59d3cd4abdd6f18480fded321"
+  },
+  "initial-global/manual-apps-usb.log": {
+    "bytes": 11081,
+    "sha256": "33ce1f9df04eac7fa84f561f3f3c8276525cd8cb625491595321f7e83bf8ca97"
+  },
+  "initial-global/manual-shell-usb.log": {
+    "bytes": 1817,
+    "sha256": "af81e421f0193a52f2d707e68c6ff5298e13dfd1baa910e4df745cb0a61a8e31"
+  },
+  "initial-global/runtime-inspect-usb.log": {
+    "bytes": 1267,
+    "sha256": "e0324a37dace59690cf68cbe6cb7a417e9065bdf68eedbcaf2c461462d063ff9"
+  },
+  "initial-global/user-regression.json": {
+    "bytes": 362,
+    "sha256": "97c722a6c4344ed14c661d8f909673ae9563201458cee91ffca6f99ea5f2c126"
+  },
+  "manifest.json": {
+    "bytes": 2631,
+    "sha256": "bc2ca12f32ebb691b6ba729f4923a073fe2f9648f5bc40560b8d95862a2b032a"
+  },
+  "package_report.py": {
+    "bytes": 3339,
+    "sha256": "c63e8c1612d33bb22eb0e841c5ef621a5a4ad9383627e4b3dc50fa4ba04511f6"
+  },
+  "post-flash-usb.log": {
+    "bytes": 2009,
+    "sha256": "268e9b6800c4264b9510689e3e41dfdedaea029d8f7036cf87171dd1dc23e486"
+  },
+  "preflight-usb.log": {
+    "bytes": 1971,
+    "sha256": "bb2bb496c37ad9907dbb8f48656fa86791905e962224997d9e2a1f42f435c779"
+  },
+  "prepare_flash.py": {
+    "bytes": 2658,
+    "sha256": "fdd9b89c6d0a9dabbb2ed1ce0ec85aaa818136f3f1fb660afea8eb505188e66f"
+  },
+  "report-template-final.md": {
+    "bytes": 9122,
+    "sha256": "bf619947fd81b0a3fcfa6d2569e8387832bf308cba4730b05fbbb2706e726ff8"
+  },
+  "restore_writer_guarded.py": {
+    "bytes": 4027,
+    "sha256": "1c157325752f9489f929756277a76e7da8577fff75ee05a4cd99cd3ad0addfd6"
+  },
+  "run_host.py": {
+    "bytes": 1505,
+    "sha256": "993d90f838e8260bd380bf0bb0122fe29c4db97e9987bf7bf85d16aa93ebc66d"
+  },
+  "sketch_exception.py": {
+    "bytes": 5010,
+    "sha256": "76d266d5cf12977147192446a64c2b708195f8d85cf981e91ade81cccf8f6fd1"
+  },
+  "user-authorization.json": {
+    "bytes": 460,
+    "sha256": "6b6f52c8ed677c6f938ee8d2fc0452ec93041140ac482e9e62d53090cedee522"
+  },
+  "user-confirmations.json": {
+    "bytes": 726,
+    "sha256": "a0415972ad576829477da683c3cbefd22dfb7cd140a9fa1f32276e4a7d902dac"
+  },
+  "verify_flash.py": {
+    "bytes": 3777,
+    "sha256": "eb623002e47fa321f96e578aca3b0c1a7156359aaaba7b06447a74d37c646300"
+  },
+  "worktrees-after.json": {
+    "bytes": 25552,
+    "sha256": "0ef2ea5c0488a4d65a5157abf0582f25a7357d1bc5d6358dc4f0a73d38ee1a9f"
+  },
+  "worktrees-before.json": {
+    "bytes": 21820,
+    "sha256": "ca00255ce1e21103e20cc4b21abbcb7f0fc8d13ac49fbd4cd054df67fb64d539"
+  }
+}

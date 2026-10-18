@@ -1,0 +1,30 @@
+sessions
+ID  TITLE        APP      STATE     OWNER    TIME
+0   shell        shell    suspended display0 0/0ms 0/0us n=0 !0
+1   launcher     launcher active    display0 40/25ms 11/237us n=2967 !0
+16  cdc0/dumb    shell    active    cdc0     100/25ms 24/42us n=2173 !0
+user@sol:/ display test display0 fastest-lut status
+fastest-lut err=0 mode=D scope=all-apps-except-sketch attempts=0 D0x20=0 success=0 error=0 driver_error=0 failed=0
+display physical=5 A=0 D=0 OTP=5 noop=0
+writer physical=0 A=0 OTP=0 noop=0 other0x20=5 power0x20=0 records=3
+queue submitted=0 replaced=0 writer=0 coalesced=0 cancelled=0 superseded=0 error=0
+user@sol:/ display test display0 fastest-lut trace
+fastest-lut err=0 mode=D scope=all-apps-except-sketch attempts=0 D0x20=0 success=0 error=0 driver_error=0 failed=0
+display physical=5 A=0 D=0 OTP=5 noop=0
+writer physical=0 A=0 OTP=0 noop=0 other0x20=5 power0x20=0 records=3
+queue submitted=0 replaced=0 writer=0 coalesced=0 cancelled=0 superseded=0 error=0
+WL seq=1 gen=0 source=other mode=OTP/noop 0x20=2 err=0 restored=0 input=0 merged=0 ram=0 region=0,0,0,0
+WL time seq=1 input=0,0 render=0,0 queue=0,0 execute=828803,5341713
+WL panel seq=1 ram=1085164,1420753 activate=1166187 ready=1265496 spi_us=0 lut_us=0 restore_us=0
+WL seq=2 gen=0 source=other mode=OTP/noop 0x20=1 err=0 restored=0 input=0 merged=0 ram=0 region=0,0,0,0
+WL time seq=2 input=0,0 render=0,0 queue=0,0 execute=5368352,6237792
+WL panel seq=2 ram=5499608,5577104 activate=5577187 ready=6136496 spi_us=0 lut_us=0 restore_us=0
+WL seq=3 gen=0 source=other mode=OTP/noop 0x20=2 err=0 restored=0 input=0 merged=0 ram=0 region=0,0,0,0
+WL time seq=3 input=0,0 render=0,0 queue=0,0 execute=7066693,11639609
+WL panel seq=3 ram=7326452,7719118 activate=7460793 ready=7560501 spi_us=0 lut_us=0 restore_us=0
+user@sol:/ display async display0
+async enabled=1 busy=0 pending=0 suspended=0 error=0
+submitted=0 replaced=0 cancelled=0 rejected=0 started=0 completed=0 physical=0
+maintenance_started=0 maintenance_completed=0
+generation=0 completed_generation=0 cancelled_generation=0 snapshots=96000 peak=0
+user@sol:/ 

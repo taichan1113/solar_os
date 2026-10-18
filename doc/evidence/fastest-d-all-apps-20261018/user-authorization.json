@@ -1,0 +1,7 @@
+{
+  "approval": "User explicitly requested flashing all-app version and generating report after flashing",
+  "readiness": "USB connected, no unsaved edits, no competing session, display observable",
+  "scope": "Application-only display-wide fastest Candidate D Integration",
+  "user_steering": "Exclude Sketch from D and restore Sketch alone to Baseline; waveform research deferred",
+  "readiness_for_corrected_flash": "Sketch closed; no unsaved edits"
+}

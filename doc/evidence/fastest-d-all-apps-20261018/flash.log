@@ -1,0 +1,248 @@
+Connecting...
+Detecting chip type... ESP32-S3
+Uploading stub flasher...
+Running stub flasher...
+Stub flasher running.
+Changing baud rate to 460800...
+Changed.
+BACKUP_START: identified ESP32-S3 / MAC / 16MB
+Configuring flash size...
+Read 1048576 bytes from 0x00000000 in 7.2 seconds (1170.5 kbit/s).
+BACKUP_PROGRESS 1/16 MiB
+Configuring flash size...
+Read 1048576 bytes from 0x00100000 in 7.3 seconds (1148.9 kbit/s).
+BACKUP_PROGRESS 2/16 MiB
+Configuring flash size...
+Read 1048576 bytes from 0x00200000 in 6.9 seconds (1218.2 kbit/s).
+BACKUP_PROGRESS 3/16 MiB
+Configuring flash size...
+Read 1048576 bytes from 0x00300000 in 6.9 seconds (1224.0 kbit/s).
+BACKUP_PROGRESS 4/16 MiB
+Configuring flash size...
+Read 1048576 bytes from 0x00400000 in 6.9 seconds (1208.8 kbit/s).
+BACKUP_PROGRESS 5/16 MiB
+Configuring flash size...
+Read 1048576 bytes from 0x00500000 in 6.9 seconds (1223.3 kbit/s).
+BACKUP_PROGRESS 6/16 MiB
+Configuring flash size...
+Read 1048576 bytes from 0x00600000 in 6.9 seconds (1224.3 kbit/s).
+BACKUP_PROGRESS 7/16 MiB
+Configuring flash size...
+Read 1048576 bytes from 0x00700000 in 6.8 seconds (1232.4 kbit/s).
+BACKUP_PROGRESS 8/16 MiB
+Configuring flash size...
+Read 1048576 bytes from 0x00800000 in 6.8 seconds (1235.7 kbit/s).
+BACKUP_PROGRESS 9/16 MiB
+Configuring flash size...
+Read 1048576 bytes from 0x00900000 in 6.8 seconds (1232.4 kbit/s).
+BACKUP_PROGRESS 10/16 MiB
+Configuring flash size...
+Read 1048576 bytes from 0x00a00000 in 6.8 seconds (1229.7 kbit/s).
+BACKUP_PROGRESS 11/16 MiB
+Configuring flash size...
+Read 1048576 bytes from 0x00b00000 in 6.8 seconds (1239.0 kbit/s).
+BACKUP_PROGRESS 12/16 MiB
+Configuring flash size...
+Read 1048576 bytes from 0x00c00000 in 6.9 seconds (1224.3 kbit/s).
+BACKUP_PROGRESS 13/16 MiB
+Configuring flash size...
+Read 1048576 bytes from 0x00d00000 in 6.8 seconds (1231.2 kbit/s).
+BACKUP_PROGRESS 14/16 MiB
+Configuring flash size...
+Read 1048576 bytes from 0x00e00000 in 6.9 seconds (1224.6 kbit/s).
+BACKUP_PROGRESS 15/16 MiB
+Configuring flash size...
+Read 1048576 bytes from 0x00f00000 in 6.8 seconds (1241.0 kbit/s).
+BACKUP_PROGRESS 16/16 MiB
+Configuring flash size...
+Read 28672 bytes from 0x00008000 in 0.2 seconds (1145.8 kbit/s).
+Configuring flash size...
+Read 3460336 bytes from 0x00010000 in 24.2 seconds (1144.9 kbit/s).
+PREFLIGHT_PASS: ota_0 @ 0x10000; fresh rollback / partition / OTA / SHA match
+Configuring flash size...
+Flash will be erased from 0x00010000 to 0x0035cfff...
+Compressed 3460512 bytes to 2276099...
+Wrote 3460512 bytes (2276099 compressed) at 0x00010000 in 19.1 seconds (1448.2 kbit/s).
+Verifying written data...
+Hash of data verified.
+Configuring flash size...
+Read 3460512 bytes from 0x00010000 in 23.3 seconds (1188.9 kbit/s).
+APPLICATION_READBACK_PASS
+Configuring flash size...
+Read 32768 bytes from 0x00000000 in 0.2 seconds (1142.1 kbit/s).
+PROTECTED_REGION_PASS bootloader
+Configuring flash size...
+Read 4096 bytes from 0x00008000 in 0.0 seconds (1099.7 kbit/s).
+PROTECTED_REGION_PASS partition_table
+Configuring flash size...
+Read 16384 bytes from 0x00009000 in 0.1 seconds (1225.2 kbit/s).
+PROTECTED_REGION_PASS nvs
+Configuring flash size...
+Read 8192 bytes from 0x0000d000 in 0.1 seconds (1014.4 kbit/s).
+PROTECTED_REGION_PASS otadata
+Configuring flash size...
+Read 4096 bytes from 0x0000f000 in 0.0 seconds (1108.7 kbit/s).
+PROTECTED_REGION_PASS phy_init
+Configuring flash size...
+Read 1048576 bytes from 0x00e10000 in 7.2 seconds (1161.6 kbit/s).
+PROTECT_PROGRESS flash 1048576/2031616
+Configuring flash size...
+Read 983040 bytes from 0x00f10000 in 6.4 seconds (1219.5 kbit/s).
+PROTECT_PROGRESS flash 2031616/2031616
+PROTECTED_REGION_PASS flash
+Configuring flash size...
+Read 1048576 bytes from 0x00710000 in 6.7 seconds (1246.6 kbit/s).
+PROTECT_PROGRESS ota_1 1048576/7340032
+Configuring flash size...
+Read 1048576 bytes from 0x00810000 in 6.8 seconds (1236.3 kbit/s).
+PROTECT_PROGRESS ota_1 2097152/7340032
+Configuring flash size...
+Read 1048576 bytes from 0x00910000 in 6.9 seconds (1222.4 kbit/s).
+PROTECT_PROGRESS ota_1 3145728/7340032
+Configuring flash size...
+Read 1048576 bytes from 0x00a10000 in 6.9 seconds (1217.9 kbit/s).
+PROTECT_PROGRESS ota_1 4194304/7340032
+Configuring flash size...
+Read 1048576 bytes from 0x00b10000 in 6.9 seconds (1223.6 kbit/s).
+PROTECT_PROGRESS ota_1 5242880/7340032
+Configuring flash size...
+Read 1048576 bytes from 0x00c10000 in 7.0 seconds (1200.4 kbit/s).
+PROTECT_PROGRESS ota_1 6291456/7340032
+Configuring flash size...
+Read 1048576 bytes from 0x00d10000 in 6.8 seconds (1240.4 kbit/s).
+PROTECT_PROGRESS ota_1 7340032/7340032
+PROTECTED_REGION_PASS ota_1
+Hard resetting via RTS pin...
+{
+  "result": "PASS",
+  "port": "COM39",
+  "implementation_commit": "57b2f8ff89c2dcb893a1f7d76aba6afe5408f23f",
+  "artifact_size": 3460512,
+  "artifact_sha256": "3374c584f1424829f262aeea61245e5bb5fc24fcd2bdd941619aef00a2004845",
+  "write_started": true,
+  "protected_regions": {
+    "bootloader": {
+      "unchanged": true,
+      "sha256": "3ae58d175ec0f7e3d2ae412ffcce00819578af7aa327b02ec72c33aab838e947"
+    },
+    "partition_table": {
+      "unchanged": true,
+      "sha256": "5e3ed4b37934b0b91570d25452be2d1b5dce204ffe049febf7b6a9e6e696f97d"
+    },
+    "nvs": {
+      "unchanged": true,
+      "sha256": "833c42c1d5ecb60070ff94874f15a8831639dde888a4b1bec8e4045307dec1c3"
+    },
+    "otadata": {
+      "unchanged": true,
+      "sha256": "8ba3b110139f45443d4f268d1a3373ef99a1718b71d51664531b83ee2d4b91a3"
+    },
+    "phy_init": {
+      "unchanged": true,
+      "sha256": "58b59eb397fcc8b699d265a18af84e063dc9bab0bd03632ad2f91e70038aa788"
+    },
+    "flash": {
+      "unchanged": true,
+      "sha256": "3dd996413576610a7be9e3bedab45d1d4715c2970e431807fb12b4aa33eac491"
+    },
+    "ota_1": {
+      "unchanged": true,
+      "sha256": "5a3e6f365f0453ed17771b2423a893f85600186404367c4e27b56478ebbb91ed"
+    }
+  },
+  "default_mode": "D",
+  "scope": "all-apps-except-sketch",
+  "cumulative_limit": null,
+  "measured_D_updates": 0,
+  "mac": "28:84:85:44:79:68",
+  "flash_id": "0x184046",
+  "flash_size": 16777216,
+  "full_backup_sha256": "c2cfa62caa61f2d4a39722759c305acb438509ec47819a0ff8fb0cb43d13c43d",
+  "partitions": {
+    "nvs": {
+      "kind": 1,
+      "subtype": 2,
+      "offset": 36864,
+      "size": 16384
+    },
+    "otadata": {
+      "kind": 1,
+      "subtype": 0,
+      "offset": 53248,
+      "size": 8192
+    },
+    "phy_init": {
+      "kind": 1,
+      "subtype": 1,
+      "offset": 61440,
+      "size": 4096
+    },
+    "ota_0": {
+      "kind": 0,
+      "subtype": 16,
+      "offset": 65536,
+      "size": 7340032
+    },
+    "ota_1": {
+      "kind": 0,
+      "subtype": 17,
+      "offset": 7405568,
+      "size": 7340032
+    },
+    "flash": {
+      "kind": 1,
+      "subtype": 129,
+      "offset": 14745600,
+      "size": 2031616
+    }
+  },
+  "ota_records": [
+    {
+      "sequence": 1,
+      "state": 2,
+      "crc_valid": true
+    },
+    {
+      "sequence": 4294967295,
+      "state": 4294967295,
+      "crc_valid": false
+    }
+  ],
+  "active_slot": "ota_0",
+  "slot_index": 0,
+  "app_offset": "0x10000",
+  "app_partition_size": 7340032,
+  "rollback_sha256": "769dc0f5d835f70009ea054a021ae1bb5546d7a909a069c1dfd7f53f204375e4",
+  "rollback_size": 3460336,
+  "protected_region_ranges": {
+    "bootloader": [
+      0,
+      32768
+    ],
+    "partition_table": [
+      32768,
+      4096
+    ],
+    "nvs": [
+      36864,
+      16384
+    ],
+    "otadata": [
+      53248,
+      8192
+    ],
+    "phy_init": [
+      61440,
+      4096
+    ],
+    "flash": [
+      14745600,
+      2031616
+    ],
+    "ota_1": [
+      7405568,
+      7340032
+    ]
+  },
+  "readback_sha256": "3374c584f1424829f262aeea61245e5bb5fc24fcd2bdd941619aef00a2004845"
+}

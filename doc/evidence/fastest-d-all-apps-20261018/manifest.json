@@ -1,0 +1,79 @@
+{
+  "result": "ALL_APP_D_SKETCH_BASELINE_HOST_BUILD_PASS",
+  "source_branch": "feature/papermono-fastest-d-all-apps",
+  "base_integration_commit": "655d61359b3a0d285da2d6e8a949e023168d3d62",
+  "implementation_commit": "57b2f8ff89c2dcb893a1f7d76aba6afe5408f23f",
+  "board": "m5paper_mono",
+  "flavor": "writerdeck",
+  "layout": "ota",
+  "esp_idf": "5.5.5",
+  "compiler": "GCC 14.2.0",
+  "effective_flags": {
+    "SOLAR_OS_SSD1677_WRITER_D": 1,
+    "SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL": 1,
+    "SOLAR_OS_SSD1677_SPI20_TRIAL": 1,
+    "SOLAR_OS_SSD1677_HYBRID_TRIAL": 1,
+    "SOLAR_OS_SSD1677_WAVEFORM_TRIAL": 0,
+    "SOLAR_OS_SKETCH_LATENCY_TRIAL": 0
+  },
+  "default_mode": "D",
+  "scope": "all-apps-except-sketch",
+  "Sketch_policy": "Baseline A",
+  "refresh_scope": "fastest",
+  "cumulative_D_limit": null,
+  "periodic_D_thinning": false,
+  "Writer_origin_is_diagnostic_only": true,
+  "Sketch_origin_is_Driver_exception": true,
+  "sync_and_async_shared_lifecycle": true,
+  "application": "firmware-app-only.bin",
+  "application_bytes": 3460512,
+  "sha256": "3374c584f1424829f262aeea61245e5bb5fc24fcd2bdd941619aef00a2004845",
+  "ota_slot_bytes": 7340032,
+  "ota_remaining_bytes": 3879520,
+  "partitions": {
+    "nvs": {
+      "offset": 36864,
+      "size": 16384
+    },
+    "otadata": {
+      "offset": 53248,
+      "size": 8192
+    },
+    "phy_init": {
+      "offset": 61440,
+      "size": 4096
+    },
+    "ota_0": {
+      "offset": 65536,
+      "size": 7340032
+    },
+    "ota_1": {
+      "offset": 7405568,
+      "size": 7340032
+    },
+    "flash": {
+      "offset": 14745600,
+      "size": 2031616
+    }
+  },
+  "baseline_LUT_sha256": "e8a7abbb2110cb8d941e80cc2869bbe1d0814e1d4a38e5d0cc5173b10f39ce50",
+  "D_LUT_sha256": "9be4bea8b9a07fef33834293d25979a9b0f3fc820d3e9912a1fc106532ef1832",
+  "LUT_bytes_unchanged_from_Writer_Integration": true,
+  "Host_major_executables": 19,
+  "Sketch_Python_tests": 9,
+  "Host_extra_executables": 15,
+  "Host_default_and_updates_1_6_7_20_21_D": true,
+  "Host_async_mixed_sources_through_D_24": true,
+  "Host_OTP_modes_unchanged_and_cold_fastest_PASS": true,
+  "Host_sync_u8g2_fault_noop_PASS": true,
+  "Host_Sketch_UI_Canvas_tag_lifecycle_PASS": true,
+  "Host_Sketch_A_other_D_Executor_PASS": true,
+  "Host_RAM_Shadow_R0_R2_retain_swap_PASS": true,
+  "Host_global_mode_and_restore_failure_PASS": true,
+  "build_seconds": 42.90600000001723,
+  "build_warning_count": 0,
+  "build_warnings": [],
+  "build_error_count": 0,
+  "physical_all_app_continuous_quality_verified": false,
+  "long_term_DC_lifetime_verified": false
+}

@@ -1,0 +1,23 @@
+sessions
+ID  TITLE        APP      STATE     OWNER    TIME
+0   shell        shell    suspended display0 25/25ms 11/18us n=177 !0
+1   Sketch * - u sketch   active    display0 40/30ms 12/154848us n=207 !1
+16  cdc0/dumb    shell    active    cdc0     100/25ms 20/200us n=2768 !0
+user@sol:/ display test display0 fastest-lut status
+fastest-lut err=0 mode=D scope=all-apps attempts=30 D0x20=30 success=30 error=0 driver_error=0 failed=0
+display physical=35 A=0 D=30 OTP=5 noop=0
+writer physical=4 A=0 OTP=0 noop=0 other0x20=31 power0x20=0 records=33
+queue submitted=17 replaced=1 writer=4 coalesced=0 cancelled=0 superseded=0 error=0
+user@sol:/ display async display0
+async enabled=1 busy=0 pending=0 suspended=0 error=0
+submitted=17 replaced=1 cancelled=0 rejected=0 started=16 completed=16 physical=16
+maintenance_started=0 maintenance_completed=0
+generation=17 completed_generation=17 cancelled_generation=0 snapshots=96000 peak=2
+user@sol:/ I (293075) papermono-power: IOE PYG13=1
+I (293091) papermono-power: IOE PYG6=0
+I (293116) papermono-power: IOE PYG6=1
+I (293616) ft6336: touch0 ready on i2c0 0x38
+I (293898) papermono-power: IOE PYG6=0
+I (293904) papermono-power: IOE PYG13=0
+I (293905) ft6336: touch0 disabled: worker stopped, power OFF
+I

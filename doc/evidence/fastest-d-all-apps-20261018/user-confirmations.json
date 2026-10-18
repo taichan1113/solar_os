@@ -1,0 +1,9 @@
+{
+  "visual": "最終除外版は目視確認待ち。USB側の起動・Launcher・display0は正常",
+  "shell": "初期共通D版で入力・表示・削除すべて正常。最終除外版の手入力は未確認",
+  "apps": "初期共通D版ではSketchの線が黒くならないと申告。Sketch除外版の黒線復旧は目視確認待ち",
+  "runtime": "最終起動ではD 0回 / A 0回 / OTP 5回、エラー0。scope=all-apps-except-sketch。最終版でのSketch A実更新は操作確認待ち",
+  "initial_user_report": "Sketchだけ線が黒くならない。今後の研究対象とし、例外的にBaselineへ戻す",
+  "final_manual_check_requested": true,
+  "final_manual_check_answer_received": false
+}
