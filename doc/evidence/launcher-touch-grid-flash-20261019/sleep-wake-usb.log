@@ -1,0 +1,8 @@
+I (243198) papermono-power: IOE PYG6=0
+I (243204) papermono-power: IOE PYG13=0
+I (243205) ft6336: touch0 disabled: worker stopped, power OFF
+I (243205) pm: Frequency switching config: CPU_MAX: 240, APB_MAX: 240, APB_MIN: 240, Light sleep: DISABLED
+I (243277) NimBLE: GAP procedure initiated: terminate connection; conn_handle=1 hci_reason=19
+
+I (243338) NimBLE: GAP procedure initiated: stop advertising.
+

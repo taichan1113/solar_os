@@ -1,5 +1,7 @@
 # PaperMono Launcher 3列×2行・アプリTouch・Sleep/Wake統合
 
+追記：承認後のApplication-only書込み結果は[Flash報告](m5paper-mono-launcher-touch-grid-flash-20261019.md)を参照。以下はFlash前に作成した実装・Buildの記録。
+
 2026-10-19。Host／Build／Integration反映までを対象とする。**実機Flashは未実施、実機Acceptanceは未確認**。依頼書§9に従い、完成したApplication-only成果物への承認後に実施する。
 
 ## Gitと保護

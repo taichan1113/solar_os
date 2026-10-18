@@ -1,0 +1,62 @@
+[
+  {
+    "file": "preflight-usb.log",
+    "bytes": 1062,
+    "sha256": "0d3cb2d879af9dd952ccf23fa2ce9178e25784a5c91cfbd8d00690e0e6344d7c"
+  },
+  {
+    "file": "post-flash-usb.log",
+    "bytes": 1944,
+    "sha256": "b9c11ab8069d7641afe3f4226a3b39b73a538c741d2d943eff813685bda04948"
+  },
+  {
+    "file": "boot.log",
+    "bytes": 8227,
+    "sha256": "6a0d3f45d3b7a978e8aabb0a571d5405e7b2986f1e846af799264bbca84fcef0"
+  },
+  {
+    "file": "backup-audit.json",
+    "bytes": 2175,
+    "sha256": "3eef06c0dd7b5d80f19c56feb4985d5051e75b7b4626e21607620ed3b18a175c"
+  },
+  {
+    "file": "flash-summary.json",
+    "bytes": 3216,
+    "sha256": "d04cc375288ddb9918618625c6176bbdeede13491724b91083ef45a5db62f383"
+  },
+  {
+    "file": "deployment-audit.json",
+    "bytes": 2387,
+    "sha256": "ebf9668b4e50a271c493ee4c7d21826bad8bba086c560f7230d036a6c9f19600"
+  },
+  {
+    "file": "user-authorization.json",
+    "bytes": 301,
+    "sha256": "153eb994672cd70ee1a0671a4c32bde49558e792d6163455f7347e095d3e6c12"
+  },
+  {
+    "file": "user-confirmations.json",
+    "bytes": 944,
+    "sha256": "3ff11278721393a48b820797b7ee3687f6be47c2319cddfe1fb710eaa61f2cb8"
+  },
+  {
+    "file": "sleep-wake-usb.log",
+    "bytes": 414,
+    "sha256": "e0253f249350b7cc69ba210dd22f93cd3881e81ddaa09e99d0a37385da32d979"
+  },
+  {
+    "file": "post-sleep-usb.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "usb-after-reconnect.log",
+    "bytes": 1356,
+    "sha256": "2a485b564d11949eadd6be55502094897092df2c9b42397bfb42de4c6c487dad"
+  },
+  {
+    "file": "final-runtime-usb.log",
+    "bytes": 11415,
+    "sha256": "5eff4525001603f510e56f9467bc17e6de0272944e10d2bcb8a7953de23dc30b"
+  }
+]

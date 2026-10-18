@@ -1,0 +1,14 @@
+{
+  "date_JST": "2026-10-19",
+  "launcher_six_items_visual": "user confirmed normal",
+  "Keyboard_Clock_touch_launch_and_return": "user confirmed normal Keyboard/Clock touch launch and Launcher return",
+  "Files_Reader_touch": "user confirmed normal: Files select/open/Up; Reader open/left-right taps/Files; Launcher return",
+  "Sleep_Wake": "user confirmed: touch inactive in Sleep; KEY1 wake; first touch opens Clock; KEY2 hold returns to Launcher",
+  "Sleep_Wake_cycles_tested": 1,
+  "Sleep_Wake_repeated_cycles": "not yet tested",
+  "USB_after_Sleep_Wake": "no response before cable replug; recovered after replug without device reboot",
+  "Shell_touch_launch_and_B_hold_return": "user confirmed normal; no text entered",
+  "Sketch_black_line_and_B_hold_return": "user confirmed normal; no save",
+  "Writer_save_load_PC_BLE_HID_and_TypeMouse_toggle_regression": "not tested on this firmware",
+  "Reader_swipe": "not tested"
+}

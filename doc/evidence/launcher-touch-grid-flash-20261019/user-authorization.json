@@ -1,0 +1,6 @@
+{
+  "authorization": "User explicitly requested Application-only Flash of reviewed Launcher Integration",
+  "date_JST": "2026-10-19",
+  "scope": "Application-only; no startup/NVS/FAT/bond modifications",
+  "application_sha256": "667a9c2461ec93f34efba07d502af7890fe24b86055897fbd10a80571e7e9d31"
+}

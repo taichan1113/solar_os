@@ -1,0 +1,33 @@
+version
+SolarOS 4.16.1
+Flavor: writerdeck
+user@sol:/ power status
+Profile: performance
+Effective profile: performance
+Suspend: inactive
+CPU: 240-240 MHz
+Automatic light sleep: off
+Explicit sleep transition: idle
+PM: configured
+BT modem sleep: off
+KEY short press: suspend
+Idle sleep: off
+Light sleep count: 1
+Last sleep: 00:00:16
+Last wake: ext1 (3) ext1=0x0000000000000004
+user@sol:/ sessions
+ID  TITLE        APP      STATE     OWNER    TIME
+0   shell        shell    suspended display0 0/0ms 0/0us n=0 !0
+1   launcher     launcher active    display0 40/25ms 18/6109us n=6288 !0
+16  cdc0/dumb    shell    active    cdc0     100/25ms 24/51us n=5914 !0
+user@sol:/ display async display0
+async enabled=1 busy=0 pending=0 suspended=0 error=0
+submitted=3 replaced=0 cancelled=0 rejected=0 started=3 completed=3 physical=2
+maintenance_started=0 maintenance_completed=0
+generation=3 completed_generation=3 cancelled_generation=0 snapshots=96000 peak=1
+user@sol:/ display test display0 fastest-lut status
+fastest-lut err=0 mode=D scope=all-apps-except-sketch attempts=27 D0x20=27 success=27 error=0 driver_error=0 failed=0
+display physical=34 A=0 D=27 OTP=7 noop=1
+writer physical=0 A=0 OTP=0 noop=0 other0x20=34 power0x20=0 records=32
+queue submitted=3 replaced=0 writer=0 coalesced=0 cancelled=0 superseded=0 error=0
+user@sol:/ 
