@@ -46,7 +46,7 @@ static esp_err_t panel_execute(void *p,const uint8_t *data,size_t size,bool *phy
 static void input(uint8_t *image,unsigned n,bool writer_origin)
 {
     image[300U/8U*800U+500U+n]^=1U<<(300U&7U);
-    const solar_os_writer_frame_t origin={.writer=true,.inputs=1,.input_first_us=esp_timer_get_time()};
+    const solar_os_writer_frame_t origin={.is_writer=true,.inputs=1,.input_first_us=esp_timer_get_time()};
     const esp_err_t err=writer_origin ? solar_os_display_async_submit_writer(live.a,image,48000,NULL,&origin) :
         solar_os_display_async_submit(live.a,image,48000,NULL);
     assert(err==ESP_OK);
@@ -100,7 +100,7 @@ int main(int argc,char **argv)
         assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
         epd_ssd1677_writer_status_t s; wd_status(&s);
         assert(s.attempts==1 && s.d_success==1 && s.writer_a==1);
-        assert(live.seen[1].writer && live.seen[1].inputs==2 && live.seen[1].coalesced==1);
+        assert(live.seen[1].is_writer && live.seen[1].inputs==2 && live.seen[1].coalesced==1);
         puts("writer D async: D->A switch waits through restore; pending coalesced Writer chooses A PASS");
         /* A in-flight, D switch, then a non-Writer replaces pending Writer. */
         input(image,3,true); wait_count(&live.activations,3);
@@ -110,7 +110,7 @@ int main(int argc,char **argv)
         wait_control_barrier(); release_panel(1); pthread_join(control,NULL);
         wait_count(&live.activations,4); release_panel(1);
         assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
-        wd_status(&s); assert(s.attempts==1 && !live.seen[3].writer);
+        wd_status(&s); assert(s.attempts==1 && !live.seen[3].is_writer);
         puts("writer D async: A->D switch, busy non-Writer replacement stays A PASS");
         /* Remaining D budget: pending snapshots do not reserve or double count. */
         for(unsigned i=0;i<5;i++) {

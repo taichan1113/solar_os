@@ -39,7 +39,7 @@ static void discard_pending(solar_os_display_async_t *a)
     if (a->pending_slot < 0) return;
     a->status.cancelled++;
 #if SOLAR_OS_SSD1677_WRITER_D_TRIAL
-    if (a->origins[a->pending_slot].writer) a->status.writer_cancelled++;
+    if (a->origins[a->pending_slot].is_writer) a->status.writer_cancelled++;
 #endif
     a->status.cancelled_id = a->pending_id;
     a->pending_slot = -1;
@@ -187,9 +187,9 @@ static esp_err_t submit_snapshot(solar_os_display_async_t *a, const uint8_t *src
     solar_os_writer_frame_t next = origin ? *origin : (solar_os_writer_frame_t){0};
     const int64_t queued = esp_timer_get_time();
     next.queued_us = next.queued_first_us = queued;
-    if (next.writer) a->status.writer_submitted++;
-    if (replaced && a->origins[slot].writer) {
-        if (next.writer) {
+    if (next.is_writer) a->status.writer_submitted++;
+    if (replaced && a->origins[slot].is_writer) {
+        if (next.is_writer) {
             const solar_os_writer_frame_t *old = &a->origins[slot];
             if (old->input_first_us && (!next.input_first_us || old->input_first_us < next.input_first_us))
                 next.input_first_us = old->input_first_us;
@@ -240,7 +240,7 @@ esp_err_t solar_os_display_async_submit(solar_os_display_async_t *a, const uint8
 esp_err_t solar_os_display_async_submit_writer(solar_os_display_async_t *a, const uint8_t *src,
     size_t size, uint64_t *id, const solar_os_writer_frame_t *origin)
 {
-    if (!origin || !origin->writer) return ESP_ERR_INVALID_ARG;
+    if (!origin || !origin->is_writer) return ESP_ERR_INVALID_ARG;
     return submit_snapshot(a, src, size, id, origin);
 }
 void solar_os_display_async_execution_origin(solar_os_display_async_t *a, solar_os_writer_frame_t *origin)

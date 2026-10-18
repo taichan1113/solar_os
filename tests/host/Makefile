@@ -8,6 +8,10 @@ TARGETS := writer_buffer_test writer_files_test file_shortcuts_test sketch_canva
 
 TARGETS += writer_d_driver_test writer_d_async_test
 TARGETS += writer_d_shell_test
+writer_d_driver_test writer_d_async_test writer_d_shell_test: \
+    $(ROOT)/src/drivers/epd_ssd1677.h $(ROOT)/src/drivers/epd_ssd1677_writer_d.h \
+    $(ROOT)/src/services/solar_os_writer_lut_trial.h $(ROOT)/src/services/solar_os_display_submission.h \
+    $(ROOT)/src/services/solar_os_display_async.h
 writer_d_shell_test: writer_d_shell_test.c $(ROOT)/src/shell/solar_os_shell_writer_lut.inc \
     $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677_writer_d.inc
 	$(CC) $(CFLAGS) -DSOLAR_OS_SSD1677_WRITER_D_TRIAL=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 \

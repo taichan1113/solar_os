@@ -1892,7 +1892,7 @@ esp_err_t solar_os_display_submit(u8g2_t *g, solar_os_display_present_mode_t mod
 #if SOLAR_OS_SSD1677_WRITER_D_TRIAL
 esp_err_t solar_os_display_submit_writer(u8g2_t *g, uint64_t *id, const solar_os_writer_frame_t *origin)
 {
-    if (!origin || !origin->writer) return ESP_ERR_INVALID_ARG;
+    if (!origin || !origin->is_writer) return ESP_ERR_INVALID_ARG;
     return display_submit_origin(g, SOLAR_OS_DISPLAY_PRESENT_GRAPHICS, id, origin);
 }
 #endif

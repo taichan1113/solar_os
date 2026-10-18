@@ -24,7 +24,7 @@ static epd_ssd1677_t prepare(void)
 static void boot(void) /* Host ONLY: simulate a new process/MCU boot. No firmware reset API. */
 { atomic_store(&writer_d_attempts,0); atomic_store(&writer_d_failed,false); stuck_busy=false; }
 static void writer(epd_ssd1677_t *d)
-{ d->writer_trial.origin=(solar_os_writer_frame_t){.writer=true,.inputs=1}; }
+{ d->writer_trial.origin=(solar_os_writer_frame_t){.is_writer=true,.inputs=1}; }
 static void test_lut(void)
 {
     assert(ssd1677_trial_black_hold_d_lut[0]==0x2f && ssd1677_trial_black_hold_d_lut[1]==0xf0);
