@@ -1,0 +1,93 @@
+{
+  "result": "PASS",
+  "port": "COM39",
+  "commit": "47921bc7d963d8ddad1a6dfd77f3a50fbeb22c67",
+  "app_offset": "0x10000",
+  "artifact_size": 3459312,
+  "artifact_sha256": "3e7f89ddaa64d3adb946ca0f1e13a3b48ae28fe03c875771f8ca914b6fd6649d",
+  "write_started": true,
+  "protected_regions": {
+    "bootloader": {
+      "unchanged": true,
+      "sha256": "3ae58d175ec0f7e3d2ae412ffcce00819578af7aa327b02ec72c33aab838e947"
+    },
+    "partition_table": {
+      "unchanged": true,
+      "sha256": "5e3ed4b37934b0b91570d25452be2d1b5dce204ffe049febf7b6a9e6e696f97d"
+    },
+    "nvs": {
+      "unchanged": true,
+      "sha256": "7067dd2259c5d6775a945183de22629b231ff7d7fb971e9b369a3e88120b1028"
+    },
+    "otadata": {
+      "unchanged": true,
+      "sha256": "8ba3b110139f45443d4f268d1a3373ef99a1718b71d51664531b83ee2d4b91a3"
+    },
+    "phy_init": {
+      "unchanged": true,
+      "sha256": "58b59eb397fcc8b699d265a18af84e063dc9bab0bd03632ad2f91e70038aa788"
+    },
+    "fat": {
+      "unchanged": true,
+      "sha256": "3d98f74b8d86c47502c76b21d06c3ab88bee540b8cc1876cc80833c14bafcf1b"
+    }
+  },
+  "mac": "28:84:85:44:79:68",
+  "flash_id": "0x184046",
+  "flash_size": 16777216,
+  "full_backup_sha256": "5b2c694d6cbfe3f0ae1d513f337275792bb3a337d83eb36c216dc509c650c5f0",
+  "partitions": {
+    "nvs": {
+      "kind": 1,
+      "subtype": 2,
+      "offset": 36864,
+      "size": 16384
+    },
+    "otadata": {
+      "kind": 1,
+      "subtype": 0,
+      "offset": 53248,
+      "size": 8192
+    },
+    "phy_init": {
+      "kind": 1,
+      "subtype": 1,
+      "offset": 61440,
+      "size": 4096
+    },
+    "ota_0": {
+      "kind": 0,
+      "subtype": 16,
+      "offset": 65536,
+      "size": 7340032
+    },
+    "ota_1": {
+      "kind": 0,
+      "subtype": 17,
+      "offset": 7405568,
+      "size": 7340032
+    },
+    "flash": {
+      "kind": 1,
+      "subtype": 129,
+      "offset": 14745600,
+      "size": 2031616
+    }
+  },
+  "ota_records": [
+    {
+      "sequence": 1,
+      "state": 2,
+      "crc_valid": true
+    },
+    {
+      "sequence": 4294967295,
+      "state": 4294967295,
+      "crc_valid": false
+    }
+  ],
+  "active_slot": "ota_0",
+  "rollback_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6",
+  "rollback_size": 3455712,
+  "readback_sha256": "3e7f89ddaa64d3adb946ca0f1e13a3b48ae28fe03c875771f8ca914b6fd6649d"
+}

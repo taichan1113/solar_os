@@ -1,0 +1,234 @@
+{
+  "condition": "DAA",
+  "gate": null,
+  "fault": false,
+  "ended": true,
+  "done": true,
+  "completed": 3,
+  "markers": [
+    "BH mark=T0 anchor_us=187350161 target_us=192350161 actual_us=192351009",
+    "BH mark=measure1 anchor_us=247350161 target_us=247350161 actual_us=247351009",
+    "BH mark=T1 anchor_us=247525195 target_us=249525195 actual_us=249526009",
+    "BH mark=measure2 anchor_us=307525195 target_us=307525195 actual_us=307526009",
+    "BH mark=T2 anchor_us=307700291 target_us=309700291 actual_us=309701009",
+    "BH mark=measure3 anchor_us=367700291 target_us=367700291 actual_us=367701009",
+    "BH mark=T3 anchor_us=367874259 target_us=369874259 actual_us=369875009"
+  ],
+  "events": [
+    {
+      "line": "BH phase=white-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2",
+      "received_unix_ns": 1792309424884097900,
+      "received_monotonic_ns": 292232312000000
+    },
+    {
+      "line": "BH timing phase=white-otp start_us=143612314 end_us=148080451 total_us=4468137 busy_us=99454 spi_us=87315 ram_bytes=0",
+      "received_unix_ns": 1792309424884097900,
+      "received_monotonic_ns": 292232312000000
+    },
+    {
+      "line": "BH phase=image-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2",
+      "received_unix_ns": 1792309463617981500,
+      "received_monotonic_ns": 292271046000000
+    },
+    {
+      "line": "BH timing phase=image-otp start_us=182321490 end_us=186800051 total_us=4478561 busy_us=99760 spi_us=94185 ram_bytes=0",
+      "received_unix_ns": 1792309463617981500,
+      "received_monotonic_ns": 292271046000000
+    },
+    {
+      "line": "BH phase=prepare-baseline err=0 candidate=0 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1",
+      "received_unix_ns": 1792309464152391600,
+      "received_monotonic_ns": 292271578000000
+    },
+    {
+      "line": "BH timing phase=prepare-baseline start_us=186809921 end_us=187350161 total_us=540240 busy_us=133684 spi_us=78383 ram_bytes=192000",
+      "received_unix_ns": 1792309464152391600,
+      "received_monotonic_ns": 292271578000000
+    },
+    {
+      "line": "BH lut phase=prepare-baseline requested_lut0=0000 lut_send_ok=1 baseline_restore_ok=1 physical_readback=0",
+      "received_unix_ns": 1792309464152391600,
+      "received_monotonic_ns": 292271578000000
+    },
+    {
+      "line": "BH trace phase=prepare-baseline lut_ready_us=187141138 activate_call_us=187141339 busy_wait_end_us=187275023 restore_start_us=187349990 restore_end_us=187350158 busy_edge_measured=0",
+      "received_unix_ns": 1792309464152391600,
+      "received_monotonic_ns": 292271578000000
+    },
+    {
+      "line": "BH mark=T0 anchor_us=187350161 target_us=192350161 actual_us=192351009",
+      "received_unix_ns": 1792309469151179200,
+      "received_monotonic_ns": 292276578000000
+    },
+    {
+      "line": "BH progress condition=DAA completed=0 boot_attempts=0 measured_cmd20=0",
+      "received_unix_ns": 1792309469151179200,
+      "received_monotonic_ns": 292276578000000
+    },
+    {
+      "line": "BH request condition=DAA step=1 requested_us=226611040 boot_attempts=1",
+      "received_unix_ns": 1792309503413421000,
+      "received_monotonic_ns": 292310843000000
+    },
+    {
+      "line": "BH schedule condition=DAA step=1 previous_end_us=187350161 goal_us=247350161 requested_us=226611040 planned_us=247350161",
+      "received_unix_ns": 1792309503413421000,
+      "received_monotonic_ns": 292310843000000
+    },
+    {
+      "line": "BH mark=measure1 anchor_us=247350161 target_us=247350161 actual_us=247351009",
+      "received_unix_ns": 1792309524157129100,
+      "received_monotonic_ns": 292331578000000
+    },
+    {
+      "line": "BH phase=DAA-repeat-1 err=0 candidate=2 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1",
+      "received_unix_ns": 1792309524327660000,
+      "received_monotonic_ns": 292331750000000
+    },
+    {
+      "line": "BH timing phase=DAA-repeat-1 start_us=247355742 end_us=247525195 total_us=169453 busy_us=51601 spi_us=61694 ram_bytes=144000",
+      "received_unix_ns": 1792309524327660000,
+      "received_monotonic_ns": 292331750000000
+    },
+    {
+      "line": "BH lut phase=DAA-repeat-1 requested_lut0=2FF0 lut_send_ok=1 baseline_restore_ok=1 physical_readback=0",
+      "received_unix_ns": 1792309524327660000,
+      "received_monotonic_ns": 292331750000000
+    },
+    {
+      "line": "BH trace phase=DAA-repeat-1 lut_ready_us=247395220 activate_call_us=247395422 busy_wait_end_us=247447023 restore_start_us=247525056 restore_end_us=247525192 busy_edge_measured=0",
+      "received_unix_ns": 1792309524327660000,
+      "received_monotonic_ns": 292331750000000
+    },
+    {
+      "line": "BH interval condition=DAA step=1 end_to_start_us=60005581 lateness_us=5581",
+      "received_unix_ns": 1792309524327660000,
+      "received_monotonic_ns": 292331750000000
+    },
+    {
+      "line": "BH mark=T1 anchor_us=247525195 target_us=249525195 actual_us=249526009",
+      "received_unix_ns": 1792309526322119600,
+      "received_monotonic_ns": 292333750000000
+    },
+    {
+      "line": "BH progress condition=DAA completed=1 boot_attempts=1 measured_cmd20=1",
+      "received_unix_ns": 1792309526334583600,
+      "received_monotonic_ns": 292333765000000
+    },
+    {
+      "line": "BH request condition=DAA step=2 requested_us=302006040 boot_attempts=2",
+      "received_unix_ns": 1792309578807562900,
+      "received_monotonic_ns": 292386234000000
+    },
+    {
+      "line": "BH schedule condition=DAA step=2 previous_end_us=247525195 goal_us=307525195 requested_us=302006040 planned_us=307525195",
+      "received_unix_ns": 1792309578807562900,
+      "received_monotonic_ns": 292386234000000
+    },
+    {
+      "line": "BH mark=measure2 anchor_us=307525195 target_us=307525195 actual_us=307526009",
+      "received_unix_ns": 1792309584328157700,
+      "received_monotonic_ns": 292391750000000
+    },
+    {
+      "line": "BH phase=DAA-repeat-2 err=0 candidate=3 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1",
+      "received_unix_ns": 1792309584502229300,
+      "received_monotonic_ns": 292391937000000
+    },
+    {
+      "line": "BH timing phase=DAA-repeat-2 start_us=307531058 end_us=307700291 total_us=169233 busy_us=51489 spi_us=62260 ram_bytes=144000",
+      "received_unix_ns": 1792309584502229300,
+      "received_monotonic_ns": 292391937000000
+    },
+    {
+      "line": "BH lut phase=DAA-repeat-2 requested_lut0=0000 lut_send_ok=1 baseline_restore_ok=1 physical_readback=0",
+      "received_unix_ns": 1792309584502229300,
+      "received_monotonic_ns": 292391937000000
+    },
+    {
+      "line": "BH trace phase=DAA-repeat-2 lut_ready_us=307570328 activate_call_us=307570534 busy_wait_end_us=307622023 restore_start_us=307700151 restore_end_us=307700288 busy_edge_measured=0",
+      "received_unix_ns": 1792309584502229300,
+      "received_monotonic_ns": 292391937000000
+    },
+    {
+      "line": "BH interval condition=DAA step=2 end_to_start_us=60005863 lateness_us=5863",
+      "received_unix_ns": 1792309584502229300,
+      "received_monotonic_ns": 292391937000000
+    },
+    {
+      "line": "BH mark=T2 anchor_us=307700291 target_us=309700291 actual_us=309701009",
+      "received_unix_ns": 1792309586500263700,
+      "received_monotonic_ns": 292393921000000
+    },
+    {
+      "line": "BH progress condition=DAA completed=2 boot_attempts=2 measured_cmd20=2",
+      "received_unix_ns": 1792309586500263700,
+      "received_monotonic_ns": 292393921000000
+    },
+    {
+      "line": "BH request condition=DAA step=3 requested_us=344341036 boot_attempts=3",
+      "received_unix_ns": 1792309621141956200,
+      "received_monotonic_ns": 292428578000000
+    },
+    {
+      "line": "BH schedule condition=DAA step=3 previous_end_us=307700291 goal_us=367700291 requested_us=344341036 planned_us=367700291",
+      "received_unix_ns": 1792309621141956200,
+      "received_monotonic_ns": 292428578000000
+    },
+    {
+      "line": "BH mark=measure3 anchor_us=367700291 target_us=367700291 actual_us=367701009",
+      "received_unix_ns": 1792309644497140400,
+      "received_monotonic_ns": 292451921000000
+    },
+    {
+      "line": "BH phase=DAA-repeat-3 err=0 candidate=3 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1",
+      "received_unix_ns": 1792309644680218100,
+      "received_monotonic_ns": 292452109000000
+    },
+    {
+      "line": "BH timing phase=DAA-repeat-3 start_us=367706053 end_us=367874259 total_us=168206 busy_us=51466 spi_us=61923 ram_bytes=144000",
+      "received_unix_ns": 1792309644680218100,
+      "received_monotonic_ns": 292452109000000
+    },
+    {
+      "line": "BH lut phase=DAA-repeat-3 requested_lut0=0000 lut_send_ok=1 baseline_restore_ok=1 physical_readback=0",
+      "received_unix_ns": 1792309644680218100,
+      "received_monotonic_ns": 292452109000000
+    },
+    {
+      "line": "BH trace phase=DAA-repeat-3 lut_ready_us=367745350 activate_call_us=367745557 busy_wait_end_us=367797023 restore_start_us=367874122 restore_end_us=367874257 busy_edge_measured=0",
+      "received_unix_ns": 1792309644680218100,
+      "received_monotonic_ns": 292452109000000
+    },
+    {
+      "line": "BH interval condition=DAA step=3 end_to_start_us=60005762 lateness_us=5762",
+      "received_unix_ns": 1792309644680218100,
+      "received_monotonic_ns": 292452109000000
+    },
+    {
+      "line": "BH mark=T3 anchor_us=367874259 target_us=369874259 actual_us=369875009",
+      "received_unix_ns": 1792309646674017300,
+      "received_monotonic_ns": 292454109000000
+    },
+    {
+      "line": "BH progress condition=DAA completed=3 boot_attempts=3 measured_cmd20=3",
+      "received_unix_ns": 1792309646674017300,
+      "received_monotonic_ns": 292454109000000
+    },
+    {
+      "line": "BH phase=exit-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2",
+      "received_unix_ns": 1792309702664985700,
+      "received_monotonic_ns": 292510093000000
+    },
+    {
+      "line": "BH timing phase=exit-otp start_us=421377217 end_us=425853401 total_us=4476184 busy_us=99923 spi_us=95649 ram_bytes=0",
+      "received_unix_ns": 1792309702664985700,
+      "received_monotonic_ns": 292510093000000
+    }
+  ],
+  "last_control": "g",
+  "last_gate": "T3-cleanup",
+  "last_marker": "T3",
+  "boot_attempts": 3,
+  "diagnostic_cmd20": 10
+}

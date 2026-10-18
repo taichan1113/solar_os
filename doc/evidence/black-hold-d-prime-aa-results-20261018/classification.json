@@ -1,0 +1,12 @@
+{
+  "classification": "P-2",
+  "meaning": "D initially increases video relative contrast; following ordinary Baseline A updates reduce contrast",
+  "support": "single continuous video, both square and fixed-text ROIs; negative dC2 and dC3; direction stable under ROI sensitivity check",
+  "user_visual": "nearly unchanged; normal white; no conspicuous flicker",
+  "calibrated_photometry": false,
+  "independent_trial_count": 1,
+  "frequency_or_long_term_safety_established": false,
+  "final_firmware": "391925abff2d261d1d5856711aa0a1f101ac435a",
+  "final_visual_normal": true,
+  "additional_physical_test": false
+}

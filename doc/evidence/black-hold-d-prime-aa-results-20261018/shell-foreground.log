@@ -1,0 +1,32 @@
+close 1
+I (100641) papermono-power: IOE PYG6=0
+I (100647) papermono-power: IOE PYG13=0
+I (100647) ft6336: touch0 disabled: worker stopped, power OFF
+closed session 1
+user@sol:/ I (100701) papermono-power: IOE PYG3=1
+I (100726) papermono-power: IOE PYG5=0
+I (100741) papermono-power: IOE PYG5=1
+I (100851) epd_ssd1677: SPI requested_khz=20000 actual_khz=20000
+I (100951) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+sessions
+ID  TITLE        APP      STATE     OWNER    TIME
+0   shell        shell    active    display0 25/25ms 17/18us n=68 !0
+16  cdc0/dumb    shell    active    cdc0     100/25ms 4/47us n=942 !0
+user@sol:/ I (104073) NimBLE: GAP procedure initiated: discovery; 
+I (104073) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (104073) NimBLE: duration=8000ms
+I (104073) NimBLE: 
+
+I (104375) NimBLE: GAP procedure initiated: connect; 
+I (104375) NimBLE: peer_addr_type=1 peer_addr=
+I (104375) NimBLE: ca:15:95:b4:20:02
+I (104376) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (104376) NimBLE: 
+
+I (106020) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 1 
+I (106021) NimBLE: GAP procedure initiated: connect; 
+I (106021) NimBLE: peer_addr_type=1 peer_addr=
+I (106021) NimBLE: ca:15:95:b4:20:02
+I (106021) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (106021) NimBLE: 
+

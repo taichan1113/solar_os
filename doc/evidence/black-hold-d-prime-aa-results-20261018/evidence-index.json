@@ -1,0 +1,188 @@
+{
+  "files": {
+    ".gitattributes": {
+      "bytes": 41,
+      "sha256": "898fc2da01b20487ea0b1e7243ca918ee7538eaeb39a3f080b7d01193074e161"
+    },
+    "analyze_video_roi.py": {
+      "bytes": 9272,
+      "sha256": "7c158b2759b251cfd215406ef50dd66752573ef37a5f2c1dd53e5322600e60ac"
+    },
+    "approval-T0-D1.json": {
+      "bytes": 228,
+      "sha256": "7205720e2c2c77917e8f494ac967e12a182abb768790f975e604aa6dca8db88c"
+    },
+    "approval-T1-A2.json": {
+      "bytes": 260,
+      "sha256": "299b43ea9cc16226dfe9448e2e7a9ff0c6dc1b221800bf621abbfbadee9fcea3"
+    },
+    "approval-T2-A3.json": {
+      "bytes": 291,
+      "sha256": "a3aee732f6c42c6ef121ce2eca031caa0976689c852bcf13d0ee6092b5590567"
+    },
+    "approval-T3-cleanup.json": {
+      "bytes": 301,
+      "sha256": "527e24908370971974c2054ecb20fb3b04f4d65e8d14f3a9b45ad75814030ed7"
+    },
+    "approval-white.json": {
+      "bytes": 219,
+      "sha256": "55c7ffbe94d4a442f016876a3fc668e066d1b989df5831fb6bc6d2681eab5d81"
+    },
+    "camera-settings.json": {
+      "bytes": 486,
+      "sha256": "338cfdc13e02cc0c1c6cfd6f5cfea934163282465e9247b526575521d552fe41"
+    },
+    "capture_prime_aa.py": {
+      "bytes": 5131,
+      "sha256": "f3ace6bbf464378c3a53d2ec5086980531768108a7911f074e9fa8adb5a1c5e3"
+    },
+    "check_optical_robustness.py": {
+      "bytes": 2416,
+      "sha256": "2d36af3430f958a1afb807ddb12e8b50560e249fe880051a0257de7dd2612e8c"
+    },
+    "classification.json": {
+      "bytes": 625,
+      "sha256": "cef866f421bbddc07e8fa838216ce8b73cfc2f180783b9e2443a3b78c4a97594"
+    },
+    "comparison.json": {
+      "bytes": 993,
+      "sha256": "74d8881bd2a1f19506dda60696314bda0db501848167ba67bd67469ba619ca94"
+    },
+    "contrast-summary.png": {
+      "bytes": 142915,
+      "sha256": "33f6e51c6cd4d374244a347d6a10e822a8bfb614fad88c15f0fb9a46de26f151"
+    },
+    "daa-control.txt": {
+      "bytes": 5,
+      "sha256": "5e77061a9b955ac03d9a574a8a68d8a58005949fa4fdd3d9e38dbd263028ffe8"
+    },
+    "DAA-event-contact.png": {
+      "bytes": 885429,
+      "sha256": "fec00fceed404b59059c54258cfb58cb374a9e91b7b5ad5cfea95b690c473e7a"
+    },
+    "DAA-measurements.json": {
+      "bytes": 8197,
+      "sha256": "762e31ab2c78976ea8c921a4953f682099d2d36fda40e6565f4b7191e91aab96"
+    },
+    "DAA-roi-overlay.png": {
+      "bytes": 707142,
+      "sha256": "05d795cb101ac0e73ddffccc15bc95d3d8428f33a172926ecb317fa07a1d378b"
+    },
+    "DAA-roi.json": {
+      "bytes": 410618,
+      "sha256": "451b876daa589a50b2165a2bb6044ffe29618c8c2ec973a46c326232b02f03b5"
+    },
+    "daa-status.json": {
+      "bytes": 10526,
+      "sha256": "d473cb4dfca257995d1d21b47ac664b47f7a921f616d9267c4a5b94a4f220a18"
+    },
+    "daa-usb.log": {
+      "bytes": 36027,
+      "sha256": "38f66d25f55293eb384efb95090606f83f8441b8279f8a02010def7922cf068a"
+    },
+    "DAA_T0_preview.png": {
+      "bytes": 488241,
+      "sha256": "712ee299f09f0fac2cf115280613db913d247123702e41f90b0b766b14ddc799"
+    },
+    "DAA_T1_preview.png": {
+      "bytes": 479273,
+      "sha256": "4428bf21fc6c07f8c662c51a82801039118b019bff724598d3a65d4dc6781740"
+    },
+    "DAA_T2_preview.png": {
+      "bytes": 477681,
+      "sha256": "d13dba551830590169dbf9fbf83046ddc63f54389ab3adafcec59f3e23d8ffa1"
+    },
+    "DAA_T3_preview.png": {
+      "bytes": 478260,
+      "sha256": "628512cd748433229ca29bdec2d57946383910a4e926d7a4d7eebf3266d75ad0"
+    },
+    "deployment-audit.json": {
+      "bytes": 1083,
+      "sha256": "d2e8143ca8a9a1317405176e8957465ef52f84e94dbc6eefa334e0414e5ae478"
+    },
+    "extraction.json": {
+      "bytes": 6405,
+      "sha256": "846763a48ea9e12b9aff8fee2776e9ea354a9ee76d31c5711dd938d9b4171f4c"
+    },
+    "final-deployment-audit.json": {
+      "bytes": 964,
+      "sha256": "5d0bde47257c31c05839ca4cafdb5b5d51151a475884dc63abc7aa014391c548"
+    },
+    "flash-summary.json": {
+      "bytes": 2433,
+      "sha256": "d43044e2554431b35e2870f906ccfee74b2e860e7474e6e7ae8fbbc3e2b5ec72"
+    },
+    "flash_single_guarded.py": {
+      "bytes": 6612,
+      "sha256": "de848d95fb78a593c816d9435fe9cc66cfb6ee961a6a495a2375092b9efe58a4"
+    },
+    "other-worktrees-after.json": {
+      "bytes": 8318,
+      "sha256": "f3fa8cedcb4e26b76882a35244ef1e59bcaab5f44a41d51725c4fcec3f8b20dc"
+    },
+    "post-flash-usb.log": {
+      "bytes": 2942,
+      "sha256": "410c9e8b615cbee5e67d2e9c232817b00fb677dcf2a5b7366bd1c400dba8562d"
+    },
+    "post-restore-usb.log": {
+      "bytes": 1913,
+      "sha256": "657c0d46427fd171c760396a3b8deffb62990dddfd3f45653de21e8398681b74"
+    },
+    "pre-restore-usb.log": {
+      "bytes": 1113,
+      "sha256": "cb39ef3ff3ce3fb2d3e681f547058785b1e3a84ef78c7637bdb7f34a695923de"
+    },
+    "preflight-usb.log": {
+      "bytes": 1919,
+      "sha256": "81797ffa0a8c1164a72452cc3a2a6c0bf1e398fc3b47dc1a3413266af32b5ca7"
+    },
+    "prepare_video_analysis.py": {
+      "bytes": 3315,
+      "sha256": "1fa3aa7761d97e8388fab1fde8d5e8e77ac83787dc28a01caa59d59729d5fcbe"
+    },
+    "record_measurements.py": {
+      "bytes": 4549,
+      "sha256": "36315e30addc03d8eff7b84a7aa8f134ba2498760e6360e04319089dc0fff18c"
+    },
+    "restore-summary.json": {
+      "bytes": 965,
+      "sha256": "d854c466116e6f3fd77a31f2db3fe72d7c12e02063f727ab2b5a8be78036f202"
+    },
+    "restore_single_guarded.py": {
+      "bytes": 2918,
+      "sha256": "9f88d0feed53430f9ba2d3142a7f951f16eaec95e893ef5c7d607ab1acb61305"
+    },
+    "robustness.json": {
+      "bytes": 2377,
+      "sha256": "b460f0037879c5502194d476af9f4b1545154e454571b5db95cda4648da681d7"
+    },
+    "roi-config.json": {
+      "bytes": 336,
+      "sha256": "0c9be5bac5f10a242250d6b56e1912258906edccf514081ec86e15f7ed1806c9"
+    },
+    "run_guarded_helper.py": {
+      "bytes": 426,
+      "sha256": "2aafafc0d463c5ac6f20756422cd65f78a0efb1a81afbd8c0a820d938ade2949"
+    },
+    "shell-foreground.log": {
+      "bytes": 1583,
+      "sha256": "bab985d7834289e383fde24777f6d907af05d2cd804cd8240a9bc2b20616ffb8"
+    },
+    "user-readiness.json": {
+      "bytes": 267,
+      "sha256": "0926d051e5a664fd66a9c3724be697e5d3a1fb7d0fa5dc32a7574fce4b63600b"
+    },
+    "verify_deployment.py": {
+      "bytes": 2414,
+      "sha256": "2ebe48df2b3b93ac5b2b1c726815ae2ed334d8959ba064b419476927878a9d16"
+    },
+    "video-sources.json": {
+      "bytes": 388,
+      "sha256": "1177c5e3be40b4d96c4c445c25809b4fa7e44e005b435f1e293c9556f17063c7"
+    }
+  },
+  "originals_included": false,
+  "raw_flash_or_firmware_included": false,
+  "helper_script_notes": "Evidence copies for review. Actual helpers live in .research/black-hold-d-prime-aa and use that directory as their base; not standalone in this evidence directory.",
+  "raw_evidence_line_endings": "Preserved byte-for-byte by evidence-local .gitattributes; logs excluded from textual whitespace lint"
+}

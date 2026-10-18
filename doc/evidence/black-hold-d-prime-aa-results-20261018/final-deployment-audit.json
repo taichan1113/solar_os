@@ -1,0 +1,27 @@
+{
+  "result": "RESTORED_INTEGRATION_USB_AND_USER_VISUAL_PASS",
+  "archive": ".research\\black-hold-d-prime-aa\\archive\\20261018-d-prime-aa",
+  "restore_application_sha256": "278665c184653f06a403bd56713e7bf5073131bead0420b3fd2191fa54b12ef6",
+  "restore_reference_commit": "391925abff2d261d1d5856711aa0a1f101ac435a",
+  "running_and_boot_slot": "ota_0",
+  "application_readback_equal": true,
+  "each_write_protected_regions_equal": true,
+  "protected_regions_changed_between_trial_start_and_restore_prewrite": [
+    "nvs",
+    "fat"
+  ],
+  "runtime_data_not_rolled_back": true,
+  "startup_fastest_tile_preserved": true,
+  "USB_Shell_and_Launcher_started": true,
+  "measured_sequence": [
+    "D",
+    "A",
+    "A"
+  ],
+  "measured_cmd20": 3,
+  "D_cmd20": 1,
+  "diagnostic_cmd20": 10,
+  "automatic_retry": false,
+  "final_visual": "User confirmed normal Launcher or Shell",
+  "final_visual_confirmed_utc": "2026-10-18T07:54:58.346034+00:00"
+}

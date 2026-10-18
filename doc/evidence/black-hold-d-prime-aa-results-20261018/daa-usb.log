@@ -1,0 +1,637 @@
+I (108220) NimBLE: Reattempt connection; reason = 0x3e, status =display test display0 black-hold-d-prime-aa
+I (144652) papermono-power: IOE PYG3=1
+I (144678) papermono-power: IOE PYG5=0
+I (144693) papermono-power: IOE PYG5=1
+I (144904) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+I (145071) NimBLE: GAP procedure initiated: discovery; 
+I (145071) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (145071) NimBLE: duration=8000ms
+I (145072) NimBLE: 
+
+I (147173) NimBLE: GAP procedure initiated: connect; 
+I (147173) NimBLE: peer_addr_type=1 peer_addr=
+I (147173) NimBLE: ca:15:95:b4:20:02
+I (147174) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (147174) NimBLE: 
+
+I (149113) epd_ssd1677: OTP full err=0 start=143612314 end=148080451 total_us=4468137
+I (149113) epd_ssd1677: OTP write0 start=143871881 end=143936571 us=64690
+I (149114) epd_ssd1677: OTP phases0 convert_start=143872108 convert_end=143936509 convert_us=34454 spi_us=29528
+I (149114) epd_ssd1677: OTP write1 start=144036096 end=144097555 us=61459
+I (149114) epd_ssd1677: OTP phases1 convert_start=144036293 convert_end=144097487 convert_us=31729 spi_us=29043
+I (149114) epd_ssd1677: OTP write2 start=144097559 end=144158055 us=60496
+I (149115) epd_ssd1677: OTP phases2 convert_start=144097775 convert_end=144157993 convert_us=31075 spi_us=28744
+I (149115) epd_ssd1677: OTP activate0 start=143936577 ready=144036031 us=99454
+I (149115) epd_ssd1677: OTP activate1 start=144158063 ready=147978026 us=3819963
+BH phase=white-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2
+BH timing phase=white-otp start_us=143612314 end_us=148080451 total_us=4468137 busy_us=99454 spi_us=87315 ram_bytes=0
+BH gate=white g=next q=stop
+I (152871) NimBLE: GATT procedure initiated: exchange mtu
+
+I (153220) NimBLE: GATT procedure initiated: discover all services
+
+I (158020) NimBLE: GAP procedure initiated: terminate connection; conn_handle=1 hci_reason=19
+
+I (163021) NimBLE: GAP procedure initiated: discovery; 
+I (163021) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (163021) NimBLE: duration=8000ms
+I (163022) NimBLE: 
+
+I (163523) NimBLE: GAP procedure initiated: connect; 
+I (163523) NimBLE: peer_addr_type=1 peer_addr=
+I (163523) NimBLE: ca:15:95:b4:20:02
+I (163524) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (163524) NimBLE: 
+
+I (171526) NimBLE: GAP procedure initiated: discovery; 
+I (171526) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (171526) NimBLE: duration=8000ms
+I (171526) NimBLE: 
+
+I (172327) NimBLE: GAP procedure initiated: connect; 
+I (172327) NimBLE: peer_addr_type=1 peer_addr=
+I (172327) NimBLE: ca:15:95:b4:20:02
+I (172328) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (172328) NimBLE: 
+
+I (180330) NimBLE: GAP procedure initiated: discovery; 
+I (180330) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (180330) NimBLE: duration=8000ms
+I (180330) NimBLE: 
+
+I (180831) NimBLE: GAP procedure initiated: connect; 
+I (180831) NimBLE: peer_addr_type=1 peer_addr=
+I (180831) NimBLE: ca:15:95:b4:20:02
+I (180831) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (180832) NimBLE: 
+
+I (181920) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 0 
+I (181921) NimBLE: GAP procedure initiated: connect; 
+I (181921) NimBLE: peer_addr_type=1 peer_addr=
+I (181921) NimBLE: ca:15:95:b4:20:02
+I (181921) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (181921) NimBLE: 
+
+I (183170) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 1 
+I (183171) NimBLE: GAP procedure initiated: connect; 
+I (183171) NimBLE: peer_addr_type=1 peer_addr=
+I (183171) NimBLE: ca:15:95:b4:20:02
+I (183171) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (183171) NimBLE: 
+
+I (183362) papermono-power: IOE PYG3=1
+I (183389) papermono-power: IOE PYG5=0
+I (183404) papermono-power: IOE PYG5=1
+I (183614) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+I (184020) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 2 
+I (184021) NimBLE: GAP procedure initiated: connect; 
+I (184021) NimBLE: peer_addr_type=1 peer_addr=
+I (184021) NimBLE: ca:15:95:b4:20:02
+I (184021) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (184022) NimBLE: 
+
+I (187833) epd_ssd1677: OTP full err=0 start=182321490 end=186800051 total_us=4478561
+I (187833) epd_ssd1677: OTP write0 start=182581861 end=182650261 us=68400
+I (187833) epd_ssd1677: OTP phases0 convert_start=182582085 convert_end=182650200 convert_us=36642 spi_us=31061
+I (187834) epd_ssd1677: OTP write1 start=182750098 end=182814146 us=64048
+I (187834) epd_ssd1677: OTP phases1 convert_start=182750299 convert_end=182814085 convert_us=31899 spi_us=31487
+I (187834) epd_ssd1677: OTP write2 start=182814150 end=182878269 us=64119
+I (187834) epd_ssd1677: OTP phases2 convert_start=182814361 convert_end=182878207 convert_us=31789 spi_us=31637
+I (187835) epd_ssd1677: OTP activate0 start=182650268 ready=182750028 us=99760
+I (187835) epd_ssd1677: OTP activate1 start=182878277 ready=186698026 us=3819749
+BH phase=image-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2
+BH timing phase=image-otp start_us=182321490 end_us=186800051 total_us=4478561 busy_us=99760 spi_us=94185 ram_bytes=0
+I (187852) papermono-power: IOE PYG3=1
+I (187877) papermono-power: IOE PYG5=0
+I (187892) papermono-power: IOE PYG5=1
+I (188103) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+I (188380) epd_ssd1677: REF err=0 cold=1 region=0,0,800,480 ram_bytes=192000 0x20=1 start=186809921 end=187347661 total_us=537740 busy_us=133684
+I (188381) epd_ssd1677: REF phases path=tile spi_khz=20000 diff_us=3655 promote_us=1999 waveform=baseline
+I (188381) epd_ssd1677: REF write0 ram_bytes=48000 us=35187 convert_us=15391 spi_us=19538
+I (188382) epd_ssd1677: REF write1 ram_bytes=48000 us=34906 convert_us=15152 spi_us=19510
+I (188382) epd_ssd1677: REF write2 ram_bytes=48000 us=35468 convert_us=15580 spi_us=19642
+I (188382) epd_ssd1677: REF write3 ram_bytes=48000 us=35160 convert_us=15396 spi_us=19524
+BH phase=prepare-baseline err=0 candidate=0 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1
+BH timing phase=prepare-baseline start_us=186809921 end_us=187350161 total_us=540240 busy_us=133684 spi_us=78383 ram_bytes=192000
+BH lut phase=prepare-baseline requested_lut0=0000 lut_send_ok=1 baseline_restore_ok=1 physical_readback=0
+BH trace phase=prepare-baseline lut_ready_us=187141138 activate_call_us=187141339 busy_wait_end_us=187275023 restore_start_us=187349990 restore_end_us=187350158 busy_edge_measured=0
+I (189831) NimBLE: GAP procedure initiated: discovery; 
+I (189831) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (189831) NimBLE: duration=8000ms
+I (189832) NimBLE: 
+
+I (192632) NimBLE: GAP procedure initiated: connect; 
+I (192632) NimBLE: peer_addr_type=1 peer_addr=
+I (192632) NimBLE: ca:15:95:b4:20:02
+I (192632) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (192633) NimBLE: 
+
+BH mark=T0 anchor_us=187350161 target_us=192350161 actual_us=192351009
+BH progress condition=DAA completed=0 boot_attempts=0 measured_cmd20=0
+BH gate=T0-next g=next q=stop
+I (194120) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 0 
+I (194121) NimBLE: GAP procedure initiated: connect; 
+I (194121) NimBLE: peer_addr_type=1 peer_addr=
+I (194121) NimBLE: ca:15:95:b4:20:02
+I (194121) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (194121) NimBLE: 
+
+I (196771) NimBLE: GATT procedure initiated: exchange mtu
+
+I (200570) NimBLE: GATT procedure initiated: discover all services
+
+I (205571) NimBLE: GAP procedure initiated: discovery; 
+I (205571) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (205571) NimBLE: duration=8000ms
+I (205571) NimBLE: 
+
+I (207372) NimBLE: GAP procedure initiated: connect; 
+I (207372) NimBLE: peer_addr_type=1 peer_addr=
+I (207372) NimBLE: ca:15:95:b4:20:02
+I (207372) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (207373) NimBLE: 
+
+I (210670) NimBLE: GATT procedure initiated: exchange mtu
+
+I (213420) NimBLE: GATT procedure initiated: discover all services
+
+I (218421) NimBLE: GAP procedure initiated: discovery; 
+I (218421) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (218421) NimBLE: duration=8000ms
+I (218422) NimBLE: 
+
+I (219023) NimBLE: GAP procedure initiated: connect; 
+I (219023) NimBLE: peer_addr_type=1 peer_addr=
+I (219023) NimBLE: ca:15:95:b4:20:02
+I (219024) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (219024) NimBLE: 
+
+I (221720) NimBLE: GATT procedure initiated: exchange mtu
+
+I (224570) NimBLE: GATT procedure initiated: discover all services
+
+BH request condition=DAA step=1 requested_us=226611040 boot_attempts=1
+BH schedule condition=DAA step=1 previous_end_us=187350161 goal_us=247350161 requested_us=226611040 planned_us=247350161
+I (229571) NimBLE: GAP procedure initiated: discovery; 
+I (229571) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (229571) NimBLE: duration=8000ms
+I (229571) NimBLE: 
+
+I (230172) NimBLE: GAP procedure initiated: connect; 
+I (230172) NimBLE: peer_addr_type=1 peer_addr=
+I (230172) NimBLE: ca:15:95:b4:20:02
+I (230173) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (230173) NimBLE: 
+
+I (238175) NimBLE: GAP procedure initiated: discovery; 
+I (238175) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (238175) NimBLE: duration=8000ms
+I (238175) NimBLE: 
+
+I (239376) NimBLE: GAP procedure initiated: connect; 
+I (239376) NimBLE: peer_addr_type=1 peer_addr=
+I (239376) NimBLE: ca:15:95:b4:20:02
+I (239376) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (239377) NimBLE: 
+
+I (239870) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 0 
+I (239871) NimBLE: GAP procedure initiated: connect; 
+I (239871) NimBLE: peer_addr_type=1 peer_addr=
+I (239871) NimBLE: ca:15:95:b4:20:02
+I (239871) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (239871) NimBLE: 
+
+I (240420) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 1 
+I (240421) NimBLE: GAP procedure initiated: connect; 
+I (240421) NimBLE: peer_addr_type=1 peer_addr=
+I (240421) NimBLE: ca:15:95:b4:20:02
+I (240421) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (240421) NimBLE: 
+
+I (241770) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 2 
+I (241771) NimBLE: GAP procedure initiated: connect; 
+I (241771) NimBLE: peer_addr_type=1 peer_addr=
+I (241771) NimBLE: ca:15:95:b4:20:02
+I (241771) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (241771) NimBLE: 
+
+I (244221) NimBLE: GATT procedure initiated: exchange mtu
+
+I (247020) NimBLE: GATT procedure initiated: discover all services
+
+BH mark=measure1 anchor_us=247350161 target_us=247350161 actual_us=247351009
+I (248555) epd_ssd1677: REF err=0 cold=0 region=0,0,800,480 ram_bytes=144000 0x20=1 start=247355742 end=247522945 total_us=167203 busy_us=51601
+I (248556) epd_ssd1677: REF phases path=tile spi_khz=20000 diff_us=3878 promote_us=2111 waveform=black-hold-D
+I (248556) epd_ssd1677: REF write0 ram_bytes=48000 us=35453 convert_us=14724 spi_us=20413
+I (248557) epd_ssd1677: REF write1 ram_bytes=48000 us=37026 convert_us=16186 spi_us=20537
+I (248557) epd_ssd1677: REF write2 ram_bytes=48000 us=36773 convert_us=15888 spi_us=20607
+BH phase=DAA-repeat-1 err=0 candidate=2 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1
+BH timing phase=DAA-repeat-1 start_us=247355742 end_us=247525195 total_us=169453 busy_us=51601 spi_us=61694 ram_bytes=144000
+BH lut phase=DAA-repeat-1 requested_lut0=2FF0 lut_send_ok=1 baseline_restore_ok=1 physical_readback=0
+BH trace phase=DAA-repeat-1 lut_ready_us=247395220 activate_call_us=247395422 busy_wait_end_us=247447023 restore_start_us=247525056 restore_end_us=247525192 busy_edge_measured=0
+BH interval condition=DAA step=1 end_to_start_us=60005581 lateness_us=5581
+BH mark=T1 anchor_us=247525195 target_us=249525195 actual_us=249526009
+BH progress condition=DAA completed=1 boot_attempts=1 measured_cmd20=1
+BH gate=T1-next g=next q=stop
+I (252021) NimBLE: GAP procedure initiated: discovery; 
+I (252021) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (252022) NimBLE: duration=8000ms
+I (252022) NimBLE: 
+
+I (252322) NimBLE: GAP procedure initiated: connect; 
+I (252322) NimBLE: peer_addr_type=1 peer_addr=
+I (252322) NimBLE: ca:15:95:b4:20:02
+I (252322) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (252323) NimBLE: 
+
+I (256322) NimBLE: GAP procedure initiated: terminate connection; conn_handle=1 hci_reason=19
+
+I (256323) NimBLE: ogf=0x08, ocf=0x0022, hci_err=0x20C : BLE_ERR_CMD_DISALLOWED (Command Disallowed)
+
+I (262320) NimBLE: GAP procedure initiated: discovery; 
+I (262320) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (262320) NimBLE: duration=8000ms
+I (262321) NimBLE: 
+
+I (262921) NimBLE: GAP procedure initiated: connect; 
+I (262921) NimBLE: peer_addr_type=1 peer_addr=
+I (262921) NimBLE: ca:15:95:b4:20:02
+I (262921) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (262922) NimBLE: 
+
+I (263620) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 0 
+I (263621) NimBLE: GAP procedure initiated: connect; 
+I (263621) NimBLE: peer_addr_type=1 peer_addr=
+I (263621) NimBLE: ca:15:95:b4:20:02
+I (263621) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (263621) NimBLE: 
+
+I (264270) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 1 
+I (264271) NimBLE: GAP procedure initiated: connect; 
+I (264271) NimBLE: peer_addr_type=1 peer_addr=
+I (264271) NimBLE: ca:15:95:b4:20:02
+I (264271) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (264272) NimBLE: 
+
+I (267070) NimBLE: GATT procedure initiated: exchange mtu
+
+I (270620) NimBLE: GATT procedure initiated: discover all services
+
+I (275621) NimBLE: GAP procedure initiated: discovery; 
+I (275621) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (275621) NimBLE: duration=8000ms
+I (275621) NimBLE: 
+
+I (275922) NimBLE: GAP procedure initiated: connect; 
+I (275922) NimBLE: peer_addr_type=1 peer_addr=
+I (275922) NimBLE: ca:15:95:b4:20:02
+I (275922) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (275923) NimBLE: 
+
+I (276720) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 0 
+I (276721) NimBLE: GAP procedure initiated: connect; 
+I (276721) NimBLE: peer_addr_type=1 peer_addr=
+I (276721) NimBLE: ca:15:95:b4:20:02
+I (276721) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (276721) NimBLE: 
+
+I (278970) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 1 
+I (278971) NimBLE: GAP procedure initiated: connect; 
+I (278971) NimBLE: peer_addr_type=1 peer_addr=
+I (278971) NimBLE: ca:15:95:b4:20:02
+I (278971) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (278971) NimBLE: 
+
+I (279570) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 2 
+I (279571) NimBLE: GAP procedure initiated: connect; 
+I (279571) NimBLE: peer_addr_type=1 peer_addr=
+I (279571) NimBLE: ca:15:95:b4:20:02
+I (279571) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (279571) NimBLE: 
+
+I (279922) NimBLE: GAP procedure initiated: cancel connection
+
+I (284923) NimBLE: GAP procedure initiated: discovery; 
+I (284923) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (284923) NimBLE: duration=8000ms
+I (284923) NimBLE: 
+
+I (285724) NimBLE: GAP procedure initiated: connect; 
+I (285724) NimBLE: peer_addr_type=1 peer_addr=
+I (285724) NimBLE: ca:15:95:b4:20:02
+I (285724) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (285725) NimBLE: 
+
+I (294724) NimBLE: GAP procedure initiated: discovery; 
+I (294724) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (294724) NimBLE: duration=8000ms
+I (294724) NimBLE: 
+
+I (295025) NimBLE: GAP procedure initiated: connect; 
+I (295025) NimBLE: peer_addr_type=1 peer_addr=
+I (295025) NimBLE: ca:15:95:b4:20:02
+I (295025) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (295026) NimBLE: 
+
+I (295420) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 0 
+I (295421) NimBLE: GAP procedure initiated: connect; 
+I (295421) NimBLE: peer_addr_type=1 peer_addr=
+I (295421) NimBLE: ca:15:95:b4:20:02
+I (295421) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (295422) NimBLE: 
+
+I (296970) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 1 
+I (296971) NimBLE: GAP procedure initiated: connect; 
+I (296971) NimBLE: peer_addr_type=1 peer_addr=
+I (296971) NimBLE: ca:15:95:b4:20:02
+I (296971) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (296971) NimBLE: 
+
+I (298970) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 2 
+I (298971) NimBLE: GAP procedure initiated: connect; 
+I (298971) NimBLE: peer_addr_type=1 peer_addr=
+I (298971) NimBLE: ca:15:95:b4:20:02
+I (298971) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (298971) NimBLE: 
+
+I (299025) NimBLE: GAP procedure initiated: cancel connection
+
+BH request condition=DAA step=2 requested_us=302006040 boot_attempts=2
+BH schedule condition=DAA step=2 previous_end_us=247525195 goal_us=307525195 requested_us=302006040 planned_us=307525195
+I (304026) NimBLE: GAP procedure initiated: discovery; 
+I (304026) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (304026) NimBLE: duration=8000ms
+I (304026) NimBLE: 
+
+I (304827) NimBLE: GAP procedure initiated: connect; 
+I (304827) NimBLE: peer_addr_type=1 peer_addr=
+I (304827) NimBLE: ca:15:95:b4:20:02
+I (304827) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (304828) NimBLE: 
+
+I (307871) NimBLE: GATT procedure initiated: exchange mtu
+
+BH mark=measure2 anchor_us=307525195 target_us=307525195 actual_us=307526009
+I (308731) epd_ssd1677: REF err=0 cold=0 region=0,0,800,480 ram_bytes=144000 0x20=1 start=307531058 end=307698024 total_us=166966 busy_us=51489
+I (308731) epd_ssd1677: REF phases path=tile spi_khz=20000 diff_us=3697 promote_us=2139 waveform=baseline
+I (308731) epd_ssd1677: REF write0 ram_bytes=48000 us=35425 convert_us=14696 spi_us=20408
+I (308732) epd_ssd1677: REF write1 ram_bytes=48000 us=37166 convert_us=15830 spi_us=21039
+I (308732) epd_ssd1677: REF write2 ram_bytes=48000 us=36684 convert_us=15722 spi_us=20675
+BH phase=DAA-repeat-2 err=0 candidate=3 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1
+BH timing phase=DAA-repeat-2 start_us=307531058 end_us=307700291 total_us=169233 busy_us=51489 spi_us=62260 ram_bytes=144000
+BH lut phase=DAA-repeat-2 requested_lut0=0000 lut_send_ok=1 baseline_restore_ok=1 physical_readback=0
+BH trace phase=DAA-repeat-2 lut_ready_us=307570328 activate_call_us=307570534 busy_wait_end_us=307622023 restore_start_us=307700151 restore_end_us=307700288 busy_edge_measured=0
+BH interval condition=DAA step=2 end_to_start_us=60005863 lateness_us=5863
+I (310620) NimBLE: GATT procedure initiated: discover all services
+
+BH mark=T2 anchor_us=307700291 target_us=309700291 actual_us=309701009
+BH progress condition=DAA completed=2 boot_attempts=2 measured_cmd20=2
+BH gate=T2-next g=next q=stop
+I (315621) NimBLE: GAP procedure initiated: discovery; 
+I (315621) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (315621) NimBLE: duration=8000ms
+I (315622) NimBLE: 
+
+I (316122) NimBLE: GAP procedure initiated: connect; 
+I (316122) NimBLE: peer_addr_type=1 peer_addr=
+I (316122) NimBLE: ca:15:95:b4:20:02
+I (316123) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (316123) NimBLE: 
+
+I (319621) NimBLE: GATT procedure initiated: exchange mtu
+
+I (320070) NimBLE: GATT procedure initiated: discover all services
+
+I (322920) NimBLE: GAP procedure initiated: terminate connection; conn_handle=1 hci_reason=19
+
+I (327921) NimBLE: GAP procedure initiated: discovery; 
+I (327921) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (327921) NimBLE: duration=8000ms
+I (327921) NimBLE: 
+
+I (328822) NimBLE: GAP procedure initiated: connect; 
+I (328822) NimBLE: peer_addr_type=1 peer_addr=
+I (328822) NimBLE: ca:15:95:b4:20:02
+I (328822) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (328823) NimBLE: 
+
+I (329320) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 0 
+I (329321) NimBLE: GAP procedure initiated: connect; 
+I (329321) NimBLE: peer_addr_type=1 peer_addr=
+I (329321) NimBLE: ca:15:95:b4:20:02
+I (329321) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (329321) NimBLE: 
+
+I (330870) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 1 
+I (330871) NimBLE: GAP procedure initiated: connect; 
+I (330871) NimBLE: peer_addr_type=1 peer_addr=
+I (330871) NimBLE: ca:15:95:b4:20:02
+I (330871) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (330872) NimBLE: 
+
+I (331320) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 2 
+I (331321) NimBLE: GAP procedure initiated: connect; 
+I (331321) NimBLE: peer_addr_type=1 peer_addr=
+I (331321) NimBLE: ca:15:95:b4:20:02
+I (331321) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (331321) NimBLE: 
+
+I (337822) NimBLE: GAP procedure initiated: discovery; 
+I (337822) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (337822) NimBLE: duration=8000ms
+I (337822) NimBLE: 
+
+I (338323) NimBLE: GAP procedure initiated: connect; 
+I (338323) NimBLE: peer_addr_type=1 peer_addr=
+I (338323) NimBLE: ca:15:95:b4:20:02
+I (338323) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (338324) NimBLE: 
+
+I (340020) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 0 
+I (340021) NimBLE: GAP procedure initiated: connect; 
+I (340021) NimBLE: peer_addr_type=1 peer_addr=
+I (340021) NimBLE: ca:15:95:b4:20:02
+I (340021) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (340022) NimBLE: 
+
+I (340470) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 1 
+I (340471) NimBLE: GAP procedure initiated: connect; 
+I (340471) NimBLE: peer_addr_type=1 peer_addr=
+I (340471) NimBLE: ca:15:95:b4:20:02
+I (340471) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (340471) NimBLE: 
+
+I (342323) NimBLE: GAP procedure initiated: cancel connection
+
+BH request condition=DAA step=3 requested_us=344341036 boot_attempts=3
+BH schedule condition=DAA step=3 previous_end_us=307700291 goal_us=367700291 requested_us=344341036 planned_us=367700291
+I (347324) NimBLE: GAP procedure initiated: discovery; 
+I (347324) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (347324) NimBLE: duration=8000ms
+I (347324) NimBLE: 
+
+I (347626) NimBLE: GAP procedure initiated: connect; 
+I (347626) NimBLE: peer_addr_type=1 peer_addr=
+I (347626) NimBLE: ca:15:95:b4:20:02
+I (347626) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (347627) NimBLE: 
+
+I (349920) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 2 
+I (349921) NimBLE: GAP procedure initiated: connect; 
+I (349921) NimBLE: peer_addr_type=1 peer_addr=
+I (349921) NimBLE: ca:15:95:b4:20:02
+I (349921) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (349921) NimBLE: 
+
+I (356626) NimBLE: GAP procedure initiated: discovery; 
+I (356626) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (356626) NimBLE: duration=8000ms
+I (356626) NimBLE: 
+
+I (361827) NimBLE: GAP procedure initiated: discovery; 
+I (361827) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (361827) NimBLE: duration=8000ms
+I (361827) NimBLE: 
+
+I (362828) NimBLE: GAP procedure initiated: connect; 
+I (362828) NimBLE: peer_addr_type=1 peer_addr=
+I (362828) NimBLE: ca:15:95:b4:20:02
+I (362828) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (362829) NimBLE: 
+
+I (363270) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 0 
+I (363271) NimBLE: GAP procedure initiated: connect; 
+I (363271) NimBLE: peer_addr_type=1 peer_addr=
+I (363271) NimBLE: ca:15:95:b4:20:02
+I (363271) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (363271) NimBLE: 
+
+I (365270) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 1 
+I (365271) NimBLE: GAP procedure initiated: connect; 
+I (365271) NimBLE: peer_addr_type=1 peer_addr=
+I (365271) NimBLE: ca:15:95:b4:20:02
+I (365271) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (365271) NimBLE: 
+
+BH mark=measure3 anchor_us=367700291 target_us=367700291 actual_us=367701009
+I (368905) epd_ssd1677: REF err=0 cold=0 region=0,0,800,480 ram_bytes=144000 0x20=1 start=367706053 end=367872507 total_us=166454 busy_us=51466
+I (368906) epd_ssd1677: REF phases path=tile spi_khz=20000 diff_us=3683 promote_us=1962 waveform=baseline
+I (368906) epd_ssd1677: REF write0 ram_bytes=48000 us=35466 convert_us=14725 spi_us=20430
+I (368906) epd_ssd1677: REF write1 ram_bytes=48000 us=37014 convert_us=16143 spi_us=20571
+I (368906) epd_ssd1677: REF write2 ram_bytes=48000 us=36496 convert_us=15422 spi_us=20786
+BH phase=DAA-repeat-3 err=0 candidate=3 spi_hz=20000000 cmd03=1 cmd04=1 cmd2c=1 cmd32=2 cmd20=1
+BH timing phase=DAA-repeat-3 start_us=367706053 end_us=367874259 total_us=168206 busy_us=51466 spi_us=61923 ram_bytes=144000
+BH lut phase=DAA-repeat-3 requested_lut0=0000 lut_send_ok=1 baseline_restore_ok=1 physical_readback=0
+BH trace phase=DAA-repeat-3 lut_ready_us=367745350 activate_call_us=367745557 busy_wait_end_us=367797023 restore_start_us=367874122 restore_end_us=367874257 busy_edge_measured=0
+BH interval condition=DAA step=3 end_to_start_us=60005762 lateness_us=5762
+BH mark=T3 anchor_us=367874259 target_us=369874259 actual_us=369875009
+BH progress condition=DAA completed=3 boot_attempts=3 measured_cmd20=3
+BH gate=T3-cleanup g=next q=stop
+I (371828) NimBLE: GAP procedure initiated: discovery; 
+I (371828) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (371828) NimBLE: duration=8000ms
+I (371829) NimBLE: 
+
+I (372030) NimBLE: GAP procedure initiated: connect; 
+I (372030) NimBLE: peer_addr_type=1 peer_addr=
+I (372030) NimBLE: ca:15:95:b4:20:02
+I (372030) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (372031) NimBLE: 
+
+I (380032) NimBLE: GAP procedure initiated: discovery; 
+I (380032) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (380032) NimBLE: duration=8000ms
+I (380033) NimBLE: 
+
+I (380234) NimBLE: GAP procedure initiated: connect; 
+I (380234) NimBLE: peer_addr_type=1 peer_addr=
+I (380234) NimBLE: ca:15:95:b4:20:02
+I (380234) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (380235) NimBLE: 
+
+I (388237) NimBLE: GAP procedure initiated: discovery; 
+I (388237) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (388237) NimBLE: duration=8000ms
+I (388237) NimBLE: 
+
+I (389039) NimBLE: GAP procedure initiated: connect; 
+I (389039) NimBLE: peer_addr_type=1 peer_addr=
+I (389039) NimBLE: ca:15:95:b4:20:02
+I (389039) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (389040) NimBLE: 
+
+I (391170) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 0 
+I (391171) NimBLE: GAP procedure initiated: connect; 
+I (391171) NimBLE: peer_addr_type=1 peer_addr=
+I (391171) NimBLE: ca:15:95:b4:20:02
+I (391171) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (391171) NimBLE: 
+
+I (392970) NimBLE: Reattempt connection; reason = 0x3e, status = 0,reattempt count = 1 
+I (392971) NimBLE: GAP procedure initiated: connect; 
+I (392971) NimBLE: peer_addr_type=1 peer_addr=
+I (392971) NimBLE: ca:15:95:b4:20:02
+I (392971) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (392971) NimBLE: 
+
+I (393039) NimBLE: GAP procedure initiated: cancel connection
+
+I (398040) NimBLE: GAP procedure initiated: discovery; 
+I (398040) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (398040) NimBLE: duration=8000ms
+I (398041) NimBLE: 
+
+I (398941) NimBLE: GAP procedure initiated: connect; 
+I (398941) NimBLE: peer_addr_type=1 peer_addr=
+I (398941) NimBLE: ca:15:95:b4:20:02
+I (398942) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (398942) NimBLE: 
+
+I (402941) NimBLE: GAP procedure initiated: terminate connection; conn_handle=1 hci_reason=19
+
+I (402942) NimBLE: ogf=0x08, ocf=0x0022, hci_err=0x20C : BLE_ERR_CMD_DISALLOWED (Command Disallowed)
+
+I (408270) NimBLE: GAP procedure initiated: discovery; 
+I (408270) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (408270) NimBLE: duration=8000ms
+I (408271) NimBLE: 
+
+I (409472) NimBLE: GAP procedure initiated: connect; 
+I (409472) NimBLE: peer_addr_type=1 peer_addr=
+I (409472) NimBLE: ca:15:95:b4:20:02
+I (409472) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (409473) NimBLE: 
+
+I (418472) NimBLE: GAP procedure initiated: discovery; 
+I (418472) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (418472) NimBLE: duration=8000ms
+I (418473) NimBLE: 
+
+I (422416) papermono-power: IOE PYG3=1
+I (422441) papermono-power: IOE PYG5=0
+I (422456) papermono-power: IOE PYG5=1
+I (422667) epd_ssd1677: PaperMono SSD1677 init complete: OTP full monochrome
+I (424273) NimBLE: GAP procedure initiated: discovery; 
+I (424273) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=0 
+I (424273) NimBLE: duration=8000ms
+I (424273) NimBLE: 
+
+I (424874) NimBLE: GAP procedure initiated: connect; 
+I (424874) NimBLE: peer_addr_type=1 peer_addr=
+I (424874) NimBLE: ca:15:95:b4:20:02
+I (424874) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0
+I (424875) NimBLE: 
+
+I (426886) epd_ssd1677: OTP full err=0 start=421377217 end=425853401 total_us=4476184
+I (426886) epd_ssd1677: OTP write0 start=421634852 end=421703097 us=68245
+I (426887) epd_ssd1677: OTP phases0 convert_start=421635080 convert_end=421703035 convert_us=35346 spi_us=32198
+I (426887) epd_ssd1677: OTP write1 start=421803089 end=421867485 us=64396
+I (426887) epd_ssd1677: OTP phases1 convert_start=421803284 convert_end=421867423 convert_us=32043 spi_us=31702
+I (426887) epd_ssd1677: OTP write2 start=421867489 end=421931269 us=63780
+I (426888) epd_ssd1677: OTP phases2 convert_start=421867695 convert_end=421931207 convert_us=31362 spi_us=31749
+I (426888) epd_ssd1677: OTP activate0 start=421703103 ready=421803026 us=99923
+I (426889) epd_ssd1677: OTP activate1 start=421931277 ready=425751026 us=3819749
+BH phase=exit-otp err=0 candidate=0 spi_hz=20000000 cmd03=0 cmd04=0 cmd2c=0 cmd32=0 cmd20=2
+BH timing phase=exit-otp start_us=421377217 end_us=425853401 total_us=4476184 busy_us=99923 spi_us=95649 ram_bytes=0
+BH end condition=DAA err=0 healthy=1 completed=3 boot_attempts=3 diagnostic_cmd20=10
+user@sol:/ 
