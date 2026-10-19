@@ -10,6 +10,7 @@ TARGETS += writer_d_driver_test writer_d_async_test
 TARGETS += writer_d_shell_test
 writer_d_driver_test writer_d_async_test writer_d_shell_test: \
     $(ROOT)/src/drivers/epd_ssd1677.h $(ROOT)/src/drivers/epd_ssd1677_writer_d.h \
+    $(ROOT)/src/drivers/epd_ssd1677_reference.inc \
     $(ROOT)/src/services/solar_os_writer_lut_trial.h $(ROOT)/src/services/solar_os_display_submission.h \
     $(ROOT)/src/services/solar_os_display_async.h
 writer_d_shell_test: writer_d_shell_test.c $(ROOT)/src/shell/solar_os_shell_writer_lut.inc \

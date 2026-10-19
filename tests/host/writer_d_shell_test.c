@@ -43,7 +43,16 @@ int main(void)
     command("status",2); assert(strstr(output,"mode=D scope=all-apps-except-sketch attempts=0"));
     command("baseline",2); assert(device.writer_trial.baseline_selected && strstr(output,"mode=A"));
     command("candidate_d",2); assert(!device.writer_trial.baseline_selected && strstr(output,"mode=D"));
+    command("candidate_e1",2); assert(device.writer_trial.e1_selected && strstr(output,"mode=E1 scope=all-apps"));
+    device.writer_trial.status.e1_physical=3; device.writer_trial.status.e1_success=3;
+    command("status",2); assert(strstr(output,"E10x20=3") && strstr(output,"physical=3"));
+    device.writer_trial.records[0]=(epd_ssd1677_writer_record_t){.candidate_e1=true,.origin.is_sketch=true,.physical=1};
+    device.writer_trial.status.trace_count=device.writer_trial.status.trace_next=1;
+    command("trace",2); assert(strstr(output,"source=sketch mode=E1 0x20=1"));
+    command("candidate_d",2); assert(!device.writer_trial.e1_selected && strstr(output,"mode=D scope=all-apps-except-sketch"));
     command("disable",2); assert(!!device.writer_trial.baseline_selected);
+    assert(!device.writer_trial.e1_selected);
+    command("candidate_e1",1); assert(device.writer_trial.baseline_selected && strstr(output,"USB:"));
     command("candidate_d",1); assert(!!device.writer_trial.baseline_selected && strstr(output,"USB:"));
     command("unknown",2); assert(strstr(output,"err="));
     command("trace",2); assert(strstr(output,"queue submitted=") && strstr(output,"display physical="));

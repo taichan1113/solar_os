@@ -1045,6 +1045,7 @@ esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *display, const uint8_t *fr
 #if SOLAR_OS_SSD1677_WRITER_D
     display->writer_trial.current = (epd_ssd1677_writer_record_t){.start_us = esp_timer_get_time()};
     display->writer_trial.used_d = display->writer_trial.reference = false;
+    display->writer_trial.used_e1 = false;
     display->writer_trial.restored = false;
 #endif
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL

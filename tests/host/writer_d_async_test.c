@@ -70,21 +70,68 @@ static void wait_control_barrier(void)
 }
 int main(int argc,char **argv)
 {
-    const bool failure=argc>1 && !strcmp(argv[1],"restore-fail");
+    const bool e1=argc>1 && (!strcmp(argv[1],"e1") || !strcmp(argv[1],"e1-restore-fail"));
+    const bool failure=argc>1 && (!strcmp(argv[1],"restore-fail") || !strcmp(argv[1],"e1-restore-fail"));
     uint8_t image[48000]; wd_panel_init(image);
     assert(solar_os_display_async_create(48000,panel_execute,NULL,&live.a)==ESP_OK);
     epd_ssd1677_writer_status_t initial; wd_status(&initial);
     assert(initial.enabled); /* No manual activation after ordinary boot. */
+    if(e1) assert(wd_mode("candidate_e1")==ESP_OK);
     if(failure) {
         wd_fail_restore(); input(image,0,false); wait_count(&live.activations,1);
         input(image,1,true); release_panel(1);
         assert(solar_os_display_async_wait(live.a,2000)==ESP_FAIL);
         epd_ssd1677_writer_status_t s; wd_status(&s);
-        assert(s.attempts==1 && s.d_physical==1 && s.d_errors==1 && s.failed && !s.enabled);
+        assert(s.failed && !s.enabled);
+        if(e1) assert(s.e1_attempts==1 && s.e1_physical==1 && s.e1_errors==1 && !s.attempts && !s.d_physical);
+        else assert(s.attempts==1 && s.d_physical==1 && s.d_errors==1);
         assert(wd_mode("candidate_d")==ESP_ERR_INVALID_STATE);
+        assert(wd_mode("candidate_e1")==ESP_ERR_INVALID_STATE);
         solar_os_display_submission_status_t q; solar_os_display_async_status(live.a,&q);
         assert(q.error==ESP_FAIL && q.writer_cancelled==1 && live.activations==1);
         puts("writer D async: actual Baseline restore failure stops worker/pending, no refund PASS");
+    } else if(e1) {
+        /* E1 active Sketch + pending Sketch: D must wait through E1 restore,
+         * then pending keeps its Sketch origin and chooses the D-mode A exception. */
+        live.block_restore=true;
+        input(image,0,2); wait_count(&live.activations,1);
+        input(image,1,2);
+        pthread_t control; assert(!pthread_create(&control,NULL,change_mode,"candidate_d"));
+        wait_control_barrier(); release_panel(1); wait_count(&live.restores,1);
+        pthread_mutex_lock(&live.mutex);
+        assert(!live.control_done && live.activations==1);
+        live.restore_permits++; pthread_cond_broadcast(&live.cond); pthread_mutex_unlock(&live.mutex);
+        pthread_join(control,NULL); live.block_restore=false;
+        wait_count(&live.activations,2); release_panel(1);
+        assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
+        epd_ssd1677_writer_status_t s; wd_status(&s);
+        assert(s.e1_physical==1 && s.e1_success==1 && !s.d_physical && s.a_physical==initial.a_physical+1);
+        assert(live.seen[0].is_sketch && live.seen[1].is_sketch);
+        puts("E1->D barrier spans BUSY/post-sync/restore; pending Sketch retains origin and chooses A PASS");
+        /* D-mode Sketch A in flight, pending Sketch becomes E1 after switch. */
+        input(image,2,2); wait_count(&live.activations,3); input(image,3,2);
+        live.control_done=false;
+        assert(!pthread_create(&control,NULL,change_mode,"candidate_e1"));
+        wait_control_barrier(); release_panel(1); pthread_join(control,NULL);
+        wait_count(&live.activations,4); release_panel(1);
+        assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
+        wd_status(&s); assert(s.e1_physical==2 && s.e1_success==2 && s.a_physical==initial.a_physical+2 && s.candidate_e1);
+        assert(live.seen[2].is_sketch && live.seen[3].is_sketch);
+        puts("D-mode A->E1 switch: active A unchanged, pending Sketch actually uploads E1 PASS");
+        /* E1 Writer active, pending other frame becomes A after baseline select. */
+        input(image,4,1); wait_count(&live.activations,5); input(image,5,0);
+        live.control_done=false;
+        assert(!pthread_create(&control,NULL,change_mode,"baseline"));
+        wait_control_barrier(); release_panel(1); pthread_join(control,NULL);
+        wait_count(&live.activations,6); release_panel(1);
+        assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
+        wd_status(&s);
+        assert(s.e1_physical==3 && s.e1_success==3 && s.a_physical==initial.a_physical+3 && !s.enabled);
+        assert(s.writer_physical==1 && !s.writer_a && !s.writer_otp);
+        assert(live.seen[4].is_writer && !live.seen[5].is_writer && !live.seen[5].is_sketch);
+        solar_os_display_submission_status_t q; solar_os_display_async_status(live.a,&q);
+        assert(!q.pending && !q.busy && !q.error && !q.writer_cancelled);
+        puts("E1->A switch: pending origin/payload preserved, no E1 counted as A/OTP, no extra activations PASS");
     } else {
         /* D in-flight + Writer coalescing + mode A switch. The switch must
          * remain blocked through restoration, not just through 0x20/BUSY. */

@@ -40,6 +40,22 @@ static void test_lut(void)
         for(unsigned p=0;p<4;p++) frames+=ssd1677_reference_lut[50+group*5+p];
     }
     assert(frames==10);
+    assert(ssd1677_trial_black_hold_e1_lut[0]==0x3b && ssd1677_trial_black_hold_e1_lut[1]==0xf0);
+    assert(!memcmp(ssd1677_trial_black_hold_e1_lut+2,ssd1677_reference_lut+2,108));
+    assert(!memcmp(ssd1677_trial_black_hold_e1_lut+2,ssd1677_trial_black_hold_d_lut+2,108));
+    const unsigned expected_vs[]={0,3,2,3,3,3}, expected_frames[]={2,2,2,2,1,1};
+    const int voltage[]={0,16,-15,5};
+    unsigned total=0,n=0; int source_sum=0;
+    for(unsigned group=0;group<10;group++) for(unsigned p=0;p<4;p++) {
+        const unsigned f=ssd1677_trial_black_hold_e1_lut[50+group*5+p];
+        if(!f) continue;
+        const unsigned vs=(ssd1677_trial_black_hold_e1_lut[group]>>(6-2*p))&3U;
+        assert(n<6 && vs==expected_vs[n] && f==expected_frames[n]);
+        assert(!ssd1677_trial_black_hold_e1_lut[54+group*5]);
+        total+=f; source_sum+=voltage[vs]*(int)f; n++;
+    }
+    assert(n==6 && total==10 && source_sum==0);
+    puts("E1 LUT: exact six phases, 10F, Source sum zero, bytes 2..109 unchanged PASS");
 }
 static void test_normal_dirty(bool r2, bool swap)
 {
@@ -55,12 +71,13 @@ static void test_normal_dirty(bool r2, bool swap)
     writer(&d);
     assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK && !command_count);
     assert(!d.writer_trial.status.attempts); /* no-op cannot count a D update */
-    /* A/D share byte-identical three rows-dual payloads and address windows. */
+    /* A/D/E1 share three rows-dual payloads, address windows and voltages. */
     static captured_command_t saved[128]; size_t saved_count=0;
-    for(unsigned candidate=0;candidate<2;candidate++) {
+    for(unsigned candidate=0;candidate<3;candidate++) {
         /* Same old/new image in two independent Driver states. */
         epd_ssd1677_t before=d; uint8_t old[48000]; memcpy(old,shadow,sizeof(old));
-        assert(epd_ssd1677_writer_lut(&d,candidate?"candidate_d":"baseline",NULL,NULL)==ESP_OK);
+        const char *mode=candidate==2?"candidate_e1":candidate?"candidate_d":"baseline";
+        assert(epd_ssd1677_writer_lut(&d,mode,NULL,NULL)==ESP_OK);
         u8g2_DrawPixel(&d.u8g2,700,321); command_count=0;
         const unsigned px=r2?99:700, py=r2?158:321;
         assert(!(frame[(py/8)*800+px] & (1U<<(py&7))));
@@ -71,14 +88,12 @@ static void test_normal_dirty(bool r2, bool swap)
         assert(tr.bw_bytes==200 && tr.red_bytes==100);
         if(!candidate) {
             saved_count=command_count; memcpy(saved,commands,sizeof(saved));
-            d=before; memcpy(shadow,old,sizeof(old)); u8g2_DrawPixel(&d.u8g2,700,321);
-            controller_seed(model,&d); model->swap_after_activation=swap;
         } else {
             assert(command_count==saved_count+1);
             for(size_t i=0;i<saved_count;i++) {
                 assert(saved[i].command==commands[i].command && saved[i].length==commands[i].length);
                 if(commands[i].command==0x32) {
-                    assert(commands[i].data[0]==0x2f && commands[i].data[1]==0xf0);
+                    assert(commands[i].data[0]==(candidate==2?0x3b:0x2f) && commands[i].data[1]==0xf0);
                     assert(!memcmp(saved[i].data+2,commands[i].data+2,103));
                 } else assert(!memcmp(saved[i].data,commands[i].data,commands[i].length));
             }
@@ -86,9 +101,88 @@ static void test_normal_dirty(bool r2, bool swap)
             assert(!memcmp(commands[command_count-1].data,ssd1677_reference_lut,105));
             assert(model->classes[0]>0); /* global RAM model, not proof of optical scope */
         }
+        assert(d.writer_trial.current.candidate_e1==(candidate==2));
+        assert(d.writer_trial.current.candidate_d==(candidate==1));
+        if(candidate<2) {
+            d=before; memcpy(shadow,old,sizeof(old)); u8g2_DrawPixel(&d.u8g2,700,321);
+            controller_seed(model,&d); model->swap_after_activation=swap;
+        }
     }
     free(model);
-    puts("writer D: A/D payload, rows-dual, transition RAM/Shadow, restore, R0/R2 retain/swap PASS");
+    puts("A/D/E1 payload/voltage/activation identity, rows-dual RAM/Shadow, restore, R0/R2 retain/swap PASS");
+}
+
+static void test_e1_modes(void)
+{
+    boot(); epd_ssd1677_t d=prepare();
+    const char *modes[]={"candidate_d","candidate_e1","candidate_d","baseline","candidate_e1","disable"};
+    for(unsigned m=0;m<6;m++) for(unsigned source=0;source<3;source++) {
+        command_count=0;
+        epd_ssd1677_writer_status_t s;
+        assert(epd_ssd1677_writer_lut(&d,modes[m],&s,NULL)==ESP_OK && !command_count);
+        const bool e1=m==1 || m==4, use_d=(m==0 || m==2) && source!=2;
+        assert(s.candidate_e1==e1);
+        d.writer_trial.origin=(solar_os_writer_frame_t){.is_writer=source==1,.is_sketch=source==2};
+        flip(200+m*3+source,300);
+        assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+        expect_data(0x32,e1?ssd1677_trial_black_hold_e1_lut:use_d?ssd1677_trial_black_hold_d_lut:ssd1677_reference_lut,105);
+        assert(count_command(0x20)==1 && count_command(0x32)==(e1 || use_d?2U:1U));
+        assert(d.writer_trial.current.candidate_e1==e1 && d.writer_trial.current.candidate_d==use_d);
+        assert(d.writer_trial.current.origin.is_sketch==(source==2));
+        assert(!memcmp(shadow,frame,sizeof(frame)) && d.dirty_hold_ram_synced);
+    }
+    assert(d.writer_trial.status.e1_attempts==6 && d.writer_trial.status.e1_physical==6 &&
+           d.writer_trial.status.e1_success==6 && !d.writer_trial.status.e1_errors);
+    assert(d.writer_trial.status.attempts==4 && d.writer_trial.status.d_success==4);
+    assert(epd_ssd1677_writer_lut(&d,"candidate_e1",NULL,NULL)==ESP_OK);
+    command_count=0;
+    assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK && !command_count);
+    assert(d.writer_trial.status.e1_attempts==6); /* No-op remains skipped. */
+    d.reference_awake=false; d.controller_ready=false;
+    d.writer_trial.origin=(solar_os_writer_frame_t){.is_sketch=true};
+    flip(230,310); command_count=0;
+    assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+    expect_data(0x32,ssd1677_trial_black_hold_e1_lut,105); expect_data(0x22,(uint8_t[]){0xcc},1);
+    assert(d.writer_trial.used_e1 && count_command(0x20)==1);
+    /* E1 selection does not override OTP or the existing typing waveform. */
+    assert(epd_ssd1677_set_controller_mode(&d,"refresh=full")==ESP_OK);
+    flip(231,310); command_count=0;
+    assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+    assert(!count_command(0x32) && !d.writer_trial.used_e1 && !d.writer_trial.used_d);
+    assert(epd_ssd1677_writer_lut(&d,"candidate_e1",NULL,NULL)==ESP_ERR_INVALID_STATE);
+    assert(epd_ssd1677_set_controller_mode(&d,"refresh=typing")==ESP_OK);
+    flip(232,310); assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+    flip(233,310); command_count=0;
+    assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+    expect_data(0x32,ssd1677_reference_lut,105);
+    assert(count_command(0x32)==1 && !d.writer_trial.used_e1);
+    d=prepare(); /* Fresh Driver/boot does not remember E1. */
+    epd_ssd1677_writer_status_t s;
+    assert(epd_ssd1677_writer_lut(&d,"status",&s,NULL)==ESP_OK && s.enabled && !s.candidate_e1);
+    puts("E1 explicit all-source selection, D Sketch exception restoration, A, cold, OTP/typing, no-op and boot D PASS");
+}
+
+static void test_e1_faults(void)
+{
+    for(unsigned kind=0;kind<3;kind++) {
+        boot(); epd_ssd1677_t d=prepare();
+        assert(epd_ssd1677_writer_lut(&d,"candidate_e1",NULL,NULL)==ESP_OK);
+        d.writer_trial.origin=(solar_os_writer_frame_t){.is_sketch=true};
+        flip(250+kind,300); command_count=0;
+        if(kind==0) fail_command=0x32;
+        if(kind==1) busy_on_activation=true;
+        if(kind==2) { fail_plane_command=0x26; fail_plane_after_bytes=0; }
+        assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))!=ESP_OK);
+        assert(d.writer_trial.status.e1_attempts==1 && d.writer_trial.status.e1_errors==1);
+        assert(!d.writer_trial.status.attempts && !d.writer_trial.status.d_errors);
+        assert(d.faulted && !d.shadow_valid && atomic_load(&writer_d_failed));
+        const size_t sent=command_count;
+        assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_ERR_INVALID_STATE && command_count==sent);
+        assert(epd_ssd1677_writer_lut(&d,"candidate_e1",NULL,NULL)==ESP_ERR_INVALID_STATE);
+        assert(epd_ssd1677_writer_lut(&d,"candidate_d",NULL,NULL)==ESP_ERR_INVALID_STATE);
+        stuck_busy=false;
+    }
+    puts("E1 LUT/BUSY/post-sync failures retain existing fault latch, no replay PASS");
 }
 static void test_continuous_and_sources(void)
 {
@@ -264,5 +358,6 @@ int main(void)
     test_continuous_and_sources(); test_otp_not_compensated(); test_cold_first_fastest(); test_counter_saturation(); test_faults();
     test_synchronous_u8g2();
     test_sketch_exception();
+    test_e1_modes(); test_e1_faults();
     puts("writer_d_driver_test: PASS"); return 0;
 }

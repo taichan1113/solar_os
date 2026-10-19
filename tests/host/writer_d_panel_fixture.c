@@ -65,7 +65,10 @@ esp_err_t wd_panel_execute(const uint8_t *data,size_t size,const solar_os_writer
         assert(t.activations==1 && !memcmp(shadow,data,size));
         assert(!memcmp(model.bw,model.red,sizeof(model.bw)));
         unsigned lut=0; for(size_t i=0;i<command_count;i++) if(commands[i].command==0x32) lut++;
-        assert(lut==(device.writer_trial.used_d?2U:1U));
+        assert(lut==(device.writer_trial.used_d || device.writer_trial.used_e1?2U:1U));
+        const uint8_t *selected=device.writer_trial.used_e1?ssd1677_trial_black_hold_e1_lut:
+            device.writer_trial.used_d?ssd1677_trial_black_hold_d_lut:ssd1677_reference_lut;
+        assert(!memcmp(find_command(0x32,0)->data,selected,105));
         assert(!memcmp(find_command(0x32,lut-1)->data,ssd1677_reference_lut,105));
     }
     device.writer_trial.origin=(solar_os_writer_frame_t){0};

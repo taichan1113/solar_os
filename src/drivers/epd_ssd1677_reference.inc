@@ -37,6 +37,22 @@ static const uint8_t ssd1677_trial_black_hold_d_lut[110] = {
     0x8f,0x8f,0x8f,0x8f,0x8f,
     0x17,0x46,0xa8,0x32,0x30,
 };
+
+/* E1 is RAM-only opt-in, including Sketch. Only LUT0 bytes 0..1 differ
+ * from A: 0V*2F, +5V*2F, -15V*2F, +5V*4F (10F). Source sum zero
+ * is not a claim of effective pixel DC balance or long-term panel safety. */
+static const uint8_t ssd1677_trial_black_hold_e1_lut[110] = {
+    0x3b,0xf0,0,0,0,0,0,0,0,0,
+    0x6a,0xa0,0,0,0,0,0,0,0,0,
+    0x95,0x50,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,
+    2,2,2,2,0, 1,1,0,0,0,
+    0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+    0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+    0x8f,0x8f,0x8f,0x8f,0x8f,
+    0x17,0x46,0xa8,0x32,0x30,
+};
 #endif
 
 static const uint8_t *ssd1677_selected_lut(const epd_ssd1677_t *d, const char **name)
@@ -206,8 +222,8 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     const uint8_t *lut = ssd1677_selected_lut(d, &waveform_name);
 #if SOLAR_OS_SSD1677_WRITER_D
     if (writer_d_select(d, cold)) {
-        lut = ssd1677_trial_black_hold_d_lut;
-        waveform_name = "candidate_d";
+        lut = d->writer_trial.used_e1 ? ssd1677_trial_black_hold_e1_lut : ssd1677_trial_black_hold_d_lut;
+        waveform_name = d->writer_trial.used_e1 ? "candidate_e1" : "candidate_d";
     }
     { /* Record all app updates; the source never gates compensation. */
         d->writer_trial.current.x = dirty.x_start_byte * 8;
@@ -307,7 +323,7 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     }
 #endif
 #if SOLAR_OS_SSD1677_WRITER_D
-    if (err == ESP_OK && d->writer_trial.used_d) {
+    if (err == ESP_OK && (d->writer_trial.used_d || d->writer_trial.used_e1)) {
         const int64_t restore_start = esp_timer_get_time();
         /* Existing D trial restore: after BUSY AND both RAM syncs. No activation. */
         err = ssd1677_cmd_data(d, 0x32, ssd1677_reference_lut, 105);
