@@ -1,0 +1,228 @@
+make: Entering directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/fastest-e1-trial/worktree/tests/host'
+make: 'epd_ssd1677_dirty_hold_test' is up to date.
+make: 'epd_ssd1677_test' is up to date.
+make: 'epd_ssd1677_spi_clock_dirty_20_test' is up to date.
+make: 'epd_ssd1677_hybrid_trial_test' is up to date.
+make: 'sketch_dirty_pipeline_test' is up to date.
+make: 'sketch_canvas_test' is up to date.
+make: 'sketch_lifecycle_test' is up to date.
+make: 'sketch_scale140_lifecycle_test' is up to date.
+make: 'sketch_legacy_lifecycle_test' is up to date.
+make: 'sketch_touch_projection_test' is up to date.
+make: 'sketch_trace_core_test' is up to date.
+make: 'display_async_test' is up to date.
+make: 'writer_quality_test' is up to date.
+make: 'writer_buffer_test' is up to date.
+make: 'writer_files_test' is up to date.
+make: 'launcher_touch_test' is up to date.
+make: 'type_mouse_engine_test' is up to date.
+make: 'type_mouse_lifecycle_test' is up to date.
+make: 'shell_launch_test' is up to date.
+make: Leaving directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/fastest-e1-trial/worktree/tests/host'
+RUN epd_ssd1677_dirty_hold_test
+dirty-hold baseline: bw=480000 red=480000 spi=961571 converted=960000 updates=10 host_cpu_ms=1.001
+dirty-hold candidate: bw=70886 red=118886 spi=191360 converted=191584 updates=10 host_cpu_ms=0.859
+dirty-hold shared-bounds host_cpu_us=10.408 per call (500 calls)
+epd_ssd1677_dirty_hold_test: PASS
+RUN epd_ssd1677_test
+epd_ssd1677_test: PASS
+RUN epd_ssd1677_spi_clock_dirty_20_test
+epd_ssd1677_spi_clock_test: PASS
+RUN epd_ssd1677_hybrid_trial_test
+hybrid host: fastest=96194 SPI bytes, idle OTP partial=96045 SPI bytes
+epd_ssd1677_test: PASS
+RUN sketch_dirty_pipeline_test
+pipeline R0 swap=0 update=31 ram=1200 0x20=1
+pipeline R0 swap=0 update=32 ram=1200 0x20=1
+pipeline R0 swap=0 update=33 ram=192000 0x20=1
+pipeline R0 swap=0 update=64 ram=1200 0x20=1
+pipeline R0 swap=0 update=65 ram=192000 0x20=1
+pipeline R0 swap=1 update=31 ram=1200 0x20=1
+pipeline R0 swap=1 update=32 ram=1200 0x20=1
+pipeline R0 swap=1 update=33 ram=192000 0x20=1
+pipeline R0 swap=1 update=64 ram=1200 0x20=1
+pipeline R0 swap=1 update=65 ram=192000 0x20=1
+pipeline R2 swap=0 update=31 ram=1200 0x20=1
+pipeline R2 swap=0 update=32 ram=1200 0x20=1
+pipeline R2 swap=0 update=33 ram=192000 0x20=1
+pipeline R2 swap=0 update=64 ram=1200 0x20=1
+pipeline R2 swap=0 update=65 ram=192000 0x20=1
+pipeline R2 swap=1 update=31 ram=1200 0x20=1
+pipeline R2 swap=1 update=32 ram=1200 0x20=1
+pipeline R2 swap=1 update=33 ram=192000 0x20=1
+pipeline R2 swap=1 update=64 ram=1200 0x20=1
+pipeline R2 swap=1 update=65 ram=192000 0x20=1
+sketch_dirty_pipeline_test: PASS (real Canvas/GFX/U8g2/SSD1677, R0/R2, RAM models, OFF/ON, 32/64 boundaries)
+RUN sketch_canvas_test
+sketch canvas and PNG tests: ok
+RUN sketch_lifecycle_test
+sketch lifecycle, coalescing, color PNG save/open/import: PASS
+RUN sketch_scale140_lifecycle_test
+sketch lifecycle, coalescing, color PNG save/open/import: PASS
+RUN sketch_legacy_lifecycle_test
+legacy Sketch: no auto-pointer lease, synchronous presentation preserved: PASS
+RUN sketch_touch_projection_test
+sketch_touch_projection_test: PASS (actual projection + Sketch stroke/cancel)
+RUN sketch_trace_core_test
+sketch trace core: bounded IDs and overflow PASS
+RUN display_async_test
+display async: snapshots, replacements, pacing, idle cleanup, controls, suspend, shutdown, fault and allocation tests passed
+RUN writer_quality_test
+writer_quality_test: PASS (real editing/raster, planes, pacing, replacement, cap, abort/fault)
+RUN writer_buffer_test
+writer buffer tests: ok
+RUN writer_files_test
+writer FAT replacement/recovery retry tests: ok
+RUN launcher_touch_test
+launcher_touch_test: 64 grids, custom item, lease failure/lifecycle, TypeMouse child launch PASS
+launcher_touch_test: actual JSON load/start/resume preserves user file PASS
+launcher_touch_test: failed touch/config start signals session fallback; invalid user file preserved PASS
+RUN type_mouse_engine_test
+type_mouse_engine_test: PASS
+RUN type_mouse_lifecycle_test
+type_mouse_lifecycle_test: offline start/touch Exit, CANCEL, suspend/resume and HID release PASS
+RUN shell_launch_test
+shell_launch_test: ok
+test_complete_stroke_and_generation (tests.test_sketch_trace.SketchTraceTests.test_complete_stroke_and_generation) ... ok
+test_i2c_error_is_reported_separately (tests.test_sketch_trace.SketchTraceTests.test_i2c_error_is_reported_separately) ... ok
+test_missing_final_frame_is_not_success (tests.test_sketch_trace.SketchTraceTests.test_missing_final_frame_is_not_success) ... ok
+test_nonmonotonic_or_duplicate_row_is_rejected (tests.test_sketch_trace.SketchTraceTests.test_nonmonotonic_or_duplicate_row_is_rejected) ... ok
+test_nonphysical_completion_is_not_final_frame (tests.test_sketch_trace.SketchTraceTests.test_nonphysical_completion_is_not_final_frame) ... ok
+test_overflow_or_missing_dump_is_not_synthesized (tests.test_sketch_trace.SketchTraceTests.test_overflow_or_missing_dump_is_not_synthesized) ... ok
+test_release_fifo_failure_is_not_success (tests.test_sketch_trace.SketchTraceTests.test_release_fifo_failure_is_not_success) ... ok
+test_stroke_id_mismatch_is_rejected (tests.test_sketch_trace.SketchTraceTests.test_stroke_id_mismatch_is_rejected) ... ok
+test_unchanged_release_uses_completed_prior_canvas (tests.test_sketch_trace.SketchTraceTests.test_unchanged_release_uses_completed_prior_canvas) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.001s
+
+OK
+make: Entering directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/fastest-e1-trial/worktree/tests/host'
+make: 'launcher_grid_test' is up to date.
+make: 'app_touch_test' is up to date.
+make: 'files_layout_test' is up to date.
+make: 'reader_touch_test' is up to date.
+make: 'clock_touch_test' is up to date.
+make: 'terminal_render_scale140_test' is up to date.
+make: 'ft6336_lifecycle_test' is up to date.
+make: 'input_touch_adapter_test' is up to date.
+make: 'input_touch_service_test' is up to date.
+make: 'button_long_press_test' is up to date.
+make: 'rtc_service_test' is up to date.
+make: 'm5papermono_power_test' is up to date.
+make: 'sketch_baseline_lifecycle_test' is up to date.
+make: 'writer_d_driver_test' is up to date.
+make: 'writer_d_async_test' is up to date.
+make: 'writer_d_shell_test' is up to date.
+make: 'epd_ssd1677_waveform_trial_test' is up to date.
+make: 'input_test' is up to date.
+make: 'input_action_match_test' is up to date.
+make: 'hid_keyboard_report_test' is up to date.
+make: 'ble_keyboard_scan_policy_test' is up to date.
+make: 'ble_keyboard_reconnect_test' is up to date.
+make: 'ble_service_test' is up to date.
+make: 'ble_multi_peer_test' is up to date.
+make: 'ble_nimble_test' is up to date.
+make: 'ble_hid_test' is up to date.
+make: 'ble_server_test' is up to date.
+make: Leaving directory '/mnt/e/ESP32/M5PapserMono-SolarOS/.research/fastest-e1-trial/worktree/tests/host'
+RUN launcher_grid_test
+launcher_grid_test: six ordered cells, 800x480/960x540, release, CANCEL, Sleep, Keyboard/Shell PASS
+RUN app_touch_test
+app_touch_test: lease/CANCEL, no duplicate release, jitter, swipe, five lifecycle cycles PASS
+RUN files_layout_test
+files_layout_test: PASS (bounded render, legend attributes, inputs, popups and paging)
+RUN reader_touch_test
+reader_touch_test: left/right tap, swipe, jitter deadband, Files target PASS
+RUN clock_touch_test
+clock_touch_test: RTC minute/date signature, Esc, existing stopwatch tap PASS
+RUN terminal_render_scale140_test
+large: cols=56 rows=15 cell=14x29 ascent=24 status=34 initial=7feb1887 input=b2a66477 presents=9
+UI scale real-font styles, width/raster, native document size, UTF-8 fit, wrap/scroll, runtime roundtrip: PASS
+RUN ft6336_lifecycle_test
+ft6336_lifecycle_test: PASS
+RUN input_touch_adapter_test
+input_touch_adapter_test: 7 cases PASS (actual Session adapter)
+RUN input_touch_service_test
+input_touch_service_test: 26 cases PASS; event=40 touch=88 pointer=36
+touch storage: queue=2816 source-state=1344 consumers=256
+RUN button_long_press_test
+button_long_press_test: PASS
+RUN rtc_service_test
+rtc service tests passed
+RUN m5papermono_power_test
+m5papermono_power_test: PASS
+RUN sketch_baseline_lifecycle_test
+sketch lifecycle, coalescing, color PNG save/open/import: PASS
+RUN writer_d_driver_test
+E1 LUT: exact six phases, 10F, Source sum zero, bytes 2..109 unchanged PASS
+A/D/E1 payload/voltage/activation identity, rows-dual RAM/Shadow, restore, R0/R2 retain/swap PASS
+A/D/E1 payload/voltage/activation identity, rows-dual RAM/Shadow, restore, R0/R2 retain/swap PASS
+A/D/E1 payload/voltage/activation identity, rows-dual RAM/Shadow, restore, R0/R2 retain/swap PASS
+A/D/E1 payload/voltage/activation identity, rows-dual RAM/Shadow, restore, R0/R2 retain/swap PASS
+All-app physical update 1 (Shell): D, single 0x20, restore PASS
+All-app physical update 2 (Launcher): D, single 0x20, restore PASS
+All-app physical update 3 (Writer): D, single 0x20, restore PASS
+All-app physical update 4 (OtherApp): D, single 0x20, restore PASS
+All-app physical update 5 (TypeMouse): D, single 0x20, restore PASS
+All-app physical update 6 (untagged): D, single 0x20, restore PASS
+All-app physical update 7 (Shell): D, single 0x20, restore PASS
+All-app physical update 20 (Launcher): D, single 0x20, restore PASS
+All-app physical update 21 (Writer): D, single 0x20, restore PASS
+all-app D: continuous past 6/7/20, global A/D, no-op, power separation, boot D PASS
+all-app D: full/OTP unchanged, next untagged cold fastest D PASS
+writer D: first cold fastest activation D; existing cold initialization preserved PASS
+writer D: totals 100/1000 and UINT64 saturation never stop D; ring remains bounded PASS
+writer D: LUT/BUSY/post-sync failure latches, no retries/refund PASS
+all-app D: real synchronous u8g2 callback, no-op, trace, fault stop PASS
+Sketch exception: other D -> Sketch A -> other D, unchanged global mode/Shadow PASS
+E1 explicit all-source selection, D Sketch exception restoration, A, cold, OTP/typing, no-op and boot D PASS
+E1 LUT/BUSY/post-sync failures retain existing fault latch, no replay PASS
+writer_d_driver_test: PASS
+RUN writer_d_async_test
+writer D async: D->A switch waits through restore; pending coalesced Writer chooses A PASS
+writer D async: A->D switch, busy non-Writer replacement correctly uses global D PASS
+writer D async: all-app continuous through D update 24, no thinning, app-exit cancellation PASS
+Sketch origin survives actual Executor: Sketch A -> other D -> Sketch A -> Writer D PASS
+writer_d_async_test: PASS
+RUN writer_d_shell_test
+writer_d_shell_test: USB gating, global controls/status/trace, no physical updates, default D and no cumulative cap PASS
+RUN epd_ssd1677_waveform_trial_test
+epd_ssd1677_test: PASS
+RUN input_test
+input_test: ok
+RUN input_action_match_test
+input action match tests: ok
+RUN hid_keyboard_report_test
+HID keyboard report tests: ok
+RUN ble_keyboard_scan_policy_test
+BLE keyboard scan policy tests: ok
+RUN ble_keyboard_reconnect_test
+production keyboard worker: absence, late appearance, failures, disconnect, cancel, suspend/resume: ok
+RUN ble_service_test
+BLE sessions: ownership, cancellation, timeout, stale events, sleep and compatibility OK
+RUN ble_multi_peer_test
+BLE multi-peer: dynamic allocation, ownership, independent I/O, capacity, timeout, close and sleep OK
+BLE notifications: owned queues, binary copy, overflow, unsubscribe, timeout and cleanup OK
+RUN ble_nimble_test
+NimBLE adapter: cancellation, request identity, bounds, MTU and byte-copy tests passed
+RUN ble_hid_test
+HID client: failure, cancellation, bounds, subscription, input lifetime and stale callback tests passed
+RUN ble_server_test
+BLE server: generic ownership plus encrypted keyboard, mouse and gamepad HOGP lifecycle OK
+writer D async: actual Baseline restore failure stops worker/pending, no refund PASS
+writer_d_async_test: PASS
+E1->D barrier spans BUSY/post-sync/restore; pending Sketch retains origin and chooses A PASS
+D-mode A->E1 switch: active A unchanged, pending Sketch actually uploads E1 PASS
+E1->A switch: pending origin/payload preserved, no E1 counted as A/OTP, no extra activations PASS
+writer_d_async_test: PASS
+writer D async: actual Baseline restore failure stops worker/pending, no refund PASS
+writer_d_async_test: PASS
+test_crc_and_readback_mismatch (tests.test_fastest_e1_flash_audit.OfflineAuditTest.test_crc_and_readback_mismatch) ... ok
+test_plan_and_protection (tests.test_fastest_e1_flash_audit.OfflineAuditTest.test_plan_and_protection) ... ok
+test_slot_table_or_session_mismatch (tests.test_fastest_e1_flash_audit.OfflineAuditTest.test_slot_table_or_session_mismatch) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.122s
+
+OK

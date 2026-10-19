@@ -1,0 +1,11 @@
+{
+  "returncode": 0,
+  "command": [
+    "env",
+    "CJSON_DIR=/mnt/c/Users/takec/.platformio/packages/framework-espidf/components/json/cJSON",
+    "sh",
+    "tests/host/run_fastest_e1_trial.sh"
+  ],
+  "elapsed_seconds": 8.85999999998603,
+  "device_accessed": false
+}

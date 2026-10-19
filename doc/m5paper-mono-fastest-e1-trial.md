@@ -47,12 +47,53 @@ E1はNVS保存なし。他refreshは従来方式を尊重する。`E1_attempts/E
 
 ## Build・Git結果
 
-実装Commit・Host／Buildの確定結果、サイズ・SHA、Remote確認結果は、ビルド完了後にこの欄へ記録する。
+| 項目 | 結果 |
+|---|---|
+| Host回帰 | PASS：46 executable target、追加Async 3モード、Python 12テスト |
+| Hostコマンド | `CJSON_DIR=<ESP-IDF>/components/json/cJSON sh tests/host/run_fastest_e1_trial.sh` |
+| Firmware Build | PASS、248.09秒、warning／errorなし |
+| PlatformIO環境 | `esp32_s3_devkitc1_n16r8`、pioarduino 55.3.312 |
+| Board / Flavor / Layout | `m5paper_mono` / `writerdeck` / `ota` |
+| ESP-IDF | 5.5.5 |
+| GCC | `xtensa-esp-elf-gcc.exe (crosstool-NG esp-14.2.0_20260121) 14.2.0` |
+| Buildした実装Commit | `b918c36a1f0b5d1014062149197d4670fde718f1` |
+| Application binary | `firmware.bin`、3,461,488 B |
+| Application SHA-256 | `73a2598434a4a4488859607a65fb9c4638a362853e73aceac6326f482a498260` |
+| OTA slot容量 | 各7,340,032 B（7 MiB）、余裕3,878,544 B、sector切上げ後も適合 |
+| 実効構成 | fastest / tile、20,000,000 Hz設定、Dirty rows-dual、Display Async |
+| Build flags | `WRITER_D=1` / `DIRTY_HOLD_TRIAL=1` / `SPI20_TRIAL=1` / `HYBRID_TRIAL=1` / `WAVEFORM_TRIAL=0` / `SKETCH_LATENCY_TRIAL=0`（すべて`SOLAR_OS_SSD1677_`、最後のみ`SOLAR_OS_` prefix） |
 
-Push先：ユーザー指示により`https://github.com/taichan1113/solar_os.git`へFork。既存origin=`https://github.com/nilseuropa/solar_os.git`を維持する。既存のCommit済み開発／研究BranchもForkへ反映し、既存未Commit変更はローカルのまま保護する。
+SDKの表示上の汎用board名はESP32-S3 DevKitであるが、生成ヘッダと実コンパイル引数でPaperMono・800×480・Launcher Touch Grid・Sketch Asyncを照合した。`SKETCH_LATENCY_TRIAL=0`は旧計測Trialを無効にする値であり、既存のSketch高速化はBoard設定で有効のまま。20MHzは設定値・ビルド確認で、今回は実SPI測定をしていない。
+
+実装後に追加するCommitは本報告・ログなどの資料だけであり、Build対象のFirmwareソースは上記実装Commit。Gitの最終資料Commit SHAはCommit後の完了報告と`git rev-parse HEAD`で確認できる。BinaryはGitへ入れず、ローカル`.research/fastest-e1-trial/artifacts/firmware-app-only.bin`へ保管した。
+
+### Forkと既存Branchの反映
+
+ユーザー指示により[taichan1113/solar_os](https://github.com/taichan1113/solar_os)を`nilseuropa/solar_os`からForkし、Remote **`fork`**（`https://github.com/taichan1113/solar_os.git`）を追加した。既存origin=`https://github.com/nilseuropa/solar_os.git`は変更していない。
+
+E1を含む**48本**のCommit済み開発／研究Branchを通常Pushし、全Remote HEADのSHA一致を確認した。既存のmain／betaはPush対象外とし、Forkのmain=`bc1fa25f57d1201c92512dcc1977af00f1a60c74`、beta=`516c0a5d4f9384759f8979ed916df4eceeb56662`は不変。Force Push、Merge、元BranchのCommitは行っていない。追跡先を設定したのは新E1 Branchだけ。
+
+Worktree：`E:\ESP32\M5PapserMono-SolarOS\.research\fastest-e1-trial\worktree`。既存32 WorktreeのBranch／HEAD／status／未CommitファイルのSHAを開始時と比較し、すべて不変を確認した。元Worktreeの`.vscode/`も未Commitのまま保持。未Commitファイルとignored研究資料はForkへ自動反映されない。
+
+### 保存した証拠
+
+- [Host回帰ログ](evidence/fastest-e1-trial/host-regression.log)、[Host結果](evidence/fastest-e1-trial/host-regression-result.json)
+- [Buildログ](evidence/fastest-e1-trial/build.log)、[Build結果](evidence/fastest-e1-trial/build-result.json)、[Binary・構成manifest](evidence/fastest-e1-trial/manifest.json)
+- [48 BranchのPush照合](evidence/fastest-e1-trial/push-result.json)、[Pushログ](evidence/fastest-e1-trial/push-branches.log)、[既存Worktree保護結果](evidence/fastest-e1-trial/worktrees-preserved.json)
+- [証拠ファイルSHA-256](evidence/fastest-e1-trial/checksums.json)
+
+Push照合は資料Commit前のE1実装SHAを記録し、他の47 BranchのSHAも列挙する。資料Commit後はE1だけを通常のfast-forward Pushし、Remote HEADと最終HEADの一致を改めて確認する。最終Git statusはcleanで引き渡す。
 
 ## 別PCへの引継ぎ・未確認事項
 
 [手動Flash・Rollback・肉眼試験手順](evidence/fastest-e1-trial/manual-flash-and-test.md)を参照。補助`papermono_e1_flash_audit.py`はファイル解析のみでCOMを開かない。実機へ書く前に毎回freshバックアップ・slot／partition照合を行う。過去の固定offset・古いNVS/FATを復元に流用しない。
 
 E1の実画面の黒保持、一瞬の白化、高速入力／削除時の濃さ、Sketch品質、BUSY実測、長期影響、実機上の切替、Flash成功は**すべて未確認**。手順の評価表も未確認のまま残す。
+
+別PCでは以下で取得する。Build・slot確認・Application-only Flash・読戻し・Rollbackは、リンク先の手順書に従って人間が実施する。
+
+```powershell
+git clone --branch feature/papermono-fastest-e1-trial --single-branch https://github.com/taichan1113/solar_os.git SolarOS-E1
+cd SolarOS-E1
+git rev-parse HEAD
+```
