@@ -1,0 +1,902 @@
+{
+  "schema_version": 1,
+  "status": "LOCAL_TRIALS_FINISHED",
+  "date": "2026-10-20",
+  "timezone": "Asia/Tokyo",
+  "branch": "test/papermono-e1-ubuntu-20261020",
+  "base_commit": "13c1cc1f31ed94cbf5e3a4978fde0421067d27ce",
+  "firmware_source_commit": "b918c36a1f0b5d1014062149197d4670fde718f1",
+  "firmware_source_modified": false,
+  "build": {
+    "result": "SUCCESS",
+    "duration_seconds": 513.09,
+    "board": "m5paper_mono",
+    "flavor": "writerdeck",
+    "layout": "ota",
+    "platformio": "6.2.0",
+    "platform": "55.3.312",
+    "esp_idf": "5.5.5",
+    "gcc": "14.2.0+20260121",
+    "esptool": "5.4.0",
+    "python": "3.14.4",
+    "application_bytes": 3461424,
+    "application_sha256": "9936d825cd0924f1f9a1e41d31b487edb233b93c579cbaca9530529808e4109d",
+    "elf_sha256": "b281c07996a278d6482902bae4296e8a0ef1934e0ecc56c597aae76f7b364932",
+    "host_regression_rerun_on_this_pc": false
+  },
+  "display_conditions": {
+    "refresh": "fastest",
+    "fastest_path": "tile",
+    "dirty_window": "rows-dual",
+    "spi_mhz": 20,
+    "mode_selection": "RAM only",
+    "Sketch_D_selectable_on_current_firmware": false,
+    "D_selected_Sketch_actual": "A"
+  },
+  "measurement_limits": [
+    "Subjective naked-eye observations; no photos, videos, ROI or numerical black-density measurements.",
+    "Physical update counts are image activations, not keystrokes or stroke counts; UI updates may be included.",
+    "Manual input time and repetition counts were not measured.",
+    "Trace retention is 32 records; counter deltas may exceed retained records.",
+    "Independent intervals use A/cleanup/OTP before preparing initial content. Final Writer D z7 is a continuous E1-to-D switch without cleanup.",
+    "Font-size phase boundaries and deletion operation times were not correlated with individual Trace records.",
+    "No lifetime or effective DC-balance claim."
+  ],
+  "flashes": [
+    {
+      "operation": "initial",
+      "result": "FLASH_VERIFIED_BOOT_CONFIRMED",
+      "target_slot": "ota_0",
+      "app_offset": 65536,
+      "app_partition_size": 7340032,
+      "image_sha256": "9936d825cd0924f1f9a1e41d31b487edb233b93c579cbaca9530529808e4109d",
+      "fresh_full_backup": true,
+      "readback_matches_image": true,
+      "all_bytes_outside_application_unchanged": true,
+      "protected_regions": {
+        "bootloader": {
+          "bytes": 32768,
+          "unchanged": true
+        },
+        "partition_table_sector": {
+          "bytes": 4096,
+          "unchanged": true
+        },
+        "nvs": {
+          "bytes": 16384,
+          "unchanged": true
+        },
+        "otadata": {
+          "bytes": 8192,
+          "unchanged": true
+        },
+        "phy_init": {
+          "bytes": 4096,
+          "unchanged": true
+        },
+        "ota_1": {
+          "bytes": 7340032,
+          "unchanged": true
+        },
+        "flash": {
+          "bytes": 2031616,
+          "unchanged": true
+        }
+      },
+      "boot_error_lines": [
+        "E (7465) papermono-power: update_reg(34): register read failed"
+      ],
+      "user_confirmed_launcher_touch": true
+    },
+    {
+      "operation": "same_image_reflash",
+      "result": "REFLASH_VERIFIED_BOOT_CONFIRMED",
+      "target_slot": "ota_0",
+      "app_offset": 65536,
+      "app_partition_size": 7340032,
+      "image_sha256": "9936d825cd0924f1f9a1e41d31b487edb233b93c579cbaca9530529808e4109d",
+      "fresh_full_backup": true,
+      "readback_matches_image": true,
+      "all_bytes_outside_application_unchanged": true,
+      "protected_regions": {
+        "bootloader": {
+          "bytes": 32768,
+          "unchanged": true
+        },
+        "partition_table_sector": {
+          "bytes": 4096,
+          "unchanged": true
+        },
+        "nvs": {
+          "bytes": 16384,
+          "unchanged": true
+        },
+        "otadata": {
+          "bytes": 8192,
+          "unchanged": true
+        },
+        "phy_init": {
+          "bytes": 4096,
+          "unchanged": true
+        },
+        "ota_1": {
+          "bytes": 7340032,
+          "unchanged": true
+        },
+        "flash": {
+          "bytes": 2031616,
+          "unchanged": true
+        }
+      },
+      "boot_error_lines": [],
+      "user_confirmed_launcher_touch": true
+    }
+  ],
+  "trials": [
+    {
+      "id": "writer_A",
+      "boot_epoch": "initial_flash",
+      "selected_mode": "A",
+      "actual_waveform": "A",
+      "observation": {
+        "user_report": "全体的に薄まった．削除後の残像は気にならないレベル．速度は良好．",
+        "density": "可読だが明瞭な薄まり",
+        "transient_whitening": "未回答",
+        "deletion_ghosting": "気にならないレベル",
+        "perceived_speed": "良好",
+        "fixed_BLACK_fading": "個別には未確認"
+      },
+      "before": {
+        "display_physical": 26,
+        "display_A": 14,
+        "display_D": 5,
+        "display_OTP": 7,
+        "display_E1": 0,
+        "writer_physical": 16,
+        "writer_A": 14,
+        "writer_OTP": 2,
+        "writer_noop": 1,
+        "last_sequence": 24,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "after": {
+        "writer_physical": 40,
+        "writer_A": 38,
+        "writer_OTP": 2,
+        "writer_noop": 2,
+        "last_sequence": 49,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "delta": {
+        "writer_physical": 24,
+        "writer_A": 24,
+        "writer_OTP": 0,
+        "writer_noop": 1,
+        "D": 0,
+        "E1": 0
+      },
+      "trace_records_retained": 25,
+      "limits": {
+        "actual_hold_durations": "ユーザー実測なし、指示は各約1秒"
+      },
+      "recorded_at": "2026-10-20T00:18:31.394144+09:00"
+    },
+    {
+      "id": "writer_D",
+      "boot_epoch": "initial_flash",
+      "selected_mode": "D",
+      "actual_waveform": "D",
+      "observation": {
+        "user_report": "D十分濃い。途中で一瞬の白化があるも，黒に復帰する。残像は気にならないレベル。速度も良好。",
+        "density": "十分濃い",
+        "transient_whitening": "途中で一瞬白化するが黒に復帰",
+        "deletion_ghosting": "気にならないレベル",
+        "perceived_speed": "良好",
+        "fixed_BLACK_fading": "個別には未回答"
+      },
+      "before": {
+        "display_physical": 68,
+        "display_A": 54,
+        "display_D": 5,
+        "display_OTP": 9,
+        "display_E1": 0,
+        "writer_physical": 58,
+        "writer_A": 54,
+        "writer_OTP": 4,
+        "writer_noop": 4,
+        "D_attempts": 5,
+        "D_activations": 5,
+        "D_success": 5,
+        "D_error": 0,
+        "E1_attempts": 0,
+        "last_sequence": 68,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "after": {
+        "display_physical": 90,
+        "display_A": 54,
+        "display_D": 27,
+        "display_OTP": 9,
+        "display_E1": 0,
+        "writer_physical": 80,
+        "writer_A": 54,
+        "writer_OTP": 4,
+        "writer_noop": 4,
+        "last_sequence": 90,
+        "D_attempts": 27,
+        "D_activations": 27,
+        "D_success": 27,
+        "D_error": 0,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "delta": {
+        "writer_physical": 22,
+        "D_attempts": 22,
+        "D_activations": 22,
+        "D_success": 22,
+        "D_error": 0,
+        "A": 0,
+        "OTP": 0,
+        "E1": 0
+      },
+      "trace_records_retained": 22,
+      "limits": {
+        "actual_hold_durations": "ユーザー実測なし、指示は各約1秒"
+      },
+      "recorded_at": "2026-10-20T00:25:25.415406+09:00"
+    },
+    {
+      "id": "writer_E1",
+      "boot_epoch": "initial_flash",
+      "selected_mode": "E1",
+      "actual_waveform": "E1",
+      "observation": {
+        "user_report": "WriterではDと大差がないように思える",
+        "density": "Dとの個別差は未確認",
+        "comparison_with_D": "目視差は判定困難",
+        "transient_whitening": "個別には未回答",
+        "deletion_ghosting": "個別には未回答",
+        "perceived_speed": "個別には未回答",
+        "fixed_BLACK_fading": "個別には未回答"
+      },
+      "before": {
+        "display_physical": 104,
+        "display_A": 66,
+        "display_D": 27,
+        "display_OTP": 11,
+        "display_E1": 0,
+        "writer_physical": 94,
+        "writer_A": 66,
+        "writer_OTP": 6,
+        "writer_noop": 6,
+        "D_attempts": 27,
+        "D_activations": 27,
+        "D_success": 27,
+        "D_error": 0,
+        "E1_attempts": 0,
+        "E1_activations": 0,
+        "E1_success": 0,
+        "E1_error": 0,
+        "last_sequence": 105,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "after": {
+        "display_physical": 128,
+        "display_A": 66,
+        "display_D": 27,
+        "display_OTP": 11,
+        "display_E1": 24,
+        "writer_physical": 118,
+        "writer_A": 66,
+        "writer_OTP": 6,
+        "writer_noop": 6,
+        "last_sequence": 129,
+        "D_attempts": 27,
+        "D_activations": 27,
+        "D_success": 27,
+        "D_error": 0,
+        "E1_attempts": 24,
+        "E1_activations": 24,
+        "E1_success": 24,
+        "E1_error": 0,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "delta": {
+        "writer_physical": 24,
+        "E1_attempts": 24,
+        "E1_activations": 24,
+        "E1_success": 24,
+        "E1_error": 0,
+        "A": 0,
+        "OTP": 0,
+        "D": 0
+      },
+      "trace_records_retained": 24,
+      "limits": {
+        "actual_hold_durations": "ユーザー実測なし、指示は各約1秒"
+      },
+      "recorded_at": "2026-10-20T00:29:05.844120+09:00"
+    },
+    {
+      "id": "sketch_A",
+      "boot_epoch": "initial_flash",
+      "selected_mode": "A",
+      "actual_waveform": "A",
+      "observation": {
+        "user_report": "線は薄い．書くごとに全体的な薄まりがある．追従性など，濃さ以外の部分はOK．",
+        "line_density": "薄い",
+        "prior_stroke_fading": "描くごとに全体的な薄まり",
+        "other_aspects": "追従性など濃さ以外は良好（ユーザー包括評価）"
+      },
+      "before": {
+        "display_physical": 130,
+        "display_A": 66,
+        "display_D": 27,
+        "display_OTP": 13,
+        "display_E1": 24,
+        "last_sequence": 130,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "after": {
+        "display_physical": 217,
+        "display_A": 153,
+        "display_D": 27,
+        "display_OTP": 13,
+        "display_E1": 24,
+        "last_sequence": 219,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "delta": {
+        "display_physical": 87,
+        "A": 87,
+        "D": 0,
+        "OTP": 0,
+        "E1": 0,
+        "noop": 2
+      },
+      "trace_records_retained": 32,
+      "limits": {
+        "trace_coverage": "直近32記録のみ保持。全87回の個別Traceは残っていない。"
+      },
+      "recorded_at": "2026-10-20T00:34:24.054777+09:00"
+    },
+    {
+      "id": "sketch_E1",
+      "boot_epoch": "initial_flash",
+      "selected_mode": "E1",
+      "actual_waveform": "未確認",
+      "observation": {
+        "user_report": "画面が反応しない．再度書き込めますか？",
+        "optical_result": "未評価"
+      },
+      "before": {
+        "display_physical": 219,
+        "display_A": 153,
+        "display_D": 27,
+        "display_OTP": 15,
+        "display_E1": 24,
+        "E1_attempts": 24,
+        "E1_activations": 24,
+        "E1_success": 24,
+        "E1_error": 0,
+        "last_sequence": 220,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "after": {
+        "mode": "E1",
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0,
+        "last_sequence": 225
+      },
+      "delta": null,
+      "trace_records_retained": 0,
+      "limits": {
+        "conclusion": "SketchでE1の描線更新は確認できず、E1光学効果の評価には使用しない。反応しない原因は未確定。"
+      },
+      "recorded_at": null,
+      "diagnostics": {
+        "usb_shell_responsive": true,
+        "ssd1677_ready": true,
+        "touch_ready": false,
+        "sketch_session_absent": true,
+        "writer_active_at_diagnostic": true,
+        "power_suspend": "inactive",
+        "sleep_count": 0
+      },
+      "trace_since_selection": {
+        "sketch": {
+          "noop_records": [
+            221,
+            222,
+            223
+          ],
+          "E1_physical_updates": 0
+        },
+        "writer_E1_physical_updates": 1,
+        "other_E1_physical_updates": 1
+      }
+    },
+    {
+      "id": "sketch_E1_retry_first_stroke",
+      "boot_epoch": "after_reflash",
+      "selected_mode": "E1",
+      "actual_waveform": "E1",
+      "observation": {
+        "user_report": "描けた．線の色は十分濃い．追従性はもう何度か試し書きしたい．",
+        "line_density": "十分濃い",
+        "drawing_responded": true,
+        "tracking": "追加試し書きで確認予定"
+      },
+      "before": {
+        "display_physical": 70,
+        "display_A": 27,
+        "display_D": 36,
+        "display_OTP": 7,
+        "display_E1": 0,
+        "E1_attempts": 0,
+        "E1_activations": 0,
+        "E1_success": 0,
+        "E1_error": 0,
+        "last_sequence": 71,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0,
+        "boot_epoch": "after reflash 20261020-003931"
+      },
+      "after": {
+        "display_physical": 73,
+        "display_A": 27,
+        "display_D": 36,
+        "display_OTP": 7,
+        "display_E1": 3,
+        "E1_attempts": 3,
+        "E1_activations": 3,
+        "E1_success": 3,
+        "E1_error": 0,
+        "last_sequence": 74,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "delta": {
+        "E1_activations": 3,
+        "E1_errors": 0
+      },
+      "trace_records_retained": 3,
+      "limits": {},
+      "recorded_at": "2026-10-20T00:52:19.416166+09:00"
+    },
+    {
+      "id": "sketch_E1_retry_followup",
+      "boot_epoch": "after_reflash",
+      "selected_mode": "E1",
+      "actual_waveform": "E1",
+      "observation": {
+        "user_report": "先程と違って，1のゆっくり直線で，線やその他の黒部分が急激に薄まった．最初の一筆から何が変わった？",
+        "line_and_other_black_density": "急激に薄まった",
+        "onset_user_report": "追加試し書きの最初のゆっくり直線",
+        "tracking": "今回は未評価"
+      },
+      "before": {
+        "display_physical": 73,
+        "display_A": 27,
+        "display_D": 36,
+        "display_OTP": 7,
+        "display_E1": 3,
+        "E1_attempts": 3,
+        "E1_activations": 3,
+        "E1_success": 3,
+        "E1_error": 0,
+        "last_sequence": 74,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "after": {
+        "display_physical": 105,
+        "display_A": 27,
+        "display_D": 36,
+        "display_OTP": 7,
+        "display_E1": 35,
+        "E1_attempts": 35,
+        "E1_activations": 35,
+        "E1_success": 35,
+        "E1_error": 0,
+        "last_sequence": 106,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "delta": {
+        "display_physical": 32,
+        "E1_attempts": 32,
+        "E1_activations": 32,
+        "E1_success": 32,
+        "E1_error": 0,
+        "A": 0,
+        "D": 0,
+        "OTP": 0
+      },
+      "trace_records_retained": 32,
+      "limits": {
+        "interpretation": "最初の一筆の黒さを継続描画時の黒保持の証明とは扱えない。E1反復と全RAM/局所行経路の差が候補だが、薄まりの瞬間をTraceに対応付ける記録がなく、原因未確定。"
+      },
+      "recorded_at": "2026-10-20T00:55:32.723468+09:00",
+      "ram_comparison": {
+        "initial_stroke": [
+          {
+            "sequence": 72,
+            "ram_bytes": 192000,
+            "region": "488,303,176,143"
+          },
+          {
+            "sequence": 73,
+            "ram_bytes": 192000,
+            "region": "376,303,280,5"
+          },
+          {
+            "sequence": 74,
+            "ram_bytes": 900,
+            "region": "368,305,16,3"
+          }
+        ],
+        "followup": {
+          "full_RAM_records": [
+            105
+          ],
+          "remaining_records": "局所行転送",
+          "periodic_resync_logged": true
+        }
+      },
+      "queue_comparison": {
+        "first_stroke": {
+          "submitted_delta": 14,
+          "replaced_delta": 11,
+          "physical_E1_updates": 3
+        },
+        "followup_interval": {
+          "submitted_delta": 32,
+          "replaced_delta": 0,
+          "physical_E1_updates": 32
+        },
+        "note": "追加32回は入力区間全体。薄まりの瞬間や特定の一筆に全32回を対応付ける記録はない。"
+      }
+    },
+    {
+      "id": "sketch_D_selected_retest",
+      "boot_epoch": "after_reflash",
+      "selected_mode": "D",
+      "actual_waveform": "A",
+      "observation": {
+        "user_report": "線は薄い．Aで線が薄くなるのは既知の現象．SketchでDを試したかったのだけど，できない？",
+        "line_density": "薄い（Aの既知現象）"
+      },
+      "before": {
+        "display_physical": 207,
+        "display_A": 125,
+        "display_D": 36,
+        "display_OTP": 11,
+        "display_E1": 35,
+        "D_attempts": 36,
+        "D_activations": 36,
+        "D_success": 36,
+        "D_error": 0,
+        "E1_attempts": 35,
+        "E1_activations": 35,
+        "E1_success": 35,
+        "E1_error": 0,
+        "last_sequence": 207,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "after": null,
+      "delta": {
+        "A": 34,
+        "D": 0,
+        "E1": 0,
+        "OTP": 0,
+        "physical": 34
+      },
+      "trace_records_retained": 32,
+      "limits": {
+        "trace_coverage": "直近32件のみ保持。全34回の個別Traceは残っていない。",
+        "does_not_evaluate_Sketch_D_waveform": true
+      },
+      "recorded_at": "2026-10-20T01:13:40.786125+09:00"
+    },
+    {
+      "id": "writer_D_retest",
+      "boot_epoch": "after_reflash",
+      "selected_mode": "D",
+      "actual_waveform": "D",
+      "observation": {
+        "user_report": "前回と同様です．何度か書き試ししました．続いてEに移りましょう",
+        "density_reproduced": true,
+        "rating": "前回同様（十分濃い、一瞬白化するが黒に復帰、残像は気にならない、速度良好）",
+        "fixed_BLACK_fading": "個別には未回答"
+      },
+      "before": {
+        "display_physical": 256,
+        "display_A": 170,
+        "display_D": 36,
+        "display_OTP": 15,
+        "display_E1": 35,
+        "writer_physical": 30,
+        "writer_A": 11,
+        "writer_OTP": 2,
+        "writer_noop": 1,
+        "D_attempts": 36,
+        "D_activations": 36,
+        "D_success": 36,
+        "D_error": 0,
+        "E1_attempts": 35,
+        "E1_activations": 35,
+        "E1_success": 35,
+        "E1_error": 0,
+        "last_sequence": 255,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "after": {
+        "display_physical": 390,
+        "display_A": 170,
+        "display_D": 170,
+        "display_OTP": 15,
+        "display_E1": 35,
+        "writer_physical": 164,
+        "writer_A": 11,
+        "writer_OTP": 2,
+        "writer_noop": 2,
+        "D_attempts": 170,
+        "D_activations": 170,
+        "D_success": 170,
+        "D_error": 0,
+        "E1_attempts": 35,
+        "last_sequence": 390,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "delta": {
+        "writer_physical": 134,
+        "D_attempts": 134,
+        "D_activations": 134,
+        "D_success": 134,
+        "D_error": 0,
+        "A": 0,
+        "OTP": 0,
+        "E1": 0,
+        "writer_noop": 1
+      },
+      "trace_records_retained": 32,
+      "limits": {
+        "input_conditions": "約1秒の長押し/削除を1回指示したが、ユーザーは何度か試し書きした。反復回数と時間は未計測。",
+        "trace_coverage": "直近32記録のみ保持。全134回の個別Traceは残っていない。"
+      },
+      "recorded_at": "2026-10-20T01:20:18.146316+09:00"
+    },
+    {
+      "id": "writer_E1_retest",
+      "boot_epoch": "after_reflash",
+      "selected_mode": "E1",
+      "actual_waveform": "E1",
+      "observation": {
+        "user_report": "どうやら，writerの文字の大きさで挙動が違います．z4では前回同様だったのですが，z7だとタイプするに連れて薄くなりました．同様傾向がDでも見られるか，再度Dに変更してみてくれますか？",
+        "z4": "前回同様（Dと大差なし）",
+        "z7": "入力につれて薄まる",
+        "size_effect": "ユーザー目視のサイズ依存傾向。因果は未確定。"
+      },
+      "before": {
+        "display_physical": 404,
+        "display_A": 182,
+        "display_D": 170,
+        "display_OTP": 17,
+        "display_E1": 35,
+        "writer_physical": 178,
+        "writer_A": 23,
+        "writer_OTP": 4,
+        "writer_noop": 4,
+        "D_attempts": 170,
+        "D_activations": 170,
+        "D_success": 170,
+        "D_error": 0,
+        "E1_attempts": 35,
+        "E1_activations": 35,
+        "E1_success": 35,
+        "E1_error": 0,
+        "last_sequence": 405,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "after": {
+        "display_physical": 640,
+        "display_A": 182,
+        "display_D": 170,
+        "display_OTP": 17,
+        "display_E1": 271,
+        "writer_physical": 414,
+        "writer_A": 23,
+        "writer_OTP": 4,
+        "writer_noop": 9,
+        "D_attempts": 170,
+        "D_activations": 170,
+        "D_success": 170,
+        "D_error": 0,
+        "E1_attempts": 271,
+        "E1_activations": 271,
+        "E1_success": 271,
+        "E1_error": 0,
+        "last_sequence": 646,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "delta": {
+        "writer_physical": 236,
+        "E1_attempts": 236,
+        "E1_activations": 236,
+        "E1_success": 236,
+        "E1_error": 0,
+        "A": 0,
+        "D": 0,
+        "OTP": 0,
+        "writer_noop": 5
+      },
+      "trace_records_retained": 32,
+      "limits": {
+        "input_conditions": "ユーザーが文字サイズ変更と追加試し書きを行った。運筆/入力時間と反復回数は未計測。",
+        "trace_coverage": "直近32記録のみ。z4/z7それぞれの開始時刻・更新回数は記録できていない。全236回を片方のサイズへ割り当てない。"
+      },
+      "recorded_at": "2026-10-20T01:26:41.741525+09:00"
+    },
+    {
+      "id": "writer_D_z7",
+      "boot_epoch": "after_reflash",
+      "selected_mode": "D",
+      "actual_waveform": "D",
+      "observation": {
+        "user_report": "Eに比べると，薄まりが小さい気がします．また，1文字ずつ連続で消去するよりも，範囲選択して文字を消したときのほうが，黒が復活するというけいこうもあります．",
+        "comparison_with_E1": "Dの方が薄まりが小さい印象（主観評価）",
+        "deletion_effect": "1文字ずつの連続削除より範囲選択削除で黒が復活する傾向"
+      },
+      "before": {
+        "display_physical": 640,
+        "display_A": 182,
+        "display_D": 170,
+        "display_OTP": 17,
+        "display_E1": 271,
+        "writer_physical": 414,
+        "writer_A": 23,
+        "writer_OTP": 4,
+        "writer_noop": 9,
+        "D_attempts": 170,
+        "D_activations": 170,
+        "D_success": 170,
+        "D_error": 0,
+        "E1_attempts": 271,
+        "E1_activations": 271,
+        "E1_success": 271,
+        "E1_error": 0,
+        "last_sequence": 646,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "after": {
+        "display_physical": 786,
+        "display_A": 182,
+        "display_D": 316,
+        "display_OTP": 17,
+        "display_E1": 271,
+        "writer_physical": 560,
+        "writer_A": 23,
+        "writer_OTP": 4,
+        "writer_noop": 11,
+        "D_attempts": 316,
+        "D_activations": 316,
+        "D_success": 316,
+        "D_error": 0,
+        "E1_attempts": 271,
+        "E1_activations": 271,
+        "E1_success": 271,
+        "E1_error": 0,
+        "last_sequence": 794,
+        "driver_error": 0,
+        "failed": 0,
+        "queue_error": 0
+      },
+      "delta": {
+        "writer_physical": 146,
+        "D_attempts": 146,
+        "D_activations": 146,
+        "D_success": 146,
+        "D_error": 0,
+        "A": 0,
+        "E1": 0,
+        "OTP": 0,
+        "writer_noop": 2
+      },
+      "trace_records_retained": 32,
+      "limits": {
+        "input_conditions": "E1 z7から同文書・z7のままDへ連続切替。cleanupなし。入力時間・反復回数・選択削除の時刻は未計測。",
+        "trace_coverage": "直近32記録のみ保持。全146回の個別Traceは残っていない。",
+        "limitations": [
+          "同一の初期化条件に揃えた独立比較ではない",
+          "選択削除の操作時刻とTrace seqは対応付けていない",
+          "文字サイズ・dirty領域・反復回数の影響を分離していない"
+        ]
+      },
+      "recorded_at": "2026-10-20T01:31:23.482913+09:00"
+    }
+  ],
+  "power_USB_notes": {
+    "first_boot_power_read_errors": 1,
+    "reflash_boot_power_read_errors": 0,
+    "KEY_suspend_resume": {
+      "approx_time": "2026-10-20T01:00:00+09:00",
+      "user_confirmed_KEY_pressed": true,
+      "observed": [
+        "Power IC register read failed twice",
+        "ft6336 enable cleanup failed ESP_ERR_INVALID_STATE",
+        "suspend/resume sequence",
+        "subsequent touch ready"
+      ],
+      "driver_errors_at_check": 0,
+      "root_cause": "KEY操作との時間的対応は確認。I2Cエラー自体の原因未確定。"
+    },
+    "Sketch_to_Writer_transition_power_read_error": "One Power IC update_reg read failure; subsequent Writer operation and driver_error=0. Touch disabled in Writer is not by itself evidence of failure.",
+    "comparison_console": "raw fd with DTR/RTS and baud unchanged, HUPCL disabled; no reset on console open/close"
+  },
+  "final_device_state": {
+    "selected_mode": "D",
+    "sketch_actual_waveform": "A",
+    "e1_selected": false,
+    "display_driver_errors": 0,
+    "display_failed": false,
+    "active_app": "Writer untitled trial document",
+    "suspended_app": "Sketch trial canvas",
+    "trial_documents_saved_by_agent": false,
+    "no_additional_cleanup_or_reset_at_finish": true
+  },
+  "finished_at": "2026-10-20T01:31:23.482913+09:00",
+  "handoff": {
+    "Sketch_D_explicit_opt_in_requested": true,
+    "implementation_deferred_to_parent": true,
+    "investigate": [
+      "Sketch E1 repeated-update fading and RAM path/32-update resync",
+      "Writer z4/z7, dirty region, update count and deletion method",
+      "Power/Touch lifecycle errors separately from optical effects"
+    ]
+  },
+  "private_artifacts_in_git": false,
+  "trial_completion_status": {
+    "Writer_D": "初回・再確認・z7追加確認を実施",
+    "Writer_E1": "初回とz4/z7再確認を実施",
+    "Shell_A_D_E1": "未実施（ユーザー指示でSketch優先、本PC試験終了）",
+    "Sketch_A_E1": "AとE1の実描画を実施。E1継続描画で明瞭な薄まりを記録",
+    "fixed_text_retention": "独立試験は未実施。Writer操作中の主観評価のみ",
+    "Sketch_D": "現行Firmwareでは選択不可。親PCへ明示選択追加を依頼"
+  }
+}
