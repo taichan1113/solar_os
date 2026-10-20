@@ -1,0 +1,37 @@
+Processing esp32_s3_devkitc1_n16r8 (board: esp32-s3-devkitc1-n16r8; platform: https://github.com/pioarduino/platform-espressif32/releases/download/55.03.312-1/platform-espressif32.zip; framework: espidf)
+--------------------------------------------------------------------------------
+Verbose mode can be enabled via `-v, --verbose` option
+SolarOS build locking is unavailable on Windows; do not run concurrent PlatformIO builds from the same checkout
+CONFIGURATION: https://docs.platformio.org/page/boards/espressif32/esp32-s3-devkitc1-n16r8.html
+PLATFORM: Espressif 32 (55.3.312) > Espressif ESP32-S3-DevKitC-1-N16R8V (16 MB Flash Quad, 8 MB PSRAM Octal)
+HARDWARE: ESP32S3 240MHz, 320KB RAM, 7MB Flash
+DEBUG: Current (esp-builtin) On-board (esp-builtin) External (cmsis-dap, esp-bridge, esp-prog, esp-prog-2, iot-bus-jtag, jlink, minimodule, olimex-arm-usb-ocd, olimex-arm-usb-ocd-h, olimex-arm-usb-tiny-h, olimex-jtag-tiny, tumpa)
+PACKAGES: 
+ - contrib-piohome @ 3.4.4 
+ - framework-espidf @ 3.50505.0 (5.5.5) 
+ - tool-cmake @ 4.0.3 
+ - tool-esp-rom-elfs @ 2026.5.28 
+ - tool-esptoolpy @ 5.4.0 
+ - tool-ninja @ 1.13.1 
+ - tool-scons @ 4.41101.0 (4.11.1) 
+ - tool-xtensa-esp-elf-gdb @ 17.1.0+20260402 
+ - toolchain-xtensa-esp-elf @ 14.2.0+20260121
+Using Python 3.11.7 environment at: C:\Users\takec\.platformio\penv\.espidf-5.5.5
+Reading CMake configuration...
+LDF: Library Dependency Finder -> https://bit.ly/configure-pio-ldf
+LDF Modes: Finder ~ chain, Compatibility ~ soft
+Found 0 compatible libraries
+Scanning dependencies...
+No dependencies
+Building in release mode
+Retrieving maximum program size .pio\build\esp32_s3_devkitc1_n16r8\firmware.elf
+Checking size .pio\build\esp32_s3_devkitc1_n16r8\firmware.elf
+Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
+RAM:   [==        ]  16.2% (used 53176 bytes from 327680 bytes)
+Flash: [=====     ]  47.1% (used 3457531 bytes from 7340032 bytes)
+========================= [SUCCESS] Took 9.14 seconds =========================
+
+Environment              Status    Duration
+-----------------------  --------  ------------
+esp32_s3_devkitc1_n16r8  SUCCESS   00:00:09.142
+========================= 1 succeeded in 00:00:09.142 =========================

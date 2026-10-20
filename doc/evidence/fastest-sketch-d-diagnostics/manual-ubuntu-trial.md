@@ -135,7 +135,7 @@ display test display0 fastest-lut trace
 - `ram_bytes`は正常終了したRAMデータwriteのbyte合計。部分的に失敗したwriteの途中byte数は含めないため、error時は下限値。command／LUT byte数は含まない。
 - `full / rows / rect / otp_ram`はRAMを送った**present件数**で、writeコマンド数ではない。`periodic_resync`はfullに含まれる32更新周期再同期の件数。周期同期が必ず区間内32回目に出るわけではなく、Driver履歴を引き継ぐ。startで周期counterをResetしない。
 - `region`は差分領域、`ram_window`は実RAM窓（Driverのnative座標）。rows-dualでは全幅×変更行。これを物理駆動範囲と解釈しない。
-- Queueの`submitted/replaced/cancelled/rejected/writer_coalesced`は既存Executor counterの区間差分。受付と実行は異なる集団なので、pendingがあると要求数と区間physicalは一致しない。rawタッチ座標数・入力線分数ではない。`queue valid=0`なら未取得、`wrapped=1`ならuint32折返しを検出しており比較値に使わない。短区間を使用し、2^32件以上にまたがせない。
+- Queueの`submitted/replaced/cancelled/rejected/writer_coalesced`は既存Executor counterの区間差分。受付と実行は異なる集団なので、pendingがあると要求数と区間physicalは一致しない。rawタッチ座標数・入力線分数ではない。`queue valid=0`なら未取得、`wrapped=1`ならuint32折返しを検出しており比較値に使わない。writer_coalescedは既存の飽和counterなのでUINT32_MAX到達時の差分は欠落し得る。短区間を使用し、上限付近や2^32件以上にまたがせない。
 - Traceは引き続き直近32件。区間集計はそれを超えて保持するが、全更新の時系列は保存しない。診断はRAMのみ、毎更新の動的確保・ログ大量出力・ファイル／NVS保存をしない。試験中の頻繁なstatus/traceは避ける。
 
 ## 7. 主試験：Sketch A／D／E1、各最大約20物理更新

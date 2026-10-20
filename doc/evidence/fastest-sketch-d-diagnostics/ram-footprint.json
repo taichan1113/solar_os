@@ -1,0 +1,21 @@
+{
+  "method": "Offline xtensa-esp32s3-elf-gdb -nx -batch, auto-load off, ELF sizeof only; no target connection",
+  "new_implementation_commit": "e0009c3d546fa67e809d1d00bcb50349a43ebfa8",
+  "old_E1_implementation_commit": "b918c36a1f0b5d1014062149197d4670fde718f1",
+  "old": {
+    "record_bytes": 176,
+    "writer_trial_bytes": 6056,
+    "driver_bytes": 6672
+  },
+  "new": {
+    "record_bytes": 232,
+    "summary_bytes": 320,
+    "writer_trial_bytes": 8376,
+    "driver_bytes": 8992
+  },
+  "additional_fixed_bytes_per_driver": 2320,
+  "host_ABI_writer_trial_bytes": 8384,
+  "per_update_allocations_added": false,
+  "runtime_CPU_overhead_measured": false,
+  "device_accessed": false
+}

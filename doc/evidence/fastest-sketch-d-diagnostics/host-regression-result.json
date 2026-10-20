@@ -1,0 +1,11 @@
+{
+  "returncode": 0,
+  "command": [
+    "env",
+    "CJSON_DIR=/mnt/c/Users/takec/.platformio/packages/framework-espidf/components/json/cJSON",
+    "sh",
+    "tests/host/run_sketch_d_diagnostics.sh"
+  ],
+  "elapsed_seconds": 9.453000000037719,
+  "device_accessed": false
+}
