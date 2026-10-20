@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-20",
+  "refs": {
+    "ours": "6d5c2028ae0db3c31cb8d90a7fba51f13b0b7d9a",
+    "theirs": "2001e13f6547b03cf004edc31ac8aabce8abd330",
+    "base": "1ba98726e0c52f5147c8a565522a94d7b67b0291"
+  },
+  "validated_merge_commit": "cb84d05798a0cb5877b88d1a28c8072044dae2a3",
+  "upstream_merged_tip": "50e195dccac60a607878c9414fcce73938aa8fae",
+  "upstream_missing_before": 195,
+  "upstream_commits_integrated": 5,
+  "upstream_remaining": 190,
+  "full_merge_conflict_files": [
+    ".gitignore",
+    "boards/expansion_drivers.toml",
+    "doc/manual/boards.md",
+    "doc/manual/commands.md",
+    "doc/manual/media.input.md",
+    "patches/nimble/overlay.cmake",
+    "src/apps/solar_os_player.c",
+    "src/apps/solar_os_webradio.c",
+    "src/board/solar_os_board_display.h",
+    "src/drivers/i2c_bus.c",
+    "src/main.c",
+    "src/services/solar_os_ble.c",
+    "src/services/solar_os_ble_backend.h",
+    "src/services/solar_os_display.c",
+    "src/services/solar_os_display.h",
+    "src/services/solar_os_gfx.c",
+    "src/services/solar_os_gfx.h",
+    "src/services/solar_os_media_widgets.c",
+    "src/services/solar_os_sessions.c",
+    "src/services/solar_os_sessions.h",
+    "src/shell/solar_os_shell_commands.c",
+    "src/solar_os.c",
+    "tests/hil/README.md",
+    "tests/host/Makefile"
+  ],
+  "changed_source_files": [
+    "boards/expansion_drivers.toml",
+    "doc/manual/expansion.reference.md",
+    "flavors/full.toml",
+    "packages/solar_os_packages.toml",
+    "src/services/solar_os_stc8h_keyboard.c",
+    "src/services/solar_os_stc8h_keyboard.h",
+    "src/services/solar_os_stc8h_keyboard_driver.c",
+    "src/services/solar_os_tft_display.c"
+  ],
+  "deferred_textually_clean_commits": [
+    "bf7ecd61581052edc88841f35526086e85ea659d",
+    "6ac96690c5876ed55c5f1f834f982ab0818b39fe",
+    "6740c1d280a0a35be19f32a2ca5fb2f5e4569291"
+  ],
+  "host": {
+    "result": "PASS",
+    "executables": 46,
+    "extra_async_restore_failure_run": true,
+    "sketch_trace_python_tests": 9,
+    "elapsed_seconds": 113.10899999999674
+  },
+  "manifests_and_packages": {
+    "result": "PASS",
+    "python_tests": 75,
+    "environment": "WSL Ubuntu-24.04; Windows lacks _curses"
+  },
+  "build": {
+    "returncode": 0,
+    "elapsed_seconds": 243.28200000000652,
+    "command": [
+      "C:\\Users\\takec\\.platformio\\penv\\Scripts\\python.exe",
+      "-m",
+      "platformio",
+      "run",
+      "-e",
+      "esp32_s3_devkitc1_n16r8"
+    ],
+    "cwd": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\upstream-integration-20261020\\worktree",
+    "requested_environment": {
+      "SOLAR_OS_BOARD": "m5paper_mono",
+      "SOLAR_OS_FLAVOR": "writerdeck",
+      "SOLAR_OS_LAYOUT": "ota",
+      "SOLAR_OS_SSD1677_WAVEFORM_TRIAL": "0",
+      "SOLAR_OS_SSD1677_HYBRID_TRIAL": "1",
+      "SOLAR_OS_SKETCH_LATENCY_TRIAL": "0"
+    },
+    "source_commit": "cb84d05798a0cb5877b88d1a28c8072044dae2a3",
+    "source_changes_uncommitted": false,
+    "device_accessed": false,
+    "flash_performed": false,
+    "firmware_bytes": 3459472,
+    "firmware_sha256": "3dc68186899a54c7f8bf80af904488e7f7f60b52f398feb2aeac290e3b1a4dee",
+    "idf": "5.5.5",
+    "gcc": "14.2.0+20260121",
+    "pio_duration_seconds": 242.92
+  },
+  "stc8h_enabled_in_writerdeck": false,
+  "original_worktrees_verified_unchanged_before_final_ff": 35,
+  "device_accessed": false,
+  "flash_performed": false,
+  "remote_main_modified": false,
+  "local_raw_evidence_directory": ".research/upstream-integration-20261020/"
+}
