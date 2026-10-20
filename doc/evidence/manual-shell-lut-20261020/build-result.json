@@ -1,0 +1,30 @@
+{
+  "status": "BUILD_AND_SHELL_HOST_PASS_NOT_FLASHED",
+  "source_branch": "feature/papermono-standalone-lut-trial",
+  "implementation_commit": "1e0408f88eefa7f6f02ae848bbe77ac2989dd8bf",
+  "source_worktree": "/home/bp/Documents/SolarOS/.research/sketch-d-diagnostics/worktree",
+  "panel_flag": "SOLAR_OS_SKETCH_LUT_PANEL_TRIAL=0",
+  "modes": {
+    "1": "A",
+    "2": "D (Sketch A)",
+    "3": "D (Sketch D)",
+    "4": "E1"
+  },
+  "files": {
+    "firmware-app-only.bin": {
+      "bytes": 3465424,
+      "sha256": "b1e78b6eba3639dff58b89cdab834e60ae89703db4eacdfe88d64a1350b1e218"
+    },
+    "partition-table-reference.bin": {
+      "bytes": 3072,
+      "sha256": "fd976d7c1eaa8f9d0a01ac87a8d05fc1cb1e59d3c5970954b30ad0c3aa12a488"
+    },
+    "papermono_e1_flash_audit.py": {
+      "bytes": 6718,
+      "sha256": "8d8189cca8597eaee5df66e0e4c674e54b4d70bb4db14000fc706c3fd8f4ef1a"
+    }
+  },
+  "elf_sha256": "919ebf2e776a9c0fcc8c882c646dfaa0cdf480432adbbd338bcc20d5ec9ee505",
+  "host_checks": "writer_d_shell_test PASS (Terminal/USB, four selections, status, invalid input/IO, no selector SPI commands)",
+  "build_seconds": 124.59
+}
