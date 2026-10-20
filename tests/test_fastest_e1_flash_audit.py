@@ -33,6 +33,17 @@ class OfflineAuditTest(unittest.TestCase):
                         dict(table=b'wrong'),dict(preflight=self.log+'2 memo writer suspended display0\n'),
                         dict(image=b'factory'),dict(full=self.full[:1000])]:
             with self.subTest(changes=list(changes)),self.assertRaises(ValueError):self.plan(**changes)
+    def test_titles_with_spaces_cannot_hide_open_documents(self):
+        for line in ('1 writer untit writer active display0 40/40ms',
+                     '2 Sketch * - u sketch suspended display0 40/30ms',
+                     '3 My saved memo writer suspended display0',
+                     '4\tSketch * - u\tsketch\tactive\tdisplay0'):
+            with self.subTest(line=line), self.assertRaises(ValueError):
+                self.plan(preflight=self.log+line+'\n')
+        # Multiple words in a display Shell title must not hide a valid Shell.
+        self.plan(preflight=self.log.replace('0 shell shell suspended',
+                                             '0 Built in shell shell suspended'))
+
     def test_crc_and_readback_mismatch(self):
         bad=bytearray(self.full);bad[0xd000]^=1
         with self.assertRaises(ValueError):self.plan(full=bytes(bad))

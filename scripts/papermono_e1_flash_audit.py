@@ -16,6 +16,14 @@ import zlib
 def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
+def validate_runtime_sessions(preflight: str) -> None:
+    # TITLE is padded/truncated but may contain spaces ("writer untit",
+    # "Sketch * - u"). Locate APP + STATE, not a single title token.
+    if not re.search(r'^\s*\d+\s+.+?\s+shell\s+(active|suspended)\b',preflight,re.M):
+        raise ValueError('Runtime sessions listing including Shell is required')
+    if re.search(r'^\s*\d+\s+.+?\s+(writer|sketch)\s+(active|suspended)\b',preflight,re.M|re.I):
+        raise ValueError('Save and close every Writer/Sketch session first')
+
 def make_plan(full: bytes, table: bytes, image: bytes, preflight: str) -> dict:
     if len(full) != 16*1024*1024:
         raise ValueError('Expected a fresh, complete 16 MiB Flash read')
@@ -36,10 +44,7 @@ def make_plan(full: bytes, table: bytes, image: bytes, preflight: str) -> dict:
     ranges=sorted((v['offset'],v['offset']+v['size']) for v in partitions.values())
     if any(a[1]>b[0] for a,b in zip(ranges,ranges[1:])):
         raise ValueError('Partition ranges overlap')
-    if not re.search(r'^\s*\d+\s+\S+\s+shell\s+(active|suspended)\b',preflight,re.M):
-        raise ValueError('Runtime sessions listing including Shell is required')
-    if re.search(r'^\s*\d+\s+\S+\s+(writer|sketch)\s',preflight,re.M|re.I):
-        raise ValueError('Save and close every Writer/Sketch session first')
+    validate_runtime_sessions(preflight)
     def slot(label):
         m=re.search(label+r':\s+(ota_[01]) \(slot ([01])\) addr (0x[0-9a-fA-F]+)',preflight)
         if not m: raise ValueError('Runtime Running/Boot OTA records required')
