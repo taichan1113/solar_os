@@ -11,6 +11,7 @@
 extern void wd_control_begin(bool);
 extern void wd_control_end(esp_err_t);
 extern void wd_gate(unsigned);
+extern esp_err_t wd_queue_status(solar_os_display_submission_status_t *);
 static epd_ssd1677_t device;
 static controller_ram_t model;
 static bool observing, fail_restore;
@@ -19,6 +20,8 @@ static void bridge_begin(void *p, epd_ssd1677_operation_t op)
 { (void)p; wd_control_begin(op==EPD_SSD1677_OP_PRESENT || op==EPD_SSD1677_OP_SLEEP); }
 static void bridge_end(void *p, epd_ssd1677_operation_t op, esp_err_t err)
 { (void)p; (void)op; (void)err; wd_control_end(device.faulted ? ESP_FAIL : ESP_OK); }
+static esp_err_t bridge_queue(void *p, solar_os_display_submission_status_t *s)
+{ (void)p; return wd_queue_status(s); }
 esp_err_t ssd1677_test_transport_hook(bool command, uint8_t cmd)
 {
     if(!observing || !command) return ESP_OK;
@@ -44,6 +47,7 @@ void wd_panel_init(uint8_t *out)
     assert(epd_ssd1677_present_snapshot(&device,frame,sizeof(frame))==ESP_OK);
     controller_seed(&model,&device); model.swap_after_activation=true;
     device.execution_context=&device; device.operation_begin=bridge_begin; device.operation_end=bridge_end;
+    device.submission_status=bridge_queue;
     device.writer_trial.baseline_selected=false; /* Display-wide default D. */
     memcpy(out,frame,sizeof(frame)); observing=true;
 }

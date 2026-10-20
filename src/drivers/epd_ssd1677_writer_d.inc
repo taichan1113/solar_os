@@ -11,6 +11,9 @@ static void writer_d_activation(epd_ssd1677_t *d)
 {
     epd_ssd1677_writer_trial_t *t = &d->writer_trial;
     if (t->power_control) { writer_d_count(&t->status.power_controls); return; }
+    writer_d_count(&t->activation_sequence);
+    if (!t->current.physical) t->current.activation_first_seq = t->activation_sequence;
+    t->current.activation_last_seq = t->activation_sequence;
     t->current.physical++;
     if (t->used_d) writer_d_count(&t->status.d_physical);
     else if (t->used_e1) writer_d_count(&t->status.e1_physical);
@@ -28,7 +31,7 @@ static bool writer_d_select(epd_ssd1677_t *d, bool cold)
     epd_ssd1677_writer_trial_t *t = &d->writer_trial;
     t->used_d = t->used_e1 = t->restored = false;
     t->reference = true;
-    if ((t->origin.is_sketch && !t->e1_selected) || t->baseline_selected || atomic_load(&writer_d_failed) ||
+    if ((t->origin.is_sketch && !t->e1_selected && !t->sketch_d_selected) || t->baseline_selected || atomic_load(&writer_d_failed) ||
         d->refresh_mode != EPD_SSD1677_REFRESH_FASTEST) return false;
     /* A known optical/Shadow baseline is required by the existing dispatcher.
      * Cold custom entry still performs its normal reset/full-RAM preparation,
@@ -50,6 +53,8 @@ static bool writer_d_select(epd_ssd1677_t *d, bool cold)
     writer_d_count(t->used_e1 ? &t->status.e1_attempts : &t->status.attempts);
     return true;
 }
+
+#include "epd_ssd1677_trial_stats.inc"
 
 static void writer_d_finish(epd_ssd1677_t *d, esp_err_t err)
 {
@@ -80,7 +85,7 @@ static void writer_d_finish(epd_ssd1677_t *d, esp_err_t err)
     r->restored = t->restored;
     r->error = err;
     r->end_us = esp_timer_get_time();
-    if (r->physical || t->reference) {
+    if (r->timing_valid) {
         for (unsigned i = 0; i < d->timing.writes; i++) {
             r->ram_bytes += d->timing.ram_data_bytes[i];
             r->spi_us += d->timing.spi_us[i];
@@ -96,6 +101,7 @@ static void writer_d_finish(epd_ssd1677_t *d, esp_err_t err)
     }
     writer_d_count(&t->status.records);
     r->seq = t->status.records;
+    writer_trial_finish(d, r);
     /* Ring position is independent of the saturating total/sequence counter. */
     t->records[t->status.trace_next] = *r;
     t->status.trace_next = (t->status.trace_next + 1) % SSD1677_WRITER_D_RECORDS;
@@ -112,7 +118,7 @@ esp_err_t epd_ssd1677_writer_lut(epd_ssd1677_t *d, const char *mode,
     operation_begin(d, EPD_SSD1677_OP_READ);
     epd_ssd1677_writer_trial_t *t = &d->writer_trial;
     esp_err_t err = ESP_OK;
-    if (!strcmp(mode, "candidate_d") || !strcmp(mode, "candidate_e1")) {
+    if (!strcmp(mode, "candidate_d") || !strcmp(mode, "candidate_e1") || !strcmp(mode, "candidate_d_sketch")) {
         if (atomic_load(&writer_d_failed) ||
             d->faulted || !d->operation_begin || !d->execution_context || !d->papermono_otp ||
             d->refresh_mode != EPD_SSD1677_REFRESH_FASTEST || !d->fastest_tiles ||
@@ -121,14 +127,19 @@ esp_err_t epd_ssd1677_writer_lut(epd_ssd1677_t *d, const char *mode,
         else {
             t->baseline_selected = false;
             t->e1_selected = !strcmp(mode, "candidate_e1");
+            t->sketch_d_selected = !strcmp(mode, "candidate_d_sketch");
         }
     } else if (!strcmp(mode, "baseline") || !strcmp(mode, "disable")) {
         t->baseline_selected = true;
         t->e1_selected = false;
+        t->sketch_d_selected = false;
     }
+    else if (!strcmp(mode, "trial-start") || !strcmp(mode, "trial-status") || !strcmp(mode, "trial-stop"))
+        err = writer_trial_control(d, mode);
     else if (strcmp(mode, "status") && strcmp(mode, "trace")) err = ESP_ERR_INVALID_ARG;
     t->status.enabled = !t->baseline_selected && !atomic_load(&writer_d_failed) && !d->faulted;
     t->status.candidate_e1 = t->e1_selected;
+    t->status.candidate_d_sketch = t->sketch_d_selected;
     t->status.failed = atomic_load(&writer_d_failed);
     if (status) *status = t->status;
     if (records) memcpy(records, t->records, sizeof(t->records));

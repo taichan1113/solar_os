@@ -485,6 +485,8 @@ static esp_err_t ssd1677_papermono_write(epd_ssd1677_t *display, uint8_t command
     const unsigned i = t->writes++;
     t->write_start_us[i] = esp_timer_get_time();
     const esp_err_t err = ssd1677_write_plane(display, command, source, window, invert);
+    if (err == ESP_OK) t->ram_data_bytes[i] =
+        (window->x_end_byte - window->x_start_byte + 1U) * (window->y_end - window->y_start + 1U);
     t->write_end_us[i] = esp_timer_get_time();
     return err;
 }
@@ -563,6 +565,12 @@ static esp_err_t ssd1677_papermono_refresh(epd_ssd1677_t *display)
         .x_start_byte = 0, .x_end_byte = SSD1677_PANEL_ROW_BYTES - 1,
         .y_start = 0, .y_end = SSD1677_HEIGHT - 1,
     };
+#if SOLAR_OS_SSD1677_WRITER_D
+    display->writer_trial.current.timing_valid = true;
+    display->writer_trial.current.ram_path = SSD1677_RAM_OTP;
+    display->writer_trial.current.ram_width = SSD1677_WIDTH;
+    display->writer_trial.current.ram_height = SSD1677_HEIGHT;
+#endif
     const uint8_t sync = 0xf8, full = 0x14, sleep = 0x01;
     if (partial) {
         /* Mode-1 sleep retained RAM with power ON. Wake without software reset.

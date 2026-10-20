@@ -1,10 +1,52 @@
 /* USB-only display-wide control. Legacy writer-lut is a compatibility alias. */
+static const char *writer_lut_ram_path(epd_ssd1677_ram_path_t path)
+{
+    return path == SSD1677_RAM_FULL ? "full" : path == SSD1677_RAM_ROWS ? "rows" :
+           path == SSD1677_RAM_RECT ? "rect" : path == SSD1677_RAM_OTP ? "otp" : "none";
+}
+
+static void writer_lut_metric(solar_os_shell_io_t *io, const char *name,
+                               const epd_ssd1677_trial_metric_t *m)
+{
+    solar_os_shell_io_printf(io, "trial %s samples=%llu sum_us=%llu min_us=%llu max_us=%llu avg_us=%llu\n",
+        name, (unsigned long long)m->count, (unsigned long long)m->sum_us,
+        (unsigned long long)m->min_us, (unsigned long long)m->max_us,
+        (unsigned long long)(m->count ? m->sum_us / m->count : 0));
+}
+
+static void writer_lut_summary(solar_os_shell_io_t *io, const epd_ssd1677_trial_summary_t *s)
+{
+    solar_os_shell_io_printf(io,
+        "trial started=%u active=%u start_us=%lld end_us=%lld elapsed_us=%lld seq=%llu,%llu frames=%llu physical=%llu A=%llu D=%llu E1=%llu OTP=%llu noop=%llu error=%llu overflow=%u\n",
+        s->started, s->active, (long long)s->start_us, (long long)s->end_us,
+        (long long)(s->end_us - s->start_us), (unsigned long long)s->first_seq,
+        (unsigned long long)s->last_seq, (unsigned long long)s->frames,
+        (unsigned long long)s->physical, (unsigned long long)s->a, (unsigned long long)s->d,
+        (unsigned long long)s->e1, (unsigned long long)s->otp,
+        (unsigned long long)s->noop, (unsigned long long)s->errors, s->overflow);
+    solar_os_shell_io_printf(io,
+        "trial source writer=%llu sketch=%llu other=%llu ram_bytes=%llu full=%llu rows=%llu rect=%llu otp_ram=%llu periodic_resync=%llu timing_missing=%llu\n",
+        (unsigned long long)s->writer, (unsigned long long)s->sketch, (unsigned long long)s->other,
+        (unsigned long long)s->ram_bytes, (unsigned long long)s->full_ram,
+        (unsigned long long)s->rows_ram, (unsigned long long)s->rect_ram, (unsigned long long)s->otp_ram,
+        (unsigned long long)s->periodic_resync, (unsigned long long)s->timing_missing);
+    writer_lut_metric(io, "busy", &s->busy);
+    writer_lut_metric(io, "activation_start_to_start", &s->start_gap);
+    writer_lut_metric(io, "busy_ready_to_next_start", &s->ready_gap);
+    solar_os_shell_io_printf(io,
+        "trial queue valid=%u wrapped=%u submitted=%llu replaced=%llu cancelled=%llu rejected=%llu writer_coalesced=%llu pending_start=%u pending_end=%u\n",
+        s->queue_valid, s->queue_wrapped, (unsigned long long)s->submitted,
+        (unsigned long long)s->replaced, (unsigned long long)s->cancelled,
+        (unsigned long long)s->rejected, (unsigned long long)s->writer_coalesced,
+        s->pending_start, s->pending_end);
+}
+
 static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **argv)
 {
     if (argc != 5 || strcmp(argv[2], "display0") ||
         solar_os_shell_io_kind(io) != SOLAR_OS_SHELL_IO_KIND_PORT) {
         solar_os_shell_io_writeln(io,
-            "USB: display test display0 fastest-lut status|baseline|candidate_d|candidate_e1|disable|trace (writer-lut alias)");
+            "USB: display test display0 fastest-lut status|baseline|candidate_d|candidate_e1|candidate_d_sketch|disable|trace|trial-start|trial-status|trial-stop (writer-lut alias)");
         return;
     }
     solar_os_display_target_t target;
@@ -22,14 +64,15 @@ static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **arg
     epd_ssd1677_writer_status_t s;
     const esp_err_t err = epd_ssd1677_writer_lut(d, argv[4], &s, records);
     solar_os_shell_io_printf(io,
-        "fastest-lut err=%d mode=%s scope=%s attempts=%llu D0x20=%llu success=%llu error=%llu driver_error=%llu failed=%u E1_attempts=%llu E10x20=%llu E1_success=%llu E1_error=%llu\n",
+        "fastest-lut err=%d mode=%s scope=%s attempts=%llu D0x20=%llu success=%llu error=%llu driver_error=%llu failed=%u E1_attempts=%llu E10x20=%llu E1_success=%llu E1_error=%llu sketch_d_trial=%u\n",
         (int)err, s.enabled ? (s.candidate_e1 ? "E1" : "D") : "A",
-        s.enabled && !s.candidate_e1 ? "all-apps-except-sketch" : "all-apps",
+        s.enabled && !s.candidate_e1 && !s.candidate_d_sketch ? "all-apps-except-sketch" : "all-apps",
         (unsigned long long)s.attempts, (unsigned long long)s.d_physical,
         (unsigned long long)s.d_success, (unsigned long long)s.d_errors,
         (unsigned long long)s.driver_errors, s.failed,
         (unsigned long long)s.e1_attempts, (unsigned long long)s.e1_physical,
-        (unsigned long long)s.e1_success, (unsigned long long)s.e1_errors);
+        (unsigned long long)s.e1_success, (unsigned long long)s.e1_errors, s.candidate_d_sketch);
+    if (!strncmp(argv[4], "trial-", 6)) writer_lut_summary(io, &s.trial);
     uint64_t total = 0;
     const uint64_t counts[] = {s.a_physical, s.d_physical, s.e1_physical, s.otp_physical};
     for (unsigned i = 0; i < sizeof(counts)/sizeof(counts[0]); i++)
@@ -73,6 +116,12 @@ static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **arg
                 (unsigned long long)r->seq, (long long)r->ram_start_us, (long long)r->ram_end_us,
                 (long long)r->activation_us, (long long)r->ready_us, (long long)r->spi_us,
                 (long long)r->lut_us, (long long)r->restore_us);
+            solar_os_shell_io_printf(io,
+                "WL diag seq=%llu activation_seq=%llu,%llu ram_path=%s ram_window=%u,%u,%u,%u periodic_resync=%u busy_us=%lld start_gap_us=%lld ready_gap_us=%lld timing_valid=%u\n",
+                (unsigned long long)r->seq, (unsigned long long)r->activation_first_seq,
+                (unsigned long long)r->activation_last_seq, writer_lut_ram_path(r->ram_path),
+                r->ram_x, r->ram_y, r->ram_width, r->ram_height, r->periodic_resync,
+                (long long)r->busy_us, (long long)r->start_gap_us, (long long)r->ready_gap_us, r->timing_valid);
         }
         free(records);
     }

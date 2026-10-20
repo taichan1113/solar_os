@@ -35,6 +35,7 @@ static void command(const char *mode,int port)
 }
 int main(void)
 {
+    char invalid_state[32]; snprintf(invalid_state,sizeof(invalid_state),"err=%d",ESP_ERR_INVALID_STATE);
     device=make_display(); device.papermono_otp=true; device.fastest_tiles=true;
     device.fastest_spi_hz=20000000; device.band_buffer=band;
     assert(epd_ssd1677_set_controller_mode(&device,"refresh=fastest")==ESP_OK);
@@ -50,10 +51,22 @@ int main(void)
     device.writer_trial.status.trace_count=device.writer_trial.status.trace_next=1;
     command("trace",2); assert(strstr(output,"source=sketch mode=E1 0x20=1"));
     command("candidate_d",2); assert(!device.writer_trial.e1_selected && strstr(output,"mode=D scope=all-apps-except-sketch"));
+    command("candidate_d_sketch",2); assert(device.writer_trial.sketch_d_selected &&
+        strstr(output,"mode=D scope=all-apps") && strstr(output,"sketch_d_trial=1"));
+    command("trial-status",2); assert(strstr(output,"trial started=0 active=0"));
+    command("trial-stop",2); assert(strstr(output,invalid_state));
+    command("trial-start",2); assert(strstr(output,"trial started=1 active=1"));
+    command("trial-start",2); assert(strstr(output,invalid_state) && device.writer_trial.status.trial.active);
+    command("trial-stop",2); assert(strstr(output,"trial started=1 active=0") &&
+        strstr(output,"activation_start_to_start") && strstr(output,"busy_ready_to_next_start") && strstr(output,"queue valid=0"));
+    command("trace",2); assert(strstr(output,"WL diag seq=") && strstr(output,"ram_window="));
+    command("candidate_d",2); assert(!device.writer_trial.sketch_d_selected && strstr(output,"scope=all-apps-except-sketch"));
     command("disable",2); assert(!!device.writer_trial.baseline_selected);
     assert(!device.writer_trial.e1_selected);
     command("candidate_e1",1); assert(device.writer_trial.baseline_selected && strstr(output,"USB:"));
     command("candidate_d",1); assert(!!device.writer_trial.baseline_selected && strstr(output,"USB:"));
+    command("candidate_d_sketch",1); assert(!device.writer_trial.sketch_d_selected && strstr(output,"USB:"));
+    command("trial-start",1); assert(!device.writer_trial.status.trial.active && strstr(output,"USB:"));
     command("unknown",2); assert(strstr(output,"err="));
     command("trace",2); assert(strstr(output,"queue submitted=") && strstr(output,"display physical="));
     device.writer_trial.status.attempts=1000;

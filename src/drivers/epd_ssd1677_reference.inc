@@ -194,11 +194,17 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     d->transport_spi_hz = d->fastest_spi_hz;
     const ssd1677_window_t full = {0, SSD1677_PANEL_ROW_BYTES-1, 0, SSD1677_HEIGHT-1};
     d->timing = (epd_ssd1677_timing_t){.start_us=start, .partial=true, .diff_us=diff_end-start};
+#if SOLAR_OS_SSD1677_WRITER_D
+    d->writer_trial.current.timing_valid = true;
+#endif
     d->papermono_baseline_valid = false;
     const bool cold = !d->reference_awake;
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
     if (d->dirty_hold_trial && d->dirty_hold_dual_sync &&
         d->dirty_hold_dual_updates >= 32U) {
+#if SOLAR_OS_SSD1677_WRITER_D
+        d->writer_trial.current.periodic_resync = true;
+#endif
         d->dirty_hold_ram_synced = false;
         d->dirty_hold_dual_updates = 0;
         ESP_LOGI(TAG, "Dirty RAM dual: periodic full-RAM resync after 32 updates");
@@ -224,6 +230,20 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     if (writer_d_select(d, cold)) {
         lut = d->writer_trial.used_e1 ? ssd1677_trial_black_hold_e1_lut : ssd1677_trial_black_hold_d_lut;
         waveform_name = d->writer_trial.used_e1 ? "candidate_e1" : "candidate_d";
+    }
+    {
+        epd_ssd1677_writer_record_t *r = &d->writer_trial.current;
+#if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
+        const ssd1677_window_t *w = narrow ? &ram_window : &full;
+        r->ram_path = narrow ? (d->dirty_hold_full_width ? SSD1677_RAM_ROWS : SSD1677_RAM_RECT) : SSD1677_RAM_FULL;
+#else
+        const ssd1677_window_t *w = &full;
+        r->ram_path = SSD1677_RAM_FULL;
+#endif
+        r->ram_x = w->x_start_byte * 8U;
+        r->ram_y = w->y_start;
+        r->ram_width = (w->x_end_byte - w->x_start_byte + 1U) * 8U;
+        r->ram_height = w->y_end - w->y_start + 1U;
     }
     { /* Record all app updates; the source never gates compensation. */
         d->writer_trial.current.x = dirty.x_start_byte * 8;

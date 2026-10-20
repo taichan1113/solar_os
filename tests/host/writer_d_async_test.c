@@ -18,6 +18,8 @@ static struct {
 } live={.mutex=PTHREAD_MUTEX_INITIALIZER,.cond=PTHREAD_COND_INITIALIZER};
 void wd_control_begin(bool discard) { solar_os_display_async_control_begin(live.a,discard); }
 void wd_control_end(esp_err_t err) { solar_os_display_async_control_end(live.a,-1,err); }
+esp_err_t wd_queue_status(solar_os_display_submission_status_t *s)
+{ solar_os_display_async_status(live.a,s); return ESP_OK; }
 void wd_gate(unsigned phase)
 {
     pthread_mutex_lock(&live.mutex);
@@ -71,14 +73,17 @@ static void wait_control_barrier(void)
 int main(int argc,char **argv)
 {
     const bool e1=argc>1 && (!strcmp(argv[1],"e1") || !strcmp(argv[1],"e1-restore-fail"));
-    const bool failure=argc>1 && (!strcmp(argv[1],"restore-fail") || !strcmp(argv[1],"e1-restore-fail"));
+    const bool sketchd=argc>1 && (!strcmp(argv[1],"sketch-d") || !strcmp(argv[1],"sketch-d-restore-fail"));
+    const bool failure=argc>1 && (!strcmp(argv[1],"restore-fail") || !strcmp(argv[1],"e1-restore-fail") || !strcmp(argv[1],"sketch-d-restore-fail"));
     uint8_t image[48000]; wd_panel_init(image);
     assert(solar_os_display_async_create(48000,panel_execute,NULL,&live.a)==ESP_OK);
     epd_ssd1677_writer_status_t initial; wd_status(&initial);
     assert(initial.enabled); /* No manual activation after ordinary boot. */
     if(e1) assert(wd_mode("candidate_e1")==ESP_OK);
+    if(sketchd) assert(wd_mode("candidate_d_sketch")==ESP_OK);
     if(failure) {
-        wd_fail_restore(); input(image,0,false); wait_count(&live.activations,1);
+        assert(wd_mode("trial-start")==ESP_OK);
+        wd_fail_restore(); input(image,0,sketchd?2:0); wait_count(&live.activations,1);
         input(image,1,true); release_panel(1);
         assert(solar_os_display_async_wait(live.a,2000)==ESP_FAIL);
         epd_ssd1677_writer_status_t s; wd_status(&s);
@@ -87,9 +92,50 @@ int main(int argc,char **argv)
         else assert(s.attempts==1 && s.d_physical==1 && s.d_errors==1);
         assert(wd_mode("candidate_d")==ESP_ERR_INVALID_STATE);
         assert(wd_mode("candidate_e1")==ESP_ERR_INVALID_STATE);
+        assert(wd_mode("candidate_d_sketch")==ESP_ERR_INVALID_STATE);
+        assert(wd_mode("trial-stop")==ESP_OK); wd_status(&s);
+        assert(s.trial.physical==1 && s.trial.errors==1 && s.trial.timing_missing==1);
         solar_os_display_submission_status_t q; solar_os_display_async_status(live.a,&q);
         assert(q.error==ESP_FAIL && q.writer_cancelled==1 && live.activations==1);
         puts("writer D async: actual Baseline restore failure stops worker/pending, no refund PASS");
+    } else if(sketchd) {
+        assert(wd_mode("trial-start")==ESP_OK);
+        const char *active[]={"candidate_d_sketch","candidate_d","candidate_d_sketch","candidate_e1","candidate_d_sketch"};
+        const char *pending[]={"candidate_d","candidate_d_sketch","candidate_e1","candidate_d_sketch","baseline"};
+        for(unsigned i=0;i<5;i++) {
+            assert(wd_mode(active[i])==ESP_OK);
+            live.block_restore=i==0;
+            input(image,2*i,2); wait_count(&live.activations,2*i+1);
+            input(image,2*i+1,2);
+            pthread_t control; live.control_done=false;
+            assert(!pthread_create(&control,NULL,change_mode,(void *)pending[i]));
+            wait_control_barrier(); release_panel(1);
+            if(!i) {
+                wait_count(&live.restores,1);
+                pthread_mutex_lock(&live.mutex);
+                assert(!live.control_done && live.activations==1);
+                live.restore_permits++; pthread_cond_broadcast(&live.cond); pthread_mutex_unlock(&live.mutex);
+            }
+            pthread_join(control,NULL); live.block_restore=false;
+            wait_count(&live.activations,2*i+2); release_panel(1);
+            assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
+            assert(live.seen[2*i].is_sketch && live.seen[2*i+1].is_sketch);
+        }
+        epd_ssd1677_writer_status_t s; wd_status(&s);
+        assert(s.trial.physical==10 && s.trial.sketch==10 && s.trial.d==5 && s.trial.a==3 && s.trial.e1==2);
+        /* Stop joins the active frame but preserves pending; pending may run
+         * after stop and must not enter the frozen summary. Queue accepted it. */
+        assert(wd_mode("candidate_d_sketch")==ESP_OK);
+        input(image,10,2); wait_count(&live.activations,11); input(image,11,2);
+        pthread_t stop; assert(!pthread_create(&stop,NULL,change_mode,"trial-stop"));
+        wait_control_barrier(); release_panel(1); pthread_join(stop,NULL);
+        wait_count(&live.activations,12); release_panel(1);
+        assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
+        wd_status(&s);
+        assert(!s.trial.active && s.trial.physical==11 && s.trial.d==6 && s.trial.sketch==11);
+        assert(s.trial.submitted==12 && s.trial.pending_end && !s.trial.replaced && s.trial.queue_valid);
+        assert(s.candidate_d_sketch && !s.failed && !s.driver_errors);
+        puts("Sketch D actual Async: BUSY/restore/pending D<->A/E1, source/RAM retained; trial-stop fences and pending cohort PASS");
     } else if(e1) {
         /* E1 active Sketch + pending Sketch: D must wait through E1 restore,
          * then pending keeps its Sketch origin and chooses the D-mode A exception. */

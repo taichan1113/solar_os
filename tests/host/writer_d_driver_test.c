@@ -73,10 +73,10 @@ static void test_normal_dirty(bool r2, bool swap)
     assert(!d.writer_trial.status.attempts); /* no-op cannot count a D update */
     /* A/D/E1 share three rows-dual payloads, address windows and voltages. */
     static captured_command_t saved[128]; size_t saved_count=0;
-    for(unsigned candidate=0;candidate<3;candidate++) {
+    for(unsigned candidate=0;candidate<4;candidate++) {
         /* Same old/new image in two independent Driver states. */
         epd_ssd1677_t before=d; uint8_t old[48000]; memcpy(old,shadow,sizeof(old));
-        const char *mode=candidate==2?"candidate_e1":candidate?"candidate_d":"baseline";
+        const char *mode=candidate==3?"candidate_d_sketch":candidate==2?"candidate_e1":candidate?"candidate_d":"baseline";
         assert(epd_ssd1677_writer_lut(&d,mode,NULL,NULL)==ESP_OK);
         u8g2_DrawPixel(&d.u8g2,700,321); command_count=0;
         const unsigned px=r2?99:700, py=r2?158:321;
@@ -102,8 +102,8 @@ static void test_normal_dirty(bool r2, bool swap)
             assert(model->classes[0]>0); /* global RAM model, not proof of optical scope */
         }
         assert(d.writer_trial.current.candidate_e1==(candidate==2));
-        assert(d.writer_trial.current.candidate_d==(candidate==1));
-        if(candidate<2) {
+        assert(d.writer_trial.current.candidate_d==(candidate==1 || candidate==3));
+        if(candidate<3) {
             d=before; memcpy(shadow,old,sizeof(old)); u8g2_DrawPixel(&d.u8g2,700,321);
             controller_seed(model,&d); model->swap_after_activation=swap;
         }
@@ -351,6 +351,7 @@ static void test_faults(void)
     }
     puts("writer D: LUT/BUSY/post-sync failure latches, no retries/refund PASS");
 }
+#include "sketch_d_diagnostics_cases.inc"
 int main(void)
 {
     test_lut();
@@ -359,5 +360,6 @@ int main(void)
     test_synchronous_u8g2();
     test_sketch_exception();
     test_e1_modes(); test_e1_faults();
+    test_sketch_d_modes(); test_trial_summary(); test_trial_times_and_overflow(); test_trial_failure();
     puts("writer_d_driver_test: PASS"); return 0;
 }

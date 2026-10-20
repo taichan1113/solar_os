@@ -64,6 +64,9 @@ static void stop_executor(solar_os_ssd1677_device_t *device)
     device->driver.operation_begin = NULL;
     device->driver.operation_end = NULL;
     device->driver.execution_context = NULL;
+#if SOLAR_OS_SSD1677_WRITER_D
+    device->driver.submission_status = NULL;
+#endif
 }
 
 static esp_err_t execute_frame(void *context, const uint8_t *frame, size_t size, bool *physical)
@@ -559,6 +562,9 @@ esp_err_t solar_os_ssd1677_attach(const char *name,
             device->driver.execution_context = device;
             device->driver.operation_begin = begin_operation;
             device->driver.operation_end = end_operation;
+#if SOLAR_OS_SSD1677_WRITER_D
+            device->driver.submission_status = frame_status;
+#endif
             device->display.submission = (solar_os_display_submission_t) {
                 .context = device, .submit = submit_frame, .wait = wait_frame, .status = frame_status,
 #if SOLAR_OS_SSD1677_WRITER_D

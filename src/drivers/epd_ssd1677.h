@@ -106,6 +106,9 @@ typedef struct {
 #endif
 #if SOLAR_OS_SSD1677_WRITER_D
     epd_ssd1677_writer_trial_t writer_trial;
+    /* Read-only existing Executor counters, sampled only by USB diagnostics
+     * under the existing operation barrier. Never called per physical update. */
+    esp_err_t (*submission_status)(void *, solar_os_display_submission_status_t *);
 #endif
     void *execution_context;
     void (*operation_begin)(void *, epd_ssd1677_operation_t);
