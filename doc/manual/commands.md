@@ -262,6 +262,7 @@ job for periodic polling.
 | `identity` | `identity user <name>` | Save the SolarOS user and default SSH/SCP username in NVS. |
 | `identity` | `identity hostname <name>` | Save the device hostname in NVS; reboot to update Wi-Fi. |
 | `engine` | `engine [status|reset]` | Print or reset generic engine utilization counters for CPU/SIMD-style backends and vector bulk operations. |
+| `lut` | `lut [1\|2\|3\|4\|status]` | PaperMono trial build: choose A, D (Sketch A), D (Sketch D), or E1 for all apps from device or USB Shell. Selection survives app switches until reboot; no argument shows status. |
 | `display` | `display [list]`; `display layouts`; `display test <target> [pattern]`; `display mode <target> [mode]` | List targets and layouts, draw a test pattern, or change driver-specific display settings. Optional static e-paper patterns: `white`, `black`, `half`, `box-left`, `box-right`, `corners`, `fine`. |
 | `display` | `display join <name> --horizontal\|--vertical <target> <target> [target ...]`; `display unjoin <name>` | Join two to four physical targets into one logical display, or remove the join. |
 | `display` | `display split <target> --horizontal\|--vertical <first> <second>`; `display unsplit <target>` | Split one physical target into two equal logical viewports, or remove the split. |

@@ -279,7 +279,7 @@ static void display_print_usage(solar_os_shell_io_t *term)
     solar_os_shell_io_writeln(term, "  display layouts");
     solar_os_shell_io_writeln(term, "  display test <target> [white|black|half|box-left|box-right|corners|fine]");
 #if SOLAR_OS_SSD1677_WRITER_D
-    solar_os_shell_io_writeln(term, "  display test display0 fastest-lut status|baseline|candidate_d|candidate_e1|candidate_d_sketch|disable|trace|trial-start|trial-status|trial-stop (USB; writer-lut alias)");
+    solar_os_shell_io_writeln(term, "  display test display0 fastest-lut status|baseline|candidate_d|candidate_e1|candidate_d_sketch|disable|trace|trial-start|trial-status|trial-stop (device Shell / USB; writer-lut alias)");
     solar_os_shell_io_writeln(term, "    All apps except Sketch default to D; Sketch uses A; baseline/disable selects A globally; no cumulative limit");
 #endif
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
@@ -815,6 +815,13 @@ static void display_cmd_async(solar_os_shell_io_t *io, int argc, char **argv)
         (unsigned long long)s.submitted_id, (unsigned long long)s.completed_id,
         (unsigned long long)s.cancelled_id, (unsigned)s.snapshot_bytes, s.peak_outstanding);
 }
+
+#if SOLAR_OS_SSD1677_WRITER_D
+void solar_os_shell_cmd_lut(solar_os_context_t *ctx, int argc, char **argv)
+{
+    display_cmd_lut(terminal(ctx), argc, argv);
+}
+#endif
 
 void solar_os_shell_cmd_display(solar_os_context_t *ctx, int argc, char **argv)
 {

@@ -1,4 +1,4 @@
-/* USB-only display-wide control. Legacy writer-lut is a compatibility alias. */
+/* Device Shell and USB display-wide control. Legacy writer-lut is a compatibility alias. */
 static const char *writer_lut_ram_path(epd_ssd1677_ram_path_t path)
 {
     return path == SSD1677_RAM_FULL ? "full" : path == SSD1677_RAM_ROWS ? "rows" :
@@ -44,9 +44,10 @@ static void writer_lut_summary(solar_os_shell_io_t *io, const epd_ssd1677_trial_
 static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **argv)
 {
     if (argc != 5 || strcmp(argv[2], "display0") ||
-        solar_os_shell_io_kind(io) != SOLAR_OS_SHELL_IO_KIND_PORT) {
+        (solar_os_shell_io_kind(io) != SOLAR_OS_SHELL_IO_KIND_PORT &&
+         solar_os_shell_io_kind(io) != SOLAR_OS_SHELL_IO_KIND_TERMINAL)) {
         solar_os_shell_io_writeln(io,
-            "USB: display test display0 fastest-lut status|baseline|candidate_d|candidate_e1|candidate_d_sketch|disable|trace|trial-start|trial-status|trial-stop (writer-lut alias)");
+            "display test display0 fastest-lut status|baseline|candidate_d|candidate_e1|candidate_d_sketch|disable|trace|trial-start|trial-status|trial-stop (writer-lut alias)");
         return;
     }
     solar_os_display_target_t target;
@@ -125,4 +126,26 @@ static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **arg
         }
         free(records);
     }
+}
+
+/* Short form for the device keyboard; selection lives in the display driver. */
+static void display_cmd_lut(solar_os_shell_io_t *io, int argc, char **argv)
+{
+    const char *mode = "status";
+    if (argc == 2) {
+        if (!strcmp(argv[1], "1")) mode = "baseline";
+        else if (!strcmp(argv[1], "2")) mode = "candidate_d";
+        else if (!strcmp(argv[1], "3")) mode = "candidate_d_sketch";
+        else if (!strcmp(argv[1], "4")) mode = "candidate_e1";
+        else if (strcmp(argv[1], "status")) {
+            solar_os_shell_io_writeln(io, "usage: lut [1|2|3|4|status]");
+            return;
+        }
+    } else if (argc != 1) {
+        solar_os_shell_io_writeln(io, "usage: lut [1|2|3|4|status]");
+        return;
+    }
+    solar_os_shell_io_writeln(io, "1: A  2: D (Sketch A)  3: D (Sketch D)  4: E1");
+    char *args[] = {"display", "test", "display0", "fastest-lut", (char *)mode};
+    display_cmd_writer_lut(io, 5, args);
 }

@@ -34,6 +34,9 @@ void solar_os_shell_cmd_daq(solar_os_context_t *ctx, int argc, char **argv);
 void solar_os_shell_cmd_date(solar_os_context_t *ctx, int argc, char **argv);
 void solar_os_shell_cmd_deepsleep(solar_os_context_t *ctx, int argc, char **argv);
 void solar_os_shell_cmd_df(solar_os_context_t *ctx, int argc, char **argv);
+#if SOLAR_OS_SSD1677_WRITER_D
+void solar_os_shell_cmd_lut(solar_os_context_t *ctx, int argc, char **argv);
+#endif
 void solar_os_shell_cmd_display(solar_os_context_t *ctx, int argc, char **argv);
 void solar_os_shell_cmd_help(solar_os_context_t *ctx, int argc, char **argv);
 #if SOLAR_OS_PACKAGE_APP_EMAIL

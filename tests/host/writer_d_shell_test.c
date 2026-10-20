@@ -4,6 +4,7 @@
 #include "epd_ssd1677_dirty_hold_test.c"
 #include "../../src/services/solar_os_display_submission.h"
 
+#define SOLAR_OS_SHELL_IO_KIND_TERMINAL 1
 #define SOLAR_OS_SHELL_IO_KIND_PORT 2
 typedef struct { int port; } solar_os_shell_io_t;
 typedef struct { bool ready; u8g2_t *u8g2; const char *driver; } solar_os_display_target_t;
@@ -63,10 +64,28 @@ int main(void)
     command("candidate_d",2); assert(!device.writer_trial.sketch_d_selected && strstr(output,"scope=all-apps-except-sketch"));
     command("disable",2); assert(!!device.writer_trial.baseline_selected);
     assert(!device.writer_trial.e1_selected);
-    command("candidate_e1",1); assert(device.writer_trial.baseline_selected && strstr(output,"USB:"));
-    command("candidate_d",1); assert(!!device.writer_trial.baseline_selected && strstr(output,"USB:"));
-    command("candidate_d_sketch",1); assert(!device.writer_trial.sketch_d_selected && strstr(output,"USB:"));
-    command("trial-start",1); assert(!device.writer_trial.status.trial.active && strstr(output,"USB:"));
+    for (int port = 1; port <= 2; port++) {
+        solar_os_shell_io_t io = {port};
+        const char *choices[] = {"1", "2", "3", "4"};
+        for (unsigned i = 0; i < 4; i++) {
+            char *args[] = {"lut", (char *)choices[i]};
+            used = 0; output[0] = 0; command_count = 0;
+            display_cmd_lut(&io, 2, args);
+            assert(!command_count && strstr(output, "err=0"));
+            assert(device.writer_trial.baseline_selected == (i == 0));
+            assert(device.writer_trial.sketch_d_selected == (i == 2));
+            assert(device.writer_trial.e1_selected == (i == 3));
+        }
+        char *args[] = {"lut", "invalid"};
+        used = 0; output[0] = 0;
+        display_cmd_lut(&io, 2, args);
+        assert(strstr(output, "usage:") && device.writer_trial.e1_selected);
+        display_cmd_lut(&io, 1, args);
+        assert(strstr(output, "mode=E1") && device.writer_trial.e1_selected);
+        command("candidate_d_sketch",port);
+        assert(device.writer_trial.sketch_d_selected && strstr(output,"err=0"));
+    }
+    command("baseline",0); assert(!device.writer_trial.baseline_selected);
     command("unknown",2); assert(strstr(output,"err="));
     command("trace",2); assert(strstr(output,"queue submitted=") && strstr(output,"display physical="));
     device.writer_trial.status.attempts=1000;
@@ -74,6 +93,6 @@ int main(void)
     device.writer_trial.status.records=UINT64_MAX;
     device.writer_trial.status.trace_count=0;
     command("trace",2); assert(strstr(output,"records=18446744073709551615"));
-    puts("writer_d_shell_test: USB gating, global controls/status/trace, no physical updates, default D and no cumulative cap PASS");
+    puts("writer_d_shell_test: device Shell/USB four-mode selection, global controls/status/trace, no physical updates, default D and no cumulative cap PASS");
     return 0;
 }

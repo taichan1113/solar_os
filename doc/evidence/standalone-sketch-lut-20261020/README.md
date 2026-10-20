@@ -1,3 +1,5 @@
+> 追記: 本体Shellでの4モード選択が必要なため、後続版ではSketch専用パネルを無効化した。[修正版の操作手順](../manual-shell-lut-20261020/README.md)を参照。以下は専用パネル版の準備時点の記録。
+
 # Standalone Sketch LUT試験版：書込み待ち
 
 本体タッチだけでSketchのA／D／E1を選択・初期化・計測開始／停止できる専用Build。USBは次回の安全な書込みと起動確認に使用し、本体試験中のShell操作は不要。[本体操作・書込み要件](manual.md)／[UI追加前のUbuntu実機結果](prior-ubuntu-observations.md)／[Build・検証manifest](build-result.json)。

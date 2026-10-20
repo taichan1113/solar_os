@@ -549,6 +549,9 @@ static const shell_command_t shell_builtin_commands[] = {
     {"engine", "show engine utilization", solar_os_shell_cmd_engine},
 #endif
     {"display", "list display targets", solar_os_shell_cmd_display},
+#if SOLAR_OS_SSD1677_WRITER_D
+    {"lut", "select 1:A 2:D(Sketch A) 3:D(Sketch D) 4:E1", solar_os_shell_cmd_lut},
+#endif
     {"clear", "clear the screen", solar_os_shell_cmd_clear},
     {"echo", "print text", cmd_echo},
     {"wait", "pause the calling shell", cmd_wait},

@@ -8,7 +8,7 @@ export SOLAR_OS_BOARD=m5paper_mono SOLAR_OS_FLAVOR=writerdeck SOLAR_OS_LAYOUT=ot
 export SOLAR_OS_SSD1677_WRITER_D=1 SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1
 export SOLAR_OS_SSD1677_SPI20_TRIAL=1 SOLAR_OS_SSD1677_HYBRID_TRIAL=1
 export SOLAR_OS_SSD1677_WAVEFORM_TRIAL=0 SOLAR_OS_SKETCH_LATENCY_TRIAL=0
-export SOLAR_OS_SKETCH_LUT_PANEL_TRIAL=1
+export SOLAR_OS_SKETCH_LUT_PANEL_TRIAL=0
 "$solaros_python" -m platformio run -e esp32_s3_devkitc1_n16r8
 solaros_build=.pio/build/esp32_s3_devkitc1_n16r8
 stat -c '%s bytes %n' "$solaros_build/firmware.bin" "$solaros_build/partitions.bin"
