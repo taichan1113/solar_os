@@ -16,5 +16,14 @@
 
 ## 復元
 
-復元先の版を確認中。Firmware新規Buildは行わず、SHA照合済みの既存Applicationを復元する。
+利用者の指定「全アプリD、ただしSketchのみA」に従い、本体UI追加前の診断版（`aacd0f819d2b5e008f0029c98ddd44ceb49d6c39`）を復元した。Firmware新規Buildは行わず、以前書込み済みのApplicationを使用。
+
+- 復元Application: 3,464,704 B、SHA-256 `a16010b78be790704abc42dd890c4575d90a0d172600c739aea97b93ab96b325`。
+- 現在のFirmwareも全16MB新規バックアップを取得して保護。実機MAC・security・16MB容量・Partition Table・runtime/boot slot・otadata CRCを再確認。
+- `ota_0 @ 0x10000` にApplication-only復元。Application読戻し一致、対象Application外の全バイト未変更。Bootloader／Table／NVS・BLE bond／FAT／otadata／PHY／ota_1の各SHA一致後にreset。
+- 起動ログ: Power IC `update_reg(34): register read failed` が1件。その後Touch readyと `launcher switch=ok`、USB Shell応答を確認。既知の起動時読取失敗として記録し、白化・黒保持不良の原因と断定しない。
+- 状態: `fastest-lut err=0 mode=D scope=all-apps-except-sketch sketch_d_trial=0`、driver_error=0。今回追加の本体Shell `lut` コマンド／Sketch専用パネルはこの診断版に含まれない。
+- Launcher active、Writer／Sketchなし。USB接続は閉じた。新たな入力・描画比較や黒保持の再評価は行っていないため、光学症状が解消したとは未判定。
+- private証拠: `.research/manual-shell-lut-20261020/rollback-to-d-sketch-a/`。生ログ・全Flash・NVS・文書はGitへ入れない。
+
 Gitの実装履歴は調査用に保持し、今回のソース変更は報告書のみ。元checkoutの未追跡 `.vscode/` は保護し、pushしない。
