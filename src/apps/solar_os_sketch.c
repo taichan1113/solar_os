@@ -28,6 +28,17 @@ static uint32_t sketch_canvas_version;
 #include "solar_os_expansion.h"
 #endif
 
+#ifndef SOLAR_OS_SKETCH_LUT_PANEL_TRIAL
+#define SOLAR_OS_SKETCH_LUT_PANEL_TRIAL 0
+#endif
+#if SOLAR_OS_SKETCH_LUT_PANEL_TRIAL
+#include "solar_os_display.h"
+#include "../drivers/epd_ssd1677.h"
+#if !SOLAR_OS_SSD1677_WRITER_D
+#error "Sketch LUT panel requires SSD1677 Writer D diagnostics"
+#endif
+#endif
+
 #define SKETCH_SIDE_BAR 64
 #define SKETCH_BOTTOM_BAR 30
 #define SKETCH_BROWSER_ROW_HEIGHT (solar_os_ui_px(16))
@@ -51,6 +62,10 @@ typedef enum {
     SKETCH_MODAL_OPEN,
     SKETCH_MODAL_IMPORT,
     SKETCH_MODAL_INFO,
+#if SOLAR_OS_SKETCH_LUT_PANEL_TRIAL
+    SKETCH_MODAL_LUT,
+    SKETCH_MODAL_LUT_CONFIRM,
+#endif
 } sketch_modal_t;
 
 typedef struct {
@@ -92,6 +107,12 @@ typedef struct {
     bool pointer_relative;
     char path[SOLAR_OS_STORAGE_PATH_MAX];
     char message[128];
+#if SOLAR_OS_SKETCH_LUT_PANEL_TRIAL
+    unsigned lut_selected, lut_actual, lut_result_mode;
+    bool lut_running, lut_check_pending;
+    esp_err_t lut_error;
+    epd_ssd1677_writer_status_t lut_result;
+#endif
 } sketch_state_t;
 
 static void *sketch_state_storage;
@@ -104,6 +125,9 @@ static const solar_os_gfx_color_t sketch_colors[4] = {
     SOLAR_OS_GFX_COLOR_RGB_FLAG | 0x000000U,
 };
 
+#if SOLAR_OS_SKETCH_LUT_PANEL_TRIAL
+static void sketch_lut_render(solar_os_gfx_t *, const sketch_layout_t *);
+#endif
 static bool sketch_is_shape_tool(void);
 static void sketch_draw_shape(solar_os_sketch_canvas_t *canvas, int x, int y);
 
@@ -891,6 +915,14 @@ static void sketch_render(solar_os_context_t *ctx)
                           layout.canvas_y - 7, title);
     }
 
+#if SOLAR_OS_SKETCH_LUT_PANEL_TRIAL
+    char trial_label[24];
+    snprintf(trial_label, sizeof(trial_label), "%s %s",
+             sketch.lut_actual == 2 ? "E1" : sketch.lut_actual == 1 ? "D" : "A",
+             sketch.lut_running ? "Stop" : "Trial");
+    sketch_draw_button(gfx, layout.screen_width - 112, 2, 110,
+                       layout.canvas_y - 4, trial_label, false);
+#endif
     const int tool_height = layout.canvas_height / 8;
     char weight[8];
     snprintf(weight, sizeof(weight), "W:%u", sketch.weight);
@@ -979,6 +1011,11 @@ static void sketch_render(solar_os_context_t *ctx)
         }
     }
 
+#if SOLAR_OS_SKETCH_LUT_PANEL_TRIAL
+    if (sketch.modal == SKETCH_MODAL_LUT || sketch.modal == SKETCH_MODAL_LUT_CONFIRM) {
+        sketch_lut_render(gfx, &layout);
+    } else
+#endif
     if (sketch.modal == SKETCH_MODAL_OPEN ||
         sketch.modal == SKETCH_MODAL_IMPORT) {
         sketch_render_browser(gfx, &layout);
@@ -1017,6 +1054,10 @@ static void sketch_render(solar_os_context_t *ctx)
         sketch.paint_region_valid = false;
     }
 }
+
+#if SOLAR_OS_SKETCH_LUT_PANEL_TRIAL
+#include "solar_os_sketch_lut_panel.inc"
+#endif
 
 static bool sketch_is_shape_tool(void)
 {
@@ -1192,6 +1233,9 @@ static void sketch_canvas_pointer(const sketch_layout_t *layout,
             }
         }
         sketch.drawing = false;
+#if SOLAR_OS_SKETCH_LUT_PANEL_TRIAL
+        if (sketch.lut_running) sketch.lut_check_pending = true;
+#endif
     }
 }
 
@@ -1305,6 +1349,20 @@ static bool sketch_pointer_event(solar_os_context_t *ctx,
         sketch_request_full();
     }
 
+#if SOLAR_OS_SKETCH_LUT_PANEL_TRIAL
+    if (sketch.modal == SKETCH_MODAL_LUT || sketch.modal == SKETCH_MODAL_LUT_CONFIRM) {
+        if (pointer->action == SOLAR_OS_INPUT_POINTER_PRESS)
+            sketch_lut_pointer(ctx, &layout);
+        return true; /* Consume release/move; never leak panel taps onto the canvas. */
+    }
+    if (sketch.modal == SKETCH_MODAL_NONE &&
+        pointer->action == SOLAR_OS_INPUT_POINTER_PRESS &&
+        sketch.pointer_y >= 2 && sketch.pointer_y < layout.canvas_y - 2 &&
+        sketch.pointer_x >= layout.screen_width - 112) {
+        sketch_lut_open(ctx);
+        return true;
+    }
+#endif
     if (sketch.modal == SKETCH_MODAL_NO_POINTER ||
         sketch.modal == SKETCH_MODAL_INFO) {
         if (pointer->action == SOLAR_OS_INPUT_POINTER_PRESS) {
@@ -1333,6 +1391,16 @@ static bool sketch_pointer_event(solar_os_context_t *ctx,
 
 static bool sketch_char_event(solar_os_context_t *ctx, uint8_t ch)
 {
+#if SOLAR_OS_SKETCH_LUT_PANEL_TRIAL
+    if (sketch.modal == SKETCH_MODAL_LUT || sketch.modal == SKETCH_MODAL_LUT_CONFIRM) {
+        if (ch == SOLAR_OS_KEY_ESCAPE) {
+            sketch.modal = sketch.modal == SKETCH_MODAL_LUT_CONFIRM ?
+                SKETCH_MODAL_LUT : SKETCH_MODAL_NONE;
+            sketch_request_full();
+        }
+        return true;
+    }
+#endif
     if (sketch.modal == SKETCH_MODAL_NO_POINTER ||
         sketch.modal == SKETCH_MODAL_INFO) {
         if (ch == '\r' || ch == '\n' || ch == SOLAR_OS_KEY_ESCAPE ||
@@ -1496,6 +1564,9 @@ static void sketch_cleanup(void)
 
 static void sketch_stop(solar_os_context_t *ctx)
 {
+#if SOLAR_OS_SKETCH_LUT_PANEL_TRIAL
+    sketch_lut_end();
+#endif
     sketch_cleanup();
     solar_os_context_set_graphics_active(ctx, false);
 }
@@ -1504,6 +1575,10 @@ static void sketch_suspend(solar_os_context_t *ctx)
 {
 #if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
     solar_os_sketch_trace_record(SKTRACE_SUSPEND, 0, sketch_canvas_version, 0, 0, 0);
+#endif
+#if SOLAR_OS_SKETCH_LUT_PANEL_TRIAL
+    if (sketch.render_pending) sketch_render(ctx);
+    sketch_lut_end();
 #endif
     sketch.drawing = false;
     sketch_pointer_release();
@@ -1563,6 +1638,9 @@ static bool sketch_event(solar_os_context_t *ctx,
         if (sketch.render_pending) {
             sketch_render(ctx);
         }
+#if SOLAR_OS_SKETCH_LUT_PANEL_TRIAL
+        sketch_lut_check(ctx);
+#endif
         return true;
     }
     if (event->type == SOLAR_OS_EVENT_RESUME) {

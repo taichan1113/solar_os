@@ -101,6 +101,12 @@ if writer_d_trial not in ("0", "1"):
     raise SystemExit("SOLAR_OS_SSD1677_WRITER_D must be 0 or 1")
 if waveform_trial not in ("0", "1"):
     raise SystemExit("SOLAR_OS_SSD1677_WAVEFORM_TRIAL must be 0 or 1")
+sketch_lut_panel_trial = os.environ.get("SOLAR_OS_SKETCH_LUT_PANEL_TRIAL", "0")
+if sketch_lut_panel_trial not in ("0", "1"):
+    raise SystemExit("SOLAR_OS_SKETCH_LUT_PANEL_TRIAL must be 0 or 1")
+if sketch_lut_panel_trial == "1" and (board != "m5paper_mono" or writer_d_trial != "1"):
+    raise SystemExit("Standalone Sketch LUT panel requires PaperMono Writer D diagnostics")
+os.environ["SOLAR_OS_SKETCH_LUT_PANEL_TRIAL"] = sketch_lut_panel_trial
 hybrid_trial = os.environ.get("SOLAR_OS_SSD1677_HYBRID_TRIAL", "0")
 if hybrid_trial not in ("0", "1"):
     raise SystemExit("SOLAR_OS_SSD1677_HYBRID_TRIAL must be 0 or 1")
@@ -209,6 +215,7 @@ stamp = (
     f"vga={vga_mode}\n"
     f"ssd1677_waveform_trial={waveform_trial}\n"
     f"ssd1677_writer_d={writer_d_trial}\n"
+    f"sketch_lut_panel_trial={sketch_lut_panel_trial}\n"
     f"ssd1677_hybrid_trial={hybrid_trial}\n"
     f"ssd1677_dirty_hold_trial={dirty_hold_trial}\n"
     f"ssd1677_spi20_trial={spi20_trial}\n"

@@ -1268,3 +1268,14 @@ clock_touch_test: clock_touch_test.c launcher_touch_test.c $(WRITER_DIR)/solar_o
 		-I. -I$(ROOT)/src -I$(WRITER_DIR) -I$(ROOT)/src/services -I$(ROOT)/src/shell \
 		-I$(CJSON_DIR) $< $(WRITER_DIR)/solar_os_launcher_layout.c $(ROOT)/src/shell/solar_os_shell_parse.c $(ROOT)/src/shell/solar_os_shell_launch.c \
 		$(ROOT)/src/services/solar_os_json.c $(ROOT)/src/services/solar_os_gfx_icons.c $(CJSON_DIR)/cJSON.c -Wl,--gc-sections -o $@
+
+TARGETS += sketch_lut_panel_test
+sketch_lut_panel_test: sketch_lut_panel_test.c sketch_lifecycle_test.c \
+        $(ROOT)/src/apps/solar_os_sketch.c $(ROOT)/src/apps/solar_os_sketch_lut_panel.inc \
+        $(ROOT)/src/apps/solar_os_sketch_canvas.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -DSOLAR_OS_PACKAGE_SERVICE_EXPANSION=1 \
+		-DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' -DSOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT=1 \
+		-DSOLAR_OS_SSD1677_WRITER_D=1 -DSOLAR_OS_SKETCH_LUT_PANEL_TRIAL=1 \
+		-include compat.h -Iepd_stubs -I. -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/src/apps \
+		-I$(ROOT)/components/u8g2/src/clib -I$(ROOT)/components/stb_image/include \
+		$< $(ROOT)/src/apps/solar_os_sketch_canvas.c -lm -o $@
