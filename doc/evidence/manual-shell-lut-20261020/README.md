@@ -28,3 +28,5 @@ LUT配列、電圧、送信シーケンス、Partition構成は変更しない�
 新Firmwareの書込み前には、実機と起動slotを再確認し、新規全Flashバックアップを取得する。
 Application-only書込み後は全Flash読戻しと保護領域照合を行い、その後に起動確認する。
 PlatformIO Uploadは使用しない。pushはユーザーが手動で行う。
+
+[Application-only書込み・本体Shell経路確認結果](flash-result.md)。修正版は実機に書込み済み。
