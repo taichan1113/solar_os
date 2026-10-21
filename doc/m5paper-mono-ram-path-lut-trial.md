@@ -9,7 +9,7 @@
 - 開始Commit：`b163088fbdcb11231e4486df520377bd46431d14`（`origin/feature/papermono-standalone-lut-trial`）。本体Shellの既存 `lut 1..4`、Sketch A例外、Sketch D opt-in、E1、区間Traceを含むため、この版を採用した。
 - 親PCIntegration `aa08bbfd` の独立したSTC8H／TFT上流更新は、この試験に不要なので取り込まない。Integration・mainへのmergeはしない。
 - Worktree：`E:\ESP32\M5PapserMono-SolarOS\.research\ram-path-lut-trial\worktree`。
-- 今回の範囲は実装・Host検証・Build・実験BranchへのPush。COM39は将来Flash時の候補として記録するが、COM接続・Flashは行わない。
+- 今回の範囲は実装・Host検証・Build・実験BranchへのPush。その後ユーザーの別途明示指示でCOM39へのApplication-only Flashを実施した。[書込み結果](evidence/ram-path-lut-20261021/flash-result.md)を参照。
 
 既存rows-dualを無効にせず、DriverにRAM内だけの `dirty_hold_force_full` を追加した。同期方式・LUT適用条件は従来のrows-dualのまま、転送窓だけ全画面へ広げる。`dirty-window=off` は使用しない。
 
@@ -125,7 +125,7 @@ Remoteは `origin=https://github.com/taichan1113/solar_os.git`。実験Branchだ
 
 ## G. Flash後にユーザーが行う定性比較
 
-**現段階では未Flash。COM39は候補であり、別途Flash指示が出た時点で実機・port・partition・起動slotをfresh確認する。** 全Flash backup、Application-only、読戻し、NVS／FAT／BLE bond／otadata等の非対象領域照合を行う。標準Uploadによる書込みは自動実行しない。
+**2026-10-21、別途明示指示を受けCOM39へApplication-only書込み済み。** [書込み・読戻し・保護・起動確認結果](evidence/ram-path-lut-20261021/flash-result.md)。次回以降も実機・port・partition・起動slotをfresh確認する。 全Flash backup、Application-only、読戻し、NVS／FAT／BLE bond／otadata等の非対象領域照合を行う。標準Uploadによる書込みは自動実行しない。
 
 Flash後の本体Shell操作は以下。各行は別の比較条件を表し、一括実行用scriptではない。
 

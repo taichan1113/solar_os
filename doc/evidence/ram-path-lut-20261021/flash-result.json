@@ -1,0 +1,52 @@
+{
+  "port": "COM39",
+  "implementation_commit": "8dd1c43b089872ee0cc88084035a06be296d5945",
+  "application_sha256": "a4cd6d82dd28978fbf35421bb204892576865a1848a7284a4199be615cc95a7c",
+  "application_bytes": 3465104,
+  "active_slot": "ota_0",
+  "app_offset": 65536,
+  "app_partition_size": 7340032,
+  "security": {
+    "secure_boot": false,
+    "flash_encryption": false
+  },
+  "rollback_sha256": "b1e78b6eba3639dff58b89cdab834e60ae89703db4eacdfe88d64a1350b1e218",
+  "rollback_bytes": 3465424,
+  "all_bytes_outside_active_application_unchanged": true,
+  "result": "APPLICATION_ONLY_FLASH_AND_RUNTIME_PASS",
+  "date_JST": "2026-10-21",
+  "protected_regions": {
+    "bootloader": {
+      "unchanged": true
+    },
+    "partition_table": {
+      "unchanged": true
+    },
+    "nvs": {
+      "unchanged": true
+    },
+    "otadata": {
+      "unchanged": true
+    },
+    "phy_init": {
+      "unchanged": true
+    },
+    "ota_1": {
+      "unchanged": true
+    },
+    "flash": {
+      "unchanged": true
+    }
+  },
+  "runtime_default": "D; Sketch A; RAM rows-dual",
+  "USB_status_read_only": true,
+  "mode_trials_performed": false,
+  "visual_confirmation": {
+    "result": "PASS_DISPLAY_ONLY",
+    "user_answer": "表示正常・異常なし",
+    "six_condition_optical_trial_performed": false
+  },
+  "private_archive": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\ram-path-lut-trial\\archive\\ram-lut-flash-20261021-233453",
+  "optical_quality_six_condition_test": "NOT_PERFORMED",
+  "startup_modified": false
+}
