@@ -1,5 +1,7 @@
 # 本体Shellでの4モード比較
 
+最新の実装・観察・復元と再書込み・未解決事項は[2026-10-21 引継ぎ総括](handoff-report-20261021.md)を参照。
+
 Sketch専用パネルでは、WriterとSketchを同じ選択のまま比較できなかった。
 本版は本体画面のShellとUSB Shellの両方に `lut` コマンドを追加する。
 
@@ -27,6 +29,6 @@ Sketch専用パネルでは、WriterとSketchを同じ選択のまま比較で�
 LUT配列、電圧、送信シーケンス、Partition構成は変更しない。
 新Firmwareの書込み前には、実機と起動slotを再確認し、新規全Flashバックアップを取得する。
 Application-only書込み後は全Flash読戻しと保護領域照合を行い、その後に起動確認する。
-PlatformIO Uploadは使用しない。pushはユーザーが手動で行う。
+PlatformIO Uploadは使用しない。2026-10-21の利用者指示により、専用branchをCodexからpushする。
 
 [Application-only書込み・本体Shell経路確認結果](flash-result.md)。修正版は実機に書込み済み。
