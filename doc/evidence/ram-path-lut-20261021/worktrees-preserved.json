@@ -1,0 +1,14 @@
+{
+  "result": "PASS",
+  "original_worktrees_checked": 36,
+  "all_original_heads_branches_status_and_uncommitted_file_hashes_unchanged": true,
+  "root_head": "aa08bbfdfa65c72ada0a0bc7737d36b47a521186",
+  "root_status": [
+    "?? .vscode/",
+    "?? doc/papermono-chatgpt-handoff-20261021.md"
+  ],
+  "integration_merged": false,
+  "main_merged": false,
+  "COM_accessed": false,
+  "flashed": false
+}

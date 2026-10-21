@@ -1,0 +1,115 @@
+{
+  "result": "HOST_AND_BUILD_PASS_HARDWARE_UNTESTED",
+  "base_commit": "b163088fbdcb11231e4486df520377bd46431d14",
+  "implementation_commit": "8dd1c43b089872ee0cc88084035a06be296d5945",
+  "branch": "feature/papermono-ram-path-lut-trial",
+  "board": "m5paper_mono",
+  "flavor": "writerdeck",
+  "layout": "ota",
+  "esp_idf": "5.5.5",
+  "compiler": "xtensa-esp-elf-gcc.exe (crosstool-NG esp-14.2.0_20260121) 14.2.0",
+  "effective_compile_flags": {
+    "SOLAR_OS_SSD1677_WRITER_D": 1,
+    "SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL": 1,
+    "SOLAR_OS_SSD1677_SPI20_TRIAL": 1,
+    "SOLAR_OS_SSD1677_HYBRID_TRIAL": 1
+  },
+  "disabled_flags": [
+    "SOLAR_OS_SSD1677_WAVEFORM_TRIAL",
+    "SOLAR_OS_SKETCH_LATENCY_TRIAL",
+    "SOLAR_OS_SKETCH_LUT_PANEL_TRIAL"
+  ],
+  "default": "candidate_d; Sketch A; rows-dual; tile; SPI 20MHz; Display Async",
+  "configuration_persistence": "RAM only; Driver init/reboot resets; Sleep/Wake retains",
+  "application_bytes": 3465104,
+  "application_sha256": "a4cd6d82dd28978fbf35421bb204892576865a1848a7284a4199be615cc95a7c",
+  "elf_sha256": "1ca63799d5e30fb7ac27d572317bb48dc3e3fa3c82699c2366a52af4e37055f1",
+  "ota_slot_capacity": 7340032,
+  "partitions": {
+    "nvs": {
+      "kind": 1,
+      "subtype": 2,
+      "offset": 36864,
+      "size": 16384
+    },
+    "otadata": {
+      "kind": 1,
+      "subtype": 0,
+      "offset": 53248,
+      "size": 8192
+    },
+    "phy_init": {
+      "kind": 1,
+      "subtype": 1,
+      "offset": 61440,
+      "size": 4096
+    },
+    "ota_0": {
+      "kind": 0,
+      "subtype": 16,
+      "offset": 65536,
+      "size": 7340032
+    },
+    "ota_1": {
+      "kind": 0,
+      "subtype": 17,
+      "offset": 7405568,
+      "size": 7340032
+    },
+    "flash": {
+      "kind": 1,
+      "subtype": 129,
+      "offset": 14745600,
+      "size": 2031616
+    }
+  },
+  "partition_table_sha256": "fd976d7c1eaa8f9d0a01ac87a8d05fc1cb1e59d3c5970954b30ad0c3aa12a488",
+  "lut_sha256": {
+    "ssd1677_reference_lut": "e8a7abbb2110cb8d941e80cc2869bbe1d0814e1d4a38e5d0cc5173b10f39ce50",
+    "ssd1677_trial_black_hold_d_lut": "9be4bea8b9a07fef33834293d25979a9b0f3fc820d3e9912a1fc106532ef1832",
+    "ssd1677_trial_black_hold_e1_lut": "2efbb01c63096d5faad6f9d8444f11cc5d9cd0478080255ff24d3994c8f9ff93"
+  },
+  "all_lut_bytes_unchanged": true,
+  "host_executable_count": 46,
+  "extra_panel_fixture": true,
+  "python_test_count": 13,
+  "extra_async_modes": [
+    "restore-fail",
+    "e1",
+    "e1-restore-fail",
+    "sketch-d",
+    "sketch-d-restore-fail",
+    "ram-path",
+    "ram-full-restore-fail"
+  ],
+  "cold_unsynced_or_periodic_ram_data_bytes": 192000,
+  "warm_full_ram_data_bytes": 144000,
+  "warm_rows_ram_data_bytes_per_changed_row": 300,
+  "physical_updates_per_changed_fastest_frame": 1,
+  "selected_target_port_for_future_flash": "COM39",
+  "COM_accessed": false,
+  "flashed": false,
+  "optical_test_performed": false,
+  "protected_source_paths_unchanged": [
+    "src/services",
+    "src/main.c",
+    "src/CMakeLists.txt",
+    "src/drivers/epd_ssd1677.c",
+    "src/drivers/epd_ssd1677_waveform_trial.inc",
+    "src/drivers/epd_ssd1677_trial_stats.inc",
+    "src/drivers/epd_ssd1677_writer_d.h",
+    "src/apps/solar_os_sketch.c",
+    "src/apps/solar_os_sketch_lut_panel.inc",
+    "src/apps/solar_os_writer.c",
+    "boards",
+    "flavors",
+    "packages",
+    "patches",
+    "platformio.ini",
+    "scripts/platformio_solaros_flavor.py",
+    "scripts/papermono_e1_flash_audit.py",
+    "sdkconfig.defaults",
+    "sdkconfig.esp32_s3_devkitc1_n16r8.defaults"
+  ],
+  "build_seconds": 12.108999999938533
+}

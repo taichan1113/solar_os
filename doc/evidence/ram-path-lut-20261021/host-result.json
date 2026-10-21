@@ -1,0 +1,11 @@
+{
+  "returncode": 0,
+  "command": [
+    "env",
+    "CJSON_DIR=/mnt/c/Users/takec/.platformio/packages/framework-espidf/components/json/cJSON",
+    "sh",
+    "tests/host/run_ram_path_lut.sh"
+  ],
+  "elapsed_seconds": 7.593999999924563,
+  "device_accessed": false
+}
