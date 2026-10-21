@@ -1,6 +1,9 @@
 tests/host/run_launcher_touch_grid.sh text eol=lf
 tests/host/run_fastest_e1_trial.sh text eol=lf
 tests/host/run_sketch_d_diagnostics.sh text eol=lf
+tests/host/run_standalone_sketch_lut.sh text eol=lf
+tests/host/run_ram_path_lut.sh text eol=lf
+scripts/build_papermono_standalone_lut.sh text eol=lf
 doc/evidence/fastest-sketch-d-diagnostics/*.log -text
 doc/evidence/fastest-sketch-d-diagnostics/*.json -text
 doc/evidence/fastest-e1-trial/*.log -text

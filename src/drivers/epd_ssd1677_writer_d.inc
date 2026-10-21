@@ -146,3 +146,27 @@ esp_err_t epd_ssd1677_writer_lut(epd_ssd1677_t *d, const char *mode,
     operation_end(d, EPD_SSD1677_OP_READ, err);
     return err;
 }
+
+/* Only the transfer window changes. Both modes use the existing rows-dual
+ * synchronization and compensation eligibility. Active work finishes through
+ * BUSY, post-sync and LUT restore; pending snapshots keep their source tags. */
+esp_err_t epd_ssd1677_ram_mode(epd_ssd1677_t *d, const char *mode, bool *full)
+{
+    if (!d || !mode) return ESP_ERR_INVALID_ARG;
+    operation_begin(d, EPD_SSD1677_OP_READ);
+    esp_err_t err = ESP_OK;
+    if (!strcmp(mode, "rows") || !strcmp(mode, "full")) {
+        if (d->faulted || atomic_load(&writer_d_failed) || !d->operation_begin ||
+            !d->execution_context || !d->papermono_otp ||
+            d->refresh_mode != EPD_SSD1677_REFRESH_FASTEST || !d->fastest_tiles ||
+            d->fastest_spi_hz != 20000000 || !d->dirty_hold_trial ||
+            !d->dirty_hold_dual_sync || !d->dirty_hold_full_width || d->dirty_hold_full_height)
+            err = ESP_ERR_INVALID_STATE;
+        else d->dirty_hold_force_full = !strcmp(mode, "full");
+        /* Both faces already equal Shadow when synced. Keep that guarantee;
+         * cold/failed/invalidated state retains its existing full preparation. */
+    } else if (strcmp(mode, "status")) err = ESP_ERR_INVALID_ARG;
+    if (full) *full = d->dirty_hold_force_full;
+    operation_end(d, EPD_SSD1677_OP_READ, err);
+    return err;
+}

@@ -53,6 +53,9 @@ void wd_panel_init(uint8_t *out)
 }
 esp_err_t wd_mode(const char *mode)
 { return epd_ssd1677_writer_lut(&device,mode,NULL,NULL); }
+esp_err_t wd_ram(const char *mode, bool *full)
+{ return epd_ssd1677_ram_mode(&device,mode,full); }
+void wd_record(epd_ssd1677_writer_record_t *r) { *r=device.writer_trial.current; }
 void wd_status(epd_ssd1677_writer_status_t *s)
 { assert(epd_ssd1677_writer_lut(&device,"status",s,NULL)==ESP_OK); }
 void wd_fail_restore(void) { fail_restore=true; }

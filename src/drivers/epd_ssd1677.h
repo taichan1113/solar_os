@@ -149,6 +149,7 @@ typedef struct {
     bool dirty_hold_full_height; /* Diagnostic: X window only, full gate range. */
     bool dirty_hold_full_width; /* Diagnostic: Y window only, full source range. */
     bool dirty_hold_dual_sync; /* Trial: synchronize both command RAMs after 0x20. */
+    bool dirty_hold_force_full; /* Volatile RAM window override; keeps rows-dual/LUT policy. */
     bool dirty_hold_ram_synced; /* Both controller RAM planes equal shadow. */
     uint8_t dirty_hold_dual_updates; /* Updates since the last full-RAM resync. */
 #endif
@@ -180,6 +181,8 @@ esp_err_t epd_ssd1677_present_quality_snapshot(epd_ssd1677_t *, const uint8_t *,
 /* records, when non-NULL, points to SSD1677_WRITER_D_RECORDS entries. */
 esp_err_t epd_ssd1677_writer_lut(epd_ssd1677_t *, const char *,
     epd_ssd1677_writer_status_t *, epd_ssd1677_writer_record_t *);
+/* Same executor barrier as LUT selection; no SPI or physical activation. */
+esp_err_t epd_ssd1677_ram_mode(epd_ssd1677_t *, const char *, bool *full);
 #endif
 void epd_ssd1677_deinit(epd_ssd1677_t *display);
 u8g2_t *epd_ssd1677_get_u8g2(epd_ssd1677_t *display);

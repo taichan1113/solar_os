@@ -9,6 +9,7 @@ TARGETS := writer_buffer_test writer_files_test file_shortcuts_test sketch_canva
 TARGETS += writer_d_driver_test writer_d_async_test
 TARGETS += writer_d_shell_test
 writer_d_driver_test writer_d_async_test writer_d_shell_test: \
+    ram_path_lut_cases.inc \
     $(ROOT)/src/drivers/epd_ssd1677_trial_stats.inc \
     sketch_d_diagnostics_cases.inc \
     $(ROOT)/src/drivers/epd_ssd1677.h $(ROOT)/src/drivers/epd_ssd1677_writer_d.h \

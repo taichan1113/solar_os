@@ -149,3 +149,25 @@ static void display_cmd_lut(solar_os_shell_io_t *io, int argc, char **argv)
     char *args[] = {"display", "test", "display0", "fastest-lut", (char *)mode};
     display_cmd_writer_lut(io, 5, args);
 }
+
+static void display_cmd_ram(solar_os_shell_io_t *io, int argc, char **argv)
+{
+    const char *mode = argc == 1 ? "status" : argc == 2 ? argv[1] : "";
+    if ((strcmp(mode, "rows") && strcmp(mode, "full") && strcmp(mode, "status")) ||
+        (solar_os_shell_io_kind(io) != SOLAR_OS_SHELL_IO_KIND_TERMINAL &&
+         solar_os_shell_io_kind(io) != SOLAR_OS_SHELL_IO_KIND_PORT)) {
+        solar_os_shell_io_writeln(io, "usage: ram [rows|full|status]");
+        return;
+    }
+    solar_os_display_target_t target;
+    if (!solar_os_display_find_target("display0", &target) || !target.ready ||
+        !target.u8g2 || !target.driver || strcmp(target.driver, "ssd1677")) {
+        solar_os_shell_io_writeln(io, "ram: ready SSD1677 display0 required");
+        return;
+    }
+    epd_ssd1677_t *d = (epd_ssd1677_t *)((uint8_t *)target.u8g2 - offsetof(epd_ssd1677_t, u8g2));
+    bool full = false;
+    const esp_err_t err = epd_ssd1677_ram_mode(d, mode, &full);
+    if (err != ESP_OK) solar_os_shell_io_printf(io, "ram: err=%d\n", (int)err);
+    else solar_os_shell_io_printf(io, "RAM: %s\n", full ? "full" : "rows-dual");
+}

@@ -34,6 +34,35 @@ static void command(const char *mode,int port)
     display_cmd_writer_lut(&io,5,args);
     assert(!command_count); /* EVERY command, including rejected selects, is RAM-only. */
 }
+static void test_ram_commands(void)
+{
+    for(int port=1;port<=2;port++) {
+        solar_os_shell_io_t io={port};
+        for(unsigned lut=0;lut<4;lut++) {
+            char number[2]={(char)('1'+lut),0}; char *l[]={"lut",number};
+            used=0; output[0]=0; command_count=0; display_cmd_lut(&io,2,l);
+            const bool a=device.writer_trial.baseline_selected;
+            const bool e1=device.writer_trial.e1_selected,sd=device.writer_trial.sketch_d_selected;
+            const char *modes[]={"rows","full","status","rows"};
+            for(unsigned i=0;i<4;i++) {
+                char *args[]={"ram",(char *)modes[i]}; used=0; output[0]=0;command_count=0;
+                display_cmd_ram(&io,2,args);
+                assert(!strcmp(output,(i==1 || i==2)?"RAM: full\n":"RAM: rows-dual\n"));
+                assert(!command_count && device.writer_trial.baseline_selected==a &&
+                    device.writer_trial.e1_selected==e1 && device.writer_trial.sketch_d_selected==sd);
+            }
+        }
+        char *args[]={"ram","unknown","extra"};
+        used=0;output[0]=0;command_count=0; display_cmd_ram(&io,2,args);
+        assert(strstr(output,"usage:") && !device.dirty_hold_force_full && !command_count);
+        used=0;output[0]=0;display_cmd_ram(&io,3,args);assert(strstr(output,"usage:"));
+        used=0;output[0]=0;display_cmd_ram(&io,1,args);assert(!strcmp(output,"RAM: rows-dual\n"));
+    }
+    solar_os_shell_io_t invalid={0}; char *args[]={"ram","full"};
+    used=0;output[0]=0;command_count=0;display_cmd_ram(&invalid,2,args);
+    assert(strstr(output,"usage:") && !device.dirty_hold_force_full && !command_count);
+    puts("RAM device/USB Shell: one-line rows/full/status, 4 LUT selections independent, invalid args/IO and selector SPI=0 PASS");
+}
 int main(void)
 {
     char invalid_state[32]; snprintf(invalid_state,sizeof(invalid_state),"err=%d",ESP_ERR_INVALID_STATE);
@@ -93,6 +122,7 @@ int main(void)
     device.writer_trial.status.records=UINT64_MAX;
     device.writer_trial.status.trace_count=0;
     command("trace",2); assert(strstr(output,"records=18446744073709551615"));
+    test_ram_commands();
     puts("writer_d_shell_test: device Shell/USB four-mode selection, global controls/status/trace, no physical updates, default D and no cumulative cap PASS");
     return 0;
 }

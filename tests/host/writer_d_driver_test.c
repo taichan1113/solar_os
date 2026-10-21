@@ -352,6 +352,7 @@ static void test_faults(void)
     puts("writer D: LUT/BUSY/post-sync failure latches, no retries/refund PASS");
 }
 #include "sketch_d_diagnostics_cases.inc"
+#include "ram_path_lut_cases.inc"
 int main(void)
 {
     test_lut();
@@ -361,5 +362,6 @@ int main(void)
     test_sketch_exception();
     test_e1_modes(); test_e1_faults();
     test_sketch_d_modes(); test_trial_summary(); test_trial_times_and_overflow(); test_trial_failure();
+    test_ram_lut_matrix(); test_ram_switch_and_resync(); test_ram_cold_and_failure();
     puts("writer_d_driver_test: PASS"); return 0;
 }

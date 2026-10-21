@@ -212,7 +212,8 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     const bool trial = d->dirty_hold_trial &&
                        d->refresh_mode == EPD_SSD1677_REFRESH_FASTEST &&
                        d->fastest_tiles && d->band_buffer != NULL;
-    const bool narrow = trial && !cold && d->dirty_hold_ram_synced;
+    const bool synchronized = trial && !cold && d->dirty_hold_ram_synced;
+    const bool narrow = synchronized && !d->dirty_hold_force_full;
     ssd1677_window_t ram_window = dirty;
     if (narrow && d->dirty_hold_full_height) {
         ram_window.y_start = 0;
@@ -264,7 +265,7 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         if (err == ESP_OK) err = ssd1677_cmd_data(d,0x0c,booster,sizeof(booster));
     }
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
-    const unsigned pre_writes = narrow ? 1U : 2U;
+    const unsigned pre_writes = synchronized ? 1U : 2U;
 #else
     const unsigned pre_writes = 2U;
 #endif
@@ -273,8 +274,9 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
         d->timing.write_start_us[i] = esp_timer_get_time();
         const uint8_t *source = i ? d->shadow : ssd1677_frame(d);
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
-        /* A synchronized RED plane already holds the old image. The cold or
-         * unsynchronized entry writes both full planes before activation. */
+        /* A synchronized RED plane already holds the old image, even when
+         * the new-image window is forced full. Cold/unsynchronized entry
+         * still prepares both full planes before activation. */
         err = narrow ? ssd1677_write_tile_window(d, 0x24, source, &ram_window, i) :
               d->fastest_tiles ? ssd1677_write_bands(d, i ? 0x26 : 0x24, source, i) :
                                  ssd1677_write_plane(d, i ? 0x26 : 0x24, source, &full, false);

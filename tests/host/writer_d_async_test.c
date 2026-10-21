@@ -4,6 +4,8 @@
 
 extern void wd_panel_init(uint8_t *);
 extern esp_err_t wd_mode(const char *);
+extern esp_err_t wd_ram(const char *,bool *);
+extern void wd_record(epd_ssd1677_writer_record_t *);
 extern void wd_status(epd_ssd1677_writer_status_t *);
 extern void wd_fail_restore(void);
 extern esp_err_t wd_panel_execute(const uint8_t *,size_t,const solar_os_writer_frame_t *,bool *);
@@ -14,6 +16,7 @@ static struct {
     unsigned activations, permits, restores, restore_permits, controls;
     bool block_restore, control_done;
     solar_os_writer_frame_t seen[32];
+    epd_ssd1677_writer_record_t records[32];
     unsigned executed;
 } live={.mutex=PTHREAD_MUTEX_INITIALIZER,.cond=PTHREAD_COND_INITIALIZER};
 void wd_control_begin(bool discard) { solar_os_display_async_control_begin(live.a,discard); }
@@ -43,7 +46,9 @@ static esp_err_t panel_execute(void *p,const uint8_t *data,size_t size,bool *phy
     (void)p; solar_os_writer_frame_t origin;
     solar_os_display_async_execution_origin(live.a,&origin);
     pthread_mutex_lock(&live.mutex); live.seen[live.executed++]=origin; pthread_mutex_unlock(&live.mutex);
-    return wd_panel_execute(data,size,&origin,physical);
+    const esp_err_t err=wd_panel_execute(data,size,&origin,physical);
+    wd_record(&live.records[live.executed-1]);
+    return err;
 }
 static void input(uint8_t *image,unsigned n,unsigned source)
 {
@@ -60,6 +65,13 @@ static void *change_mode(void *name)
     pthread_mutex_lock(&live.mutex); live.control_done=true; pthread_cond_broadcast(&live.cond); pthread_mutex_unlock(&live.mutex);
     return NULL;
 }
+static void *change_ram(void *name)
+{
+    assert(wd_ram(name,NULL)==ESP_OK);
+    pthread_mutex_lock(&live.mutex); live.control_done=true;
+    pthread_cond_broadcast(&live.cond); pthread_mutex_unlock(&live.mutex);
+    return NULL;
+}
 static void wait_control_barrier(void)
 {
     /* Inspect the production barrier under its own mutex, no timing race. */
@@ -74,14 +86,48 @@ int main(int argc,char **argv)
 {
     const bool e1=argc>1 && (!strcmp(argv[1],"e1") || !strcmp(argv[1],"e1-restore-fail"));
     const bool sketchd=argc>1 && (!strcmp(argv[1],"sketch-d") || !strcmp(argv[1],"sketch-d-restore-fail"));
-    const bool failure=argc>1 && (!strcmp(argv[1],"restore-fail") || !strcmp(argv[1],"e1-restore-fail") || !strcmp(argv[1],"sketch-d-restore-fail"));
+    const bool fullfailure=argc>1 && !strcmp(argv[1],"ram-full-restore-fail");
+    const bool failure=fullfailure || (argc>1 && (!strcmp(argv[1],"restore-fail") || !strcmp(argv[1],"e1-restore-fail") || !strcmp(argv[1],"sketch-d-restore-fail")));
+    const bool ram=argc>1 && !strcmp(argv[1],"ram-path");
     uint8_t image[48000]; wd_panel_init(image);
     assert(solar_os_display_async_create(48000,panel_execute,NULL,&live.a)==ESP_OK);
     epd_ssd1677_writer_status_t initial; wd_status(&initial);
     assert(initial.enabled); /* No manual activation after ordinary boot. */
     if(e1) assert(wd_mode("candidate_e1")==ESP_OK);
     if(sketchd) assert(wd_mode("candidate_d_sketch")==ESP_OK);
-    if(failure) {
+    if(fullfailure) assert(wd_ram("full",NULL)==ESP_OK);
+    if(ram) {
+        assert(wd_mode("candidate_e1")==ESP_OK);
+        bool full=true; assert(wd_ram("status",&full)==ESP_OK && !full);
+        for(unsigned step=0;step<2;step++) {
+            live.block_restore=true; live.control_done=false;
+            input(image,step*2,2); wait_count(&live.activations,step*2+1);
+            input(image,step*2+1,2); /* Pending Sketch snapshot. */
+            pthread_t control;
+            assert(!pthread_create(&control,NULL,change_ram,step?"rows":"full"));
+            wait_control_barrier();
+            pthread_mutex_lock(&live.mutex); assert(!live.control_done); pthread_mutex_unlock(&live.mutex);
+            release_panel(1); wait_count(&live.restores,step*2+1);
+            pthread_mutex_lock(&live.mutex);
+            assert(!live.control_done && live.activations==step*2+1);
+            live.restore_permits++; pthread_cond_broadcast(&live.cond); pthread_mutex_unlock(&live.mutex);
+            pthread_join(control,NULL); live.block_restore=false;
+            wait_count(&live.activations,step*2+2); release_panel(1);
+            assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
+            const epd_ssd1677_writer_record_t *old=&live.records[step*2],*next=&live.records[step*2+1];
+            assert(old->candidate_e1 && next->candidate_e1 && old->restored && next->restored);
+            assert(old->ram_path==(step?SSD1677_RAM_FULL:SSD1677_RAM_ROWS));
+            assert(next->ram_path==(step?SSD1677_RAM_ROWS:SSD1677_RAM_FULL));
+            assert(old->ram_bytes==(step?144000U:300U));
+            assert(next->ram_bytes==(step?300U:144000U));
+            assert(old->origin.is_sketch && next->origin.is_sketch);
+        }
+        epd_ssd1677_writer_status_t s; wd_status(&s);
+        assert(s.e1_physical==4 && s.e1_success==4 && !s.d_physical && !s.failed && !s.driver_errors);
+        solar_os_display_submission_status_t q; solar_os_display_async_status(live.a,&q);
+        assert(!q.busy && !q.pending && !q.error && q.physical==4 && !q.cancelled && !q.replaced);
+        puts("RAM actual Async: rows<->full control waits BUSY/post-sync/LUT restore; pending source/E1/payload retained, four activations only PASS");
+    } else if(failure) {
         assert(wd_mode("trial-start")==ESP_OK);
         wd_fail_restore(); input(image,0,sketchd?2:0); wait_count(&live.activations,1);
         input(image,1,true); release_panel(1);
@@ -93,6 +139,11 @@ int main(int argc,char **argv)
         assert(wd_mode("candidate_d")==ESP_ERR_INVALID_STATE);
         assert(wd_mode("candidate_e1")==ESP_ERR_INVALID_STATE);
         assert(wd_mode("candidate_d_sketch")==ESP_ERR_INVALID_STATE);
+        if(fullfailure) {
+            bool full=false;
+            assert(wd_ram("rows",NULL)==ESP_ERR_INVALID_STATE);
+            assert(wd_ram("status",&full)==ESP_OK && full);
+        }
         assert(wd_mode("trial-stop")==ESP_OK); wd_status(&s);
         assert(s.trial.physical==1 && s.trial.errors==1 && s.trial.timing_missing==1);
         solar_os_display_submission_status_t q; solar_os_display_async_status(live.a,&q);
