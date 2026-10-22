@@ -38,18 +38,18 @@ static void test_ram_commands(void)
 {
     for(int port=1;port<=2;port++) {
         solar_os_shell_io_t io={port};
-        for(unsigned lut=0;lut<4;lut++) {
+        for(unsigned lut=0;lut<5;lut++) {
             char number[2]={(char)('1'+lut),0}; char *l[]={"lut",number};
             used=0; output[0]=0; command_count=0; display_cmd_lut(&io,2,l);
             const bool a=device.writer_trial.baseline_selected;
-            const bool e1=device.writer_trial.e1_selected,sd=device.writer_trial.sketch_d_selected;
+            const bool e1=device.writer_trial.e1_selected,sd=device.writer_trial.sketch_d_selected,f=device.writer_trial.f_selected;
             const char *modes[]={"rows","full","status","rows"};
             for(unsigned i=0;i<4;i++) {
                 char *args[]={"ram",(char *)modes[i]}; used=0; output[0]=0;command_count=0;
                 display_cmd_ram(&io,2,args);
                 assert(!strcmp(output,(i==1 || i==2)?"RAM: full\n":"RAM: rows-dual\n"));
                 assert(!command_count && device.writer_trial.baseline_selected==a &&
-                    device.writer_trial.e1_selected==e1 && device.writer_trial.sketch_d_selected==sd);
+                    device.writer_trial.e1_selected==e1 && device.writer_trial.sketch_d_selected==sd && device.writer_trial.f_selected==f);
             }
         }
         char *args[]={"ram","unknown","extra"};
@@ -61,7 +61,7 @@ static void test_ram_commands(void)
     solar_os_shell_io_t invalid={0}; char *args[]={"ram","full"};
     used=0;output[0]=0;command_count=0;display_cmd_ram(&invalid,2,args);
     assert(strstr(output,"usage:") && !device.dirty_hold_force_full && !command_count);
-    puts("RAM device/USB Shell: one-line rows/full/status, 4 LUT selections independent, invalid args/IO and selector SPI=0 PASS");
+    puts("RAM device/USB Shell: one-line rows/full/status, 5 LUT selections independent, invalid args/IO and selector SPI=0 PASS");
 }
 int main(void)
 {
@@ -80,6 +80,11 @@ int main(void)
     device.writer_trial.records[0]=(epd_ssd1677_writer_record_t){.candidate_e1=true,.origin.is_sketch=true,.physical=1};
     device.writer_trial.status.trace_count=device.writer_trial.status.trace_next=1;
     command("trace",2); assert(strstr(output,"source=sketch mode=E1 0x20=1"));
+    command("candidate_f",2); assert(device.writer_trial.f_selected && !device.writer_trial.e1_selected && strstr(output,"mode=candidate_f scope=all-apps"));
+    device.writer_trial.status.f_physical=2; device.writer_trial.status.f_success=2;
+    command("status",2); assert(strstr(output,"F0x20=2") && strstr(output,"display physical=5"));
+    device.writer_trial.records[0]=(epd_ssd1677_writer_record_t){.candidate_f=true,.origin.is_sketch=true,.physical=1};
+    command("trace",2); assert(strstr(output,"source=sketch mode=candidate_f 0x20=1"));
     command("candidate_d",2); assert(!device.writer_trial.e1_selected && strstr(output,"mode=D scope=all-apps-except-sketch"));
     command("candidate_d_sketch",2); assert(device.writer_trial.sketch_d_selected &&
         strstr(output,"mode=D scope=all-apps") && strstr(output,"sketch_d_trial=1"));
@@ -95,22 +100,23 @@ int main(void)
     assert(!device.writer_trial.e1_selected);
     for (int port = 1; port <= 2; port++) {
         solar_os_shell_io_t io = {port};
-        const char *choices[] = {"1", "2", "3", "4"};
-        for (unsigned i = 0; i < 4; i++) {
+        const char *choices[] = {"1", "2", "3", "4", "5"};
+        for (unsigned i = 0; i < 5; i++) {
             char *args[] = {"lut", (char *)choices[i]};
             used = 0; output[0] = 0; command_count = 0;
             display_cmd_lut(&io, 2, args);
-            assert(!command_count && strstr(output, "err=0"));
+            assert(!command_count && !strcmp(output,i==0?"LUT: A\n":i==3?"LUT: E1\n":i==4?"LUT: F\n":"LUT: D\n"));
             assert(device.writer_trial.baseline_selected == (i == 0));
             assert(device.writer_trial.sketch_d_selected == (i == 2));
             assert(device.writer_trial.e1_selected == (i == 3));
+            assert(device.writer_trial.f_selected == (i == 4));
         }
         char *args[] = {"lut", "invalid"};
         used = 0; output[0] = 0;
         display_cmd_lut(&io, 2, args);
-        assert(strstr(output, "usage:") && device.writer_trial.e1_selected);
+        assert(strstr(output, "usage:") && device.writer_trial.f_selected);
         display_cmd_lut(&io, 1, args);
-        assert(strstr(output, "mode=E1") && device.writer_trial.e1_selected);
+        assert(strstr(output, "mode=candidate_f") && device.writer_trial.f_selected);
         command("candidate_d_sketch",port);
         assert(device.writer_trial.sketch_d_selected && strstr(output,"err=0"));
     }
@@ -123,6 +129,6 @@ int main(void)
     device.writer_trial.status.trace_count=0;
     command("trace",2); assert(strstr(output,"records=18446744073709551615"));
     test_ram_commands();
-    puts("writer_d_shell_test: device Shell/USB four-mode selection, global controls/status/trace, no physical updates, default D and no cumulative cap PASS");
+    puts("writer_d_shell_test: device Shell/USB five-mode selection, global controls/status/trace, no physical updates, default D and no cumulative cap PASS");
     return 0;
 }

@@ -1,8 +1,8 @@
 /* Actual Driver/SPI capture + existing retained/swap RAM models. Host only. */
-static const char *ram_luts[] = {"baseline", "candidate_d", "candidate_e1"};
+static const char *ram_luts[] = {"baseline", "candidate_d", "candidate_e1", "candidate_f"};
 static const uint8_t *ram_expected_lut(unsigned lut)
 {
-    return lut == 2 ? ssd1677_trial_black_hold_e1_lut :
+    return lut == 3 ? ssd1677_trial_black_hold_f_lut : lut == 2 ? ssd1677_trial_black_hold_e1_lut :
            lut == 1 ? ssd1677_trial_black_hold_d_lut : ssd1677_reference_lut;
 }
 static void ram_check_update(epd_ssd1677_t *d, controller_ram_t *model,
@@ -21,6 +21,7 @@ static void ram_check_update(epd_ssd1677_t *d, controller_ram_t *model,
     expect_data(0x21,(uint8_t[]){0},1);
     const epd_ssd1677_writer_record_t *r=&d->writer_trial.current;
     assert(r->candidate_d==(lut==1) && r->candidate_e1==(lut==2));
+    assert(r->candidate_f==(lut==3));
     assert(r->ram_path==(full?SSD1677_RAM_FULL:SSD1677_RAM_ROWS));
     assert(r->ram_width==800 && r->ram_height==(full?480:1));
     const transfer_t tr=controller_apply(model,d);
@@ -34,14 +35,15 @@ static void ram_check_update(epd_ssd1677_t *d, controller_ram_t *model,
 }
 static void test_ram_lut_matrix(void)
 {
-    for(unsigned lut=0;lut<3;lut++) for(unsigned full=0;full<2;full++)
+    for(unsigned lut=0;lut<4;lut++) for(unsigned full=0;full<2;full++)
     for(unsigned r2=0;r2<2;r2++) for(unsigned swap=0;swap<2;swap++) {
         boot(); epd_ssd1677_t d=prepare();
         assert(!d.dirty_hold_force_full); /* Standard boot RAM window. */
         assert(epd_ssd1677_writer_lut(&d,ram_luts[lut],NULL,NULL)==ESP_OK);
-        const bool a=d.writer_trial.baseline_selected,e1=d.writer_trial.e1_selected;
+        const bool a=d.writer_trial.baseline_selected,e1=d.writer_trial.e1_selected,f=d.writer_trial.f_selected;
         assert(epd_ssd1677_ram_mode(&d,full?"full":"rows",NULL)==ESP_OK && !command_count);
         assert(d.writer_trial.baseline_selected==a && d.writer_trial.e1_selected==e1);
+        assert(d.writer_trial.f_selected==f);
         bool selected=!full;
         assert(epd_ssd1677_ram_mode(&d,"status",&selected)==ESP_OK && selected==!!full);
         assert(epd_ssd1677_writer_lut(&d,ram_luts[lut],NULL,NULL)==ESP_OK &&
@@ -57,7 +59,7 @@ static void test_ram_lut_matrix(void)
         assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK && !command_count);
         free(model);
     }
-    puts("RAM x LUT 6 conditions: transmitted 105B A/D/E1, 300/144000B warm, no fallback, R0/R2 retained/swap model and no-op PASS");
+    puts("RAM x LUT 8 conditions: transmitted 105B A/D/E1/F, 300/144000B warm, no fallback, R0/R2 retained/swap model and no-op PASS");
 }
 static void test_ram_switch_and_resync(void)
 {
@@ -91,8 +93,8 @@ static void test_ram_switch_and_resync(void)
          * lut 3 and E1 really transmit their selected LUT on Sketch frames. */
         assert(epd_ssd1677_ram_mode(&d,"full",NULL)==ESP_OK);
         d.writer_trial.origin=(solar_os_writer_frame_t){.is_sketch=true};
-        const char *modes[]={"candidate_d","candidate_d_sketch","candidate_e1"};
-        for(unsigned i=0;i<3;i++) {
+        const char *modes[]={"candidate_d","candidate_d_sketch","candidate_e1","candidate_f"};
+        for(unsigned i=0;i<4;i++) {
             assert(epd_ssd1677_writer_lut(&d,modes[i],NULL,NULL)==ESP_OK && d.dirty_hold_force_full);
             command_count=0; flip(360+i,301); ram_check_update(&d,model,i,true,false);
         }
@@ -102,7 +104,7 @@ static void test_ram_switch_and_resync(void)
 }
 static void test_ram_cold_and_failure(void)
 {
-    for(unsigned lut=0;lut<3;lut++) for(unsigned state=0;state<2;state++) {
+    for(unsigned lut=0;lut<4;lut++) for(unsigned state=0;state<2;state++) {
         boot(); epd_ssd1677_t d=prepare();
         assert(epd_ssd1677_writer_lut(&d,ram_luts[lut],NULL,NULL)==ESP_OK);
         assert(epd_ssd1677_ram_mode(&d,"full",NULL)==ESP_OK);

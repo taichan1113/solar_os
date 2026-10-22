@@ -550,7 +550,7 @@ static const shell_command_t shell_builtin_commands[] = {
 #endif
     {"display", "list display targets", solar_os_shell_cmd_display},
 #if SOLAR_OS_SSD1677_WRITER_D
-    {"lut", "select 1:A 2:D(Sketch A) 3:D(Sketch D) 4:E1", solar_os_shell_cmd_lut},
+    {"lut", "select 1:A 2:D(Sketch A) 3:D(Sketch D) 4:E1 5:F", solar_os_shell_cmd_lut},
     {"ram", "select SSD1677 RAM window: rows/full/status", solar_os_shell_cmd_ram},
 #endif
     {"clear", "clear the screen", solar_os_shell_cmd_clear},

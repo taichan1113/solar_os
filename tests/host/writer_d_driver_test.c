@@ -73,10 +73,10 @@ static void test_normal_dirty(bool r2, bool swap)
     assert(!d.writer_trial.status.attempts); /* no-op cannot count a D update */
     /* A/D/E1 share three rows-dual payloads, address windows and voltages. */
     static captured_command_t saved[128]; size_t saved_count=0;
-    for(unsigned candidate=0;candidate<4;candidate++) {
+    for(unsigned candidate=0;candidate<5;candidate++) {
         /* Same old/new image in two independent Driver states. */
         epd_ssd1677_t before=d; uint8_t old[48000]; memcpy(old,shadow,sizeof(old));
-        const char *mode=candidate==3?"candidate_d_sketch":candidate==2?"candidate_e1":candidate?"candidate_d":"baseline";
+        const char *mode=candidate==4?"candidate_f":candidate==3?"candidate_d_sketch":candidate==2?"candidate_e1":candidate?"candidate_d":"baseline";
         assert(epd_ssd1677_writer_lut(&d,mode,NULL,NULL)==ESP_OK);
         u8g2_DrawPixel(&d.u8g2,700,321); command_count=0;
         const unsigned px=r2?99:700, py=r2?158:321;
@@ -93,7 +93,8 @@ static void test_normal_dirty(bool r2, bool swap)
             for(size_t i=0;i<saved_count;i++) {
                 assert(saved[i].command==commands[i].command && saved[i].length==commands[i].length);
                 if(commands[i].command==0x32) {
-                    assert(commands[i].data[0]==(candidate==2?0x3b:0x2f) && commands[i].data[1]==0xf0);
+                    assert(commands[i].data[0]==(candidate==4?0:candidate==2?0x3b:0x2f) &&
+                           commands[i].data[1]==(candidate==4?0xc0:0xf0));
                     assert(!memcmp(saved[i].data+2,commands[i].data+2,103));
                 } else assert(!memcmp(saved[i].data,commands[i].data,commands[i].length));
             }
@@ -103,13 +104,14 @@ static void test_normal_dirty(bool r2, bool swap)
         }
         assert(d.writer_trial.current.candidate_e1==(candidate==2));
         assert(d.writer_trial.current.candidate_d==(candidate==1 || candidate==3));
-        if(candidate<3) {
+        assert(d.writer_trial.current.candidate_f==(candidate==4));
+        if(candidate<4) {
             d=before; memcpy(shadow,old,sizeof(old)); u8g2_DrawPixel(&d.u8g2,700,321);
             controller_seed(model,&d); model->swap_after_activation=swap;
         }
     }
     free(model);
-    puts("A/D/E1 payload/voltage/activation identity, rows-dual RAM/Shadow, restore, R0/R2 retain/swap PASS");
+    puts("A/D/E1/F payload/voltage/activation identity, rows-dual RAM/Shadow, restore, R0/R2 retain/swap PASS");
 }
 
 static void test_e1_modes(void)
@@ -353,6 +355,7 @@ static void test_faults(void)
 }
 #include "sketch_d_diagnostics_cases.inc"
 #include "ram_path_lut_cases.inc"
+#include "candidate_f_cases.inc"
 int main(void)
 {
     test_lut();
@@ -363,5 +366,6 @@ int main(void)
     test_e1_modes(); test_e1_faults();
     test_sketch_d_modes(); test_trial_summary(); test_trial_times_and_overflow(); test_trial_failure();
     test_ram_lut_matrix(); test_ram_switch_and_resync(); test_ram_cold_and_failure();
+    test_candidate_f_lut(); test_candidate_f_modes(); test_candidate_f_faults();
     puts("writer_d_driver_test: PASS"); return 0;
 }

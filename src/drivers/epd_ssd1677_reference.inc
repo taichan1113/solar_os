@@ -53,6 +53,22 @@ static const uint8_t ssd1677_trial_black_hold_e1_lut[110] = {
     0x8f,0x8f,0x8f,0x8f,0x8f,
     0x17,0x46,0xa8,0x32,0x30,
 };
+
+/* Explicit, volatile Candidate F: existing VSH2 (+5V) for Phase 1A only.
+ * TP/RP/FR and all other LUT/voltage bytes remain Baseline A's. Source
+ * 0V*8F,+5V*1F,0V*1F is not proof of effective DC balance or panel safety. */
+static const uint8_t ssd1677_trial_black_hold_f_lut[110] = {
+    0x00,0xc0,0,0,0,0,0,0,0,0,
+    0x6a,0xa0,0,0,0,0,0,0,0,0,
+    0x95,0x50,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,
+    2,2,2,2,0, 1,1,0,0,0,
+    0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+    0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+    0x8f,0x8f,0x8f,0x8f,0x8f,
+    0x17,0x46,0xa8,0x32,0x30,
+};
 #endif
 
 static const uint8_t *ssd1677_selected_lut(const epd_ssd1677_t *d, const char **name)
@@ -229,8 +245,10 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     const uint8_t *lut = ssd1677_selected_lut(d, &waveform_name);
 #if SOLAR_OS_SSD1677_WRITER_D
     if (writer_d_select(d, cold)) {
-        lut = d->writer_trial.used_e1 ? ssd1677_trial_black_hold_e1_lut : ssd1677_trial_black_hold_d_lut;
-        waveform_name = d->writer_trial.used_e1 ? "candidate_e1" : "candidate_d";
+        lut = d->writer_trial.used_f ? ssd1677_trial_black_hold_f_lut :
+              d->writer_trial.used_e1 ? ssd1677_trial_black_hold_e1_lut : ssd1677_trial_black_hold_d_lut;
+        waveform_name = d->writer_trial.used_f ? "candidate_f" :
+                        d->writer_trial.used_e1 ? "candidate_e1" : "candidate_d";
     }
     {
         epd_ssd1677_writer_record_t *r = &d->writer_trial.current;
@@ -345,7 +363,7 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     }
 #endif
 #if SOLAR_OS_SSD1677_WRITER_D
-    if (err == ESP_OK && (d->writer_trial.used_d || d->writer_trial.used_e1)) {
+    if (err == ESP_OK && (d->writer_trial.used_d || d->writer_trial.used_e1 || d->writer_trial.used_f)) {
         const int64_t restore_start = esp_timer_get_time();
         /* Existing D trial restore: after BUSY AND both RAM syncs. No activation. */
         err = ssd1677_cmd_data(d, 0x32, ssd1677_reference_lut, 105);

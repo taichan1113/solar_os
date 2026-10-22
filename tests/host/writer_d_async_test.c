@@ -84,20 +84,22 @@ static void wait_control_barrier(void)
 }
 int main(int argc,char **argv)
 {
+    const bool f=argc>1 && (!strcmp(argv[1],"f") || !strcmp(argv[1],"f-restore-fail") || !strcmp(argv[1],"f-ram-path"));
     const bool e1=argc>1 && (!strcmp(argv[1],"e1") || !strcmp(argv[1],"e1-restore-fail"));
     const bool sketchd=argc>1 && (!strcmp(argv[1],"sketch-d") || !strcmp(argv[1],"sketch-d-restore-fail"));
     const bool fullfailure=argc>1 && !strcmp(argv[1],"ram-full-restore-fail");
-    const bool failure=fullfailure || (argc>1 && (!strcmp(argv[1],"restore-fail") || !strcmp(argv[1],"e1-restore-fail") || !strcmp(argv[1],"sketch-d-restore-fail")));
-    const bool ram=argc>1 && !strcmp(argv[1],"ram-path");
+    const bool failure=fullfailure || (argc>1 && (!strcmp(argv[1],"restore-fail") || !strcmp(argv[1],"e1-restore-fail") || !strcmp(argv[1],"sketch-d-restore-fail") || !strcmp(argv[1],"f-restore-fail")));
+    const bool ram=argc>1 && (!strcmp(argv[1],"ram-path") || !strcmp(argv[1],"f-ram-path"));
     uint8_t image[48000]; wd_panel_init(image);
     assert(solar_os_display_async_create(48000,panel_execute,NULL,&live.a)==ESP_OK);
     epd_ssd1677_writer_status_t initial; wd_status(&initial);
     assert(initial.enabled); /* No manual activation after ordinary boot. */
+    if(f) assert(wd_mode("candidate_f")==ESP_OK);
     if(e1) assert(wd_mode("candidate_e1")==ESP_OK);
     if(sketchd) assert(wd_mode("candidate_d_sketch")==ESP_OK);
     if(fullfailure) assert(wd_ram("full",NULL)==ESP_OK);
     if(ram) {
-        assert(wd_mode("candidate_e1")==ESP_OK);
+        assert(wd_mode(f?"candidate_f":"candidate_e1")==ESP_OK);
         bool full=true; assert(wd_ram("status",&full)==ESP_OK && !full);
         for(unsigned step=0;step<2;step++) {
             live.block_restore=true; live.control_done=false;
@@ -115,7 +117,7 @@ int main(int argc,char **argv)
             wait_count(&live.activations,step*2+2); release_panel(1);
             assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
             const epd_ssd1677_writer_record_t *old=&live.records[step*2],*next=&live.records[step*2+1];
-            assert(old->candidate_e1 && next->candidate_e1 && old->restored && next->restored);
+            assert((f?(old->candidate_f && next->candidate_f):(old->candidate_e1 && next->candidate_e1)) && old->restored && next->restored);
             assert(old->ram_path==(step?SSD1677_RAM_FULL:SSD1677_RAM_ROWS));
             assert(next->ram_path==(step?SSD1677_RAM_ROWS:SSD1677_RAM_FULL));
             assert(old->ram_bytes==(step?144000U:300U));
@@ -123,10 +125,10 @@ int main(int argc,char **argv)
             assert(old->origin.is_sketch && next->origin.is_sketch);
         }
         epd_ssd1677_writer_status_t s; wd_status(&s);
-        assert(s.e1_physical==4 && s.e1_success==4 && !s.d_physical && !s.failed && !s.driver_errors);
+        assert((f?(s.f_physical==4 && s.f_success==4 && !s.e1_physical):(s.e1_physical==4 && s.e1_success==4 && !s.f_physical)) && !s.d_physical && !s.failed && !s.driver_errors);
         solar_os_display_submission_status_t q; solar_os_display_async_status(live.a,&q);
         assert(!q.busy && !q.pending && !q.error && q.physical==4 && !q.cancelled && !q.replaced);
-        puts("RAM actual Async: rows<->full control waits BUSY/post-sync/LUT restore; pending source/E1/payload retained, four activations only PASS");
+        puts("RAM actual Async: rows<->full control waits BUSY/post-sync/LUT restore; pending source/selected LUT/payload retained, four activations only PASS");
     } else if(failure) {
         assert(wd_mode("trial-start")==ESP_OK);
         wd_fail_restore(); input(image,0,sketchd?2:0); wait_count(&live.activations,1);
@@ -134,10 +136,12 @@ int main(int argc,char **argv)
         assert(solar_os_display_async_wait(live.a,2000)==ESP_FAIL);
         epd_ssd1677_writer_status_t s; wd_status(&s);
         assert(s.failed && !s.enabled);
-        if(e1) assert(s.e1_attempts==1 && s.e1_physical==1 && s.e1_errors==1 && !s.attempts && !s.d_physical);
+        if(f) assert(s.f_attempts==1 && s.f_physical==1 && s.f_errors==1 && !s.attempts && !s.e1_physical);
+        else if(e1) assert(s.e1_attempts==1 && s.e1_physical==1 && s.e1_errors==1 && !s.attempts && !s.d_physical);
         else assert(s.attempts==1 && s.d_physical==1 && s.d_errors==1);
         assert(wd_mode("candidate_d")==ESP_ERR_INVALID_STATE);
         assert(wd_mode("candidate_e1")==ESP_ERR_INVALID_STATE);
+        assert(wd_mode("candidate_f")==ESP_ERR_INVALID_STATE);
         assert(wd_mode("candidate_d_sketch")==ESP_ERR_INVALID_STATE);
         if(fullfailure) {
             bool full=false;
@@ -187,7 +191,7 @@ int main(int argc,char **argv)
         assert(s.trial.submitted==12 && s.trial.pending_end && !s.trial.replaced && s.trial.queue_valid);
         assert(s.candidate_d_sketch && !s.failed && !s.driver_errors);
         puts("Sketch D actual Async: BUSY/restore/pending D<->A/E1, source/RAM retained; trial-stop fences and pending cohort PASS");
-    } else if(e1) {
+    } else if(e1 || f) {
         /* E1 active Sketch + pending Sketch: D must wait through E1 restore,
          * then pending keeps its Sketch origin and chooses the D-mode A exception. */
         live.block_restore=true;
@@ -202,19 +206,19 @@ int main(int argc,char **argv)
         wait_count(&live.activations,2); release_panel(1);
         assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
         epd_ssd1677_writer_status_t s; wd_status(&s);
-        assert(s.e1_physical==1 && s.e1_success==1 && !s.d_physical && s.a_physical==initial.a_physical+1);
+        assert((f?(s.f_physical==1 && s.f_success==1 && !s.e1_physical):(s.e1_physical==1 && s.e1_success==1 && !s.f_physical)) && !s.d_physical && s.a_physical==initial.a_physical+1);
         assert(live.seen[0].is_sketch && live.seen[1].is_sketch);
-        puts("E1->D barrier spans BUSY/post-sync/restore; pending Sketch retains origin and chooses A PASS");
+        puts(f?"F->D barrier spans BUSY/post-sync/restore; pending Sketch retains origin and chooses A PASS":"E1->D barrier spans BUSY/post-sync/restore; pending Sketch retains origin and chooses A PASS");
         /* D-mode Sketch A in flight, pending Sketch becomes E1 after switch. */
         input(image,2,2); wait_count(&live.activations,3); input(image,3,2);
         live.control_done=false;
-        assert(!pthread_create(&control,NULL,change_mode,"candidate_e1"));
+        assert(!pthread_create(&control,NULL,change_mode,f?"candidate_f":"candidate_e1"));
         wait_control_barrier(); release_panel(1); pthread_join(control,NULL);
         wait_count(&live.activations,4); release_panel(1);
         assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
-        wd_status(&s); assert(s.e1_physical==2 && s.e1_success==2 && s.a_physical==initial.a_physical+2 && s.candidate_e1);
+        wd_status(&s); assert((f?(s.f_physical==2 && s.f_success==2 && s.candidate_f):(s.e1_physical==2 && s.e1_success==2 && s.candidate_e1)) && s.a_physical==initial.a_physical+2);
         assert(live.seen[2].is_sketch && live.seen[3].is_sketch);
-        puts("D-mode A->E1 switch: active A unchanged, pending Sketch actually uploads E1 PASS");
+        puts(f?"D-mode A->F switch: active A unchanged, pending Sketch actually uploads F PASS":"D-mode A->E1 switch: active A unchanged, pending Sketch actually uploads E1 PASS");
         /* E1 Writer active, pending other frame becomes A after baseline select. */
         input(image,4,1); wait_count(&live.activations,5); input(image,5,0);
         live.control_done=false;
@@ -223,12 +227,12 @@ int main(int argc,char **argv)
         wait_count(&live.activations,6); release_panel(1);
         assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
         wd_status(&s);
-        assert(s.e1_physical==3 && s.e1_success==3 && s.a_physical==initial.a_physical+3 && !s.enabled);
+        assert((f?(s.f_physical==3 && s.f_success==3 && !s.e1_physical):(s.e1_physical==3 && s.e1_success==3 && !s.f_physical)) && s.a_physical==initial.a_physical+3 && !s.enabled);
         assert(s.writer_physical==1 && !s.writer_a && !s.writer_otp);
         assert(live.seen[4].is_writer && !live.seen[5].is_writer && !live.seen[5].is_sketch);
         solar_os_display_submission_status_t q; solar_os_display_async_status(live.a,&q);
         assert(!q.pending && !q.busy && !q.error && !q.writer_cancelled);
-        puts("E1->A switch: pending origin/payload preserved, no E1 counted as A/OTP, no extra activations PASS");
+        puts(f?"F->A switch: pending origin/payload preserved, no F counted as A/OTP, no extra activations PASS":"E1->A switch: pending origin/payload preserved, no E1 counted as A/OTP, no extra activations PASS");
     } else {
         /* D in-flight + Writer coalescing + mode A switch. The switch must
          * remain blocked through restoration, not just through 0x20/BUSY. */
@@ -292,6 +296,7 @@ int main(int argc,char **argv)
         puts("Sketch origin survives actual Executor: Sketch A -> other D -> Sketch A -> Writer D PASS");
     }
     solar_os_display_async_destroy(live.a); reap();
+    if(f) puts("Candidate F actual Async: selected LUT/restore/pending source and payload, isolated counters, single activations and fault handling PASS");
     puts("writer_d_async_test: PASS"); return 0;
 }
 void *exit_app(void *p)

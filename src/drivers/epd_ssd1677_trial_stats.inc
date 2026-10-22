@@ -25,7 +25,7 @@ static void writer_trial_finish(epd_ssd1677_t *d, epd_ssd1677_writer_record_t *r
         s->last_seq = r->seq;
         writer_trial_add(s, &s->frames, 1);
         writer_trial_add(s, &s->physical, r->physical);
-        writer_trial_add(s, r->candidate_e1 ? &s->e1 : r->candidate_d ? &s->d :
+        writer_trial_add(s, r->candidate_f ? &s->f : r->candidate_e1 ? &s->e1 : r->candidate_d ? &s->d :
                             r->reference ? &s->a : &s->otp, r->physical);
         writer_trial_add(s, r->origin.is_sketch ? &s->sketch :
                             r->origin.is_writer ? &s->writer : &s->other, r->physical);
