@@ -5,6 +5,7 @@ tests/host/run_standalone_sketch_lut.sh text eol=lf
 tests/host/run_ram_path_lut.sh text eol=lf
 tests/host/run_candidate_f.sh text eol=lf
 scripts/build_papermono_standalone_lut.sh text eol=lf
+doc/evidence/candidate-f-1f-20261022/* -text
 doc/evidence/fastest-sketch-d-diagnostics/*.log -text
 doc/evidence/fastest-sketch-d-diagnostics/*.json -text
 doc/evidence/fastest-e1-trial/*.log -text
