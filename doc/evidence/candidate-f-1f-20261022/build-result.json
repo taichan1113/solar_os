@@ -1,0 +1,82 @@
+{
+  "returncode": 0,
+  "elapsed_seconds": 11.61,
+  "command": [
+    "C:\\Program Files\\Git\\bin\\bash.exe",
+    "scripts/build_papermono_standalone_lut.sh"
+  ],
+  "cwd": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\candidate-f-1f\\worktree",
+  "source_commit": "70e1c0ffeaf4d4e9e616d47a28ee3e5aaf0386cc",
+  "source_changes_uncommitted": false,
+  "device_accessed": false,
+  "flash_performed": false,
+  "idf_version": "5.5.5",
+  "toolchain_version": "14.2.0+20260121",
+  "board": "m5paper_mono",
+  "flavor": "writerdeck",
+  "layout": "ota",
+  "application_size": 3466448,
+  "application_sha256": "e11da1b81baf0ff60086d9b61d89a4442bddae58e5eec42bdf4698186caa2bc1",
+  "partition_sha256": "fd976d7c1eaa8f9d0a01ac87a8d05fc1cb1e59d3c5970954b30ad0c3aa12a488",
+  "partitions": [
+    {
+      "name": "nvs",
+      "type": 1,
+      "subtype": 2,
+      "offset": "0x9000",
+      "size": 16384
+    },
+    {
+      "name": "otadata",
+      "type": 1,
+      "subtype": 0,
+      "offset": "0xd000",
+      "size": 8192
+    },
+    {
+      "name": "phy_init",
+      "type": 1,
+      "subtype": 1,
+      "offset": "0xf000",
+      "size": 4096
+    },
+    {
+      "name": "ota_0",
+      "type": 0,
+      "subtype": 16,
+      "offset": "0x10000",
+      "size": 7340032
+    },
+    {
+      "name": "ota_1",
+      "type": 0,
+      "subtype": 17,
+      "offset": "0x710000",
+      "size": 7340032
+    },
+    {
+      "name": "flash",
+      "type": 1,
+      "subtype": 129,
+      "offset": "0xe10000",
+      "size": 2031616
+    }
+  ],
+  "selection": [
+    "board=m5paper_mono",
+    "flavor=writerdeck",
+    "flavor_name_override=",
+    "flavor_file=E:\\ESP32\\M5PapserMono-SolarOS\\.research\\candidate-f-1f\\worktree\\flavors\\writerdeck.toml",
+    "layout=ota",
+    "partition=partitions.csv",
+    "cvbs=384x288",
+    "vga=640x480",
+    "ssd1677_waveform_trial=0",
+    "ssd1677_writer_d=1",
+    "sketch_lut_panel_trial=0",
+    "ssd1677_hybrid_trial=1",
+    "ssd1677_dirty_hold_trial=1",
+    "ssd1677_spi20_trial=1",
+    "flavors\\writerdeck.toml:1792633047086772400:1273"
+  ]
+}

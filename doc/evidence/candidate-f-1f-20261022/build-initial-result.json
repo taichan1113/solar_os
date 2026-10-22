@@ -1,0 +1,13 @@
+{
+  "returncode": 0,
+  "elapsed_seconds": 252.609,
+  "command": [
+    "C:\\Program Files\\Git\\bin\\bash.exe",
+    "scripts/build_papermono_standalone_lut.sh"
+  ],
+  "cwd": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\candidate-f-1f\\worktree",
+  "source_base": "268895c53d95117a717664b8c1ac00a517b55309",
+  "source_changes_uncommitted": true,
+  "device_accessed": false,
+  "flash_performed": false
+}

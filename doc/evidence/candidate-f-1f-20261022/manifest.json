@@ -1,0 +1,18 @@
+{
+  "implementation_commit": "70e1c0ffeaf4d4e9e616d47a28ee3e5aaf0386cc",
+  "base_commit": "268895c53d95117a717664b8c1ac00a517b55309",
+  "branch": "feature/papermono-candidate-f-1f",
+  "flash_performed": false,
+  "device_accessed": false,
+  "optical_evaluation": "NOT_PERFORMED",
+  "manual_hardware_procedure_created": false,
+  "artifacts": {
+    "build-initial-result.json": "b2fbb1f6076b94f0fceb742b39aa4d8d6c4c7476847cc74e5babe69e948475d8",
+    "build-result.json": "54a7dab88684898de607bd4cd40266a2934937f168367144f0023310f46f5e59",
+    "build.log": "e2a0193aafc093adf22ef6c5cb28776c7beeb1091291d1422d40145e0458f372",
+    "host-result.json": "aa77209d6d1349dc43f04de2075794c49a9c52ec6fbdf964e021d7fc7e0846ea",
+    "host.log": "0877657d843b5815f38535419d44b058b2e5ae3acb7e982e0a57278a48598f0e",
+    "lut-checksums.json": "eda00defbd37b4eee924dc5add8caf9828f4b86d088c8f46aaa9b1a62d30fead",
+    "worktrees-preserved.json": "4563471a0fb32da0c5b7e9103998a7dc85b724cf74dde27169458fa3cf87d365"
+  }
+}

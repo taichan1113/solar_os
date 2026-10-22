@@ -1,0 +1,32 @@
+{
+  "A": {
+    "size": 110,
+    "lut0_first2": "00 00",
+    "sha256_110": "e8a7abbb2110cb8d941e80cc2869bbe1d0814e1d4a38e5d0cc5173b10f39ce50",
+    "sha256_105": "c90845aeff5e0f7e79b5657a1b65c0c3bef7e25f6bca2973982d6e12f8f7ed1a",
+    "unchanged_from_base": true
+  },
+  "D": {
+    "size": 110,
+    "lut0_first2": "2f f0",
+    "sha256_110": "9be4bea8b9a07fef33834293d25979a9b0f3fc820d3e9912a1fc106532ef1832",
+    "sha256_105": "48302a97a90cfd16121f3ba514773bd331f4fdc779afa4b9bacc13469028b548",
+    "unchanged_from_base": true
+  },
+  "E1": {
+    "size": 110,
+    "lut0_first2": "3b f0",
+    "sha256_110": "2efbb01c63096d5faad6f9d8444f11cc5d9cd0478080255ff24d3994c8f9ff93",
+    "sha256_105": "1debeaa9e7188198b544ca2e03561d388b5a82ee9d457cc5e56b2e45deed72fc",
+    "unchanged_from_base": true
+  },
+  "F": {
+    "size": 110,
+    "lut0_first2": "00 c0",
+    "sha256_110": "9142bbe199d5d63ee504e65ff66450d9cdffe062441f5953895289489c342cb2",
+    "sha256_105": "8aeedb2c900b711ecd7cecacbc49f8ec9873176ae51f0753fe49d802121f4d23",
+    "changed_offsets_from_A": [
+      1
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "returncode": 0,
+  "elapsed_seconds": 85.141,
+  "command": [
+    "wsl.exe",
+    "--",
+    "bash",
+    "-lc",
+    "ulimit -c 0; cd /mnt/e/ESP32/M5PapserMono-SolarOS/.research/candidate-f-1f/worktree && CJSON_DIR=/mnt/c/Users/takec/.platformio/packages/framework-espidf/components/json/cJSON sh tests/host/run_candidate_f.sh"
+  ],
+  "device_accessed": false,
+  "flash_performed": false,
+  "source_commit": "70e1c0ffeaf4d4e9e616d47a28ee3e5aaf0386cc",
+  "source_content_same_as_tested_commit": true
+}

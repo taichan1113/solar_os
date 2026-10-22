@@ -1,0 +1,265 @@
+{
+  "existing_worktrees": 37,
+  "all_preserved": true,
+  "checks": [
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/black-hold-bd-compare/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-prime-aa/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/black-hold-d-repeat3/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/black-hold-dad/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/black-hold-repro-b/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/black-hold-single/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/black-hold-timing-c/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/black-hold-timing-d/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/dirty-rectangle-hardware/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/dirty-rectangle-live/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/dirty-sketch-integration/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/display-update-mvp/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/e1-ubuntu-followup/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/epd-quality-mvp/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/fastest-d-all-apps/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/fastest-e1-trial/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/fastest-fixed-black-cause/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/hybrid-refresh/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/launcher-touch-grid/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/lh",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/m5gfx-fastest-diff/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/ram-path-lut-trial/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/shell-completion/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/sketch-d-diagnostics/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/sketch-latency-live/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/ssd1677-dirty-hold/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/type-mouse-mvp/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/type-mouse-phase1a/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/type-mouse-phase1b1/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/type-mouse-phase1b2/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/type-mouse-toggle/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/ui",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/upstream-integration-20261020/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/voltage-register-hold/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/writer-black-hold-d/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    },
+    {
+      "path": "E:/ESP32/M5PapserMono-SolarOS/.research/writer-d-integration/worktree",
+      "branch_head_unchanged": true,
+      "status_unchanged": true,
+      "diff_unchanged": true,
+      "untracked_unchanged": true
+    }
+  ]
+}
