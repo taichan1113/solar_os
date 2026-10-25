@@ -12,22 +12,23 @@ static void writer_d_activation(epd_ssd1677_t *d)
     epd_ssd1677_writer_trial_t *t = &d->writer_trial;
     if (t->power_control) { writer_d_count(&t->status.power_controls); return; }
     t->current.physical++;
-    if (t->used_d) writer_d_count(&t->status.d_physical);
+    if (t->used_f) writer_d_count(&t->status.f_physical);
+    else if (t->used_d) writer_d_count(&t->status.d_physical);
     else if (t->reference) writer_d_count(&t->status.a_physical);
     else writer_d_count(&t->status.otp_physical);
     if (t->origin.is_writer) {
         writer_d_count(&t->status.writer_physical);
-        if (!t->used_d && t->reference) writer_d_count(&t->status.writer_a);
-        else if (!t->used_d) writer_d_count(&t->status.writer_otp);
+        if (!t->used_d && !t->used_f && t->reference) writer_d_count(&t->status.writer_a);
+        else if (!t->used_d && !t->used_f) writer_d_count(&t->status.writer_otp);
     } else writer_d_count(&t->status.other_physical);
 }
 
 static bool writer_d_select(epd_ssd1677_t *d, bool cold)
 {
     epd_ssd1677_writer_trial_t *t = &d->writer_trial;
-    t->used_d = t->restored = false;
+    t->used_d = t->used_f = t->restored = false;
     t->reference = true;
-    if (t->origin.is_sketch || t->baseline_selected || atomic_load(&writer_d_failed) ||
+    if ((t->origin.is_sketch && !t->f_selected) || t->baseline_selected || atomic_load(&writer_d_failed) ||
         d->refresh_mode != EPD_SSD1677_REFRESH_FASTEST) return false;
     /* A known optical/Shadow baseline is required by the existing dispatcher.
      * Cold custom entry still performs its normal reset/full-RAM preparation,
@@ -44,8 +45,9 @@ static bool writer_d_select(epd_ssd1677_t *d, bool cold)
         t->baseline_selected = true; /* Unsupported, known backend: retain A. */
         return false;
     }
-    t->used_d = true;
-    writer_d_count(&t->status.attempts);
+    t->used_f = t->f_selected;
+    t->used_d = !t->used_f;
+    writer_d_count(t->used_f ? &t->status.f_attempts : &t->status.attempts);
     return true;
 }
 
@@ -57,12 +59,12 @@ static void writer_d_finish(epd_ssd1677_t *d, esp_err_t err)
         t->baseline_selected = true;
         atomic_store(&writer_d_failed, true);
     }
-    if (t->used_d) {
+    if (t->used_d || t->used_f) {
         if (err == ESP_OK && t->restored) {
-            writer_d_count(&t->status.d_success);
+            writer_d_count(t->used_f ? &t->status.f_success : &t->status.d_success);
         }
         else {
-            writer_d_count(&t->status.d_errors);
+            writer_d_count(t->used_f ? &t->status.f_errors : &t->status.d_errors);
             atomic_store(&writer_d_failed, true);
             t->baseline_selected = true;
             /* No automatic recovery/physical retry when controller state is unknown. */
@@ -73,11 +75,12 @@ static void writer_d_finish(epd_ssd1677_t *d, esp_err_t err)
     epd_ssd1677_writer_record_t *r = &t->current;
     r->origin = t->origin;
     r->candidate_d = t->used_d;
+    r->candidate_f = t->used_f;
     r->reference = t->reference;
     r->restored = t->restored;
     r->error = err;
     r->end_us = esp_timer_get_time();
-    if (r->physical || t->reference) {
+    if (r->timing_valid) {
         for (unsigned i = 0; i < d->timing.writes; i++) {
             r->ram_bytes += d->timing.ram_data_bytes[i];
             r->spi_us += d->timing.spi_us[i];
@@ -109,17 +112,18 @@ esp_err_t epd_ssd1677_writer_lut(epd_ssd1677_t *d, const char *mode,
     operation_begin(d, EPD_SSD1677_OP_READ);
     epd_ssd1677_writer_trial_t *t = &d->writer_trial;
     esp_err_t err = ESP_OK;
-    if (!strcmp(mode, "candidate_d")) {
-        if (atomic_load(&writer_d_failed) ||
+    if (!strcmp(mode, "candidate_d") || !strcmp(mode, "candidate_f")) {
+        if ((d->default_f && !strcmp(mode, "candidate_d")) || atomic_load(&writer_d_failed) ||
             d->faulted || !d->operation_begin || !d->execution_context || !d->papermono_otp ||
             d->refresh_mode != EPD_SSD1677_REFRESH_FASTEST || !d->fastest_tiles ||
             d->fastest_spi_hz != 20000000 || !d->dirty_hold_trial || !d->dirty_hold_dual_sync ||
             !d->dirty_hold_full_width || d->dirty_hold_full_height) err = ESP_ERR_INVALID_STATE;
-        else t->baseline_selected = false;
+        else { t->baseline_selected = false; t->f_selected = !strcmp(mode, "candidate_f"); }
     } else if (!strcmp(mode, "baseline") || !strcmp(mode, "disable")) t->baseline_selected = true;
     else if (strcmp(mode, "status") && strcmp(mode, "trace")) err = ESP_ERR_INVALID_ARG;
     t->status.enabled = !t->baseline_selected && !atomic_load(&writer_d_failed) && !d->faulted;
     t->status.failed = atomic_load(&writer_d_failed);
+    t->status.candidate_f = t->f_selected;
     if (status) *status = t->status;
     if (records) memcpy(records, t->records, sizeof(t->records));
     operation_end(d, EPD_SSD1677_OP_READ, err);

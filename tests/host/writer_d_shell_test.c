@@ -5,6 +5,7 @@
 #include "../../src/services/solar_os_display_submission.h"
 
 #define SOLAR_OS_SHELL_IO_KIND_PORT 2
+#define SOLAR_OS_SHELL_IO_KIND_TERMINAL 1
 typedef struct { int port; } solar_os_shell_io_t;
 typedef struct { bool ready; u8g2_t *u8g2; const char *driver; } solar_os_display_target_t;
 static epd_ssd1677_t device;
@@ -44,7 +45,7 @@ int main(void)
     command("baseline",2); assert(device.writer_trial.baseline_selected && strstr(output,"mode=A"));
     command("candidate_d",2); assert(!device.writer_trial.baseline_selected && strstr(output,"mode=D"));
     command("disable",2); assert(!!device.writer_trial.baseline_selected);
-    command("candidate_d",1); assert(!!device.writer_trial.baseline_selected && strstr(output,"USB:"));
+    command("candidate_d",0); assert(!!device.writer_trial.baseline_selected && strstr(output,"display test display0"));
     command("unknown",2); assert(strstr(output,"err="));
     command("trace",2); assert(strstr(output,"queue submitted=") && strstr(output,"display physical="));
     device.writer_trial.status.attempts=1000;
@@ -52,6 +53,12 @@ int main(void)
     device.writer_trial.status.records=UINT64_MAX;
     device.writer_trial.status.trace_count=0;
     command("trace",2); assert(strstr(output,"records=18446744073709551615"));
+    device.default_f=true;
+    command("candidate_f",1); assert(!device.writer_trial.baseline_selected && strstr(output,"mode=F scope=all-apps"));
+    command("baseline",1); assert(device.writer_trial.baseline_selected);
+    command("candidate_f",2); assert(!device.writer_trial.baseline_selected);
+    char rejected[24]; snprintf(rejected,sizeof(rejected),"err=%d",ESP_ERR_INVALID_STATE);
+    command("candidate_d",2); assert(strstr(output,rejected) && device.writer_trial.f_selected);
     puts("writer_d_shell_test: USB gating, global controls/status/trace, no physical updates, default D and no cumulative cap PASS");
     return 0;
 }

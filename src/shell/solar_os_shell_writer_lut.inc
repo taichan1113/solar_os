@@ -2,9 +2,10 @@
 static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **argv)
 {
     if (argc != 5 || strcmp(argv[2], "display0") ||
-        solar_os_shell_io_kind(io) != SOLAR_OS_SHELL_IO_KIND_PORT) {
+        (solar_os_shell_io_kind(io) != SOLAR_OS_SHELL_IO_KIND_PORT &&
+         solar_os_shell_io_kind(io) != SOLAR_OS_SHELL_IO_KIND_TERMINAL)) {
         solar_os_shell_io_writeln(io,
-            "USB: display test display0 fastest-lut status|baseline|candidate_d|disable|trace (writer-lut alias)");
+            "display test display0 fastest-lut status|baseline|candidate_f|disable|trace");
         return;
     }
     solar_os_display_target_t target;
@@ -22,15 +23,21 @@ static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **arg
     epd_ssd1677_writer_status_t s;
     const esp_err_t err = epd_ssd1677_writer_lut(d, argv[4], &s, records);
     solar_os_shell_io_printf(io,
-        "fastest-lut err=%d mode=%s scope=all-apps-except-sketch attempts=%llu D0x20=%llu success=%llu error=%llu driver_error=%llu failed=%u\n",
-        (int)err, s.enabled ? "D" : "A", (unsigned long long)s.attempts, (unsigned long long)s.d_physical,
+        "fastest-lut err=%d mode=%s scope=%s attempts=%llu D0x20=%llu success=%llu error=%llu driver_error=%llu failed=%u\n",
+        (int)err, s.enabled ? (s.candidate_f ? "F" : "D") : "A",
+        s.candidate_f ? "all-apps" : "all-apps-except-sketch", (unsigned long long)s.attempts, (unsigned long long)s.d_physical,
         (unsigned long long)s.d_success, (unsigned long long)s.d_errors,
         (unsigned long long)s.driver_errors, s.failed);
+    solar_os_shell_io_printf(io, "F attempts=%llu physical=%llu success=%llu error=%llu\n",
+        (unsigned long long)s.f_attempts, (unsigned long long)s.f_physical,
+        (unsigned long long)s.f_success, (unsigned long long)s.f_errors);
+    uint64_t total = 0;
+    const uint64_t counts[] = {s.a_physical,s.d_physical,s.f_physical,s.otp_physical};
+    for (unsigned i=0;i<sizeof(counts)/sizeof(counts[0]);++i)
+        total=counts[i]>UINT64_MAX-total ? UINT64_MAX : total+counts[i];
     solar_os_shell_io_printf(io,
         "display physical=%llu A=%llu D=%llu OTP=%llu noop=%llu\n",
-        (unsigned long long)(s.d_physical > UINT64_MAX - s.a_physical ? UINT64_MAX :
-            s.otp_physical > UINT64_MAX - s.d_physical - s.a_physical ? UINT64_MAX :
-            s.d_physical + s.a_physical + s.otp_physical),
+        (unsigned long long)total,
         (unsigned long long)s.a_physical, (unsigned long long)s.d_physical,
         (unsigned long long)s.otp_physical, (unsigned long long)s.noop);
     solar_os_shell_io_printf(io,
@@ -53,7 +60,7 @@ static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **arg
                 "WL seq=%llu gen=%llu source=%s mode=%s 0x20=%u err=%d restored=%u input=%u merged=%u ram=%u region=%u,%u,%u,%u\n",
                 (unsigned long long)r->seq, (unsigned long long)r->origin.generation,
                 r->origin.is_sketch ? "sketch" : r->origin.is_writer ? "writer" : "other",
-                r->candidate_d ? "D" : r->reference ? "A" : "OTP/noop", (unsigned)r->physical,
+                r->candidate_f ? "F" : r->candidate_d ? "D" : r->reference ? "A" : "OTP/noop", (unsigned)r->physical,
                 (int)r->error, r->restored, (unsigned)r->origin.inputs,
                 (unsigned)r->origin.coalesced, (unsigned)r->ram_bytes, r->x, r->y, r->width, r->height);
             solar_os_shell_io_printf(io,

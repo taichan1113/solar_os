@@ -37,6 +37,19 @@ static const uint8_t ssd1677_trial_black_hold_d_lut[110] = {
     0x8f,0x8f,0x8f,0x8f,0x8f,
     0x17,0x46,0xa8,0x32,0x30,
 };
+/* Adopted F; unchanged from 70e1c0ff. Long-term DC/lifetime unmeasured. */
+static const uint8_t ssd1677_trial_black_hold_f_lut[110] = {
+    0x00,0xc0,0,0,0,0,0,0,0,0,
+    0x6a,0xa0,0,0,0,0,0,0,0,0,
+    0x95,0x50,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,
+    2,2,2,2,0, 1,1,0,0,0,
+    0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+    0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
+    0x8f,0x8f,0x8f,0x8f,0x8f,
+    0x17,0x46,0xa8,0x32,0x30,
+};
 #endif
 
 static const uint8_t *ssd1677_selected_lut(const epd_ssd1677_t *d, const char **name)
@@ -179,6 +192,9 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     const ssd1677_window_t full = {0, SSD1677_PANEL_ROW_BYTES-1, 0, SSD1677_HEIGHT-1};
     d->timing = (epd_ssd1677_timing_t){.start_us=start, .partial=true, .diff_us=diff_end-start};
     d->papermono_baseline_valid = false;
+#if SOLAR_OS_SSD1677_WRITER_D
+    d->writer_trial.current.timing_valid = true;
+#endif
     const bool cold = !d->reference_awake;
 #if SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL
     if (d->dirty_hold_trial && d->dirty_hold_dual_sync &&
@@ -206,8 +222,8 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     const uint8_t *lut = ssd1677_selected_lut(d, &waveform_name);
 #if SOLAR_OS_SSD1677_WRITER_D
     if (writer_d_select(d, cold)) {
-        lut = ssd1677_trial_black_hold_d_lut;
-        waveform_name = "candidate_d";
+        lut = d->writer_trial.used_f ? ssd1677_trial_black_hold_f_lut : ssd1677_trial_black_hold_d_lut;
+        waveform_name = d->writer_trial.used_f ? "candidate_f" : "candidate_d";
     }
     { /* Record all app updates; the source never gates compensation. */
         d->writer_trial.current.x = dirty.x_start_byte * 8;
@@ -307,7 +323,7 @@ static esp_err_t ssd1677_reference_refresh(epd_ssd1677_t *d)
     }
 #endif
 #if SOLAR_OS_SSD1677_WRITER_D
-    if (err == ESP_OK && d->writer_trial.used_d) {
+    if (err == ESP_OK && (d->writer_trial.used_d || d->writer_trial.used_f)) {
         const int64_t restore_start = esp_timer_get_time();
         /* Existing D trial restore: after BUSY AND both RAM syncs. No activation. */
         err = ssd1677_cmd_data(d, 0x32, ssd1677_reference_lut, 105);

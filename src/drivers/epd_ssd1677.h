@@ -92,6 +92,7 @@ typedef struct {
     epd_ssd1677_reset_fn_t set_reset;
     void *reset_context;
     bool papermono_otp;
+    bool default_f; /* Board policy, false preserves legacy boards/tests. */
 } epd_ssd1677_config_t;
 
 typedef struct {
@@ -131,6 +132,7 @@ typedef struct {
     epd_ssd1677_reset_fn_t set_reset;
     void *reset_context;
     bool papermono_otp;
+    bool default_f;
     bool faulted;
     /* Independent of the host shadow: valid only with continuously powered RAM. */
     bool papermono_baseline_valid;

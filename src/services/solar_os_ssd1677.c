@@ -531,6 +531,9 @@ esp_err_t solar_os_ssd1677_attach(const char *name,
         .set_reset = binding_config.external_reset ? gpio_set_epaper_reset : NULL,
         .reset_context = device,
         .papermono_otp = binding_config.papermono_otp,
+#if defined(SOLAR_OS_BOARD_M5PAPER_MONO)
+        .default_f = true,
+#endif
     };
     esp_err_t ret = epd_ssd1677_init(&device->driver, &config);
     if (ret != ESP_OK) {

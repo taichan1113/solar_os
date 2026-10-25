@@ -257,8 +257,46 @@ static void test_faults(void)
     }
     puts("writer D: LUT/BUSY/post-sync failure latches, no retries/refund PASS");
 }
+
+static void test_production_f(void)
+{
+    boot(); epd_ssd1677_t d=prepare();
+    d.default_f=true; d.writer_trial.f_selected=true;
+    assert(ssd1677_trial_black_hold_f_lut[0]==0 && ssd1677_trial_black_hold_f_lut[1]==0xc0);
+    for(unsigned i=0;i<110;++i) if(i!=1) assert(ssd1677_trial_black_hold_f_lut[i]==ssd1677_reference_lut[i]);
+    controller_ram_t model; controller_seed(&model,&d); model.swap_after_activation=true;
+    for(unsigned i=0;i<35;++i) {
+        d.writer_trial.origin=(solar_os_writer_frame_t){.is_writer=i%3==1,.is_sketch=i%3==2};
+        flip(300+i,300); command_count=0;
+        assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+        assert(d.writer_trial.used_f && !d.writer_trial.used_d && d.writer_trial.restored);
+        assert(count_command(0x20)==1 && count_command(0x32)==2);
+        assert(!memcmp(find_command(0x32,0)->data,ssd1677_trial_black_hold_f_lut,105));
+        assert(!memcmp(find_command(0x32,1)->data,ssd1677_reference_lut,105));
+        controller_apply(&model,&d);
+        assert(!memcmp(model.bw,model.red,sizeof(model.bw)) && !memcmp(shadow,frame,sizeof(frame)));
+    }
+    assert(d.writer_trial.status.f_physical==35 && d.writer_trial.status.d_physical==0);
+    command_count=0; assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+    assert(!command_count && d.writer_trial.current.ram_bytes==0); /* no stale timing */
+    assert(epd_ssd1677_writer_lut(&d,"candidate_d",NULL,NULL)==ESP_ERR_INVALID_STATE);
+    assert(epd_ssd1677_writer_lut(&d,"baseline",NULL,NULL)==ESP_OK);
+    flip(400,300);command_count=0;assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+    assert(!d.writer_trial.used_f && count_command(0x32)==1);
+    assert(epd_ssd1677_writer_lut(&d,"candidate_f",NULL,NULL)==ESP_OK);
+    assert(epd_ssd1677_set_power_save(&d,true)==ESP_OK);
+    assert(epd_ssd1677_resume(&d)==ESP_OK); /* OTP baseline, F selection retained */
+    flip(420,300);command_count=0;assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+    assert(d.writer_trial.f_selected); /* Wake first rebuilds the OTP baseline. */
+    flip(421,300); command_count=0;
+    assert(epd_ssd1677_present_snapshot(&d,frame,sizeof(frame))==ESP_OK);
+    assert(d.writer_trial.used_f && count_command(0x20)==1);
+    puts("production F: all sources, 32-update resync, no-op, A/F recovery and Sleep/Wake PASS");
+}
+
 int main(void)
 {
+    test_production_f();
     test_lut();
     for(unsigned r=0;r<2;r++) for(unsigned swap=0;swap<2;swap++) test_normal_dirty(r,swap);
     test_continuous_and_sources(); test_otp_not_compensated(); test_cold_first_fastest(); test_counter_saturation(); test_faults();

@@ -556,6 +556,9 @@ static esp_err_t ssd1677_papermono_refresh(epd_ssd1677_t *display)
     display->timing = (epd_ssd1677_timing_t) {
         .start_us = esp_timer_get_time(), .partial = partial,
     };
+#if SOLAR_OS_SSD1677_WRITER_D
+    display->writer_trial.current.timing_valid = true;
+#endif
     /* Invalidate before any I/O. Only a completely successful refresh restores it. */
     display->papermono_baseline_valid = false;
     esp_err_t err;
@@ -883,7 +886,11 @@ esp_err_t epd_ssd1677_init(epd_ssd1677_t *display,
     }
     memset(display, 0, sizeof(*display));
     display->last_error = ESP_OK;
-    display->refresh_mode = EPD_SSD1677_REFRESH_AUTO;
+    display->default_f = config->papermono_otp && config->default_f;
+    display->refresh_mode = display->default_f ? EPD_SSD1677_REFRESH_FASTEST : EPD_SSD1677_REFRESH_AUTO;
+#if SOLAR_OS_SSD1677_WRITER_D
+    display->writer_trial.f_selected = display->default_f;
+#endif
     display->dc_pin = config->dc_pin;
     display->reset_pin = config->reset_pin;
     display->busy_pin = config->busy_pin;
@@ -905,7 +912,7 @@ esp_err_t epd_ssd1677_init(epd_ssd1677_t *display,
     display->configured_spi_hz = config->spi_clock_hz;
     display->transport_spi_hz = config->spi_clock_hz;
     /* OTP and other refresh modes still use the configured board clock. */
-    display->fastest_spi_hz = ssd1677_default_fastest_spi_hz();
+    display->fastest_spi_hz = display->default_f ? 20000000 : ssd1677_default_fastest_spi_hz();
     display->typing_frame_ms = 250;
     display->typing_cleanup_budget = 128;
     display->typing_idle_ms = 30000;
@@ -1044,7 +1051,7 @@ esp_err_t epd_ssd1677_present_snapshot(epd_ssd1677_t *display, const uint8_t *fr
     display->snapshot = frame;
 #if SOLAR_OS_SSD1677_WRITER_D
     display->writer_trial.current = (epd_ssd1677_writer_record_t){.start_us = esp_timer_get_time()};
-    display->writer_trial.used_d = display->writer_trial.reference = false;
+    display->writer_trial.used_d = display->writer_trial.used_f = display->writer_trial.reference = false;
     display->writer_trial.restored = false;
 #endif
 #if SOLAR_OS_SSD1677_WAVEFORM_TRIAL
