@@ -49,3 +49,11 @@ solar_os_shell_startup_source_t solar_os_shell_resolve_startup_source(
     }
     return source;
 }
+
+/* Board policy changes the effective source, never the saved preference. */
+solar_os_shell_startup_source_t solar_os_shell_resolve_startup_policy(
+    solar_os_shell_startup_source_t source, bool board_has_sd, bool sd_mounted, bool flash_only)
+{
+    return flash_only ? SOLAR_OS_SHELL_STARTUP_FLASH :
+        solar_os_shell_resolve_startup_source(source, board_has_sd, sd_mounted);
+}

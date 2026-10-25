@@ -57,6 +57,13 @@ static void test_explicit_sources_do_not_change(void)
 
 int main(void)
 {
+    for (int source=0; source<=2; ++source) {
+        for (int mounted=0; mounted<=1; ++mounted) {
+            assert(solar_os_shell_resolve_startup_policy(source,true,mounted,true)==SOLAR_OS_SHELL_STARTUP_FLASH);
+            assert(solar_os_shell_resolve_startup_policy(source,true,mounted,false)==
+                   solar_os_shell_resolve_startup_source(source,true,mounted));
+        }
+    }
     test_names_and_parser();
     test_auto_resolution();
     test_explicit_sources_do_not_change();

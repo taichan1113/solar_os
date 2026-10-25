@@ -2789,6 +2789,8 @@ void solar_os_shell_cmd_setterm(solar_os_context_t *ctx, int argc, char **argv)
             solar_os_shell_io_printf(term,
                                      "startup: %s\n",
                                      solar_os_shell_startup_source_name(source));
+            solar_os_shell_io_printf(term, "Effective startup: %s\n",
+                solar_os_shell_startup_source_name(solar_os_shell_startup_effective_source()));
             if (solar_os_shell_startup_path(path, sizeof(path)) == ESP_OK) {
                 solar_os_shell_io_printf(term, "path: %s\n", path);
             }

@@ -30,6 +30,10 @@
 #define SOLAR_OS_STORAGE_HAS_REMOVABLE 0
 #endif
 
+#ifndef SOLAR_OS_BOARD_STORAGE_PRIMARY_FLASH
+#define SOLAR_OS_BOARD_STORAGE_PRIMARY_FLASH 0
+#endif
+
 #define SOLAR_OS_STORAGE_COPY_BUFFER_SIZE 512
 #define SOLAR_OS_STORAGE_DEFAULT_MOUNT_POINT "/sdcard"
 
@@ -84,7 +88,7 @@ static const char *storage_default_base_path(void)
 
 static const char *storage_flash_default_mount_point(void)
 {
-#if SOLAR_OS_BOARD_HAS_SD
+#if SOLAR_OS_BOARD_HAS_SD && !SOLAR_OS_BOARD_STORAGE_PRIMARY_FLASH
     return FLASH_STORAGE_MOUNT_POINT;
 #else
     return FLASH_STORAGE_ROOT_MOUNT_POINT;
@@ -253,7 +257,7 @@ void solar_os_storage_sd_get_status(char *buffer, size_t len)
 
 const char *solar_os_storage_mount_point(void)
 {
-#if SOLAR_OS_STORAGE_HAS_REMOVABLE
+#if SOLAR_OS_STORAGE_HAS_REMOVABLE && !SOLAR_OS_BOARD_STORAGE_PRIMARY_FLASH
     if (solar_os_board_storage_is_mounted()) {
         return solar_os_board_storage_mount_point();
     }

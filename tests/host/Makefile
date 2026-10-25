@@ -691,6 +691,12 @@ storage_mounts_test: storage_mounts_test.c $(ROOT)/src/services/solar_os_storage
 		storage_mounts_test.c $(ROOT)/src/services/solar_os_storage.c \
 		-Wl,--gc-sections,--wrap=fwrite,--wrap=fsync,--wrap=fclose -o $@
 
+storage_primary_flash_test: storage_primary_flash_test.c storage_mounts_test.c $(ROOT)/src/services/solar_os_storage.c $(ROOT)/src/services/solar_os_storage.h esp_log.h ff.h solar_os_board.h
+	$(CC) $(CFLAGS) -DSOLAR_OS_BOARD_STORAGE_PRIMARY_FLASH=1 -D_GNU_SOURCE -ffunction-sections -fdata-sections -include compat.h \
+		-I. -I$(ROOT)/src/services -I$(ROOT)/src/board -I$(ROOT)/src/drivers \
+		storage_primary_flash_test.c $(ROOT)/src/services/solar_os_storage.c \
+		-Wl,--gc-sections,--wrap=fwrite,--wrap=fsync,--wrap=fclose -o $@
+
 json_scan_test: json_scan_test.c $(ROOT)/src/services/solar_os_json_scan.c $(ROOT)/src/services/solar_os_json_scan.h esp_err.h
 	$(CC) $(CFLAGS) -I. -I$(ROOT)/src/services \
 		json_scan_test.c $(ROOT)/src/services/solar_os_json_scan.c -o $@

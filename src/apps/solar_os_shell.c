@@ -318,12 +318,18 @@ esp_err_t solar_os_shell_set_startup_source(solar_os_shell_startup_source_t sour
     return ret;
 }
 
-static solar_os_shell_startup_source_t shell_startup_effective_source(void)
+solar_os_shell_startup_source_t solar_os_shell_startup_effective_source(void)
 {
-    return solar_os_shell_resolve_startup_source(
+    return solar_os_shell_resolve_startup_policy(
         solar_os_shell_startup_source(),
         solar_os_board_has(SOLAR_OS_BOARD_CAP_SD),
-        solar_os_storage_sd_is_mounted());
+        solar_os_storage_sd_is_mounted(),
+#if defined(SOLAR_OS_BOARD_M5PAPER_MONO)
+        true
+#else
+        false
+#endif
+    );
 }
 
 esp_err_t solar_os_shell_startup_path(char *path, size_t path_len)
@@ -332,7 +338,7 @@ esp_err_t solar_os_shell_startup_path(char *path, size_t path_len)
         return ESP_ERR_INVALID_ARG;
     }
 
-    const solar_os_shell_startup_source_t source = shell_startup_effective_source();
+    const solar_os_shell_startup_source_t source = solar_os_shell_startup_effective_source();
     const char *base_path = source == SOLAR_OS_SHELL_STARTUP_SD ?
         solar_os_storage_sd_mount_point() :
         solar_os_storage_flash_mount_point();
@@ -349,7 +355,7 @@ esp_err_t solar_os_shell_startup_path(char *path, size_t path_len)
 
 static bool shell_startup_source_mounted(void)
 {
-    return shell_startup_effective_source() == SOLAR_OS_SHELL_STARTUP_SD ?
+    return solar_os_shell_startup_effective_source() == SOLAR_OS_SHELL_STARTUP_SD ?
         solar_os_storage_sd_is_mounted() :
         solar_os_storage_flash_is_mounted();
 }
@@ -359,7 +365,7 @@ static esp_err_t shell_startup_state_dir(char *path, size_t path_len)
     if (path == NULL || path_len == 0U) {
         return ESP_ERR_INVALID_ARG;
     }
-    const char *base_path = shell_startup_effective_source() ==
+    const char *base_path = solar_os_shell_startup_effective_source() ==
         SOLAR_OS_SHELL_STARTUP_SD ?
         solar_os_storage_sd_mount_point() :
         solar_os_storage_flash_mount_point();
@@ -10204,7 +10210,7 @@ static bool shell_run_startup_script(solar_os_context_t *ctx)
     }
     shell_startup_attempted = true;
 
-    const solar_os_shell_startup_source_t source = shell_startup_effective_source();
+    const solar_os_shell_startup_source_t source = solar_os_shell_startup_effective_source();
     const bool source_mounted = source == SOLAR_OS_SHELL_STARTUP_SD ?
         solar_os_storage_sd_is_mounted() :
         solar_os_storage_flash_is_mounted();

@@ -10,6 +10,7 @@
 const solar_os_app_t *solar_os_shell_app(void);
 
 solar_os_shell_startup_source_t solar_os_shell_startup_source(void);
+solar_os_shell_startup_source_t solar_os_shell_startup_effective_source(void);
 esp_err_t solar_os_shell_set_startup_source(solar_os_shell_startup_source_t source);
 esp_err_t solar_os_shell_startup_path(char *path, size_t path_len);
 esp_err_t solar_os_shell_startup_has_command(const char *command, bool *present);

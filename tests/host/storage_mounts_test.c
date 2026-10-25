@@ -7,6 +7,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifndef SOLAR_OS_BOARD_STORAGE_PRIMARY_FLASH
+#define SOLAR_OS_BOARD_STORAGE_PRIMARY_FLASH 0
+#endif
 #include "flash_storage.h"
 #include "solar_os_board_storage.h"
 #include "solar_os_ramfs.h"
@@ -94,9 +97,10 @@ bool solar_os_board_storage_get_block(size_t index, solar_os_board_storage_block
     return true;
 }
 
+static bool sd_test_mounted = true;
 bool solar_os_board_storage_is_mounted(void)
 {
-    return true;
+    return sd_test_mounted;
 }
 
 const char *solar_os_board_storage_mount_point(void)
@@ -111,7 +115,7 @@ bool flash_storage_is_mounted(void)
 
 const char *flash_storage_mount_point(void)
 {
-    return "/flash";
+    return SOLAR_OS_BOARD_STORAGE_PRIMARY_FLASH ? "/" : "/flash";
 }
 
 uint8_t flash_storage_logical_volume(void)
