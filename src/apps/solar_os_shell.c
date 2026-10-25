@@ -10155,15 +10155,6 @@ static void shell_handle_char(solar_os_context_t *ctx, char ch)
         }
         break;
     case SOLAR_OS_KEY_ESCAPE:
-#if SOLAR_OS_BOARD_LAUNCHER_TOUCH_GRID && SOLAR_OS_PACKAGE_APP_LAUNCHER
-        if (shell_session(ctx)->input_len == 0 &&
-            solar_os_shell_io_terminal(shell_io(ctx)) != NULL) {
-            char *args[]={"launcher"};
-            (void)solar_os_context_request_launch_ex(ctx,&solar_os_launcher_app,1,args,
-                                                      SOLAR_OS_LAUNCH_REPLACE);
-            break;
-        }
-#endif
         if (shell_session(ctx)->input_len > 0) {
             shell_session(ctx)->history_browsing = false;
             shell_session(ctx)->history_index = -1;

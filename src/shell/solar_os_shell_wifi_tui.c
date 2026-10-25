@@ -127,6 +127,10 @@ static void wifi_tui_current_value(wifi_tui_item_t item,
 
     switch (item) {
     case WIFI_TUI_RADIO:
+        if (!solar_os_wifi_enabled_for_current_boot()) {
+            strlcpy(buffer, solar_os_wifi_enabled_for_next_boot() ? "enabled next boot" : "boot disabled", buffer_len);
+            return;
+        }
         strlcpy(buffer, status->started ? "on" : "off", buffer_len);
         break;
     case WIFI_TUI_STATION:
@@ -873,6 +877,11 @@ static void wifi_tui_apply_selected(void)
 
     switch ((wifi_tui_item_t)wifi_tui.selected) {
     case WIFI_TUI_RADIO:
+        if (!solar_os_wifi_enabled_for_current_boot()) {
+            const esp_err_t err = solar_os_wifi_set_enabled_for_next_boot(!solar_os_wifi_enabled_for_next_boot());
+            wifi_tui_set_status(err == ESP_OK ? "boot setting changed; reboot to apply" : solar_os_shell_error_text(err));
+            break;
+        }
         if (status.started) {
             const esp_err_t err = solar_os_wifi_stop();
             wifi_tui_set_status(err == ESP_OK ? "radio off" : solar_os_shell_error_text(err));

@@ -1,4 +1,6 @@
 #include "solar_os_port_shell.h"
+#include "solar_os_board.h"
+#include "solar_os_cdc.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -1656,6 +1658,21 @@ esp_err_t solar_os_port_shell_start_with_options(solar_os_context_t *ctx,
             rows = options->rows;
         }
     }
+#if defined(SOLAR_OS_BOARD_M5PAPER_MONO)
+    if (!run_startup && strcmp(port_name, SOLAR_OS_CDC_PORT_NAME) == 0) {
+        portENTER_CRITICAL(&port_shells_lock);
+        for (size_t i = 0; i < PORT_SHELL_MAX; ++i) {
+            port_shell_state_t *existing = &port_shells[i];
+            if (existing->used && !existing->stop_requested && existing->port_name[0] &&
+                strcmp(existing->port_name, port_name) == 0) {
+                if (session_id) *session_id = existing->id;
+                portEXIT_CRITICAL(&port_shells_lock);
+                return ESP_OK;
+            }
+        }
+        portEXIT_CRITICAL(&port_shells_lock);
+    }
+#endif
     esp_err_t err = port_shell_validate_port(port_name);
     if (err != ESP_OK) {
         return err;

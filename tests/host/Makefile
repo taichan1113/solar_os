@@ -1271,3 +1271,15 @@ clock_touch_test: clock_touch_test.c launcher_touch_test.c $(WRITER_DIR)/solar_o
 		-I. -I$(ROOT)/src -I$(WRITER_DIR) -I$(ROOT)/src/services -I$(ROOT)/src/shell \
 		-I$(CJSON_DIR) $< $(WRITER_DIR)/solar_os_launcher_layout.c $(ROOT)/src/shell/solar_os_shell_parse.c $(ROOT)/src/shell/solar_os_shell_launch.c \
 		$(ROOT)/src/services/solar_os_json.c $(ROOT)/src/services/solar_os_gfx_icons.c $(CJSON_DIR)/cJSON.c -Wl,--gc-sections -o $@
+
+# Actual Manual app with existing touch adapter and a terminal geometry fixture.
+docs_touch_test: docs_touch_test.c $(WRITER_DIR)/solar_os_docs_app.c $(WRITER_DIR)/solar_os_app_touch.h
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -include compat.h -ffunction-sections -fdata-sections \
+		-DSOLAR_OS_PACKAGE_APP_READER=1 -DSOLAR_OS_BOARD_LAUNCHER_TOUCH_GRID=1 \
+		-DSOLAR_OS_PACKAGE_SERVICE_EXPANSION=1 -DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' \
+		-I. -I$(ROOT)/src -I$(WRITER_DIR) -I$(ROOT)/src/services -I$(ROOT)/src/shell $< -Wl,--gc-sections -o $@
+
+papermono_boot_test: papermono_boot_test.c $(ROOT)/src/services/solar_os_board_boot.c
+	$(CC) $(CFLAGS) -DSOLAR_OS_BOARD_M5PAPER_MONO=1 -DSOLAR_OS_PACKAGE_SERVICE_WIFI=1 \
+		-Iproduction_stubs -I. -I$(ROOT)/src -I$(WRITER_DIR) -I$(ROOT)/src/services -I$(ROOT)/src/shell $< -o $@
+

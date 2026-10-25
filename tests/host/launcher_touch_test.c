@@ -16,11 +16,13 @@ const solar_os_app_t solar_os_type_mouse_app = {.name = "type-mouse", .flags=SOL
 static const solar_os_app_t fixture_apps[]={
     {.name="files",.flags=SOLAR_OS_APP_FLAG_POINTER_EVENTS},
     {.name="clock",.flags=SOLAR_OS_APP_FLAG_POINTER_EVENTS},
-    {.name="sketch",.flags=SOLAR_OS_APP_FLAG_POINTER_EVENTS}};
+    {.name="sketch",.flags=SOLAR_OS_APP_FLAG_POINTER_EVENTS},
+    {.name="help",.flags=SOLAR_OS_APP_FLAG_POINTER_EVENTS}};
 static const solar_os_app_registry_entry_t fixture_entries[]={
     {.name="files",.app=&fixture_apps[0],.min_argc=1,.max_argc=3},
     {.name="clock",.app=&fixture_apps[1],.min_argc=1,.max_argc=1},
-    {.name="sketch",.app=&fixture_apps[2],.min_argc=1,.max_argc=2}};
+    {.name="sketch",.app=&fixture_apps[2],.min_argc=1,.max_argc=2},
+    {.name="help",.app=&fixture_apps[3],.min_argc=1,.max_argc=2}};
 #endif
 static const solar_os_app_registry_entry_t child_entry = {
     .name = "typemouse", .app = &solar_os_type_mouse_app, .min_argc = 1, .max_argc = 1};
@@ -66,7 +68,7 @@ void solar_os_gfx_present(solar_os_gfx_t *g) { (void)g; ++gfx_presents; }
 const solar_os_app_registry_entry_t *solar_os_app_registry_find(const char *n)
 {
 #ifdef LAUNCHER_GRID_FIXTURE
-    for (unsigned i=0;i<3;i++) if (!strcmp(n,fixture_entries[i].name)) return &fixture_entries[i];
+    for (unsigned i=0;i<4;i++) if (!strcmp(n,fixture_entries[i].name)) return &fixture_entries[i];
 #endif
     return !strcmp(n,"typemouse") ? &child_entry : NULL;
 }
@@ -189,3 +191,8 @@ int main(void)
     puts("launcher_touch_test: failed touch/config start signals session fallback; invalid user file preserved PASS");
     return 0;
 }
+
+#if LAUNCHER_GRID_FIXTURE
+esp_err_t solar_os_shell_launch_wifi_tui_ex(solar_os_context_t *c,solar_os_launch_policy_t p)
+{ assert(p==SOLAR_OS_LAUNCH_CHILD_RETURN); c->requested_app=&fixture_apps[1]; return ESP_OK; }
+#endif

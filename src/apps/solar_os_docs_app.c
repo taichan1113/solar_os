@@ -1,4 +1,5 @@
 #include "solar_os_docs_app.h"
+#include "solar_os_app_touch.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -29,6 +30,10 @@ typedef struct {
     size_t cursor;
     size_t top;
     uint64_t collapsed_sections;
+    solar_os_app_touch_t touch;
+    bool render_pending;
+    size_t press_top, press_node;
+    int press_row;
 } docs_app_state_t;
 
 typedef struct {
@@ -315,6 +320,7 @@ static void docs_app_render(void)
                                "Enter open/fold  Left/Right tree  q quit");
     }
     solar_os_tui_refresh(&docs_app.tui);
+    docs_app.render_pending = false;
 }
 
 static bool docs_use_graphic_reader(solar_os_context_t *ctx)
@@ -436,6 +442,9 @@ static esp_err_t docs_app_start(solar_os_context_t *ctx)
             break;
         }
     }
+    if (docs_app.tui.terminal && solar_os_app_touch_acquire(&docs_app.touch) != ESP_OK) {
+        solar_os_tui_end(&docs_app.tui); return ESP_FAIL;
+    }
     docs_app_render();
     return ESP_OK;
 }
@@ -443,16 +452,68 @@ static esp_err_t docs_app_start(solar_os_context_t *ctx)
 static void docs_app_stop(solar_os_context_t *ctx)
 {
     (void)ctx;
+    solar_os_app_touch_release(&docs_app.touch);
     solar_os_tui_set_cursor_visible(&docs_app.tui, true);
     solar_os_tui_refresh(&docs_app.tui);
     solar_os_tui_end(&docs_app.tui);
     memset(&docs_app, 0, sizeof(docs_app));
 }
 
+static void docs_app_suspend(solar_os_context_t *ctx)
+{
+    (void)ctx;
+    solar_os_app_touch_suspend(&docs_app.touch);
+    docs_app.render_pending = false;
+}
+static void docs_app_touch_cleanup(void) { solar_os_app_touch_release(&docs_app.touch); }
 static void docs_app_resume(solar_os_context_t *ctx)
 {
     (void)ctx;
+    if (!solar_os_app_touch_resume(&docs_app.touch)) return;
+    if (docs_app.tui.terminal && solar_os_app_touch_acquire(&docs_app.touch) != ESP_OK) return;
     docs_app_render();
+}
+
+static bool docs_app_pointer(solar_os_context_t *ctx, const solar_os_input_pointer_event_t *p)
+{
+    if (!docs_app.tui.terminal || p->mode != SOLAR_OS_INPUT_POINTER_ABSOLUTE) return false;
+    size_t row=0, col=0;
+    const bool hit=solar_os_terminal_hit_cell(docs_app.tui.terminal,p->x,p->y,&row,&col);
+    const size_t visible=docs_app_visible_rows(), count=docs_visible_count();
+    const bool item=hit && row>=1 && row<=visible;
+    if (p->action==SOLAR_OS_INPUT_POINTER_PRESS) {
+        docs_app.press_top=docs_app.top;
+        docs_app.press_row=item ? (int)row : -1;
+        docs_app.press_node=item ? docs_app.top+row-1 : SIZE_MAX;
+    }
+    const bool released=solar_os_app_touch_end(&docs_app.touch,p);
+    if (p->action==SOLAR_OS_INPUT_POINTER_MOVE && docs_app.touch.pressed &&
+        docs_app.press_row>=0 && hit) {
+        int next=(int)docs_app.press_top+docs_app.press_row-(int)row;
+        const int maximum=count>visible ? (int)(count-visible) : 0;
+        if (next<0) next=0;
+        if (next>maximum) next=maximum;
+        if ((size_t)next!=docs_app.top) {
+            docs_app.top=(size_t)next; docs_app.touch.moved=true;
+            if (docs_app.cursor<docs_app.top) docs_app.cursor=docs_app.top;
+            if (visible && docs_app.cursor>=docs_app.top+visible) docs_app.cursor=docs_app.top+visible-1;
+            docs_app.render_pending=true;
+        }
+    }
+    if (released && !docs_app.touch.moved && item && docs_app.press_node==docs_app.top+row-1 && docs_app.press_node<count) {
+        docs_app.cursor=docs_app.press_node;
+        docs_node_t node;
+        if (docs_node_at(docs_app.cursor,&node)) {
+            if (node.kind==DOCS_NODE_SECTION) {
+                docs_toggle_section(&node,docs_section_collapsed(node.section.index));
+                docs_app.render_pending=true;
+            } else {
+                docs_app.render_pending=false;
+                (void)docs_app_open_selected(ctx);
+            }
+        }
+    }
+    return true;
 }
 
 static void docs_app_title(solar_os_context_t *ctx,
@@ -468,6 +529,14 @@ static void docs_app_title(solar_os_context_t *ctx,
 static bool docs_app_event(solar_os_context_t *ctx,
                            const solar_os_event_t *event)
 {
+    if (event && event->type == SOLAR_OS_EVENT_POINTER) return docs_app_pointer(ctx,&event->data.pointer);
+    if (event && event->type == SOLAR_OS_EVENT_TOUCH_CANCEL) {
+        solar_os_app_touch_cancel(&docs_app.touch); docs_app.render_pending=false; return true;
+    }
+    if (event && event->type == SOLAR_OS_EVENT_TICK) {
+        if (docs_app.render_pending) docs_app_render();
+        return true;
+    }
     if (event == NULL || event->type != SOLAR_OS_EVENT_CHAR) {
         return true;
     }
@@ -543,13 +612,19 @@ const solar_os_app_t solar_os_docs_app = {
     .name = "help",
     .summary = "browse the SolarOS manual",
     .app_class = SOLAR_OS_APP_CLASS_TUI,
-    .flags = SOLAR_OS_APP_FLAG_RESUMABLE,
+    .flags = SOLAR_OS_APP_FLAG_RESUMABLE
+#if SOLAR_OS_BOARD_LAUNCHER_TOUCH_GRID
+        | SOLAR_OS_APP_FLAG_POINTER_EVENTS
+#endif
+        ,
     .start = docs_app_start,
     .resume = docs_app_resume,
+    .suspend = docs_app_suspend,
     .stop = docs_app_stop,
     .event = docs_app_event,
     .title = docs_app_title,
     .state_slot = &docs_app_state,
     .state_size = sizeof(docs_app_state_t),
     .state_storage = SOLAR_OS_APP_STATE_TRANSIENT,
+    .state_release_cleanup = docs_app_touch_cleanup,
 };

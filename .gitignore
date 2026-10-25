@@ -70,3 +70,10 @@ tests/host/launcher_grid_test
 tests/host/app_touch_test
 tests/host/reader_touch_test
 tests/host/clock_touch_test
+
+/tests/host/docs_touch_test
+/tests/host/papermono_boot_test
+/production-build.log
+/tests/host/docs_media_test
+/host-production.log
+/tests/host/storage_media_test

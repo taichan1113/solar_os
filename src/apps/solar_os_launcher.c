@@ -22,6 +22,7 @@
 #include "solar_os_launcher_layout.h"
 #include "solar_os_memory.h"
 #include "solar_os_shell.h"
+#include "solar_os_shell_tui_apps.h"
 #include "solar_os_shell_launch.h"
 #include "solar_os_shell_parse.h"
 #include "solar_os_storage.h"
@@ -481,10 +482,10 @@ static __attribute__((unused)) esp_err_t launcher_write_default_config(const cha
 static esp_err_t launcher_load_config(void)
 {
 #if SOLAR_OS_BOARD_LAUNCHER_TOUCH_GRID
-    static const char *const names[]={"Files","Reader","Clock","Keyboard","Sketch","Shell"};
-    static const char *const commands[]={"files","files --reader","clock","typemouse","sketch","shell"};
-    static const solar_os_gfx_icon_t icons[]={SOLAR_OS_GFX_ICON_FOLDER,SOLAR_OS_GFX_ICON_BOOK,
-        SOLAR_OS_GFX_ICON_CLOCK,SOLAR_OS_GFX_ICON_KEYBOARD,SOLAR_OS_GFX_ICON_PENCIL,SOLAR_OS_GFX_ICON_TERMINAL};
+    static const char *const names[]={"Manual","Reader","Wi-Fi","Keyboard","Sketch","Clock"};
+    static const char *const commands[]={"help","files --reader","wifi","typemouse","sketch","clock"};
+    static const solar_os_gfx_icon_t icons[]={SOLAR_OS_GFX_ICON_BOOK,SOLAR_OS_GFX_ICON_BOOK,
+        SOLAR_OS_GFX_ICON_WIFI,SOLAR_OS_GFX_ICON_KEYBOARD,SOLAR_OS_GFX_ICON_PENCIL,SOLAR_OS_GFX_ICON_CLOCK};
     launcher.config=(launcher_config_t){.columns=3,.rows=2,.item_count=6};
     for (size_t i=0;i<6;++i) {
         launcher_item_t *item=&launcher.config.items[i];
@@ -637,6 +638,11 @@ static void launcher_activate(solar_os_context_t *ctx)
     esp_err_t err = ESP_OK;
     const solar_os_app_registry_entry_t *entry =
         solar_os_app_registry_find(argv[0]);
+#if SOLAR_OS_BOARD_LAUNCHER_TOUCH_GRID && SOLAR_OS_PACKAGE_SERVICE_WIFI
+    if (!strcmp(argv[0], "wifi") && parsed.argc == 1) {
+        err = solar_os_shell_launch_wifi_tui_ex(ctx, SOLAR_OS_LAUNCH_CHILD_RETURN);
+    } else
+#endif
     if (entry != NULL && entry->app != NULL) {
         err = launcher_launch_app(ctx, entry, parsed.argc, argv);
     } else if (parsed.argc == 1 && solar_os_shell_path_is_script(argv[0])) {
