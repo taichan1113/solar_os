@@ -641,6 +641,15 @@ hint = "0|1"
 min = 0
 max = 1
 
+[[drivers.sdmmc.bindings]]
+key = "power_line"
+kind = "gpio_line"
+hint = "gpio|controller:line"
+[[drivers.sdmmc.bindings]]
+key = "detect"
+kind = "gpio_line"
+hint = "gpio|controller:line"
+
 [drivers.ssd1306]
 summary = "128x64 I2C OLED"
 package = "expansion_ssd1306"

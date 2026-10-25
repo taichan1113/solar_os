@@ -68,6 +68,11 @@ typedef struct {
     char mount_point[SD_CARD_MOUNT_POINT_MAX];
 } sd_card_block_t;
 
+typedef esp_err_t (*sd_card_media_power_fn)(void *context, bool on);
+typedef esp_err_t (*sd_card_media_detect_fn)(void *context, bool *present);
+esp_err_t sd_card_configure_sdmmc_media(sd_card_media_power_fn power,
+    sd_card_media_detect_fn detect, void *context);
+esp_err_t sd_card_set_suspended(bool suspended);
 esp_err_t sd_card_init(void);
 esp_err_t sd_card_configure_sdspi(int host, int cs_pin);
 esp_err_t sd_card_clear_sdspi_config(void);

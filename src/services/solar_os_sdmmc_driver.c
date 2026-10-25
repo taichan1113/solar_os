@@ -8,6 +8,8 @@ static const solar_os_expansion_binding_spec_t binding_specs[] = {
     {.key = "d2", .value_hint = "gpio", .kind = SOLAR_OS_EXPANSION_BINDING_GPIO, .role = "d2"},
     {.key = "d3", .value_hint = "gpio", .kind = SOLAR_OS_EXPANSION_BINDING_GPIO, .role = "d3"},
     {.key = "power", .value_hint = "gpio", .kind = SOLAR_OS_EXPANSION_BINDING_GPIO, .role = "power"},
+    {.key="power_line",.value_hint="gpio|controller:line",.kind=SOLAR_OS_EXPANSION_BINDING_GPIO_LINE,.role="power_line"},
+    {.key="detect",.value_hint="gpio|controller:line (LOW inserted)",.kind=SOLAR_OS_EXPANSION_BINDING_GPIO_LINE,.role="detect"},
     {.key = "active", .value_hint = "0|1", .kind = SOLAR_OS_EXPANSION_BINDING_PARAMETER, .role = "active", .has_value_range = true, .min_value = 0, .max_value = 1},
 };
 
@@ -22,4 +24,6 @@ const solar_os_expansion_driver_t solar_os_sdmmc_expansion_driver = {
     .binding_spec_count = sizeof(binding_specs) / sizeof(binding_specs[0]),
     .attach = solar_os_sdmmc_attach,
     .detach = solar_os_sdmmc_detach,
+    .set_suspended=solar_os_sdmmc_set_suspended,
+    .is_ready=solar_os_sdmmc_is_ready,
 };

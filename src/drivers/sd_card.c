@@ -81,6 +81,10 @@ static int sdspi_runtime_cs = -1;
 #if SOLAR_OS_PACKAGE_EXPANSION_SDMMC
 static int sdmmc_pins[6] = {-1, -1, -1, -1, -1, -1};
 static int sdmmc_power_pin = -1, sdmmc_power_active_level = 1;
+static sd_card_media_power_fn media_power;
+static sd_card_media_detect_fn media_detect;
+static void *media_context;
+static bool media_suspended;
 #endif
 #if SOLAR_OS_BOARD_STORAGE_SDSPI
 static sd_card_transport_t transport = SD_CARD_TRANSPORT_SDSPI_BOARD;
@@ -428,6 +432,27 @@ esp_err_t sd_card_configure_sdmmc_power(int power_pin, int active_level)
 #endif
 }
 
+esp_err_t sd_card_configure_sdmmc_media(sd_card_media_power_fn power,
+    sd_card_media_detect_fn detect, void *context)
+{
+#if SOLAR_OS_PACKAGE_EXPANSION_SDMMC
+    if (card_ready || sd_card_has_active_mounts()) return ESP_ERR_INVALID_STATE;
+    media_power=power; media_detect=detect; media_context=context; media_suspended=false;
+    return ESP_OK;
+#else
+    (void)power; (void)detect; (void)context; return ESP_ERR_NOT_SUPPORTED;
+#endif
+}
+esp_err_t sd_card_set_suspended(bool suspended)
+{
+#if SOLAR_OS_PACKAGE_EXPANSION_SDMMC
+    /* Retain powered RAM/card/Host in light sleep; never power-cycle mounted media. */
+    media_suspended=suspended; return ESP_OK;
+#else
+    (void)suspended; return ESP_ERR_NOT_SUPPORTED;
+#endif
+}
+
 esp_err_t sd_card_clear_sdmmc_config(void)
 {
 #if SOLAR_OS_PACKAGE_EXPANSION_SDMMC && !SOLAR_OS_BOARD_STORAGE_SDSPI
@@ -437,9 +462,14 @@ esp_err_t sd_card_clear_sdmmc_config(void)
     if (card_ready || sd_card_has_active_mounts()) {
         return ESP_ERR_INVALID_STATE;
     }
+    if (media_power) {
+        const esp_err_t err = media_power(media_context, false);
+        if (err != ESP_OK) return err;
+    }
     for (size_t i = 0; i < 6; i++) {
         sdmmc_pins[i] = -1;
     }
+    media_power=NULL; media_detect=NULL; media_context=NULL; media_suspended=false;
     if (sdmmc_power_pin >= 0) {
         (void)gpio_set_level(sdmmc_power_pin, !sdmmc_power_active_level);
         sdmmc_power_pin = -1;
@@ -801,6 +831,21 @@ static void scan_partitions(void)
 
 static esp_err_t ensure_card_ready(void)
 {
+#if SOLAR_OS_PACKAGE_EXPANSION_SDMMC
+    if (transport==SD_CARD_TRANSPORT_SDMMC && media_suspended) return ESP_ERR_INVALID_STATE;
+    if (transport==SD_CARD_TRANSPORT_SDMMC && (media_power || media_detect)) {
+        bool present=true;
+        esp_err_t detect_err=ESP_OK;
+        if (media_power) detect_err=media_power(media_context,true);
+        if (detect_err==ESP_OK && media_detect) detect_err=media_detect(media_context,&present);
+        if (detect_err!=ESP_OK || !present) {
+            diagnostics_attempted=true;
+            diagnostics_init_error=detect_err!=ESP_OK ? detect_err : ESP_ERR_NOT_FOUND;
+            snprintf(status_text,sizeof(status_text),detect_err!=ESP_OK ? "detect/power error %d" : "no card",(int)detect_err);
+            return diagnostics_init_error;
+        }
+    }
+#endif
     if (card_ready) {
         return ESP_OK;
     }

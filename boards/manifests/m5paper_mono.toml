@@ -9,8 +9,8 @@ module = "ESP32-S3R8 (16 MB flash / 8 MB OPI PSRAM)"
 mcu = "esp32s3"
 platformio_board = "esp32-s3-devkitc1-n16r8"
 [build]
-drivers = ["cdc_usb_serial_jtag", "uart_esp_idf", "i2c_esp_idf", "spi_esp_idf", "gpio_esp_idf", "display_ssd1677", "pointer_ft6336", "battery_expansion", "rtc_rx8130ce"]
-capabilities = ["psram", "simd", "gfx", "display", "pointer", "cdc", "uart", "i2c", "spi", "gpio", "wifi", "ble", "key", "buttons", "expansion_gpio", "expansion_i2c", "expansion_spi", "battery", "rtc", "status_led"]
+drivers = ["cdc_usb_serial_jtag", "uart_esp_idf", "i2c_esp_idf", "spi_esp_idf", "gpio_esp_idf", "display_ssd1677", "pointer_ft6336", "storage_expansion", "battery_expansion", "rtc_rx8130ce"]
+capabilities = ["psram", "sd", "simd", "gfx", "display", "pointer", "cdc", "uart", "i2c", "spi", "gpio", "wifi", "ble", "key", "buttons", "expansion_gpio", "expansion_i2c", "expansion_spi", "battery", "rtc", "status_led"]
 required_packages = ["driver_rx8130ce"]
 psram_bytes = 8388608
 [header]
@@ -98,6 +98,11 @@ bindings = { i2c = "i2c0", addr = 0x38, reset = "ioe0:5", power = "ioe0:12", irq
 driver = "rx8130ce"
 name = "rtc0"
 bindings = { i2c = "i2c0", addr = 0x32 }
+
+[[devices]]
+driver = "sdmmc"
+name = "storage0"
+bindings = { clk = 13, cmd = 12, d0 = 11, d1 = 10, d2 = 9, d3 = 8, power_line = "ioe0:13", detect = "ioe0:0", active = 1 }
 
 [[pins]]
 gpio = 0
