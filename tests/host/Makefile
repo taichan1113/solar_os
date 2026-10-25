@@ -1283,3 +1283,21 @@ papermono_boot_test: papermono_boot_test.c $(ROOT)/src/services/solar_os_board_b
 	$(CC) $(CFLAGS) -DSOLAR_OS_BOARD_M5PAPER_MONO=1 -DSOLAR_OS_PACKAGE_SERVICE_WIFI=1 \
 		-Iproduction_stubs -I. -I$(ROOT)/src -I$(WRITER_DIR) -I$(ROOT)/src/services -I$(ROOT)/src/shell $< -o $@
 
+PRODUCTION_TESTS := storage_media_test docs_media_test storage_primary_flash_test shell_startup_policy_test writer_d_driver_test writer_d_async_test writer_d_shell_test display_async_test writer_checkpoint_test sketch_dirty_pipeline_test sketch_scale140_lifecycle_test sketch_canvas_test type_mouse_engine_test type_mouse_lifecycle_test input_touch_adapter_test launcher_grid_test launcher_touch_test docs_touch_test app_touch_test reader_touch_test clock_touch_test papermono_boot_test sdmmc_expansion_test storage_mounts_test manual_external_metadata_test shell_line_test shell_completion_test
+.PHONY: test-production
+test-production: $(PRODUCTION_TESTS)
+	@set -e; for check in $(PRODUCTION_TESTS); do ./$$check; done
+	./writer_d_async_test restore-fail
+	./writer_d_async_test f
+	./writer_d_async_test f-restore-fail
+
+docs_media_test: docs_media_test.c $(ROOT)/src/services/solar_os_docs.c $(ROOT)/src/services/solar_os_json.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -include compat.h -ffunction-sections -fdata-sections \
+		-Iproduction_stubs -Imodel_bundle_stubs -I. -I$(ROOT)/src -I$(ROOT)/src/services -I$(CJSON_DIR) \
+		$< $(ROOT)/src/services/solar_os_json.c $(CJSON_DIR)/cJSON.c -Wl,--gc-sections -o $@
+
+storage_media_test: storage_media_test.c storage_mounts_test.c $(ROOT)/src/services/solar_os_storage.c
+	$(CC) $(CFLAGS) -DSOLAR_OS_BOARD_STORAGE_PRIMARY_FLASH=1 -DSOLAR_OS_PACKAGE_SERVICE_DOCS=1 \
+		-D_GNU_SOURCE -ffunction-sections -fdata-sections -include compat.h \
+		-I. -I$(ROOT)/src/services -I$(ROOT)/src/board -I$(ROOT)/src/drivers \
+		$< $(ROOT)/src/services/solar_os_storage.c -Wl,--gc-sections,--wrap=fwrite,--wrap=fsync,--wrap=fclose -o $@

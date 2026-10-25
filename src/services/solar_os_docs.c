@@ -129,6 +129,8 @@ static esp_err_t docs_catalog_page_applies(
 }
 
 static portMUX_TYPE docs_lock = portMUX_INITIALIZER_UNLOCKED;
+static bool docs_storage_transition;
+static size_t docs_page_readers;
 static solar_os_docs_status_t docs_status;
 static docs_manual_index_t *docs_manual_index;
 static docs_manual_index_t *docs_manual_retired_index;
@@ -1121,6 +1123,27 @@ esp_err_t solar_os_docs_init(void)
     return err == ESP_ERR_NOT_FOUND || err == ESP_ERR_INVALID_STATE ? ESP_OK : err;
 }
 
+esp_err_t solar_os_docs_storage_begin(void)
+{
+    portENTER_CRITICAL(&docs_lock);
+    if (docs_status.updating || docs_storage_transition || docs_page_readers) {
+        portEXIT_CRITICAL(&docs_lock);
+        return ESP_ERR_INVALID_STATE;
+    }
+    docs_storage_transition = true;
+    portEXIT_CRITICAL(&docs_lock);
+    return ESP_OK;
+}
+
+void solar_os_docs_storage_end(void)
+{
+    /* Reuses signed catalog verification; no download, write or key changes. */
+    (void)solar_os_docs_init();
+    portENTER_CRITICAL(&docs_lock);
+    docs_storage_transition = false;
+    portEXIT_CRITICAL(&docs_lock);
+}
+
 esp_err_t solar_os_docs_get_status(solar_os_docs_status_t *status)
 {
     if (status == NULL) {
@@ -1135,7 +1158,7 @@ esp_err_t solar_os_docs_get_status(solar_os_docs_status_t *status)
 bool solar_os_docs_manual_index_available(void)
 {
     portENTER_CRITICAL(&docs_lock);
-    const bool available = docs_status.available && docs_manual_index != NULL;
+    const bool available = docs_status.available && !docs_storage_transition && docs_manual_index != NULL;
     portEXIT_CRITICAL(&docs_lock);
     return available;
 }
@@ -1143,7 +1166,7 @@ bool solar_os_docs_manual_index_available(void)
 size_t solar_os_docs_manual_count(void)
 {
     portENTER_CRITICAL(&docs_lock);
-    const size_t count = docs_status.available && docs_manual_index != NULL ?
+    const size_t count = docs_status.available && !docs_storage_transition && docs_manual_index != NULL ?
         docs_manual_index->count : 0U;
     portEXIT_CRITICAL(&docs_lock);
     return count;
@@ -1153,7 +1176,7 @@ const solar_os_manual_page_t *solar_os_docs_manual_get(size_t index)
 {
     portENTER_CRITICAL(&docs_lock);
     const solar_os_manual_page_t *page =
-        docs_status.available && docs_manual_index != NULL &&
+        docs_status.available && !docs_storage_transition && docs_manual_index != NULL &&
                 index < docs_manual_index->count ?
             &docs_manual_index->pages[index] : NULL;
     portEXIT_CRITICAL(&docs_lock);
@@ -1170,7 +1193,8 @@ esp_err_t solar_os_docs_load_page(const char *id, char **body, size_t *body_len)
 
     char revision[SOLAR_OS_DOCS_REVISION_MAX];
     portENTER_CRITICAL(&docs_lock);
-    const bool available = docs_status.available;
+    const bool available = docs_status.available && !docs_storage_transition && !docs_status.updating;
+    if (available) docs_page_readers++;
     strlcpy(revision, docs_status.revision, sizeof(revision));
     portEXIT_CRITICAL(&docs_lock);
     if (!available) {
@@ -1270,6 +1294,9 @@ esp_err_t solar_os_docs_load_page(const char *id, char **body, size_t *body_len)
     solar_os_json_free(document);
     solar_os_memory_free(signature);
     solar_os_memory_free(catalog);
+    portENTER_CRITICAL(&docs_lock);
+    docs_page_readers--;
+    portEXIT_CRITICAL(&docs_lock);
     return err;
 }
 
@@ -1301,7 +1328,7 @@ esp_err_t solar_os_docs_update(solar_os_docs_progress_fn progress_fn,
     solar_os_docs_status_t before;
     portENTER_CRITICAL(&docs_lock);
     before = docs_status;
-    if (docs_status.updating) {
+    if (docs_status.updating || docs_storage_transition || docs_page_readers) {
         portEXIT_CRITICAL(&docs_lock);
         return ESP_ERR_INVALID_STATE;
     }
@@ -1532,7 +1559,7 @@ esp_err_t solar_os_docs_reset(void)
     solar_os_docs_status_t before;
     portENTER_CRITICAL(&docs_lock);
     before = docs_status;
-    if (docs_status.updating) {
+    if (docs_status.updating || docs_storage_transition || docs_page_readers) {
         portEXIT_CRITICAL(&docs_lock);
         return ESP_ERR_INVALID_STATE;
     }

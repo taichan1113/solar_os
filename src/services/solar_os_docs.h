@@ -44,6 +44,9 @@ typedef struct {
 } solar_os_docs_status_t;
 
 esp_err_t solar_os_docs_init(void);
+/* Pair around SD mount/unmount/rescan. Refuses while docs I/O is active. */
+esp_err_t solar_os_docs_storage_begin(void);
+void solar_os_docs_storage_end(void);
 esp_err_t solar_os_docs_get_status(solar_os_docs_status_t *status);
 esp_err_t solar_os_docs_update(solar_os_docs_progress_fn progress, void *user);
 esp_err_t solar_os_docs_reset(void);

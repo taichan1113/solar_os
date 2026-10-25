@@ -14,6 +14,9 @@
 #include "solar_os_board_caps.h"
 #include "solar_os_config.h"
 #include "solar_os_ramfs.h"
+#if SOLAR_OS_PACKAGE_SERVICE_DOCS
+#include "solar_os_docs.h"
+#endif
 
 #ifndef SOLAR_OS_PACKAGE_EXPANSION_SDSPI
 #error "solar_os_config.h must define SOLAR_OS_PACKAGE_EXPANSION_SDSPI"
@@ -125,6 +128,7 @@ esp_err_t solar_os_storage_init(void)
 {
 #if SOLAR_OS_BOARD_HAS_SD
     const esp_err_t sd_err = solar_os_board_storage_mount();
+    (void)sd_err;
 #endif
 
     const esp_err_t flash_err = flash_storage_mount(storage_flash_default_mount_point());
@@ -135,18 +139,40 @@ esp_err_t solar_os_storage_init(void)
     if (flash_err == ESP_OK) {
         return ESP_OK;
     }
-#if SOLAR_OS_BOARD_HAS_SD
+#if SOLAR_OS_BOARD_HAS_SD && !SOLAR_OS_BOARD_STORAGE_PRIMARY_FLASH
     return sd_err;
 #else
     return flash_err;
 #endif
 }
 
+/* Serialize only removable-media operations against the existing docs job. */
+#if SOLAR_OS_STORAGE_HAS_REMOVABLE
+static esp_err_t storage_media_begin(void)
+{
+#if SOLAR_OS_PACKAGE_SERVICE_DOCS
+    return solar_os_docs_storage_begin();
+#else
+    return ESP_OK;
+#endif
+}
+static esp_err_t storage_media_end(esp_err_t result)
+{
+#if SOLAR_OS_PACKAGE_SERVICE_DOCS
+    solar_os_docs_storage_end();
+#endif
+    return result;
+}
+
+#endif
+
 esp_err_t solar_os_storage_mount(void)
 {
 #if SOLAR_OS_STORAGE_HAS_REMOVABLE
     if (solar_os_board_storage_available()) {
-        return solar_os_board_storage_mount();
+        const esp_err_t begin = storage_media_begin();
+        if (begin != ESP_OK) return begin;
+        return storage_media_end(solar_os_board_storage_mount());
     }
 #endif
     return flash_storage_mount(storage_flash_default_mount_point());
@@ -161,7 +187,9 @@ esp_err_t solar_os_storage_mount_volume(const char *name, const char *mount_poin
     }
 #if SOLAR_OS_STORAGE_HAS_REMOVABLE
     if (solar_os_board_storage_available()) {
-        return solar_os_board_storage_mount_volume(name, mount_point);
+        const esp_err_t begin = storage_media_begin();
+        if (begin != ESP_OK) return begin;
+        return storage_media_end(solar_os_board_storage_mount_volume(name, mount_point));
     }
 #endif
     (void)name;
@@ -173,7 +201,9 @@ esp_err_t solar_os_storage_unmount(void)
 {
 #if SOLAR_OS_STORAGE_HAS_REMOVABLE
     if (solar_os_board_storage_available()) {
-        return solar_os_board_storage_unmount();
+        const esp_err_t begin = storage_media_begin();
+        if (begin != ESP_OK) return begin;
+        return storage_media_end(solar_os_board_storage_unmount());
     }
 #endif
     return flash_storage_unmount();
@@ -189,7 +219,9 @@ esp_err_t solar_os_storage_unmount_volume(const char *target)
     }
 #if SOLAR_OS_STORAGE_HAS_REMOVABLE
     if (solar_os_board_storage_available()) {
-        return solar_os_board_storage_unmount_volume(target);
+        const esp_err_t begin = storage_media_begin();
+        if (begin != ESP_OK) return begin;
+        return storage_media_end(solar_os_board_storage_unmount_volume(target));
     }
 #endif
     (void)target;
@@ -206,7 +238,9 @@ esp_err_t solar_os_storage_format(const char *target)
     }
 #if SOLAR_OS_STORAGE_HAS_REMOVABLE
     if (solar_os_board_storage_available()) {
-        return solar_os_board_storage_format(target);
+        const esp_err_t begin = storage_media_begin();
+        if (begin != ESP_OK) return begin;
+        return storage_media_end(solar_os_board_storage_format(target));
     }
 #endif
     return ESP_ERR_NOT_FOUND;
@@ -312,7 +346,11 @@ esp_err_t solar_os_storage_get_usage_for_path(const char *path, solar_os_storage
         return ESP_OK;
     }
 
-    if (storage_flash_path_matches(path)) {
+    if (storage_flash_path_matches(path)
+#if SOLAR_OS_STORAGE_HAS_REMOVABLE
+        && !path_is_on_mount(path, solar_os_storage_sd_mount_point())
+#endif
+    ) {
         return flash_storage_is_mounted() ? storage_flash_get_usage(usage) : ESP_ERR_INVALID_STATE;
     }
 
@@ -370,7 +408,10 @@ esp_err_t solar_os_storage_get_usage_for_block(const solar_os_storage_block_t *b
 esp_err_t solar_os_storage_rescan(void)
 {
 #if SOLAR_OS_STORAGE_HAS_REMOVABLE
-    return solar_os_board_storage_available() ? solar_os_board_storage_rescan() : ESP_OK;
+    if (!solar_os_board_storage_available()) return ESP_OK;
+    const esp_err_t begin = storage_media_begin();
+    if (begin != ESP_OK) return begin;
+    return storage_media_end(solar_os_board_storage_rescan());
 #else
     return ESP_OK;
 #endif
