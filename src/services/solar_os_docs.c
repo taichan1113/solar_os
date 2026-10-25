@@ -1079,7 +1079,8 @@ static esp_err_t docs_url(const char *base,
 
 esp_err_t solar_os_docs_init(void)
 {
-    docs_manual_index_replace(NULL);
+    /* Publish once below so the prior generation remains retained for a
+     * synchronous Help operation already holding its metadata pointers. */
     docs_set_result(false, false, "", "", 0U, "");
     char revision[SOLAR_OS_DOCS_REVISION_MAX];
     esp_err_t err = docs_read_active_revision(revision);
@@ -1115,9 +1116,12 @@ esp_err_t solar_os_docs_init(void)
                         info.revision,
                         runtime_page_count,
                         "");
-    } else if (err != ESP_ERR_NOT_FOUND && err != ESP_ERR_INVALID_STATE) {
-        docs_set_error("cached documentation is invalid");
-        SOLAR_OS_LOGW(TAG, "cached documentation rejected: %s", esp_err_to_name(err));
+    } else {
+        docs_manual_index_replace(NULL);
+        if (err != ESP_ERR_NOT_FOUND && err != ESP_ERR_INVALID_STATE) {
+            docs_set_error("cached documentation is invalid");
+            SOLAR_OS_LOGW(TAG, "cached documentation rejected: %s", esp_err_to_name(err));
+        }
     }
     docs_manual_index_free(manual_index);
     return err == ESP_ERR_NOT_FOUND || err == ESP_ERR_INVALID_STATE ? ESP_OK : err;

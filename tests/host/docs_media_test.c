@@ -36,6 +36,9 @@ int main(void){
  assert(solar_os_docs_manual_index_available()&&solar_os_docs_manual_count()==1&&signatures==1);
  solar_os_docs_status_t status;solar_os_docs_get_status(&status);assert(!strcmp(status.manual_version,"4.0.0"));
  char *body=NULL;size_t n=0;assert(solar_os_docs_load_page("overview",&body,&n)==ESP_OK&&n==4&&signatures==2&&hashes==1);free(body);
+ docs_manual_index_t *old_index=docs_manual_index;
+ assert(solar_os_docs_storage_begin()==ESP_OK);solar_os_docs_storage_end();
+ assert(docs_manual_index!=old_index&&docs_manual_retired_index==old_index);
  docs_status.updating=true;assert(solar_os_docs_storage_begin()==ESP_ERR_INVALID_STATE);docs_status.updating=false;
  docs_page_readers=1;assert(solar_os_docs_storage_begin()==ESP_ERR_INVALID_STATE);docs_page_readers=0;
  assert(solar_os_docs_storage_begin()==ESP_OK);assert(!solar_os_docs_manual_index_available());assert(solar_os_docs_storage_begin()==ESP_ERR_INVALID_STATE);sd_present=false;solar_os_docs_storage_end();assert(!solar_os_docs_manual_index_available());
