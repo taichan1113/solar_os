@@ -1,0 +1,83 @@
+{
+  "date_jst": "2026-10-26",
+  "code_commit": "ea7b10e49a0a191947b3f227e855e9335a7e0616",
+  "base_commit": "aa08bbfdfa65c72ada0a0bc7737d36b47a521186",
+  "branch": "feature/papermono-production-integration",
+  "build_result": "SUCCESS",
+  "hardware_access": false,
+  "firmware_file": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\production-integration\\artifacts\\production-20261026\\firmware.bin",
+  "firmware_sha256": "86b735ef56e2a5a6f4400bb5d02985ee5c127b10f85eb165e3d1337d1051973b",
+  "firmware_bytes": 3516816,
+  "board": "m5paper_mono",
+  "flavor": "writerdeck",
+  "layout": "ota",
+  "esp_idf": "5.5.5",
+  "xtensa_toolchain": "14.2.0+20260121",
+  "production_host_binaries": 27,
+  "additional_async_runs": 3,
+  "python_tests": {
+    "board_manifests": 33,
+    "generate_manual": 13,
+    "wifi_tui": 6
+  },
+  "flags": {
+    "SOLAR_OS_SSD1677_WRITER_D": 1,
+    "SOLAR_OS_SSD1677_SPI20_TRIAL": 1,
+    "SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL": 1,
+    "SOLAR_OS_SSD1677_HYBRID_TRIAL": 0,
+    "SOLAR_OS_SSD1677_WAVEFORM_TRIAL": 0,
+    "SOLAR_OS_SKETCH_LATENCY_TRIAL": 0
+  },
+  "partition_csv_unchanged": true,
+  "partition_binary_sha256": "fd976d7c1eaa8f9d0a01ac87a8d05fc1cb1e59d3c5970954b30ad0c3aa12a488",
+  "partition_layout": [
+    {
+      "label": "nvs",
+      "type": 1,
+      "subtype": 2,
+      "offset": "0x9000",
+      "size": "0x4000",
+      "flags": 0
+    },
+    {
+      "label": "otadata",
+      "type": 1,
+      "subtype": 0,
+      "offset": "0xd000",
+      "size": "0x2000",
+      "flags": 0
+    },
+    {
+      "label": "phy_init",
+      "type": 1,
+      "subtype": 1,
+      "offset": "0xf000",
+      "size": "0x1000",
+      "flags": 0
+    },
+    {
+      "label": "ota_0",
+      "type": 0,
+      "subtype": 16,
+      "offset": "0x10000",
+      "size": "0x700000",
+      "flags": 0
+    },
+    {
+      "label": "ota_1",
+      "type": 0,
+      "subtype": 17,
+      "offset": "0x710000",
+      "size": "0x700000",
+      "flags": 0
+    },
+    {
+      "label": "flash",
+      "type": 1,
+      "subtype": 129,
+      "offset": "0xe10000",
+      "size": "0x1f0000",
+      "flags": 0
+    }
+  ]
+}
