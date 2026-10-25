@@ -23,6 +23,8 @@ esp_err_t solar_os_port_shell_start(solar_os_context_t *ctx,
                                     const char *port_name,
                                     bool run_startup,
                                     uint8_t *session_id);
+/* PaperMono cdc0 with run_startup=false reuses an existing live session.
+ * Its options remain unchanged; this never reruns startup. */
 esp_err_t solar_os_port_shell_start_with_options(solar_os_context_t *ctx,
                                                  const char *port_name,
                                                  const solar_os_port_shell_options_t *options,

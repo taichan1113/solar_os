@@ -1,4 +1,4 @@
-/* USB-only display-wide control. Legacy writer-lut is a compatibility alias. */
+/* Local/USB display-wide recovery and diagnostics. Keep writer-lut as an alias. */
 static void display_cmd_writer_lut(solar_os_shell_io_t *io, int argc, char **argv)
 {
     if (argc != 5 || strcmp(argv[2], "display0") ||

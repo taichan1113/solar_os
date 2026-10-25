@@ -279,7 +279,7 @@ static void display_print_usage(solar_os_shell_io_t *term)
     solar_os_shell_io_writeln(term, "  display layouts");
     solar_os_shell_io_writeln(term, "  display test <target> [white|black|half|box-left|box-right|corners|fine]");
 #if SOLAR_OS_SSD1677_WRITER_D
-    solar_os_shell_io_writeln(term, "  display test display0 fastest-lut status|baseline|candidate_f|disable|trace (USB; writer-lut alias)");
+    solar_os_shell_io_writeln(term, "  display test display0 fastest-lut status|baseline|candidate_f|disable|trace (screen/USB; writer-lut alias)");
     solar_os_shell_io_writeln(term, "    All apps except Sketch default to D; Sketch uses A; baseline/disable selects A globally; no cumulative limit");
 #endif
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
