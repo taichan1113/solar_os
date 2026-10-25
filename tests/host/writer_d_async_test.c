@@ -6,6 +6,7 @@ extern void wd_panel_init(uint8_t *);
 extern esp_err_t wd_mode(const char *);
 extern void wd_status(epd_ssd1677_writer_status_t *);
 extern void wd_fail_restore(void);
+extern void wd_panel_use_f(void);
 extern esp_err_t wd_panel_execute(const uint8_t *,size_t,const solar_os_writer_frame_t *,bool *);
 static struct {
     solar_os_display_async_t *a;
@@ -70,21 +71,41 @@ static void wait_control_barrier(void)
 }
 int main(int argc,char **argv)
 {
-    const bool failure=argc>1 && !strcmp(argv[1],"restore-fail");
+    const bool fmode=argc>1 && (!strcmp(argv[1],"f") || !strcmp(argv[1],"f-restore-fail"));
+    const bool failure=argc>1 && (!strcmp(argv[1],"restore-fail") || !strcmp(argv[1],"f-restore-fail"));
     uint8_t image[48000]; wd_panel_init(image);
+    if(fmode) wd_panel_use_f();
     assert(solar_os_display_async_create(48000,panel_execute,NULL,&live.a)==ESP_OK);
     epd_ssd1677_writer_status_t initial; wd_status(&initial);
     assert(initial.enabled); /* No manual activation after ordinary boot. */
-    if(failure) {
+    if(fmode && !failure) {
+        for(unsigned i=0;i<6;i++) {
+            input(image,i,i%3); wait_count(&live.activations,i+1); release_panel(1);
+            assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
+        }
+        epd_ssd1677_writer_status_t s; wd_status(&s);
+        assert(s.f_physical==6 && s.f_success==6 && s.d_physical==0);
+        assert(wd_mode("baseline")==ESP_OK);
+        input(image,6,1); wait_count(&live.activations,7); release_panel(1);
+        assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
+        assert(wd_mode("candidate_f")==ESP_OK);
+        input(image,7,2); wait_count(&live.activations,8); release_panel(1);
+        assert(solar_os_display_async_wait(live.a,2000)==ESP_OK);
+        wd_status(&s); assert(s.f_physical==7 && s.f_success==7 && s.a_physical==initial.a_physical+1);
+        assert(wd_mode("candidate_d")==ESP_ERR_INVALID_STATE);
+        puts("Candidate F async: real Driver/Executor, other/Writer/Sketch, A/F recovery and both RAMs PASS");
+    } else if(failure) {
         wd_fail_restore(); input(image,0,false); wait_count(&live.activations,1);
         input(image,1,true); release_panel(1);
         assert(solar_os_display_async_wait(live.a,2000)==ESP_FAIL);
         epd_ssd1677_writer_status_t s; wd_status(&s);
-        assert(s.attempts==1 && s.d_physical==1 && s.d_errors==1 && s.failed && !s.enabled);
-        assert(wd_mode("candidate_d")==ESP_ERR_INVALID_STATE);
+        assert(s.failed && !s.enabled);
+        if(fmode) assert(s.f_attempts==1 && s.f_physical==1 && s.f_errors==1);
+        else assert(s.attempts==1 && s.d_physical==1 && s.d_errors==1);
+        assert(wd_mode(fmode?"candidate_f":"candidate_d")==ESP_ERR_INVALID_STATE);
         solar_os_display_submission_status_t q; solar_os_display_async_status(live.a,&q);
         assert(q.error==ESP_FAIL && q.writer_cancelled==1 && live.activations==1);
-        puts("writer D async: actual Baseline restore failure stops worker/pending, no refund PASS");
+        puts(fmode ? "Candidate F async: restore failure stops worker/pending without retry PASS" : "writer D async: actual Baseline restore failure stops worker/pending, no refund PASS");
     } else {
         /* D in-flight + Writer coalescing + mode A switch. The switch must
          * remain blocked through restoration, not just through 0x20/BUSY. */

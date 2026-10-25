@@ -51,6 +51,7 @@ esp_err_t wd_mode(const char *mode)
 { return epd_ssd1677_writer_lut(&device,mode,NULL,NULL); }
 void wd_status(epd_ssd1677_writer_status_t *s)
 { assert(epd_ssd1677_writer_lut(&device,"status",s,NULL)==ESP_OK); }
+void wd_panel_use_f(void) { device.default_f=true; device.writer_trial.f_selected=true; }
 void wd_fail_restore(void) { fail_restore=true; }
 esp_err_t wd_panel_execute(const uint8_t *data,size_t size,const solar_os_writer_frame_t *origin,bool *physical)
 {
@@ -65,7 +66,7 @@ esp_err_t wd_panel_execute(const uint8_t *data,size_t size,const solar_os_writer
         assert(t.activations==1 && !memcmp(shadow,data,size));
         assert(!memcmp(model.bw,model.red,sizeof(model.bw)));
         unsigned lut=0; for(size_t i=0;i<command_count;i++) if(commands[i].command==0x32) lut++;
-        assert(lut==(device.writer_trial.used_d?2U:1U));
+        assert(lut==((device.writer_trial.used_d || device.writer_trial.used_f)?2U:1U));
         assert(!memcmp(find_command(0x32,lut-1)->data,ssd1677_reference_lut,105));
     }
     device.writer_trial.origin=(solar_os_writer_frame_t){0};
