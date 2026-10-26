@@ -1,0 +1,54 @@
+{
+  "date_jst": "2026-10-26",
+  "base_commit": "5e66a56e147d78b9409374cceffbeb6dd111d21e",
+  "code_commit": "587680765b851dde2db35b0adc40958e092f6e4f",
+  "branch": "fix/papermono-production-acceptance-failures",
+  "hardware_access": false,
+  "flash_performed": false,
+  "integration_merge_performed": false,
+  "build_result": "SUCCESS",
+  "build_seconds": 236.58,
+  "firmware_file": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\production-failures-fix\\artifacts\\production-fixes-20261026\\firmware.bin",
+  "firmware_bytes": 3518880,
+  "firmware_sha256": "c0aa65057f9d07cd6f024e4792cf7aa2f17538f98155091b3d2e3f9118f9bed3",
+  "board": "m5paper_mono",
+  "flavor": "writerdeck",
+  "layout": "ota",
+  "esp_idf": "5.5.5",
+  "xtensa_toolchain": "14.2.0+20260121",
+  "partition_csv_unchanged": true,
+  "partition_binary_sha256": "fd976d7c1eaa8f9d0a01ac87a8d05fc1cb1e59d3c5970954b30ad0c3aa12a488",
+  "production_host_binaries_passed": 30,
+  "additional_async_cases_passed": 3,
+  "additional_host_binaries_passed": [
+    "sketch_lifecycle_test", "sketch_baseline_lifecycle_test", "sketch_legacy_lifecycle_test",
+    "sketch_touch_projection_test", "expansion_registry_test", "ft6336_lifecycle_test"
+  ],
+  "python_tests_passed": {"board_manifests": 33, "generate_manual": 13, "wifi_tui_scan_flow": 6},
+  "fixes": {
+    "FIX-01": "Host-reproduced CANCEL lease lifecycle fixed; hardware pending",
+    "FIX-02": "Copy sync/error preservation and native SD diagnostics added; hardware write root cause unresolved",
+    "FIX-03": "Host-reproduced stale unmounted Card lifecycle fixed; hardware pending"
+  },
+  "host_fatfs_scope": "Installed IDF FatFS/DiskIO; sparse temporary FAT32 image; VFS registration and SDMMC transport replaced; no physical media",
+  "flags": {
+    "SOLAR_OS_SSD1677_WRITER_D": 1,
+    "SOLAR_OS_SSD1677_SPI20_TRIAL": 1,
+    "SOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL": 1,
+    "SOLAR_OS_SSD1677_HYBRID_TRIAL": 0,
+    "SOLAR_OS_SSD1677_WAVEFORM_TRIAL": 0,
+    "SOLAR_OS_SKETCH_LATENCY_TRIAL": 0
+  },
+  "rollback_original": {
+    "file": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\production-acceptance-20261026\\run-20261026T085105\\application-rollback.bin",
+    "bytes": 3466448,
+    "sha256": "e11da1b81baf0ff60086d9b61d89a4442bddae58e5eec42bdf4698186caa2bc1",
+    "hash_rechecked": true,
+    "overwritten": false
+  },
+  "logs_local_only": {
+    "host": "../host-production.log",
+    "build": "../build-production.log",
+    "python": "../python-regressions.log"
+  }
+}
