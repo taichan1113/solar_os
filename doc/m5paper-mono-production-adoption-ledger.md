@@ -1,4 +1,14 @@
-# M5Paper MONO 本採用台帳（2026-10-26 更新）
+# M5Paper MONO 本採用台帳（2026-10-27 更新）
+
+## 今回の確定事項（2026-10-27）
+
+Sketch候補は **B：過去の全画面描画のみ**。局所描画高速化は現行に取込済みで、独立した高速化候補は未発見。既存の全画面fallback/localをHost比較し、24描画のCanvasと合成XBMが一致、XBM出力量865,536→37,771 Bを確認した。これはSPI量・実機遅延の測定ではない。現行local＋Fを維持し、形式的なruntime selectorは追加しない。下記履歴中の「selector必須」はこの調査結果で更新する。
+
+ShellはF既定のHelp/Statusへ修正、writer-lut aliasは互換・非推奨として非表示化。A/F復旧・Trace・OTP cleanup・Display Asyncを維持。研究コマンドの既存Build guardを確認し、大量削除はしない。ユーザーによるstartup4行削除・正常rebootは完了扱いで、今回本体startupは読書きしていない。
+
+今回の報告は[Sketch比較・コマンド整理](m5paper-mono-sketch-render-command-cleanup-20261026.md)。既存の実機Acceptance結果は[再Acceptance報告](m5paper-mono-production-fixes-reacceptance-20261026.md)を参照し、以下の実装時点の「実機未確認」と混同しない。今回の作業ではFlash・実機評価・SD保存FAIL修正は行わない。
+
+## 統合実装時の記録（2026-10-26）
 
 今回の統合実装依頼に従って更新。**実装・Host・Build完了、実機Acceptance未実施。** 根拠・Commit・成果物は[統合実装報告](m5paper-mono-production-integration-20261026.md)。実機と既存Integrationは変更していない。
 
