@@ -1,0 +1,106 @@
+{
+  "date_jst": "2026-10-26",
+  "acceptance": "FAIL_ITEMS_REMAIN",
+  "code_commit": "ea7b10e49a0a191947b3f227e855e9335a7e0616",
+  "branch": "feature/papermono-production-integration",
+  "firmware_bytes": 3516816,
+  "firmware_sha256": "86b735ef56e2a5a6f4400bb5d02985ee5c127b10f85eb165e3d1337d1051973b",
+  "readback_sha256": "86b735ef56e2a5a6f4400bb5d02985ee5c127b10f85eb165e3d1337d1051973b",
+  "application_slot": "ota_0",
+  "application_offset": 65536,
+  "flash_result": "PASS",
+  "all_non_application_bytes_equal_before_reboot": true,
+  "protected_regions_equal": {
+    "bootloader": true,
+    "partition_table": true,
+    "nvs": true,
+    "otadata": true,
+    "phy_init": true,
+    "ota_1": true,
+    "flash": true
+  },
+  "final_logical_audit": {
+    "scope": "snapshot captured before final normal reboot",
+    "result": "PASS",
+    "reader_old_position_lines_retained": 24,
+    "reader_added_position_lines": 3,
+    "history_changed_by_normal_shell_use": true,
+    "dedicated_PNG_bytes": 72617,
+    "dedicated_Flash_document_bytes": 13,
+    "dedicated_checkpoints": [
+      {
+        "dedicated_test": "SD",
+        "checksum_valid": true,
+        "saved": true,
+        "payload_bytes": 0
+      },
+      {
+        "dedicated_test": "Flash",
+        "checksum_valid": true,
+        "saved": true,
+        "payload_bytes": 0
+      }
+    ],
+    "original_files": 59,
+    "original_files_unchanged": 57,
+    "removed": 0,
+    "added": 4,
+    "nvs_values_before": 57,
+    "nvs_values_after": 57,
+    "bond_values_unchanged": 19,
+    "remembered_BLE_peer_unchanged": true,
+    "all_other_NVS_values_unchanged": true,
+    "runtime_NVS_changes": [
+      "monotonic WireGuard boot reservation",
+      "SDK PHY calibration data"
+    ],
+    "startup_unchanged": true
+  },
+  "dedicated_png_audit": {
+    "PNG_crc_all_chunks_valid": true,
+    "dimensions": [
+      736,
+      392
+    ],
+    "bytes": 72617,
+    "note": "Host inspection of dedicated PNG; does not substitute for optical reload confirmation"
+  },
+  "rollback_executed": false,
+  "firmware_source_modified": false,
+  "startup_modified": false,
+  "SD_formatted": false,
+  "hardware_pass": [
+    "no_SD_boot",
+    "Launcher_layout_touch",
+    "Manual_touch_keyboard_Reader_return",
+    "TypeMouse_basic_HID_and_Shift_toggle",
+    "Clock_and_KEY2_return",
+    "Shell_Esc",
+    "Writer_Flash_save_reopen",
+    "Sketch_initial_draw_erase_Save",
+    "SDHC_20MHz_4bit_FAT32_mount",
+    "SD_mounted_light_sleep_wake_Manual_touch",
+    "USB_replug_single_Shell",
+    "Flash_root_and_startup_preserved"
+  ],
+  "hardware_fail": [
+    "Sketch_touch_lease_lost_after_Save",
+    "SD_copy_and_Writer_save",
+    "SD_reinsert_after_unmount_then_lsblk"
+  ],
+  "blocked": [
+    "SD_write_readback",
+    "signed_external_manual_distribution"
+  ],
+  "not_tested": [
+    "saved_WiFi_OFF_boot",
+    "no_saved_WiFi_boot",
+    "exact_runtime_startup_execution_count",
+    "independent_32_update_interval_count",
+    "power_loss_checkpoint_recovery",
+    "all_TypeMouse_gestures",
+    "F_long_term_DC_balance"
+  ],
+  "final_firmware": "pinned production image; SD removed",
+  "final_optical_confirmation": "PASS: user confirmed normal Launcher after final reboot"
+}
