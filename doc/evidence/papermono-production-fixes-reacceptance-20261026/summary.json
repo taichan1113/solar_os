@@ -1,0 +1,202 @@
+{
+  "date_jst": "2026-10-26",
+  "branch": "fix/papermono-production-acceptance-failures",
+  "code_commit": "587680765b851dde2db35b0adc40958e092f6e4f",
+  "starting_head": "2a50d25926d7a5a3c4629ce71629bfe5d12175eb",
+  "build_performed_this_task": false,
+  "artifact": {
+    "bytes": 3518880,
+    "sha256": "c0aa65057f9d07cd6f024e4792cf7aa2f17538f98155091b3d2e3f9118f9bed3"
+  },
+  "device": {
+    "port": "COM39",
+    "chip": "ESP32-S3",
+    "flash_bytes": 16777216,
+    "board_configuration_verified": true
+  },
+  "application": {
+    "slot": "ota_0",
+    "offset": 65536,
+    "capacity": 7340032,
+    "readback_sha256": "c0aa65057f9d07cd6f024e4792cf7aa2f17538f98155091b3d2e3f9118f9bed3",
+    "application_only_flash": "PASS"
+  },
+  "backup": {
+    "local_directory": "E:\\ESP32\\M5PapserMono-SolarOS\\.research\\production-fixes-reacceptance-20261026\\run-20261026T221522",
+    "full_flash_sha256": "e82925c35366b2344944f8fb569b24f18f9a59d407fc5dca4eba90dfdd2326af",
+    "rollback_bytes": 3516816,
+    "rollback_sha256": "86b735ef56e2a5a6f4400bb5d02985ee5c127b10f85eb165e3d1337d1051973b",
+    "new_archive": true,
+    "rollback_performed": false
+  },
+  "protected_regions_immediately_after_write": {
+    "bootloader": {
+      "unchanged": true,
+      "sha256": "3ae58d175ec0f7e3d2ae412ffcce00819578af7aa327b02ec72c33aab838e947"
+    },
+    "partition_table": {
+      "unchanged": true,
+      "sha256": "5e3ed4b37934b0b91570d25452be2d1b5dce204ffe049febf7b6a9e6e696f97d"
+    },
+    "nvs": {
+      "unchanged": true,
+      "sha256": "3a29c6af94e7b2e484d373c356054a6e88e870062c9e5d6bf6856c6ce8445925"
+    },
+    "otadata": {
+      "unchanged": true,
+      "sha256": "8ba3b110139f45443d4f268d1a3373ef99a1718b71d51664531b83ee2d4b91a3"
+    },
+    "phy_init": {
+      "unchanged": true,
+      "sha256": "58b59eb397fcc8b699d265a18af84e063dc9bab0bd03632ad2f91e70038aa788"
+    },
+    "ota_1": {
+      "unchanged": true,
+      "sha256": "5a3e6f365f0453ed17771b2423a893f85600186404367c4e27b56478ebbb91ed"
+    },
+    "flash": {
+      "unchanged": true,
+      "sha256": "769a677855d1d32fe1d01b2ff49d3921d0106f8aba6e543fb01494be30045d06"
+    }
+  },
+  "all_non_application_bytes_unchanged_immediately_after_write": true,
+  "raw_ota_records": [
+    {
+      "sequence": 1,
+      "state": 2,
+      "crc_valid": true
+    },
+    {
+      "sequence": 4294967295,
+      "state": 4294967295,
+      "crc_valid": false
+    }
+  ],
+  "acceptance": {
+    "FIX-01": "PASS",
+    "FIX-02": "FAIL",
+    "FIX-03": "PASS",
+    "overall": "INCOMPLETE"
+  },
+  "sketch": {
+    "user_save_OK_redraw": true,
+    "user_save_Esc_redraw": true,
+    "user_reentry_PNG_reload": true,
+    "user_sleep_wake_redraw": true,
+    "touch_ready": true,
+    "requested_enabled": true,
+    "leases_during_sketch": 2,
+    "leases_back_at_launcher": 1,
+    "pointer_acquire_failure_observed": false,
+    "per_CANCEL_counter_instrumented": false
+  },
+  "sd": {
+    "card_MiB": 59200,
+    "clock_MHz": 20,
+    "bus_width": 4,
+    "target": "sd0p1",
+    "filesystem": "FAT32",
+    "partition_MiB": 256,
+    "mount": "/sdcard",
+    "physical_drive": 1,
+    "logical_volume": 1,
+    "partition": 1,
+    "start_lba": 8192,
+    "sectors": 524288,
+    "source_bytes": 13,
+    "source_sha256": "5b4ef8aa9113085f75c67dd9de98feeee1b8b4b07fcab1d6e14bda0df47536df",
+    "first_copy_command_count": 1,
+    "destination_exists": false,
+    "additional_write_trials": 0,
+    "post_failure_resolve": "/sdcard/RF262215.TXT",
+    "post_failure_Storage_exists": false,
+    "copy_return_value": null,
+    "copy_errno": null,
+    "copy_phase_error_observed": false,
+    "shell_last_exit": 0,
+    "shell_last_exit_is_copy_result": false,
+    "last_recorded_diskio_error": 0,
+    "last_recorded_diskio_operation": "none",
+    "last_recorded_DRESULT": 0,
+    "last_error_lba": 0,
+    "last_error_count": 0,
+    "successful_disk_write_count_instrumented": false,
+    "mount_FRESULT": 0,
+    "file_FRESULT": null,
+    "retained_init_mount_error": 261,
+    "format_performed": false,
+    "long_filename_write": "BLOCKED",
+    "Writer_SD_save": "BLOCKED",
+    "reinsert_exact_previous_procedure": "PASS",
+    "timeout_0x107_recurred": false,
+    "existing_readback_bytes": 145,
+    "existing_readback_sha256": "98340e20fac5920dd523f8e5a566cbe6f59a06603ab905fcd8114d4c038d6b99",
+    "root_cause": "UNRESOLVED"
+  },
+  "regression": {
+    "Launcher": "PASS",
+    "Manual_touch_Reader_return": "PASS",
+    "TypeMouse_A_Shift_Exit": "PASS",
+    "Writer_Flash_save_reload": "PASS",
+    "USB_replug": "PASS",
+    "WiFi_BLE_reconnect": "PASS",
+    "sleep_wake_SD_absent": "PASS",
+    "sleep_wake_SD_mounted": "NOT_RETESTED",
+    "F_before_final_read": {
+      "physical": 110,
+      "success": 110,
+      "error": 0
+    },
+    "Async_before_final_read": {
+      "enabled": true,
+      "completed": 61,
+      "physical": 60,
+      "error": 0
+    },
+    "SPI_actual_MHz": 20
+  },
+  "final_offline_file_NVS_audit": {
+    "scope": "final snapshots before the last normal reboot",
+    "original_files": 63,
+    "unchanged_original_files": 60,
+    "removed": 0,
+    "added": 2,
+    "changed_only_test_PNG_and_normal_history_positions": true,
+    "new_dedicated_checkpoint": {
+      "checksum_valid": true,
+      "saved": true
+    },
+    "new_dedicated_document": {
+      "bytes": 6,
+      "sha256": "148e50dfe12d0fb8a74c40a6ece7e66a52bc8d16e26287707445315e83f6980d"
+    },
+    "sd_copy_not_found_in_any_Flash_file": true,
+    "test_PNG": {
+      "all_chunk_CRC_valid": true,
+      "chunks": 4,
+      "bytes": 72617,
+      "sha256": "cf3362c3b37ff4b747bc7759daf4896c685da0c0a58774ac172fd0cf05c02351"
+    },
+    "nvs_values_before": 57,
+    "nvs_values_after": 57,
+    "bond_values_unchanged": 19,
+    "BLE_peer_unchanged": true,
+    "all_other_NVS_values_unchanged": true,
+    "runtime_NVS_changes": [
+      "SDK PHY calibration",
+      "monotonic boot reservation"
+    ],
+    "startup_unchanged": true,
+    "result": "PASS"
+  },
+  "startup_sha256": "2ee2925a9776fd3cb0996ea9ad413bbb8856c38fb02c89047bd07f0b27ee28bd",
+  "final_state": {
+    "firmware_sha256": "c0aa65057f9d07cd6f024e4792cf7aa2f17538f98155091b3d2e3f9118f9bed3",
+    "SD_removed": true,
+    "Launcher_normal_user_confirmed": true,
+    "after_last_normal_reboot_USB_F_Async_connections_verified": true,
+    "final_BLE_reconnected_after_user_keyboard_wake_without_repairing": true,
+    "integration_merge_performed": false,
+    "firmware_source_changes": false
+  }
+}
