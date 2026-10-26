@@ -792,8 +792,8 @@ static void sketch_render_popup(solar_os_gfx_t *gfx,
                        solar_os_ui_px(34), solar_os_ui_px(20), "OK", false);
 }
 
-/* Source identity travels with each submitted snapshot. The SSD1677
- * Driver keeps Sketch on Baseline; this does not toggle the global D mode. */
+/* Source identity travels with each submitted snapshot for driver policy and
+ * diagnostics. Submission does not change the globally selected waveform. */
 #if defined(SOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT) && SOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT
 static esp_err_t sketch_submit(solar_os_gfx_t *gfx, uint64_t *generation)
 {

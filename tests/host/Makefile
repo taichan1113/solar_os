@@ -7,12 +7,13 @@ WRITER_DIR := $(ROOT)/src/apps
 TARGETS := writer_buffer_test writer_files_test file_shortcuts_test sketch_canvas_test launcher_layout_test display_layout_test gfx_icons_test text_search_test doc_layout_test shell_parse_test shell_launch_test shell_line_test shell_completion_test shell_diag_test shell_startup_policy_test scheduler_test schedule_test script_lifecycle_test app_file_types_test gameboy_support_test storage_mounts_test json_scan_test native_elf_test keys_test input_test unistroke_test graffiti_test board_caps_test hid_keyboard_report_test ble_keyboard_scan_policy_test ps2_keyboard_test ps2_mouse_test cardkb_codec_test cl32_keyboard_test battery_service_test battery_trend_test charger_service_test sensors_service_test midi_codec_test midi_service_test parameters_test controls_test osc_test dsp_test stream_test resources_test gpio_controller_test expansion_registry_test expansion_command_test audio_codec_test webradio_catalog_test gif_decode_stack_test nvs_backup_test agent_reference_test manual_external_metadata_test terminal_geometry_test app_exit_result_test terminal_preferences_test tui_widgets_test wireguard_crypto_test meshcore_channel_key_test meshcore_stream_codec_test meshcore_ble_protocol_test link_repeater_test time_timezone_test rtc_service_test rtc_pcf85063_test ubx_test gnss_service_test modem_service_test haptic_service_test imu_service_test bhi260ap_codec_test qmi8658_test drv2605_test bq25896_test axp2101_test max17048_test mgc3130_test sim7670_test xl9555_test st25r3916_test nfc_service_test
 
 TARGETS += writer_d_driver_test writer_d_async_test
-TARGETS += writer_d_shell_test
-writer_d_driver_test writer_d_async_test writer_d_shell_test: \
+TARGETS += writer_d_shell_test writer_f_shell_test
+writer_f_shell_test: CFLAGS += -DSOLAR_OS_BOARD_M5PAPER_MONO=1
+writer_d_driver_test writer_d_async_test writer_d_shell_test writer_f_shell_test: \
     $(ROOT)/src/drivers/epd_ssd1677.h $(ROOT)/src/drivers/epd_ssd1677_writer_d.h \
     $(ROOT)/src/services/solar_os_writer_lut_trial.h $(ROOT)/src/services/solar_os_display_submission.h \
     $(ROOT)/src/services/solar_os_display_async.h
-writer_d_shell_test: writer_d_shell_test.c $(ROOT)/src/shell/solar_os_shell_writer_lut.inc \
+writer_d_shell_test writer_f_shell_test: writer_d_shell_test.c $(ROOT)/src/shell/solar_os_shell_writer_lut.inc \
     $(ROOT)/src/drivers/epd_ssd1677.c $(ROOT)/src/drivers/epd_ssd1677_writer_d.inc
 	$(CC) $(CFLAGS) -DSOLAR_OS_SSD1677_WRITER_D=1 -DSOLAR_OS_SSD1677_DIRTY_HOLD_TRIAL=1 \
 		-DSOLAR_OS_SSD1677_SPI20_TRIAL=1 -ffunction-sections -fdata-sections \
@@ -122,6 +123,14 @@ TARGETS += ft6336_raw_shell_test
 TARGETS += status_led_provider_test
 TARGETS += sketch_lifecycle_test sketch_scale140_lifecycle_test sketch_baseline_lifecycle_test
 TARGETS += sketch_cancel_lifecycle_test
+TARGETS += sketch_render_compare_test
+sketch_render_compare_test: sketch_render_compare_test.c sketch_lifecycle_test.c $(ROOT)/src/apps/solar_os_sketch.c $(ROOT)/src/apps/solar_os_sketch_canvas.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -DSOLAR_OS_PACKAGE_SERVICE_EXPANSION=1 \
+		-DSOLAR_OS_SSD1677_WRITER_D=1 \
+		-DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' -DSOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT=1 \
+		-include compat.h -I. -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/src/apps \
+		-I$(ROOT)/components/stb_image/include $< $(ROOT)/src/apps/solar_os_sketch_canvas.c -lm -o $@
+
 sketch_cancel_lifecycle_test: sketch_cancel_lifecycle_test.c sketch_lifecycle_test.c $(ROOT)/src/apps/solar_os_sketch.c $(ROOT)/src/apps/solar_os_sketch_canvas.c
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -DSOLAR_OS_PACKAGE_SERVICE_EXPANSION=1 \
 		-DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' -DSOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT=1 \
@@ -1295,6 +1304,7 @@ PRODUCTION_TESTS += sketch_cancel_lifecycle_test
 TARGETS += sd_card_fatfs_test
 PRODUCTION_TESTS += sd_card_fatfs_test
 PRODUCTION_TESTS += writer_files_test
+PRODUCTION_TESTS += writer_f_shell_test sketch_render_compare_test
 FATFS_DIR ?= $(HOME)/.platformio/packages/framework-espidf/components/fatfs
 sd_card_fatfs_test: sd_card_fatfs_test.c $(ROOT)/src/drivers/sd_card.c $(ROOT)/src/drivers/sd_card.h $(wildcard sd_card_stubs/*.h sd_card_stubs/driver/*.h)
 	$(CC) $(CFLAGS) -Wno-unused-parameter -D_GNU_SOURCE -DMALLOC_CAP_DMA=4 -DMALLOC_CAP_INTERNAL=8 \
