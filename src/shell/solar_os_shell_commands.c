@@ -272,6 +272,10 @@ static void ota_print_usage(solar_os_shell_io_t *term)
 }
 #endif
 
+#if SOLAR_OS_SSD1677_WRITER_D
+static void display_print_fastest_lut_usage(solar_os_shell_io_t *io);
+#endif
+
 static void display_print_usage(solar_os_shell_io_t *term)
 {
     solar_os_shell_io_writeln(term, "usage:");
@@ -279,13 +283,13 @@ static void display_print_usage(solar_os_shell_io_t *term)
     solar_os_shell_io_writeln(term, "  display layouts");
     solar_os_shell_io_writeln(term, "  display test <target> [white|black|half|box-left|box-right|corners|fine]");
 #if SOLAR_OS_SSD1677_WRITER_D
-    solar_os_shell_io_writeln(term, "  display test display0 fastest-lut status|baseline|candidate_f|disable|trace (screen/USB; writer-lut alias)");
-    solar_os_shell_io_writeln(term, "    All apps except Sketch default to D; Sketch uses A; baseline/disable selects A globally; no cumulative limit");
+    display_print_fastest_lut_usage(term);
 #endif
 #if defined(SOLAR_OS_SSD1677_WAVEFORM_TRIAL) && SOLAR_OS_SSD1677_WAVEFORM_TRIAL
     solar_os_shell_io_writeln(term, "  display test display0 ab-a|ab-b baseline|dose (serial, operator-stepped)");
 #endif
     solar_os_shell_io_writeln(term, "  display mode <target> [mode]");
+    solar_os_shell_io_writeln(term, "  display async <target> [wait]");
     solar_os_shell_io_writeln(term,
                               "  display join <name> --horizontal|--vertical <target> <target> [target ...]");
     solar_os_shell_io_writeln(term, "  display unjoin <name>");

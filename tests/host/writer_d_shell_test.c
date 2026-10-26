@@ -36,18 +36,31 @@ static void command(const char *mode,int port)
 }
 int main(void)
 {
+    solar_os_shell_io_t io={2};
+    display_print_fastest_lut_usage(&io);
+    assert(strstr(output,"candidate_f") && !strstr(output,"writer-lut"));
+#if defined(SOLAR_OS_BOARD_M5PAPER_MONO) && SOLAR_OS_BOARD_M5PAPER_MONO
+    assert(strstr(output,"F defaults to all apps") && !strstr(output,"candidate_d"));
+#else
+    assert(strstr(output,"candidate_d") && strstr(output,"D excludes Sketch"));
+#endif
     device=make_display(); device.papermono_otp=true; device.fastest_tiles=true;
     device.fastest_spi_hz=20000000; device.band_buffer=band;
     assert(epd_ssd1677_set_controller_mode(&device,"refresh=fastest")==ESP_OK);
     assert(epd_ssd1677_set_controller_mode(&device,"dirty-window=rows-dual")==ESP_OK);
     device.execution_context=&device; device.operation_begin=begin; device.operation_end=end;
     command("status",2); assert(strstr(output,"mode=D scope=all-apps-except-sketch attempts=0"));
-    command("baseline",2); assert(device.writer_trial.baseline_selected && strstr(output,"mode=A"));
+    command("baseline",2); assert(device.writer_trial.baseline_selected && strstr(output,"mode=A scope=all-apps"));
     command("candidate_d",2); assert(!device.writer_trial.baseline_selected && strstr(output,"mode=D"));
     command("disable",2); assert(!!device.writer_trial.baseline_selected);
     command("candidate_d",0); assert(!!device.writer_trial.baseline_selected && strstr(output,"display test display0"));
     command("unknown",2); assert(strstr(output,"err="));
     command("trace",2); assert(strstr(output,"queue submitted=") && strstr(output,"display physical="));
+    assert(strstr(output," F=0 OTP="));
+    char *alias[]={"display","test","display0","writer-lut","status"};
+    used=0; output[0]=0;
+    display_cmd_writer_lut(&io,5,alias);
+    assert(!command_count && strstr(output,"legacy alias; use fastest-lut") && strstr(output,"mode=A scope=all-apps"));
     device.writer_trial.status.attempts=1000;
     command("candidate_d",2); assert(!device.writer_trial.baseline_selected && strstr(output,"attempts=1000"));
     device.writer_trial.status.records=UINT64_MAX;
@@ -59,6 +72,7 @@ int main(void)
     command("candidate_f",2); assert(!device.writer_trial.baseline_selected);
     char rejected[24]; snprintf(rejected,sizeof(rejected),"err=%d",ESP_ERR_INVALID_STATE);
     command("candidate_d",2); assert(strstr(output,rejected) && device.writer_trial.f_selected);
-    puts("writer_d_shell_test: USB gating, global controls/status/trace, no physical updates, default D and no cumulative cap PASS");
+    assert(strstr(output,"candidate_d unavailable with default F"));
+    puts("writer_d_shell_test: Help, alias, A/D/F controls/status/trace, no physical updates PASS");
     return 0;
 }
