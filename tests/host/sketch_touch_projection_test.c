@@ -23,7 +23,8 @@ static bool receive_sketch(void *identity,const solar_os_event_t *event)
     solar_os_context_t *ctx=identity;
     if(event->type==SOLAR_OS_EVENT_TOUCH_CANCEL) {
         ++cancel_callbacks;
-        /* The actual Session adapter uses this same balanced legacy cleanup. */
+        assert(solar_os_sketch_app.event(ctx,event));
+        /* The actual Session adapter uses this same balanced cleanup. */
         solar_os_sketch_app.suspend(ctx); solar_os_sketch_app.resume(ctx);
     } else {
         assert(event->type==SOLAR_OS_EVENT_POINTER); ++pointer_callbacks;

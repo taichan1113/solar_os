@@ -121,6 +121,12 @@ TARGETS += ft6336_raw_test
 TARGETS += ft6336_raw_shell_test
 TARGETS += status_led_provider_test
 TARGETS += sketch_lifecycle_test sketch_scale140_lifecycle_test sketch_baseline_lifecycle_test
+TARGETS += sketch_cancel_lifecycle_test
+sketch_cancel_lifecycle_test: sketch_cancel_lifecycle_test.c sketch_lifecycle_test.c $(ROOT)/src/apps/solar_os_sketch.c $(ROOT)/src/apps/solar_os_sketch_canvas.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -DSOLAR_OS_PACKAGE_SERVICE_EXPANSION=1 \
+		-DSOLAR_OS_BOARD_SKETCH_POINTER_DEVICE='"fixture-pointer"' -DSOLAR_OS_BOARD_SKETCH_ASYNC_PRESENT=1 \
+		-include compat.h -I. -I$(ROOT)/src -I$(ROOT)/src/services -I$(ROOT)/src/apps \
+		-I$(ROOT)/components/stb_image/include $< $(ROOT)/src/apps/solar_os_sketch_canvas.c -lm -o $@
 TARGETS += sketch_trace_core_test
 
 sketch_trace_core_test: sketch_trace_core_test.c $(ROOT)/src/services/solar_os_sketch_trace_core.c
@@ -1285,6 +1291,7 @@ papermono_boot_test: papermono_boot_test.c $(ROOT)/src/services/solar_os_board_b
 
 PRODUCTION_TESTS := storage_media_test docs_media_test storage_primary_flash_test shell_startup_policy_test writer_d_driver_test writer_d_async_test writer_d_shell_test display_async_test writer_checkpoint_test sketch_dirty_pipeline_test sketch_scale140_lifecycle_test sketch_canvas_test type_mouse_engine_test type_mouse_lifecycle_test input_touch_adapter_test launcher_grid_test launcher_touch_test docs_touch_test app_touch_test reader_touch_test clock_touch_test papermono_boot_test sdmmc_expansion_test storage_mounts_test manual_external_metadata_test shell_line_test shell_completion_test
 .PHONY: test-production
+PRODUCTION_TESTS += sketch_cancel_lifecycle_test
 test-production: $(PRODUCTION_TESTS)
 	@set -e; for check in $(PRODUCTION_TESTS); do ./$$check; done
 	./writer_d_async_test restore-fail

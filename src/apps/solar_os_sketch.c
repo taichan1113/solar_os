@@ -82,6 +82,8 @@ typedef struct {
     bool drawing;
     bool dirty;
     bool suspended;
+    bool touch_canceling;
+    uint8_t pointer_attempts_left;
     bool render_pending;
     bool full_render_pending;
     bool paint_region_valid;
@@ -139,17 +141,32 @@ static void sketch_mark_paint(int x0, int y0, int x1, int y1)
     sketch.render_pending = true;
 }
 
-static void sketch_pointer_acquire(void)
+static bool sketch_pointer_try_acquire(void)
 {
 #if defined(SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE) && SOLAR_OS_PACKAGE_SERVICE_EXPANSION
+    if (!sketch.pointer_attempts_left) return false;
+    --sketch.pointer_attempts_left;
     const esp_err_t err = solar_os_expansion_enable_acquire(
         SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE, sketch_state_storage);
-    if (err != ESP_OK) SOLAR_OS_LOGW("sketch", "pointer enable failed: %s", esp_err_to_name(err));
+    if (err == ESP_OK) { sketch.pointer_attempts_left = 0; return true; }
+    if (err != ESP_ERR_INVALID_STATE) sketch.pointer_attempts_left = 0;
+    SOLAR_OS_LOGW("sketch", "pointer enable failed: %s (deferred attempts=%u)",
+                  esp_err_to_name(err), (unsigned)sketch.pointer_attempts_left);
 #endif
+    return false;
+}
+
+static void sketch_pointer_acquire(void)
+{
+    /* A transient Expansion reservation is retried on at most two later ticks;
+     * never wait inside a lifecycle callback or weaken the reservation guard. */
+    sketch.pointer_attempts_left = 3;
+    (void)sketch_pointer_try_acquire();
 }
 
 static void sketch_pointer_release(void)
 {
+    sketch.pointer_attempts_left = 0;
 #if defined(SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE) && SOLAR_OS_PACKAGE_SERVICE_EXPANSION
     const esp_err_t err = solar_os_expansion_enable_release(
         SOLAR_OS_BOARD_SKETCH_POINTER_DEVICE, sketch_state_storage);
@@ -1502,6 +1519,7 @@ static void sketch_stop(solar_os_context_t *ctx)
 
 static void sketch_suspend(solar_os_context_t *ctx)
 {
+    if (sketch.touch_canceling) return;
 #if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
     solar_os_sketch_trace_record(SKTRACE_SUSPEND, 0, sketch_canvas_version, 0, 0, 0);
 #endif
@@ -1513,6 +1531,9 @@ static void sketch_suspend(solar_os_context_t *ctx)
 
 static void sketch_resume(solar_os_context_t *ctx)
 {
+    /* Session's balanced CANCEL callbacks clear gestures, not device leases.
+     * In particular do not OFF/ON touch while Expansion is UPDATING. */
+    if (sketch.touch_canceling) { sketch.touch_canceling = false; return; }
 #if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
     solar_os_sketch_trace_record(SKTRACE_RESUME, 0, sketch_canvas_version, 0, 0, 0);
 #endif
@@ -1544,6 +1565,12 @@ static bool sketch_event(solar_os_context_t *ctx,
     if (event == NULL) {
         return false;
     }
+    if (event->type == SOLAR_OS_EVENT_TOUCH_CANCEL) {
+        if (sketch.drawing && sketch_is_shape_tool()) sketch_request_full();
+        sketch.drawing = false;
+        sketch.touch_canceling = true;
+        return true;
+    }
     if (event->type == SOLAR_OS_EVENT_POINTER) {
 #if defined(SOLAR_OS_SKETCH_LATENCY_TRIAL) && SOLAR_OS_SKETCH_LATENCY_TRIAL
         const int64_t event_start = esp_timer_get_time();
@@ -1560,6 +1587,10 @@ static bool sketch_event(solar_os_context_t *ctx,
         return sketch_char_event(ctx, (uint8_t)event->data.ch);
     }
     if (event->type == SOLAR_OS_EVENT_TICK) {
+        if (!sketch.suspended && sketch.pointer_attempts_left && sketch_pointer_try_acquire()) {
+            if (sketch.modal == SKETCH_MODAL_NO_POINTER) sketch.modal = SKETCH_MODAL_NONE;
+            sketch_request_full();
+        }
         if (sketch.render_pending) {
             sketch_render(ctx);
         }

@@ -13,6 +13,8 @@ struct solar_os_gfx { size_t width, height; };
 static struct solar_os_gfx display = {800,480};
 static size_t allocations, allocation_number, fail_at;
 static bool leased, manual_on, other_pointer, fail_enable;
+static esp_err_t enable_failure = ESP_FAIL;
+static unsigned acquire_calls, release_calls;
 static unsigned submits, synchronous_presents, full_clears;
 static int last_bitmap_width, last_bitmap_height;
 static esp_err_t submit_error;
@@ -27,9 +29,9 @@ void *solar_os_memory_alloc(size_t n,solar_os_memory_class_t c,const char *tag)
 {(void)c;(void)tag;if(++allocation_number==fail_at)return NULL;void *p=malloc(n);if(p)allocations++;return p;}
 void solar_os_memory_free(void *p){if(p){assert(allocations);allocations--;free(p);}}
 esp_err_t solar_os_expansion_enable_acquire(const char *n,const void *owner)
-{assert(!strcmp(n,"fixture-pointer") && owner==sketch_state_storage);if(fail_enable)return ESP_FAIL;leased=true;return ESP_OK;}
+{assert(!strcmp(n,"fixture-pointer") && owner==sketch_state_storage);acquire_calls++;if(fail_enable)return enable_failure;leased=true;return ESP_OK;}
 esp_err_t solar_os_expansion_enable_release(const char *n,const void *owner)
-{assert(!strcmp(n,"fixture-pointer") && owner==sketch_state_storage);leased=false;return ESP_OK;}
+{assert(!strcmp(n,"fixture-pointer") && owner==sketch_state_storage);release_calls++;leased=false;return ESP_OK;}
 size_t solar_os_input_source_count(void){return 1;}
 bool solar_os_input_source_get(size_t n,solar_os_input_source_info_t *i)
 {assert(n==0);i->ready=other_pointer || (!fail_enable && (leased || manual_on));i->capabilities=SOLAR_OS_INPUT_CAP_POINTER_ABSOLUTE;return true;}
