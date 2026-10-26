@@ -477,6 +477,31 @@ static void assert_storage_discovery(void)
     assert(rmdir(root) == 0);
 }
 
+static void assert_copy_failures(void)
+{
+    char root[] = "/tmp/solaros-copy-errors-XXXXXX";
+    assert(mkdtemp(root));
+    char source[160], dest[160];
+    snprintf(source, sizeof(source), "%s/source", root);
+    snprintf(dest, sizeof(dest), "%s/dest", root);
+    write_text(source, "SD copy error propagation");
+    fail_sync = true;
+    errno = 0;
+    assert(solar_os_storage_copy_file(source, dest) == ESP_FAIL);
+    assert(errno == EIO && access(dest, F_OK) != 0);
+    fail_sync = false;
+    fail_write = fail_close = true;
+    errno = 0;
+    assert(solar_os_storage_copy_file(source, dest) == ESP_FAIL);
+    assert(errno == ENOSPC && access(dest, F_OK) != 0);
+    fail_write = false;
+    errno = 0;
+    assert(solar_os_storage_copy_file(source, dest) == ESP_FAIL);
+    assert(errno == EBADF && access(dest, F_OK) != 0);
+    fail_close = false;
+    assert(!remove(source) && !rmdir(root));
+}
+
 int main(void)
 {
     assert(solar_os_storage_block_count() == 3);
@@ -494,6 +519,7 @@ int main(void)
 
     assert_copy_progress();
     assert_copy_cancel();
+    assert_copy_failures();
     assert_replace_file();
     assert_write_file();
     assert_storage_discovery();

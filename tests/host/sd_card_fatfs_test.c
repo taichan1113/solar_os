@@ -69,6 +69,22 @@ int main(int argc,char **argv)
     assert(mounts[0].fs->fs_type==FS_FAT32);roundtrip();
     assert(sd_card_unmount_volume("sd0p1")==ESP_OK);
     assert(sd_card_mount_volume("sd0p1","/sdcard")==ESP_OK);roundtrip();
+    /* Real FatFS propagates native write errors; capture exact SDMMC error and
+     * absolute LBA without retrying. No physical media is used. */
+    FIL failed; UINT n;
+    assert(f_open(&failed,"1:/failure.txt",FA_WRITE|FA_CREATE_ALWAYS)==FR_OK);
+    fail_write=true;
+    FRESULT wr=f_write(&failed,"failure",7,&n);
+    FRESULT sync=f_sync(&failed),close=f_close(&failed);
+    assert(wr!=FR_OK || sync!=FR_OK || close!=FR_OK);
+    sd_card_diagnostics_t diag;
+    assert(sd_card_get_last_diagnostics(&diag));
+    assert(diag.diskio_error==ESP_ERR_TIMEOUT && diag.diskio_result==RES_ERROR);
+    assert(!strcmp(diag.diskio_operation,"write") && diag.diskio_count>0);
+    assert(diag.physical_drive==2 && diag.diskio_sector>=first_lba);
+    fail_write=false;
+    assert(sd_card_unmount_volume("sd0p1")==ESP_OK);
+    assert(sd_card_mount_volume("sd0p1","/sdcard")==ESP_OK);roundtrip();
     assert(sd_card_unmount_volume("sd0p1")==ESP_OK);
     if(argc>1 && !strcmp(argv[1],"write")) {
         assert(writes>0 && fclose(image)==0);puts("sd_card_fatfs_test: real FatFS FAT32 partition offset + create/write/close/read/remount PASS");return 0;

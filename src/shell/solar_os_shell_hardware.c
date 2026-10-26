@@ -35,6 +35,9 @@
 #include "solar_os_shell.h"
 #include "solar_os_status_led.h"
 #include "solar_os_storage.h"
+#if SOLAR_OS_BOARD_HAS_SD || SOLAR_OS_PACKAGE_EXPANSION_SDSPI || SOLAR_OS_PACKAGE_EXPANSION_SDMMC
+#include "sd_card.h"
+#endif
 #if SOLAR_OS_PACKAGE_SERVICE_SYNTH
 #include "solar_os_synth.h"
 #endif
@@ -213,6 +216,28 @@ static void disk_print_status(solar_os_shell_io_t *term)
     solar_os_storage_get_status(status, sizeof(status));
     solar_os_shell_io_printf(term, "Disk: %s\n", status);
     solar_os_shell_io_printf(term, "Mount: %s\n", solar_os_storage_mount_point());
+#if SOLAR_OS_BOARD_HAS_SD || SOLAR_OS_PACKAGE_EXPANSION_SDSPI || SOLAR_OS_PACKAGE_EXPANSION_SDMMC
+    sd_card_diagnostics_t d;
+    if (sd_card_get_last_diagnostics(&d)) {
+        /* Last errors persist across successful I/O; no media access here. */
+        solar_os_shell_io_printf(term,
+            "SD init=0x%x mount=0x%x mount-FRESULT=%d pdrv=%u\n",
+            (unsigned)d.init_error, (unsigned)d.mount_error, d.fatfs_result,
+            (unsigned)d.physical_drive);
+        solar_os_shell_io_printf(term,
+            "SD last-I/O=%s err=0x%x DRESULT=%d LBA=%" PRIu32 " count=%" PRIu32 "\n",
+            d.diskio_operation[0] ? d.diskio_operation : "none",
+            (unsigned)d.diskio_error, d.diskio_result, d.diskio_sector, d.diskio_count);
+        for (size_t i = 0; i < sd_card_block_count(); ++i) {
+            sd_card_block_t b;
+            if (sd_card_get_block(i, &b) && b.mounted)
+                solar_os_shell_io_printf(term,
+                    "SD %s logical=%u partition=%u start=%" PRIu64 " sectors=%" PRIu64 "\n",
+                    b.name, (unsigned)b.logical_volume, (unsigned)b.partition_number,
+                    b.start_sector, b.sector_count);
+        }
+    }
+#endif
 }
 
 static void disk_print_lsblk(solar_os_shell_io_t *term)

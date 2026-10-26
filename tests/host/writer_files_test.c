@@ -10,6 +10,20 @@
 #include "solar_os_writer_recovery.h"
 
 int __real_rename(const char *src, const char *dst);
+int __real_fsync(int fd);
+int __real_remove(const char *path);
+static bool fail_sync;
+int __wrap_remove(const char *path)
+{
+    int result = __real_remove(path);
+    if (fail_sync) errno = ENOENT; /* cleanup may change errno even on success */
+    return result;
+}
+int __wrap_fsync(int fd)
+{
+    if (fail_sync) { errno = EIO; return -1; }
+    return __real_fsync(fd);
+}
 
 /* ESP-IDF FAT rename rejects existing targets. Exercise repeated checkpoints
  * and preservation of the old file under this contract, not POSIX overwrite. */
@@ -51,6 +65,14 @@ int main(void)
 
     static const char old_text[] = "old complete document\n";
     static const char new_text[] = "new complete document with more bytes\n";
+    write_plain(path, old_text);
+    fail_sync = true;
+    errno = 0;
+    assert(solar_os_writer_safe_replace(path, new_text, sizeof(new_text)-1,
+        SOLAR_OS_WRITER_FILE_FAULT_NONE) == ESP_FAIL);
+    assert(errno == EIO); /* cleanup must not replace the first failure */
+    fail_sync = false;
+    expect_plain(path, old_text);
     for (solar_os_writer_file_fault_t fault = SOLAR_OS_WRITER_FILE_FAULT_OPEN;
          fault <= SOLAR_OS_WRITER_FILE_FAULT_VERIFY;
          fault++) {

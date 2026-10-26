@@ -578,7 +578,7 @@ doc_layout_test: doc_layout_test.c doc_test_support.c $(ROOT)/src/services/solar
 
 writer_files_test: writer_files_test.c $(WRITER_DIR)/solar_os_writer_files.c $(WRITER_DIR)/solar_os_writer_files.h $(WRITER_DIR)/solar_os_writer_recovery.h esp_err.h
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -I. -I$(ROOT)/src/services -I$(WRITER_DIR) \
-		writer_files_test.c $(WRITER_DIR)/solar_os_writer_files.c -Wl,--wrap=rename -o $@
+		writer_files_test.c $(WRITER_DIR)/solar_os_writer_files.c -Wl,--wrap=rename,--wrap=fsync,--wrap=remove -o $@
 
 file_shortcuts_test: file_shortcuts_test.c $(WRITER_DIR)/solar_os_file_shortcuts.h
 	$(CC) $(CFLAGS) -I. -I$(ROOT)/src/services -I$(WRITER_DIR) \
@@ -1294,6 +1294,7 @@ PRODUCTION_TESTS := storage_media_test docs_media_test storage_primary_flash_tes
 PRODUCTION_TESTS += sketch_cancel_lifecycle_test
 TARGETS += sd_card_fatfs_test
 PRODUCTION_TESTS += sd_card_fatfs_test
+PRODUCTION_TESTS += writer_files_test
 FATFS_DIR ?= $(HOME)/.platformio/packages/framework-espidf/components/fatfs
 sd_card_fatfs_test: sd_card_fatfs_test.c $(ROOT)/src/drivers/sd_card.c $(ROOT)/src/drivers/sd_card.h $(wildcard sd_card_stubs/*.h sd_card_stubs/driver/*.h)
 	$(CC) $(CFLAGS) -Wno-unused-parameter -D_GNU_SOURCE -DMALLOC_CAP_DMA=4 -DMALLOC_CAP_INTERNAL=8 \

@@ -42,6 +42,10 @@ typedef struct {
     esp_err_t diskio_error;
     char diskio_operation[SD_CARD_DIAGNOSTIC_OPERATION_MAX];
     int fatfs_result;
+    int diskio_result;
+    uint32_t diskio_sector;
+    uint32_t diskio_count;
+    uint8_t physical_drive;
 } sd_card_diagnostics_t;
 
 typedef enum {

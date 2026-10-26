@@ -1317,6 +1317,9 @@ esp_err_t solar_os_storage_copy_file_progress_cancel(
 
     FILE *source = fopen(source_path, "rb");
     if (source == NULL) {
+        const int error = errno;
+        ESP_LOGE(TAG, "copy phase=source-open errno=%d", error);
+        errno = error;
         return ESP_FAIL;
     }
 
@@ -1333,6 +1336,7 @@ esp_err_t solar_os_storage_copy_file_progress_cancel(
     if (dest == NULL) {
         const int open_errno = errno;
         fclose(source);
+        ESP_LOGE(TAG, "copy phase=dest-open errno=%d", open_errno);
         errno = open_errno;
         return ESP_FAIL;
     }
@@ -1340,6 +1344,8 @@ esp_err_t solar_os_storage_copy_file_progress_cancel(
     uint8_t buffer[SOLAR_OS_STORAGE_COPY_BUFFER_SIZE];
     esp_err_t ret = ESP_OK;
     uint64_t bytes_done = 0U;
+    const char *phase = "copy";
+    errno = 0;
 
     if (progress != NULL) {
         progress(0U, bytes_total, user);
@@ -1348,11 +1354,13 @@ esp_err_t solar_os_storage_copy_file_progress_cancel(
     while (true) {
         if (should_cancel != NULL && should_cancel(user)) {
             errno = ECANCELED;
+            phase = "cancel";
             ret = ESP_ERR_INVALID_STATE;
             break;
         }
         const size_t bytes_read = fread(buffer, 1, sizeof(buffer), source);
         if (bytes_read > 0 && fwrite(buffer, 1, bytes_read, dest) != bytes_read) {
+            phase = "write";
             ret = ESP_FAIL;
             break;
         }
@@ -1363,25 +1371,35 @@ esp_err_t solar_os_storage_copy_file_progress_cancel(
 
         if (bytes_read < sizeof(buffer)) {
             if (ferror(source)) {
+                phase = "read";
                 ret = ESP_FAIL;
             }
             break;
         }
     }
 
-    const int copy_errno = errno;
+    if (ret == ESP_OK) {
+        phase = "sync";
+        ret = solar_os_storage_sync_file(dest);
+    }
+    int failure_errno = ret != ESP_OK ? (errno != 0 ? errno : EIO) : 0;
     if (fclose(dest) != 0 && ret == ESP_OK) {
         ret = ESP_FAIL;
+        phase = "dest-close";
+        failure_errno = errno != 0 ? errno : EIO;
     }
-    const int close_errno = errno;
-    fclose(source);
+    if (fclose(source) != 0 && ret == ESP_OK) {
+        ret = ESP_FAIL;
+        phase = "source-close";
+        failure_errno = errno != 0 ? errno : EIO;
+    }
 
     if (ret != ESP_OK) {
-        const int failure_errno = close_errno != 0 ?
-            close_errno : (copy_errno != 0 ? copy_errno : EIO);
         (void)remove(dest_path);
+        ESP_LOGE(TAG, "copy phase=%s errno=%d", phase, failure_errno);
         errno = failure_errno;
     }
+    (void)phase;
     return ret;
 }
 

@@ -106,31 +106,37 @@ static esp_err_t diagnostics_mount_error = ESP_OK;
 static esp_err_t diagnostics_diskio_error = ESP_OK;
 static char diagnostics_diskio_operation[12];
 static FRESULT diagnostics_fresult = FR_OK;
+static uint32_t diagnostics_sector, diagnostics_count;
+static int diagnostics_diskio_result = RES_OK;
 
 static bool sd_card_has_active_mounts(void);
 static void deinit_card_if_unused(void);
 
-#if SOLAR_OS_PACKAGE_EXPANSION_SDSPI
-static void diagnostics_note_diskio_error(const char *operation, esp_err_t err)
+#if SOLAR_OS_PACKAGE_EXPANSION_SDSPI || SOLAR_OS_PACKAGE_EXPANSION_SDMMC
+static void diagnostics_note_diskio_error(const char *operation, esp_err_t err,
+                                         uint32_t sector, uint32_t count)
 {
     if (err == ESP_OK) {
         return;
     }
     diagnostics_diskio_error = err;
+    diagnostics_sector = sector;
+    diagnostics_count = count;
+    diagnostics_diskio_result = strcmp(operation, "status") == 0 ? -1 : RES_ERROR;
     strlcpy(diagnostics_diskio_operation,
             operation != NULL ? operation : "I/O",
             sizeof(diagnostics_diskio_operation));
     ESP_LOGE(TAG,
-             "SD %s failed (0x%x)",
+             "SD %s failed err=0x%x DRESULT=%d pdrv=%u LBA=%" PRIu32 " count=%" PRIu32,
              diagnostics_diskio_operation,
-             (unsigned)err);
+             (unsigned)err, diagnostics_diskio_result, (unsigned)physical_pdrv, sector, count);
 }
 
 static DSTATUS sd_card_disk_initialize(BYTE pdrv)
 {
     (void)pdrv;
     const esp_err_t err = sdmmc_get_status(&card_storage);
-    diagnostics_note_diskio_error("status", err);
+    diagnostics_note_diskio_error("status", err, 0, 0);
     return err == ESP_OK ? 0 : STA_NOINIT;
 }
 
@@ -144,7 +150,7 @@ static DRESULT sd_card_disk_read(BYTE pdrv, BYTE *buffer, DWORD sector, UINT cou
 {
     (void)pdrv;
     const esp_err_t err = sdmmc_read_sectors(&card_storage, buffer, sector, count);
-    diagnostics_note_diskio_error("read", err);
+    diagnostics_note_diskio_error("read", err, sector, count);
     return err == ESP_OK ? RES_OK : RES_ERROR;
 }
 
@@ -152,7 +158,7 @@ static DRESULT sd_card_disk_write(BYTE pdrv, const BYTE *buffer, DWORD sector, U
 {
     (void)pdrv;
     const esp_err_t err = sdmmc_write_sectors(&card_storage, buffer, sector, count);
-    diagnostics_note_diskio_error("write", err);
+    diagnostics_note_diskio_error("write", err, sector, count);
     return err == ESP_OK ? RES_OK : RES_ERROR;
 }
 
@@ -165,7 +171,7 @@ static DRESULT sd_card_disk_trim(DWORD start_sector, DWORD sector_count)
                                                start_sector,
                                                sector_count,
                                                argument);
-    diagnostics_note_diskio_error("erase", err);
+    diagnostics_note_diskio_error("erase", err, start_sector, sector_count);
     return err == ESP_OK ? RES_OK : RES_ERROR;
 }
 #endif
@@ -325,6 +331,8 @@ static void sd_card_reset_diagnostics(void)
     diagnostics_diskio_error = ESP_OK;
     diagnostics_diskio_operation[0] = '\0';
     diagnostics_fresult = FR_OK;
+    diagnostics_sector = diagnostics_count = 0;
+    diagnostics_diskio_result = RES_OK;
 }
 
 esp_err_t sd_card_configure_sdspi(int host_id, int cs_pin)
@@ -985,8 +993,15 @@ static esp_err_t ensure_card_ready(void)
 
     card = &card_storage;
     physical_pdrv = pdrv;
+#if SOLAR_OS_PACKAGE_EXPANSION_SDSPI || SOLAR_OS_PACKAGE_EXPANSION_SDMMC
+    bool diagnostic_diskio = false;
 #if SOLAR_OS_PACKAGE_EXPANSION_SDSPI
-    if (transport == SD_CARD_TRANSPORT_SDSPI_RUNTIME) {
+    diagnostic_diskio = transport == SD_CARD_TRANSPORT_SDSPI_RUNTIME;
+#endif
+#if SOLAR_OS_PACKAGE_EXPANSION_SDMMC
+    diagnostic_diskio = diagnostic_diskio || transport == SD_CARD_TRANSPORT_SDMMC;
+#endif
+    if (diagnostic_diskio) {
         ff_diskio_register(physical_pdrv, &sd_card_diskio);
     } else
 #endif
@@ -1135,8 +1150,8 @@ esp_err_t sd_card_mount_volume(const char *name, const char *mount_point)
     }
 
     FRESULT fresult = f_mount(fs, drv, 1);
+    diagnostics_fresult = fresult;
     if (fresult != FR_OK) {
-        diagnostics_fresult = fresult;
         esp_vfs_fat_unregister_path(mount_point);
         return ESP_FAIL;
     }
@@ -1353,6 +1368,10 @@ bool sd_card_get_last_diagnostics(sd_card_diagnostics_t *diagnostics)
     diagnostics->mount_error = diagnostics_mount_error;
     diagnostics->diskio_error = diagnostics_diskio_error;
     diagnostics->fatfs_result = (int)diagnostics_fresult;
+    diagnostics->diskio_result = diagnostics_diskio_result;
+    diagnostics->diskio_sector = diagnostics_sector;
+    diagnostics->diskio_count = diagnostics_count;
+    diagnostics->physical_drive = physical_pdrv;
     strlcpy(diagnostics->diskio_operation,
             diagnostics_diskio_operation,
             sizeof(diagnostics->diskio_operation));
