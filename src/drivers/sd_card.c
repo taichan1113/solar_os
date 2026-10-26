@@ -108,6 +108,7 @@ static char diagnostics_diskio_operation[12];
 static FRESULT diagnostics_fresult = FR_OK;
 
 static bool sd_card_has_active_mounts(void);
+static void deinit_card_if_unused(void);
 
 #if SOLAR_OS_PACKAGE_EXPANSION_SDSPI
 static void diagnostics_note_diskio_error(const char *operation, esp_err_t err)
@@ -757,13 +758,13 @@ static void scan_gpt(const uint8_t *mbr_sector)
     heap_caps_free(sector);
 }
 
-static void scan_partitions(void)
+static esp_err_t scan_partitions(void)
 {
     block_count = 0;
     memset(blocks, 0, sizeof(blocks));
 
     if (!card_ready || card == NULL) {
-        return;
+        return ESP_ERR_INVALID_STATE;
     }
 
     sd_card_block_t disk = {
@@ -779,12 +780,20 @@ static void scan_partitions(void)
     /* SD sector transfers require an internal DMA-capable buffer. */
     uint8_t *sector = heap_caps_malloc(SD_CARD_SECTOR_BYTES, MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL);
     if (sector == NULL) {
-        update_block_mount_state();
-        return;
+        block_count = 0;
+        return ESP_ERR_NO_MEM;
     }
 
     bool has_mbr_parts = false;
-    if (sd_card_read_sector(0, sector) == ESP_OK &&
+    const esp_err_t read_err = sd_card_read_sector(0, sector);
+    if (read_err != ESP_OK) {
+        heap_caps_free(sector);
+        block_count = 0;
+        memset(blocks, 0, sizeof(blocks));
+        ESP_LOGE(TAG, "partition scan read failed: %s", esp_err_to_name(read_err));
+        return read_err;
+    }
+    if (
         sector[510] == 0x55 &&
         sector[511] == 0xaa) {
         for (uint8_t i = 0; i < 4 && block_count < SD_CARD_MAX_BLOCKS; i++) {
@@ -827,6 +836,7 @@ static void scan_partitions(void)
 
     heap_caps_free(sector);
     update_block_mount_state();
+    return ESP_OK;
 }
 
 static esp_err_t ensure_card_ready(void)
@@ -839,6 +849,7 @@ static esp_err_t ensure_card_ready(void)
         if (media_power) detect_err=media_power(media_context,true);
         if (detect_err==ESP_OK && media_detect) detect_err=media_detect(media_context,&present);
         if (detect_err!=ESP_OK || !present) {
+            deinit_card_if_unused(); /* Never unregister a mounted volume. */
             diagnostics_attempted=true;
             diagnostics_init_error=detect_err!=ESP_OK ? detect_err : ESP_ERR_NOT_FOUND;
             snprintf(status_text,sizeof(status_text),detect_err!=ESP_OK ? "detect/power error %d" : "no card",(int)detect_err);
@@ -985,7 +996,8 @@ static esp_err_t ensure_card_ready(void)
     }
     diskio_registered = true;
     card_ready = true;
-    scan_partitions();
+    ret = scan_partitions();
+    if (ret != ESP_OK) { deinit_card_if_unused(); return ret; }
 
     const uint64_t capacity_mb = sd_card_capacity_bytes() / (1024ULL * 1024ULL);
     snprintf(status_text, sizeof(status_text), "card %s %" PRIu64 "MB", card->cid.name, capacity_mb);
@@ -1048,6 +1060,13 @@ static void deinit_card_if_unused(void)
 
 esp_err_t sd_card_mount_volume(const char *name, const char *mount_point)
 {
+#if SOLAR_OS_PACKAGE_EXPANSION_SDMMC
+    if (transport == SD_CARD_TRANSPORT_SDMMC && media_suspended) return ESP_ERR_INVALID_STATE;
+#endif
+    /* lsblk may have initialized a card which was subsequently removed and
+     * reinserted without a poll in between. Unmounted media has no live owner;
+     * discard that cached Host/Card exactly once before this explicit mount. */
+    deinit_card_if_unused();
     esp_err_t ret = ensure_card_ready();
     if (ret != ESP_OK) {
         return ret;
@@ -1292,12 +1311,20 @@ const char *sd_card_mount_point(void)
 
 esp_err_t sd_card_rescan(void)
 {
+#if SOLAR_OS_PACKAGE_EXPANSION_SDMMC
+    if (transport == SD_CARD_TRANSPORT_SDMMC && media_suspended) return ESP_ERR_INVALID_STATE;
+#endif
+    const bool mounted = sd_card_has_active_mounts();
+    if (!mounted) deinit_card_if_unused();
     esp_err_t ret = ensure_card_ready();
     if (ret != ESP_OK) {
         return ret;
     }
-    scan_partitions();
-    return ESP_OK;
+    /* Do not rebuild mappings underneath open files or silently reuse a
+     * removed card. The caller receives the actual status error, with ownership
+     * retained until an explicit unmount. No automatic retry or format. */
+    if (mounted) return sdmmc_get_status(card);
+    return scan_partitions();
 }
 
 size_t sd_card_block_count(void)

@@ -1292,6 +1292,15 @@ papermono_boot_test: papermono_boot_test.c $(ROOT)/src/services/solar_os_board_b
 PRODUCTION_TESTS := storage_media_test docs_media_test storage_primary_flash_test shell_startup_policy_test writer_d_driver_test writer_d_async_test writer_d_shell_test display_async_test writer_checkpoint_test sketch_dirty_pipeline_test sketch_scale140_lifecycle_test sketch_canvas_test type_mouse_engine_test type_mouse_lifecycle_test input_touch_adapter_test launcher_grid_test launcher_touch_test docs_touch_test app_touch_test reader_touch_test clock_touch_test papermono_boot_test sdmmc_expansion_test storage_mounts_test manual_external_metadata_test shell_line_test shell_completion_test
 .PHONY: test-production
 PRODUCTION_TESTS += sketch_cancel_lifecycle_test
+TARGETS += sd_card_fatfs_test
+PRODUCTION_TESTS += sd_card_fatfs_test
+FATFS_DIR ?= $(HOME)/.platformio/packages/framework-espidf/components/fatfs
+sd_card_fatfs_test: sd_card_fatfs_test.c $(ROOT)/src/drivers/sd_card.c $(ROOT)/src/drivers/sd_card.h $(wildcard sd_card_stubs/*.h sd_card_stubs/driver/*.h)
+	$(CC) $(CFLAGS) -Wno-unused-parameter -D_GNU_SOURCE -DMALLOC_CAP_DMA=4 -DMALLOC_CAP_INTERNAL=8 \
+		-include assert.h -include sd_card_stubs/fatfs_config.h -include compat.h \
+		-I$(FATFS_DIR)/src -I$(FATFS_DIR)/diskio -Isd_card_stubs -Igpio_controller_stubs -I. -I$(ROOT)/src/drivers \
+		sd_card_fatfs_test.c $(FATFS_DIR)/src/ff.c $(FATFS_DIR)/src/ffunicode.c \
+		$(FATFS_DIR)/diskio/diskio.c $(FATFS_DIR)/diskio/diskio_sdmmc.c -o $@
 test-production: $(PRODUCTION_TESTS)
 	@set -e; for check in $(PRODUCTION_TESTS); do ./$$check; done
 	./writer_d_async_test restore-fail
