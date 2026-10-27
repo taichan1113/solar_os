@@ -1341,6 +1341,100 @@ Before committing a new board target:
 7. If the board has no display, confirm the primary shell starts on `uart0` and
    that `cdc0` can still be claimed by a job when needed.
 
+## M5Paper MONO custom Firmware (4.16.1-papermono.1 Manual)
+
+This section describes the custom PaperMono build, not every upstream board.
+The OS/OTA version remains 4.16.1. The Manual has its own signed distribution
+identity; read `help status` for the expected target and provisioning state.
+
+### Launcher and navigation
+
+The Launcher has three columns and two rows:
+
+| Manual | Reader | Wi-Fi |
+|---|---|---|
+| Keyboard | Sketch | Clock |
+
+Sleep remains in the header. Tap an item to open it. Physical B/KEY2 short press
+is Enter; hold B until Escape is generated to leave an app. Shell no longer
+opens Launcher merely because Escape was pressed on an empty input line:
+Escape cancels a nonempty input line, and `launcher` explicitly opens Launcher.
+Files and Shell still exist even though they have no Launcher tile.
+
+Manual's topic tree supports vertical swipes, tap selection, section
+expand/collapse and page opening in Reader. Returning from Reader preserves
+selection, scroll position and open sections. Arrow keys and Enter still work.
+Sleep ignores touch; KEY1 wakes the device. Normal app/session transitions
+cancel outstanding touches rather than delivering them to the next screen.
+
+### Display and recovery
+
+Candidate F is the common default waveform for all apps, including Sketch.
+The normal path is fastest, tile, SPI 20 MHz, rows-dual with periodic full RAM
+synchronization every 32 updates, Display Async enabled and pacing OFF.
+RAM write rectangles do not restrict the panel's physical drive area. Long-term
+optical quality and panel lifetime are not established by Host tests.
+
+Use these existing screen/USB Shell recovery commands:
+
+```text
+display test display0 fastest-lut status
+display test display0 fastest-lut trace
+display test display0 fastest-lut baseline
+display test display0 fastest-lut candidate_f
+display async display0
+display mode display0
+```
+
+`baseline` selects Baseline A globally; `disable` is its compatibility synonym.
+`candidate_f` restores F when the driver's normal transport preconditions hold.
+`writer-lut` is a deprecated alias for `fastest-lut`; D is unavailable in the
+default-F build. Status/trace do not themselves request panel updates, though
+printing on the screen Shell can cause a normal display submission. If needed,
+explicit `display mode display0 refresh=cleanup` requests an OTP cleanup;
+do not repeatedly run cleanup or high-speed experiments without a purpose.
+
+### Applications and connections
+
+- Writer keeps its existing save and Checkpoint behavior. Use Ctrl+S to save a
+  named document and reopen it to verify persistence. Checkpoint recovery does
+  not replace explicit saves. Existing Flash documents stay at their paths.
+- Sketch uses the current local brush rendering; past local-render speedups are
+  already included. There is no second independent fast algorithm or runtime
+  `sketch-render` selector. Input points update the logical Canvas, paint regions
+  are coalesced, and the final release segment is retained. UI/modal changes can
+  still need a full render. PNG format and save/load behavior are unchanged.
+  The Save notification OK/Escape touch-lease failure has passed device retest.
+- Keyboard opens TypeMouse without an external BLE keyboard or a connected HID
+  destination. PC key/mouse delivery needs the BLE HID destination connected.
+  Keys show tap labels and small hold labels; pressed keys invert. Long-hold
+  Shift/Ctrl/Fn/Sym/Nav to latch, then lift and tap another key; long-hold the same
+  key again to release the latch. A latched key remains inverted. This avoids
+  requiring two close contacts that the touch controller may merge. Mouse shows
+  guides for the implemented pointer/click/drag/two-finger-scroll gestures;
+  pointer movement does not repaint the EPD on every movement. Type/Mouse and
+  Exit return through the existing app lifecycle.
+- USB Shell starts independently of startup and remains available alongside the
+  Launcher. Boot starts Wi-Fi using the current policy, while a saved explicit
+  OFF setting is respected. `wifi` and `wifi on/off` remain manual controls.
+  NTP is not started automatically; use `ntp` for an explicit synchronization.
+
+### Storage and current device acceptance
+
+Internal Flash remains `/`; the removable card is added at `/sdcard`. Existing
+documents and startup are not moved. This Board keeps startup on Flash; a card
+does not become the default document or startup volume merely by insertion.
+Use `disk status` and `disk lsblk` before selecting a card volume. Close readers
+and writers, run `disk umount` (all removable volumes) and wait for success
+before removing the card. Never assume a failed unmount made removal safe.
+
+Device acceptance: Writer save/reopen, Launcher/Manual touch, TypeMouse, Sketch
+save/notification/reentry, Sleep/Wake, USB reconnect, SD reads and SD reinsertion
+passed. **New SD file saves remain FAIL**; do not promise SD writing, Docs
+installation or automatic format as a supported fix. Keep normal documents on
+Flash until SD writing is resolved. Dedicated Manual Wi-Fi update, install and
+offline-read acceptance is blocked on SD writing and production provisioning.
+
 ## Quick reference
 
 Select the PlatformIO environment matching the physical target. Board profiles

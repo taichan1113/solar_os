@@ -77,6 +77,30 @@ manual alias. Use the exact topic ID `help command.status` to open the shell
 
 ## Why versions must match
 
+### PaperMono custom Firmware
+
+The custom M5Paper MONO build uses a separate Docs release URL and public key;
+its OTA update URL, OTA key and stored OTA settings are unchanged. `help status`
+shows `Manual target` (currently `4.16.1-papermono.1`), `Docs source`, and the
+resolved release base when configured. The OS version remains `4.16.1`.
+This Manual identity distinguishes the custom features from upstream 4.16.1.
+Schema-v2 `firmware_version` must equal that Manual target, not the bare OS
+version. Cached manuals with another target are also rejected on this build.
+Other boards keep the legacy OTA-linked behavior described above.
+
+No production Docs domain or signing key has been provisioned yet. An
+unconfigured custom build reports configuration required and does not fall back
+to upstream downloads. It retains the built-in setup help. A dedicated HTTPS
+release must provide `doc/catalog.json`, `doc/catalog.sig` and `doc/manual.zip`;
+redirects are not accepted by the dedicated client.
+
+PaperMono SD reads and reinsertion have passed device acceptance, but **new SD
+file saves still fail**. Docs installation writes to `/sdcard/.solar/docs` and
+is therefore blocked on the device until that failure is fixed. Host signing
+and install tests are not evidence that device `help update` works. Do not
+format a card or move the Manual to internal flash as an automatic workaround.
+See the PaperMono section in `boards` for the current controls and limitations.
+
 Documentation can affect scripts produced by the agent. A newly downloaded
 manual is therefore activated only when its catalog names the exact running
 firmware version. A previously verified manual remains available after an OS
