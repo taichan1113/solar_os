@@ -1,5 +1,11 @@
 # M5Paper MONO 本採用台帳（2026-10-27 更新）
 
+## Docs配布基盤（2026-10-27）
+
+DOC-01/02：PaperMono専用Docs URL/public keyとManual target `4.16.1-papermono.1`をOTAから分離し、生成・P-256/SHA-256署名・schema-v2検証・ローカル配布パッケージと実C installerのHost E2Eを実装した。Production Host/Python/Build PASS。本番URL・本番鍵は未設定で、Firmwareは安全な設定待ち。テスト鍵を本番信頼鍵に使わない。
+
+**SD新規保存FAILは未修正。実機Manual更新・SD install・offline閲覧Acceptanceは、本番provisioningとSD修正までBLOCKED**。Flash/公開/実SD操作は未実施。詳細と成果物hashは[署名付き配布統合報告](m5paper-mono-signed-manual-distribution-20261027.md)。以下の過去記録より、この項目の状態を優先する。
+
 ## 今回の確定事項（2026-10-27）
 
 Sketch候補は **B：過去の全画面描画のみ**。局所描画高速化は現行に取込済みで、独立した高速化候補は未発見。既存の全画面fallback/localをHost比較し、24描画のCanvasと合成XBMが一致、XBM出力量865,536→37,771 Bを確認した。これはSPI量・実機遅延の測定ではない。現行local＋Fを維持し、形式的なruntime selectorは追加しない。下記履歴中の「selector必須」はこの調査結果で更新する。
