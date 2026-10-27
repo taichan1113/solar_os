@@ -1300,6 +1300,10 @@ papermono_boot_test: papermono_boot_test.c $(ROOT)/src/services/solar_os_board_b
 
 PRODUCTION_TESTS := storage_media_test docs_media_test storage_primary_flash_test shell_startup_policy_test writer_d_driver_test writer_d_async_test writer_d_shell_test display_async_test writer_checkpoint_test sketch_dirty_pipeline_test sketch_scale140_lifecycle_test sketch_canvas_test type_mouse_engine_test type_mouse_lifecycle_test input_touch_adapter_test launcher_grid_test launcher_touch_test docs_touch_test app_touch_test reader_touch_test clock_touch_test papermono_boot_test sdmmc_expansion_test storage_mounts_test manual_external_metadata_test shell_line_test shell_completion_test
 .PHONY: test-production
+.PHONY: test-signed-manual
+test-signed-manual:
+	cd $(ROOT) && CJSON_DIR="$(abspath $(CJSON_DIR))" python3 -m unittest tests.test_signed_manual
+
 PRODUCTION_TESTS += sketch_cancel_lifecycle_test
 TARGETS += sd_card_fatfs_test
 PRODUCTION_TESTS += sd_card_fatfs_test

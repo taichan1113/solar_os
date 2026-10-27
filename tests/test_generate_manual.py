@@ -200,7 +200,7 @@ class ManualReleaseLimitTest(unittest.TestCase):
             r'docs_manual_copy_string_array\(index,\s*catalog_page,\s*"keywords",',
         )
 
-    def test_cached_manual_survives_firmware_version_change(self):
+    def test_legacy_cached_manual_compatibility_and_dedicated_identity(self):
         docs_header = (
             REPOSITORY / "src/services/solar_os_docs.h"
         ).read_text(encoding="utf-8")
@@ -214,8 +214,8 @@ class ManualReleaseLimitTest(unittest.TestCase):
         parser = parser[:parser.index("\nstatic esp_err_t docs_page_metadata(")]
         self.assertIn("bool require_current_version", parser)
         self.assertIn(
-            "require_current_version &&\n"
-            "         strcmp(info->firmware_version, SOLAR_OS_VERSION) != 0",
+            "(require_current_version || SOLAR_OS_DOCS_DEDICATED) &&\n"
+            "         strcmp(info->firmware_version, solar_os_docs_expected_version()) != 0",
             parser,
         )
         self.assertIn(
