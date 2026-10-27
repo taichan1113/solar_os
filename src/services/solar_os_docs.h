@@ -44,6 +44,10 @@ typedef struct {
 } solar_os_docs_status_t;
 
 esp_err_t solar_os_docs_init(void);
+/* Manual identity is independent of the firmware OTA version on custom builds. */
+const char *solar_os_docs_expected_version(void);
+const char *solar_os_docs_distribution_state(void);
+esp_err_t solar_os_docs_release_base(char *url, size_t url_len);
 /* Pair around SD mount/unmount/rescan. Refuses while docs I/O is active. */
 esp_err_t solar_os_docs_storage_begin(void);
 void solar_os_docs_storage_end(void);

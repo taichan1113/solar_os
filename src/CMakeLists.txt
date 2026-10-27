@@ -369,6 +369,23 @@ file(WRITE "${SOLAR_OS_GENERATED_OTA_KEY_HEADER}"
     "#define SOLAR_OS_OTA_PUBLIC_KEY_FILE \"${SOLAR_OS_OTA_PUBLIC_KEY_FILE}\"\n"
 )
 
+# Docs uses an independent trust domain on PaperMono. OTA remains unchanged.
+set(SOLAR_OS_DOCS_CONFIG_GENERATOR "${SOLAR_OS_PROJECT_DIR}/scripts/generate_docs_config.py")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${SOLAR_OS_DOCS_CONFIG_GENERATOR}")
+if(DEFINED ENV{SOLAR_OS_DOCS_PUBLIC_KEY_FILE} AND
+        NOT "$ENV{SOLAR_OS_DOCS_PUBLIC_KEY_FILE}" STREQUAL "")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+        "$ENV{SOLAR_OS_DOCS_PUBLIC_KEY_FILE}")
+endif()
+execute_process(COMMAND "${Python3_EXECUTABLE}" "${SOLAR_OS_DOCS_CONFIG_GENERATOR}"
+    --board "${SOLAR_OS_BOARD_ID}" --version "${SOLAR_OS_VERSION}"
+    --output "${SOLAR_OS_GENERATED_DIR}/solar_os_docs_build.h"
+    RESULT_VARIABLE SOLAR_OS_DOCS_CONFIG_RESULT)
+if(NOT SOLAR_OS_DOCS_CONFIG_RESULT EQUAL 0)
+    message(FATAL_ERROR "SolarOS Docs distribution configuration failed")
+endif()
+
 set(SOLAR_OS_SRCS)
 set(SOLAR_OS_REQUIRES)
 

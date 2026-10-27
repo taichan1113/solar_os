@@ -36,13 +36,13 @@ static void docs_warn_if_outdated(solar_os_shell_io_t *io)
     solar_os_docs_status_t status;
     if (solar_os_docs_get_status(&status) == ESP_OK &&
         status.available &&
-        strcmp(status.manual_version, SOLAR_OS_VERSION) != 0) {
+        strcmp(status.manual_version, solar_os_docs_expected_version()) != 0) {
         solar_os_shell_io_printf(
             io,
-            "Warning: downloaded Help is for SolarOS %s; running %s. "
+            "Warning: downloaded Help is for %s; expected %s. "
             "It may be outdated. Run 'help update'.\n",
             status.manual_version,
-            SOLAR_OS_VERSION);
+            solar_os_docs_expected_version());
     }
 }
 #endif
@@ -424,6 +424,11 @@ static void docs_print_status(solar_os_shell_io_t *io)
         return;
     }
     solar_os_shell_io_printf(io, "Firmware: %s\n", SOLAR_OS_VERSION);
+    solar_os_shell_io_printf(io, "Manual target: %s\nDocs source: %s\n",
+        solar_os_docs_expected_version(), solar_os_docs_distribution_state());
+    char release_base[256];
+    if (solar_os_docs_release_base(release_base, sizeof(release_base)) == ESP_OK)
+        solar_os_shell_io_printf(io, "Docs release: %s\n", release_base);
     solar_os_shell_io_printf(io,
                              "External manual: %s\n",
                              status.available ? "active" : "built-in setup guide");
@@ -432,7 +437,7 @@ static void docs_print_status(solar_os_shell_io_t *io)
                                  "Manual version: %s%s\n",
                                  status.manual_version,
                                  strcmp(status.manual_version,
-                                        SOLAR_OS_VERSION) != 0 ?
+                                        solar_os_docs_expected_version()) != 0 ?
                                      " (may be outdated)" : "");
         solar_os_shell_io_printf(io, "Revision: %s\n", status.revision);
         solar_os_shell_io_printf(io, "Pages: %u\n", (unsigned)status.page_count);

@@ -20,6 +20,7 @@
 #include "solar_os_memory.h"
 #include "solar_os_ota.h"
 #include "solar_os_ota_key.h"
+#include "solar_os_docs_build.h"
 #include "solar_os_storage.h"
 #include "solar_os_zip.h"
 
@@ -361,7 +362,8 @@ static esp_err_t docs_download(const char *url,
         .url = url,
         .method = SOLAR_OS_HTTP_METHOD_GET,
         .user_agent = "SolarOS-docs/" SOLAR_OS_VERSION,
-        .follow_redirects = true,
+        /* Dedicated release URLs must point directly to HTTPS artifacts. */
+        .follow_redirects = !SOLAR_OS_DOCS_DEDICATED,
         .timeout_ms = DOCS_HTTP_TIMEOUT_MS,
         .deadline_ms = DOCS_HTTP_DEADLINE_MS,
         .receive_buffer_size = 2048U,
@@ -453,13 +455,19 @@ static esp_err_t docs_verify_signature(const char *catalog,
                                        size_t catalog_len,
                                        const char *signature)
 {
+#if SOLAR_OS_DOCS_DEDICATED
+    const char *key = SOLAR_OS_DOCS_PUBLIC_KEY_PEM;
+    if (!key[0]) return ESP_ERR_INVALID_STATE;
+#else
+    const char *key = SOLAR_OS_OTA_PUBLIC_KEY_PEM;
+#endif
     uint8_t der[SOLAR_OS_CRYPTO_ECDSA_P256_DER_SIGNATURE_MAX];
     size_t der_len = 0U;
     esp_err_t err =
         solar_os_crypto_base64_decode(signature, der, sizeof(der), &der_len);
     if (err == ESP_OK) {
         err = solar_os_crypto_ecdsa_p256_sha256_verify_pem(
-            SOLAR_OS_OTA_PUBLIC_KEY_PEM, catalog, catalog_len, der, der_len);
+            key, catalog, catalog_len, der, der_len);
     }
     return err;
 }
@@ -521,8 +529,8 @@ static esp_err_t docs_parse_catalog(const char *catalog,
     if (err != ESP_OK || strcmp(schema, DOCS_SCHEMA) != 0 ||
         schema_version != DOCS_SCHEMA_VERSION ||
         info->firmware_version[0] == '\0' ||
-        (require_current_version &&
-         strcmp(info->firmware_version, SOLAR_OS_VERSION) != 0) ||
+        ((require_current_version || SOLAR_OS_DOCS_DEDICATED) &&
+         strcmp(info->firmware_version, solar_os_docs_expected_version()) != 0) ||
         !docs_revision_valid(info->revision) ||
         strcmp(info->archive_path, DOCS_ARCHIVE_FILE) != 0 ||
         !solar_os_crypto_sha256_hex_is_valid(info->archive_sha) ||
@@ -1046,10 +1054,37 @@ static esp_err_t docs_activate(const docs_catalog_t *info)
     return err;
 }
 
-static esp_err_t docs_exact_release_base(char *url, size_t url_len)
+const char *solar_os_docs_expected_version(void)
 {
-    char configured[SOLAR_OS_OTA_URL_MAX];
+    return SOLAR_OS_DOCS_FIRMWARE_ID;
+}
+
+const char *solar_os_docs_distribution_state(void)
+{
+#if SOLAR_OS_DOCS_DEDICATED
+    return SOLAR_OS_DOCS_RELEASE_URL[0] && SOLAR_OS_DOCS_PUBLIC_KEY_PEM[0] ?
+        "dedicated Docs (configured)" : "dedicated Docs (URL/public key configuration required)";
+#else
+    return "OTA-linked (legacy Board)";
+#endif
+}
+
+esp_err_t solar_os_docs_release_base(char *url, size_t url_len)
+{
+    if (!url || !url_len) return ESP_ERR_INVALID_ARG;
+    url[0] = '\0';
+    char configured[DOCS_URL_MAX];
+#if SOLAR_OS_DOCS_DEDICATED
+    if (!SOLAR_OS_DOCS_RELEASE_URL[0] || !SOLAR_OS_DOCS_PUBLIC_KEY_PEM[0])
+        return ESP_ERR_INVALID_STATE;
+    if (strlcpy(configured, SOLAR_OS_DOCS_RELEASE_URL, sizeof(configured)) >= sizeof(configured))
+        return ESP_ERR_INVALID_SIZE;
+#else
     solar_os_ota_get_url(configured, sizeof(configured));
+#endif
+#if SOLAR_OS_DOCS_DEDICATED
+    if (strncmp(configured, "https://", 8) || !configured[8]) return ESP_ERR_INVALID_ARG;
+#endif
     size_t len = strlen(configured);
     while (len > 0U && configured[len - 1U] == '/') {
         configured[--len] = '\0';
@@ -1059,7 +1094,7 @@ static esp_err_t docs_exact_release_base(char *url, size_t url_len)
         strcmp(configured + len - (sizeof(suffix) - 1U), suffix) == 0) {
         configured[len - (sizeof(suffix) - 1U)] = '\0';
         const int written =
-            snprintf(url, url_len, "%s/%s", configured, SOLAR_OS_VERSION);
+            snprintf(url, url_len, "%s/%s", configured, solar_os_docs_expected_version());
         return written >= 0 && (size_t)written < url_len ?
             ESP_OK : ESP_ERR_INVALID_SIZE;
     }
@@ -1355,7 +1390,8 @@ esp_err_t solar_os_docs_update(solar_os_docs_progress_fn progress_fn,
     solar_os_docs_progress_t progress = {
         .stage = SOLAR_OS_DOCS_PROGRESS_CATALOG,
     };
-    esp_err_t err = docs_exact_release_base(base_url, sizeof(base_url));
+    esp_err_t err = solar_os_docs_release_base(base_url, sizeof(base_url));
+    const bool source_error = err != ESP_OK;
     if (err == ESP_OK) {
         err = docs_url(base_url, DOCS_CATALOG_FILE, url, sizeof(url));
     }
@@ -1546,7 +1582,10 @@ esp_err_t solar_os_docs_update(solar_os_docs_progress_fn progress_fn,
         docs_report_progress(progress_fn, progress_user, &progress);
     } else {
         char message[SOLAR_OS_DOCS_ERROR_MAX];
-        snprintf(message, sizeof(message), "update failed: %s", esp_err_to_name(err));
+        if (source_error)
+            snprintf(message, sizeof(message), "Docs source not configured; run help status");
+        else
+            snprintf(message, sizeof(message), "update failed: %s", esp_err_to_name(err));
         docs_set_result(before.available,
                         false,
                         before.manual_version,

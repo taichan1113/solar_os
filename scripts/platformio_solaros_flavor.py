@@ -179,6 +179,7 @@ tracked_files = (
     project_dir / "version.txt",
     project_dir / "packages" / "solar_os_packages.toml",
     project_dir / "scripts" / "generate_flavor_config.py",
+    project_dir / "scripts" / "generate_docs_config.py",
     project_dir / "scripts" / "platformio_solaros_flavor.py",
     project_dir / "scripts" / "cxx_sdkconfig.cmake",
     project_dir / "scripts" / "papermono_sdkconfig.cmake",
@@ -224,6 +225,11 @@ for tracked_file in tracked_files:
         f"{stat.st_mtime_ns}:"
         f"{stat.st_size}\n"
     )
+
+# Changing Docs URL/identity/public key must invalidate the CMake selection.
+# Only a fingerprint is recorded; no private signing material is a build input.
+from generate_docs_config import fingerprint as docs_fingerprint
+stamp += "docs=" + docs_fingerprint(board, (project_dir / "version.txt").read_text().strip()) + "\n"
 
 previous = stamp_path.read_text(encoding="utf-8") if stamp_path.exists() else ""
 if previous != stamp and (previous or (build_dir / "CMakeCache.txt").exists()):
